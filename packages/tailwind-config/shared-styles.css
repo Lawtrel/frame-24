@@ -1,0 +1,120 @@
+@import "tailwindcss";
+
+@custom-variant light (&:where(.light, .light *));
+
+:root {
+    /* Cores base - Tema Claro Cinema Vermelho Otimizado */
+    --color-background: #ffffff;
+    --color-background-secondary: #f9fafb; /* Cinza claro sutil */
+    --color-background-tertiary: #f3f4f6; /* Cinza claro */
+    --color-background-elevated: #ffffff;
+
+    --color-foreground: #1f2937;
+    --color-foreground-secondary: #4b5563; /* Texto secundário */
+    --color-foreground-tertiary: #9ca3af; /* Texto terciário */
+    --color-foreground-muted: #6b7280; /* Texto menos importante */
+
+    --color-primary: #dc2626; /* Vermelho principal de ação */
+    --color-primary-foreground: #ffffff;
+
+    --color-border: #e5e7eb; /* Bordas mais neutras */
+    --color-input: #ffffff;
+    --color-ring: #dc2626;
+
+    /* Cores específicas para sidebar */
+    --color-sidebar-bg: #ffffff;
+    --color-sidebar-border: #e5e7eb;
+    --color-sidebar-item-bg: #ffffff;
+    --color-sidebar-item-hover: #f3f4f6; /* Cinza suave */
+    --color-sidebar-item-active: #fee2e2; /* Vermelho muito claro */
+    --color-sidebar-text: #1f2937;
+    --color-sidebar-text-muted: #6b7280;
+    --color-sidebar-text-active: #dc2626;
+    --color-sidebar-icon: #6b7280;
+    --color-sidebar-icon-active: #dc2626;
+
+    --radius-sm: 0.375rem;
+    --radius: 0.5rem;
+    --radius-lg: 0.75rem;
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+.dark{
+    /* Cores base - Tema Escuro Cinema Vermelho Otimizado */
+    --color-background: #0f0f0f; /* Preto quase puro */
+    --color-background-secondary: #1c1c1c; /* Cinza escuro */
+    --color-background-tertiary: #2c2c2c; /* Cinza médio */
+    --color-background-elevated: #1c1c1c;
+
+    --color-foreground: #f5f5f5;
+    --color-foreground-secondary: #a1a1aa;
+    --color-foreground-tertiary: #71717a;
+    --color-foreground-muted: #52525b;
+
+    --color-primary: #ef4444; /* Vermelho principal de ação */
+    --color-primary-foreground: #ffffff;
+
+    --color-border: #333333; /* Bordas mais neutras */
+    --color-input: #2c2c2c;
+    --color-ring: #f87171;
+
+    /* Cores específicas para sidebar - Tema Escuro */
+    --color-sidebar-bg: #1c1c1c;
+    --color-sidebar-border: #333333;
+    --color-sidebar-item-bg: #1c1c1c;
+    --color-sidebar-item-hover: #2c2c2c;
+    --color-sidebar-item-active: #3d1313; /* Vermelho escuro */
+    --color-sidebar-text: #f5f5f5;
+    --color-sidebar-text-muted: #a1a1aa;
+    --color-sidebar-text-active: #fca5a5;
+    --color-sidebar-icon: #a1a1aa;
+    --color-sidebar-icon-active: #fca5a5;
+}
+    @layer base {
+    body {
+        background-color: var(--color-background);
+        color: var(--color-foreground);
+    }
+}
+
+/* Classes utilitárias para o sidebar usando @utility */
+@utility sidebar-bg {
+    background-color: var(--color-sidebar-bg);
+}
+
+@utility sidebar-border {
+    border-color: var(--color-sidebar-border);
+}
+
+@utility sidebar-item-bg {
+    background-color: var(--color-sidebar-item-bg);
+}
+
+@utility sidebar-item-hover {
+    background-color: var(--color-sidebar-item-hover);
+}
+
+@utility sidebar-item-active {
+    background-color: var(--color-sidebar-item-active);
+}
+
+@utility sidebar-text {
+    color: var(--color-sidebar-text);
+}
+
+@utility sidebar-text-muted {
+    color: var(--color-sidebar-text-muted);
+}
+
+@utility sidebar-text-active {
+    color: var(--color-sidebar-text-active);
+}
+
+@utility sidebar-icon {
+    color: var(--color-sidebar-icon);
+}
+
+@utility sidebar-icon-active {
+    color: var(--color-sidebar-icon-active);
+}
