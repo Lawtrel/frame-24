@@ -2,6 +2,7 @@
 import React, { useState, createContext, useContext } from "react";
 import { ChevronRight, ChevronLeft, ChevronRight as ChevronRightIcon } from "lucide-react";
 import { cn } from "./lib/utils";
+import Link from "next/link";
 
 // 1. Context para gerenciar estado do sidebar (colapso e ativo)
 const SidebarContext = createContext<{
@@ -52,8 +53,7 @@ export function Sidebar({ children, className }: SidebarProps) {
             toggleCollapsed
         }}>
             <aside className={cn(
-                // Ajuste de Largura (w-64 aberto | w-20 colapsado) e Transição
-                "h-screen sidebar-bg border-r sidebar-border flex flex-col transition-all duration-300 ease-in-out",
+                "h-screen z-20 sidebar-bg border-r sidebar-border flex flex-col transition-all duration-300 ease-in-out",
                 isCollapsed ? "w-20" : "w-64",
                 className
             )}>
@@ -71,9 +71,10 @@ export function SidebarToggle() {
         <button
             onClick={toggleCollapsed}
             className={cn(
-                "absolute top-6 right-0 translate-x-1/2 w-6 h-6 rounded-full border sidebar-border shadow-md",
+                "absolute top-6 w-6 h-6 rounded-full border sidebar-border shadow-md",
                 "sidebar-bg flex items-center justify-center transition-all duration-300",
-                "hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                "hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                "right-0 translate-x-1/2"
             )}
             aria-label={isCollapsed ? "Expandir Sidebar" : "Colapsar Sidebar"}
         >
@@ -182,7 +183,7 @@ interface SidebarItemProps {
     href?: string;
     isActive?: boolean;
     hasSubmenu?: boolean;
-    onClick?: () => void;
+    onClick?: (e?: React.MouseEvent) => void;
     className?: string;
     activeClassName?: string;
 }
@@ -199,90 +200,111 @@ export function SidebarItem({
                                 activeClassName
                             }: SidebarItemProps) {
     const { activeItem, setActiveItem, setActiveSubmenuItem, isCollapsed, toggleCollapsed } = useSidebar();
-
-    const isCurrentlyActive = isActive ?? (activeItem === label);
+    
+    const isExpanded = isActive || (activeItem === label);
+    
+    const isHighlighted = isExpanded;
+    
     const isExpandable = hasSubmenu || children;
+    
 
-    const handleClick = () => {
-        // CORREÇÃO: Se estiver colapsado, expande a barra e encerra.
+    const handleClick = (e: React.MouseEvent) => {
+        
         if (isCollapsed) {
+            e.preventDefault(); 
+            e.stopPropagation();
             toggleCollapsed();
-            return;
+            return; 
         }
-
-        // Lógica de descolapsar o menu é tratada aqui.
+        
         setActiveSubmenuItem(null);
         onClick?.();
 
         if (isExpandable) {
-            // LÓGICA DE SUBMENU (Barra aberta): Apenas alterna o estado do submenu
-            const nextActive = isCurrentlyActive ? null : label;
+            const nextActive = isExpanded ? null : label;
             setActiveItem(nextActive);
-
-            // Se o submenu estiver sendo fechado, colapsa o sidebar (ação final de fechamento).
-            if (isCurrentlyActive && !isCollapsed) {
-                toggleCollapsed();
-            }
+            
         } else {
-            // LÓGICA DE NAVEGAÇÃO FINAL (sem submenu):
             setActiveItem(label);
 
-            // Colapsa o Sidebar (fechar o menu para liberar a tela).
+   
             if (!isCollapsed) {
                 toggleCollapsed();
             }
         }
     };
+    
+    const baseClasses = cn(
+        "w-full flex items-center gap-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar-bg",
+        isHighlighted
+            ? cn("sidebar-item-active sidebar-text-active border-r-2 border-primary", isCollapsed ? "px-2 justify-center" : "px-3", activeClassName)
+            : cn("sidebar-text-muted hover:sidebar-text hover:sidebar-item-hover", isCollapsed ? "px-2 justify-center" : "px-3", className)
+    );
+    
+    const content = (
+        <>
+            {icon && (
+                <span className={cn(
+                    "flex-shrink-0 transition-colors",
+                    isHighlighted ? "sidebar-icon-active" : "sidebar-icon"
+                )}>
+                    {icon}
+                </span>
+            )}
+            {/* Oculta o label e o indicador de submenu quando colapsado - Transição rápida */}
+            <span
+                className={cn(
+                    "flex-1 text-left whitespace-nowrap overflow-hidden",
+                    "transition-opacity duration-100",
+                    isCollapsed && "opacity-0 absolute left-20"
+                )}
+            >
+                {label}
+            </span>
+
+            {isExpandable && !isCollapsed && (
+                <ChevronRight
+                    size={16}
+                    className={cn(
+                        "transition-all duration-300 flex-shrink-0",
+                        isExpanded && "rotate-90 sidebar-icon-active"
+                    )}
+                />
+            )}
+
+            {/* Indicador visual lateral quando colapsado e tem submenu aberto */}
+            {isExpandable && isCollapsed && isExpanded && (
+                <ChevronRight size={16} className="absolute right-0 translate-x-full sidebar-icon-active" />
+            )}
+        </>
+    );
+
+    const ItemTag = (isExpandable || !href) ? (
+        <button
+            onClick={handleClick}
+            className={baseClasses}
+            role="button"
+        >
+            {content}
+        </button>
+    ) : (
+        <Link 
+            href={href}
+            onClick={(e) => handleClick(e)} 
+            className={baseClasses}
+        >
+            {content}
+        </Link>
+    );
+
 
     return (
         <div>
-            <button
-                onClick={handleClick}
-                className={cn(
-                    "w-full flex items-center gap-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar-bg",
-                    isCurrentlyActive
-                        ? cn("sidebar-item-active sidebar-text-active border-r-2 border-primary", isCollapsed ? "px-2 justify-center" : "px-3", activeClassName)
-                        : cn("sidebar-text-muted hover:sidebar-text hover:sidebar-item-hover", isCollapsed ? "px-2 justify-center" : "px-3", className)
-                )}
-            >
-                {icon && (
-                    <span className={cn(
-                        "flex-shrink-0 transition-colors",
-                        isCurrentlyActive ? "sidebar-icon-active" : "sidebar-icon"
-                    )}>
-                        {icon}
-                    </span>
-                )}
-                {/* Oculta o label e o indicador de submenu quando colapsado - Transição rápida */}
-                <span
-                    className={cn(
-                        "flex-1 text-left whitespace-nowrap overflow-hidden",
-                        "transition-opacity duration-100",
-                        isCollapsed && "opacity-0 absolute left-20"
-                    )}
-                >
-                    {label}
-                </span>
+            {ItemTag}
 
-                {isExpandable && !isCollapsed && (
-                    <ChevronRight
-                        size={16}
-                        className={cn(
-                            "transition-all duration-300 flex-shrink-0",
-                            isCurrentlyActive && "rotate-90 sidebar-icon-active"
-                        )}
-                    />
-                )}
-
-                {/* Indicador visual lateral quando colapsado e tem submenu aberto */}
-                {isExpandable && isCollapsed && isCurrentlyActive && (
-                    <ChevronRight size={16} className="absolute right-0 translate-x-full sidebar-icon-active" />
-                )}
-            </button>
-
-            {/* Submenu: visível apenas se ativo E não colapsado */}
-            {children && isCurrentlyActive && !isCollapsed && (
+            {/* Submenu: visível apenas se isExpanded E não colapsado */}
+            {children && isExpanded && !isCollapsed && (
                 <div className="mt-1 ml-4 space-y-1 animate-in slide-in-from-left-4 duration-300">
                     {children}
                 </div>
@@ -326,7 +348,8 @@ export function SidebarSubmenuItem({
     };
 
     return (
-        <button
+        <Link
+            href={href || "#"}
             onClick={handleClick}
             className={cn(
                 "w-full flex items-center gap-3 py-2 text-sm rounded-lg transition-all duration-200",
@@ -335,8 +358,6 @@ export function SidebarSubmenuItem({
                     ? cn("sidebar-item-active sidebar-text-active", isCollapsed ? "px-2 justify-center" : "px-3", activeClassName)
                     : cn("sidebar-text-muted hover:sidebar-text hover:sidebar-item-hover", isCollapsed ? "px-2 justify-center" : "px-3", className)
             )}
-            // Garante que o Submenu Item seja ocultado quando colapsado
-            disabled={isCollapsed}
         >
             {icon && (
                 <span className={cn(
@@ -347,7 +368,7 @@ export function SidebarSubmenuItem({
                 </span>
             )}
             <span className="flex-1 text-left whitespace-nowrap">{label}</span>
-        </button>
+        </Link>
     );
 }
 
