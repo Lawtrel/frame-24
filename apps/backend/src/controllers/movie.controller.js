@@ -14,9 +14,17 @@ export const createMovie = async (req, res) => {
 // Listar todos
 export const getAllMovies = async (req, res) => {
   try {
-    const movies = await prisma.movie.findMany();
+    const movies = await prisma.movies.findMany({
+      where: { active: true },
+      include: {
+        // Inclui dados de tabelas relacionadas
+        age_ratings: true,
+        suppliers: true,
+      },
+    });
     res.json(movies);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Não foi possível buscar os filmes.' });
   }
 };
@@ -25,10 +33,19 @@ export const getAllMovies = async (req, res) => {
 export const getMovieById = async (req, res) => {
   const { id } = req.params;
   try {
-    const movie = await prisma.movie.findUnique({ where: { id: parseInt(id) } });
-    if (!movie) return res.status(404).json({ error: 'Filme não encontrado.' });
+    const movie = await prisma.movies.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        movie_cast: { include: { cast_types: true } },
+        movie_media: { include: { media_types: true } },
+      },
+    });
+    if (!movie) {
+      return res.status(404).json({ error: 'Filme não encontrado.' });
+    }
     res.json(movie);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Não foi possível buscar o filme.' });
   }
 };
