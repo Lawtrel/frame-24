@@ -1,0 +1,13 @@
+# Ficheiros e pastas a serem ignorados pelo Docker
+node_modules
+.turbo
+dist
+build
+.next
+.vercel
+apps/frontend/dist
+*.log
+
+# Ficheiros de ambiente não devem ser copiados para a imagem
+.env
+.env.*

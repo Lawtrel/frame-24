@@ -1,15 +1,91 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
+
+// ========= Gerenciamento de Filmes e Sessões =========
+model Movie {
+  id          Int       @id @default(autoincrement())
+  title       String
+  synopsis    String    @db.Text
+  duration    Int // Duração em minutos
+  genre       String
+  director    String
+  cast        String[]
+  posterUrl   String
+  releaseDate DateTime
+  sessions    Session[]
+}
+
+model Room {
+  id        Int       @id @default(autoincrement())
+  name      String
+  capacity  Int
+  seats     Seat[]
+  sessions  Session[]
+}
+
+model Session {
+  id         Int        @id @default(autoincrement())
+  startTime  DateTime
+  endTime    DateTime
+  displayType String // 2D, 3D, IMAX
+  movie      Movie      @relation(fields: [movieId], references: [id])
+  movieId    Int
+  room       Room       @relation(fields: [roomId], references: [id])
+  roomId     Int
+  bookings   Booking[]
+}
+
+model Seat {
+  id        Int       @id @default(autoincrement())
+  row       String
+  number    Int
+  room      Room      @relation(fields: [roomId], references: [id])
+  roomId    Int
+  bookings  BookingSeat[]
+}
+
+// ========= Compra e Reserva de Ingressos =========
+model Client {
+  id       Int       @id @default(autoincrement())
+  name     String
+  email    String    @unique
+  password String
+  bookings Booking[]
+}
+
+model Booking {
+  id          Int        @id @default(autoincrement())
+  bookingTime DateTime   @default(now())
+  totalValue  Float
+  paymentType String // "credit_card", "pix", "boleto"
+  client      Client     @relation(fields: [clientId], references: [id])
+  clientId    Int
+  session     Session    @relation(fields: [sessionId], references: [id])
+  sessionId   Int
+  seats       BookingSeat[]
+}
+
+model BookingSeat {
+  id        Int     @id @default(autoincrement())
+  booking   Booking @relation(fields: [bookingId], references: [id])
+  bookingId Int
+  seat      Seat    @relation(fields: [seatId], references: [id])
+  seatId    Int
+}
+
+// ========= Gerenciamento de Funcionários =========
+model Employee {
+  id        Int      @id @default(autoincrement())
+  name      String
+  role      String // "admin", "rh", "stock", "accounting"
+  email     String   @unique
+  password  String
+}
+
