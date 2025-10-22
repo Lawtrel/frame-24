@@ -1,5 +1,4 @@
-import { PrismaClient } from '../../generated/prisma/index.js';
-const prisma = new PrismaClient();
+import prisma from '../lib/prisma.js';
 
 // Criar
 export const createMovie = async (req, res) => {
@@ -14,12 +13,9 @@ export const createMovie = async (req, res) => {
 // Listar todos
 export const getAllMovies = async (req, res) => {
   try {
-    const movies = await prisma.movies.findMany({
-      where: { active: true },
+    const movies = await prisma.movie.findMany({
       include: {
-        // Inclui dados de tabelas relacionadas
-        age_ratings: true,
-        suppliers: true,
+        sessions: true,
       },
     });
     res.json(movies);
@@ -33,11 +29,10 @@ export const getAllMovies = async (req, res) => {
 export const getMovieById = async (req, res) => {
   const { id } = req.params;
   try {
-    const movie = await prisma.movies.findUnique({
+    const movie = await prisma.movie.findUnique({
       where: { id: parseInt(id) },
       include: {
-        movie_cast: { include: { cast_types: true } },
-        movie_media: { include: { media_types: true } },
+        sessions: true,
       },
     });
     if (!movie) {

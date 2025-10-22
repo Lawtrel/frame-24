@@ -2,17 +2,19 @@ version: '3.8'
 
 services:
   db:
-    image: mysql:8.0
-    container_name: frame24-mysql
+    image: mariadb:lts
+    container_name: frame24-mariadb
     restart: always
     ports:
-      - "3306:3306"
+      - "3307:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: lawtrel
-      MYSQL_DATABASE: frame24
+      MARIADB_ROOT_PASSWORD: lawtrel
+      MARIADB_DATABASE: frame24
+      MARIADB_USER: frame24
+      MARIADB_PASSWORD: frame24pass
     volumes:
       - ./dump-frame24-202510112307.sql:/docker-entrypoint-initdb.d/init.sql
-      - mysql_data:/var/lib/mysql
+      - mariadb_data:/var/lib/mysql
 
 volumes:
-  mysql_data:
+  mariadb_data:
