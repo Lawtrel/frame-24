@@ -1,4 +1,4 @@
-import { LayoutDashboard, Ticket, Landmark, Settings, Package, ShoppingCart } from "lucide-react";
+import {LayoutDashboard, Ticket, Landmark, Settings, Package, ShoppingCart, Film} from "lucide-react";
 import { NavSection } from "../types/navigation";
 
 // Estrutura de navegação completa
@@ -11,6 +11,26 @@ export const PRIMARY_NAVIGATION: NavSection[] = [
                 href: "/dashboard", 
                 icon: <LayoutDashboard size={20} />, 
                 slug: "dashboard" 
+            },
+            {
+                label: "Filmes",
+                href: "/movies",
+                icon: <Film size={20} />,
+                slug: "movies",
+                submenu: [
+                    {
+                        label: "Listar Filmes",
+                        href: "/movies",
+                        icon: <Film size={16} />,
+                        slug: "movies"
+                    },
+                    {
+                        label: "Cadastrar Filmes",
+                        href: "/movies/cadastrar",
+                        icon: <Film size={16} />,
+                        slug: "movies/cadastrar"
+                    },
+                ],
             },
             {
                 label: "Inventário",
