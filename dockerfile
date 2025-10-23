@@ -18,9 +18,10 @@ RUN pnpm install
 COPY . .
 
 # Gera o Prisma Client para que a aplicação possa comunicar com o banco de dados
-RUN pnpm --filter=backend exec prisma generate
+WORKDIR /app/apps/backend
+RUN pnpm exec prisma generate
 
 # Expõe a porta em que a aplicação irá correr
 EXPOSE 3001
-
+CMD ["pnpm", "run", "dev"]
 # O comando para iniciar a aplicação será definido no docker-compose.yml
