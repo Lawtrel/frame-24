@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 
 export const getAllEmployees = async (req, res) => {
   try {
-    const employees = await prisma.employee.findMany();
+    const employees = await prisma.employees.findMany();
     res.json(employees);
   } catch (error) {
     res.status(500).json({ error: 'Não foi possível buscar os funcionários.' });
@@ -15,7 +15,7 @@ export const createEmployee = async (req, res) => {
     const { name, role, email, password } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10); // Criptografa a senha
 
-    const newEmployee = await prisma.employee.create({
+    const newEmployee = await prisma.employees.create({
       data: {
         name,
         role,

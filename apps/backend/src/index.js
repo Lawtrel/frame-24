@@ -20,13 +20,13 @@ app.get('/api/health', (req, res) => {
 
 app.use(allRoutes);
 
-app.use((req, res) => {
-    res.status(404).json({ error: 'Rota não encontrada.' });
-});
-
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).json({ error: 'Algo deu errado no servidor.' });
+});
+
+app.use((req, res) => {
+    res.status(404).json({ error: 'Rota não encontrada.' });
 });
 
 app.listen(port, () => {

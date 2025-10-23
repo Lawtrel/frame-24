@@ -8,84 +8,2363 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ========= Gerenciamento de Filmes e Sessões =========
-model Movie {
-  id          Int       @id @default(autoincrement())
-  title       String
-  synopsis    String    @db.Text
-  duration    Int // Duração em minutos
-  genre       String
-  director    String
-  cast        String[]
-  posterUrl   String
-  releaseDate DateTime
-  sessions    Session[]
+model access_levels {
+  id            BigInt      @id @default(autoincrement())
+  name          String      @unique(map: "name") @db.VarChar(100)
+  description   String?     @db.Text
+  display_order Int?        @default(0)
+  created_at    DateTime?   @default(now()) @db.Timestamp(0)
+  positions     positions[]
 }
 
-model Room {
-  id        Int       @id @default(autoincrement())
-  name      String
-  capacity  Int
-  seats     Seat[]
-  sessions  Session[]
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model access_profiles {
+  id                  BigInt                @id @default(autoincrement())
+  code                String                @unique(map: "code") @db.VarChar(50)
+  name                String                @db.VarChar(100)
+  description         String?               @db.Text
+  hierarchy_level     Int?                  @default(0)
+  active              Boolean?              @default(true)
+  created_at          DateTime?             @default(now()) @db.Timestamp(0)
+  updated_at          DateTime?             @default(now()) @db.Timestamp(0)
+  profile_permissions profile_permissions[]
+  user_profiles       user_profiles[]
+
+  @@index([code], map: "idx_code")
 }
 
-model Session {
-  id         Int        @id @default(autoincrement())
-  startTime  DateTime
-  endTime    DateTime
-  displayType String // 2D, 3D, IMAX
-  movie      Movie      @relation(fields: [movieId], references: [id])
-  movieId    Int
-  room       Room       @relation(fields: [roomId], references: [id])
-  roomId     Int
-  bookings   Booking[]
+model account_natures {
+  id                BigInt              @id @default(autoincrement())
+  name              String              @unique(map: "name") @db.VarChar(50)
+  description       String?             @db.Text
+  display_order     Int?                @default(0)
+  created_at        DateTime?           @default(now()) @db.Timestamp(0)
+  chart_of_accounts chart_of_accounts[]
 }
 
-model Seat {
-  id        Int       @id @default(autoincrement())
-  row       String
-  number    Int
-  room      Room      @relation(fields: [roomId], references: [id])
-  roomId    Int
-  bookings  BookingSeat[]
+model account_types {
+  id                BigInt              @id @default(autoincrement())
+  name              String              @unique(map: "name") @db.VarChar(50)
+  description       String?             @db.Text
+  display_order     Int?                @default(0)
+  created_at        DateTime?           @default(now()) @db.Timestamp(0)
+  chart_of_accounts chart_of_accounts[]
 }
 
-// ========= Compra e Reserva de Ingressos =========
-model Client {
-  id       Int       @id @default(autoincrement())
-  name     String
-  email    String    @unique
-  password String
-  bookings Booking[]
+model accounting_movement_types {
+  id                  BigInt                @id @default(autoincrement())
+  name                String                @unique(map: "name") @db.VarChar(50)
+  description         String?               @db.Text
+  display_order       Int?                  @default(0)
+  created_at          DateTime?             @default(now()) @db.Timestamp(0)
+  journal_entry_items journal_entry_items[]
 }
 
-model Booking {
-  id          Int        @id @default(autoincrement())
-  bookingTime DateTime   @default(now())
-  totalValue  Float
-  paymentType String // "credit_card", "pix", "boleto"
-  client      Client     @relation(fields: [clientId], references: [id])
-  clientId    Int
-  session     Session    @relation(fields: [sessionId], references: [id])
-  sessionId   Int
-  seats       BookingSeat[]
+model age_ratings {
+  id            BigInt    @id @default(autoincrement())
+  code          String    @unique(map: "code") @db.VarChar(5)
+  name          String    @db.VarChar(50)
+  minimum_age   Int?
+  description   String?   @db.Text
+  display_order Int?      @default(0)
+  created_at    DateTime? @default(now()) @db.Timestamp(0)
+  movies        movies[]
 }
 
-model BookingSeat {
-  id        Int     @id @default(autoincrement())
-  booking   Booking @relation(fields: [bookingId], references: [id])
-  bookingId Int
-  seat      Seat    @relation(fields: [seatId], references: [id])
-  seatId    Int
+model ancillary_obligations {
+  id               BigInt             @id @default(autoincrement())
+  obligation_code  String             @db.VarChar(20)
+  description      String             @db.VarChar(200)
+  periodicity      BigInt?
+  due_day          Int?
+  complex_id       BigInt?
+  active           Boolean?           @default(true)
+  created_at       DateTime?          @default(now()) @db.Timestamp(0)
+  cinema_complexes cinema_complexes?  @relation(fields: [complex_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "ancillary_obligations_ibfk_1")
+  periodicities    periodicities?     @relation(fields: [periodicity], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_obligation_periodicity")
+  delivery_history delivery_history[]
+
+  @@index([periodicity], map: "fk_obligation_periodicity")
+  @@index([obligation_code], map: "idx_code")
+  @@index([complex_id], map: "idx_complex")
 }
 
-// ========= Gerenciamento de Funcionários =========
-model Employee {
-  id        Int      @id @default(autoincrement())
-  name      String
-  role      String // "admin", "rh", "stock", "accounting"
-  email     String   @unique
-  password  String
+model audio_types {
+  id                BigInt              @id @default(autoincrement())
+  name              String              @unique(map: "name") @db.VarChar(100)
+  description       String?             @db.Text
+  additional_value  Decimal?            @default(0.00) @db.Decimal(10, 2)
+  display_order     Int?                @default(0)
+  created_at        DateTime?           @default(now()) @db.Timestamp(0)
+  rooms             rooms[]
+  showtime_schedule showtime_schedule[]
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model campaign_categories {
+  id                    BigInt                @id @default(autoincrement())
+  campaign_id           BigInt
+  category_id           BigInt
+  created_at            DateTime?             @default(now()) @db.Timestamp(0)
+  promotional_campaigns promotional_campaigns @relation(fields: [campaign_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_campaign_category_campaign")
+  movie_categories      movie_categories      @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_campaign_category_category")
+
+  @@unique([campaign_id, category_id], map: "uk_campaign_category")
+  @@index([campaign_id], map: "idx_campaign_category_campaign")
+  @@index([category_id], map: "idx_campaign_category_category")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model campaign_complexes {
+  id                    BigInt                @id @default(autoincrement())
+  campaign_id           BigInt
+  complex_id            BigInt
+  created_at            DateTime?             @default(now()) @db.Timestamp(0)
+  promotional_campaigns promotional_campaigns @relation(fields: [campaign_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_campaign_complex_campaign")
+  cinema_complexes      cinema_complexes      @relation(fields: [complex_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_campaign_complex_complex")
+
+  @@unique([campaign_id, complex_id], map: "uk_campaign_complex")
+  @@index([campaign_id], map: "idx_campaign_complex_campaign")
+  @@index([complex_id], map: "idx_campaign_complex_complex")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model campaign_movies {
+  id                    BigInt                @id @default(autoincrement())
+  campaign_id           BigInt
+  movie_id              BigInt
+  created_at            DateTime?             @default(now()) @db.Timestamp(0)
+  promotional_campaigns promotional_campaigns @relation(fields: [campaign_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_campaign_movie_campaign")
+  movies                movies                @relation(fields: [movie_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_campaign_movie_movie")
+
+  @@unique([campaign_id, movie_id], map: "uk_campaign_movie")
+  @@index([campaign_id], map: "idx_campaign_movie_campaign")
+  @@index([movie_id], map: "idx_campaign_movie_movie")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model campaign_rooms {
+  id                    BigInt                @id @default(autoincrement())
+  campaign_id           BigInt
+  room_id               BigInt
+  created_at            DateTime?             @default(now()) @db.Timestamp(0)
+  promotional_campaigns promotional_campaigns @relation(fields: [campaign_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_campaign_room_campaign")
+  rooms                 rooms                 @relation(fields: [room_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_campaign_room_room")
+
+  @@unique([campaign_id, room_id], map: "uk_campaign_room")
+  @@index([campaign_id], map: "idx_campaign_room_campaign")
+  @@index([room_id], map: "idx_campaign_room_room")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model campaign_session_types {
+  id                    BigInt                @id @default(autoincrement())
+  campaign_id           BigInt
+  projection_type       String                @db.VarChar(30)
+  created_at            DateTime?             @default(now()) @db.Timestamp(0)
+  promotional_campaigns promotional_campaigns @relation(fields: [campaign_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_campaign_session_type_campaign")
+  projection_types      projection_types      @relation(fields: [projection_type], references: [name], onUpdate: Restrict, map: "fk_campaign_session_type_type")
+
+  @@unique([campaign_id, projection_type], map: "uk_campaign_session_type")
+  @@index([campaign_id], map: "idx_campaign_session_type_campaign")
+  @@index([projection_type], map: "idx_campaign_session_type_type")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model campaign_weekdays {
+  id                    BigInt                @id @default(autoincrement())
+  campaign_id           BigInt
+  weekday               Int                   @db.TinyInt
+  created_at            DateTime?             @default(now()) @db.Timestamp(0)
+  promotional_campaigns promotional_campaigns @relation(fields: [campaign_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_campaign_weekday_campaign")
+
+  @@unique([campaign_id, weekday], map: "uk_campaign_weekday")
+  @@index([campaign_id], map: "idx_campaign_weekday_campaign")
+  @@index([weekday], map: "idx_campaign_weekday_weekday")
+}
+
+model cast_types {
+  id            BigInt       @id @default(autoincrement())
+  name          String       @unique(map: "name") @db.VarChar(100)
+  description   String?      @db.Text
+  display_order Int?         @default(0)
+  created_at    DateTime?    @default(now()) @db.Timestamp(0)
+  movie_cast    movie_cast[]
+}
+
+model chart_of_accounts {
+  id                      BigInt                @id @default(autoincrement())
+  account_code            String                @unique(map: "account_code") @db.VarChar(20)
+  account_name            String                @db.VarChar(200)
+  account_type            BigInt?
+  account_nature          BigInt?
+  level                   Int
+  parent_account_id       BigInt?
+  allows_entry            Boolean?              @default(true)
+  active                  Boolean?              @default(true)
+  created_at              DateTime?             @default(now()) @db.Timestamp(0)
+  chart_of_accounts       chart_of_accounts?    @relation("chart_of_accountsTochart_of_accounts", fields: [parent_account_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "chart_of_accounts_ibfk_1")
+  other_chart_of_accounts chart_of_accounts[]   @relation("chart_of_accountsTochart_of_accounts")
+  account_natures         account_natures?      @relation(fields: [account_nature], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_account_nature")
+  account_types           account_types?        @relation(fields: [account_type], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_account_type")
+  journal_entry_items     journal_entry_items[]
+
+  @@index([account_nature], map: "fk_account_nature")
+  @@index([account_code], map: "idx_account_code")
+  @@index([account_type], map: "idx_account_type")
+  @@index([parent_account_id], map: "idx_parent_account")
+}
+
+model cinema_complexes {
+  id                       BigInt                     @id @default(autoincrement())
+  company_id               BigInt
+  name                     String                     @db.VarChar(200)
+  code                     String                     @unique(map: "code") @db.VarChar(50)
+  cnpj                     String?                    @db.VarChar(18)
+  address                  String?                    @db.Text
+  city                     String?                    @db.VarChar(100)
+  state                    String?                    @db.Char(2)
+  postal_code              String?                    @db.VarChar(10)
+  ibge_municipality_code   String                     @db.VarChar(7)
+  ancine_registry          String?                    @db.VarChar(50)
+  opening_date             DateTime?                  @db.Date
+  active                   Boolean?                   @default(true)
+  created_at               DateTime?                  @default(now()) @db.Timestamp(0)
+  updated_at               DateTime?                  @default(now()) @db.Timestamp(0)
+  ancillary_obligations    ancillary_obligations[]
+  campaign_complexes       campaign_complexes[]
+  companies                companies                  @relation(fields: [company_id], references: [id], onUpdate: Restrict, map: "cinema_complexes_ibfk_1")
+  contingency_reserves     contingency_reserves[]
+  courtesy_parameters      courtesy_parameters[]
+  departments              departments[]
+  distributor_settlements  distributor_settlements[]
+  employees                employees[]
+  exhibition_contracts     exhibition_contracts[]
+  iss_withholdings         iss_withholdings[]
+  journal_entries          journal_entries[]
+  monthly_income_statement monthly_income_statement[]
+  monthly_tax_settlement   monthly_tax_settlement[]
+  pis_cofins_credits       pis_cofins_credits[]
+  product_stock            product_stock[]
+  recine_projects          recine_projects[]
+  rooms                    rooms[]
+  sales                    sales[]
+  showtime_schedule        showtime_schedule[]
+  stock_movements          stock_movements[]
+  tax_compensations        tax_compensations[]
+  tax_entries              tax_entries[]
+
+  @@index([code], map: "idx_code")
+  @@index([company_id], map: "idx_company")
+  @@index([ibge_municipality_code], map: "idx_municipality")
+}
+
+model combo_products {
+  id         BigInt   @id @default(autoincrement())
+  combo_id   BigInt
+  product_id BigInt
+  quantity   Int      @default(1)
+  combos     combos   @relation(fields: [combo_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "combo_products_ibfk_1")
+  products   products @relation(fields: [product_id], references: [id], onUpdate: Restrict, map: "combo_products_ibfk_2")
+
+  @@unique([combo_id, product_id], map: "uk_combo_product")
+  @@index([product_id], map: "product_id")
+}
+
+model combos {
+  id                       BigInt                     @id @default(autoincrement())
+  combo_code               String                     @unique(map: "combo_code") @db.VarChar(50)
+  name                     String                     @db.VarChar(200)
+  description              String?                    @db.Text
+  sale_price               Decimal                    @db.Decimal(10, 2)
+  promotional_price        Decimal?                   @db.Decimal(10, 2)
+  promotion_start_date     DateTime?                  @db.Date
+  promotion_end_date       DateTime?                  @db.Date
+  active                   Boolean?                   @default(true)
+  created_at               DateTime?                  @default(now()) @db.Timestamp(0)
+  combo_products           combo_products[]
+  concession_sale_items    concession_sale_items[]
+  customer_favorite_combos customer_favorite_combos[]
+
+  @@index([combo_code], map: "idx_combo_code")
+}
+
+model companies {
+  id                     BigInt              @id @default(autoincrement())
+  corporate_name         String              @db.VarChar(200)
+  trade_name             String?             @db.VarChar(200)
+  cnpj                   String              @unique(map: "cnpj") @db.VarChar(18)
+  state_registration     String?             @db.VarChar(20)
+  municipal_registration String?             @db.VarChar(20)
+  tax_regime             BigInt?
+  pis_cofins_regime      BigInt?
+  recine_opt_in          Boolean?            @default(false)
+  recine_join_date       DateTime?           @db.Date
+  active                 Boolean?            @default(true)
+  created_at             DateTime?           @default(now()) @db.Timestamp(0)
+  updated_at             DateTime?           @default(now()) @db.Timestamp(0)
+  cinema_complexes       cinema_complexes[]
+  pis_cofins_regimes     pis_cofins_regimes? @relation(fields: [pis_cofins_regime], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_company_pis_cofins_regime")
+  tax_regimes            tax_regimes?        @relation(fields: [tax_regime], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_company_tax_regime")
+
+  @@index([pis_cofins_regime], map: "fk_company_pis_cofins_regime")
+  @@index([cnpj], map: "idx_cnpj")
+  @@index([tax_regime, pis_cofins_regime], map: "idx_regime")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model concession_sale_items {
+  id                 BigInt           @id @default(autoincrement())
+  concession_sale_id BigInt
+  product_id         BigInt?
+  combo_id           BigInt?
+  quantity           Int
+  unit_price         Decimal          @db.Decimal(10, 2)
+  total_price        Decimal          @db.Decimal(10, 2)
+  created_at         DateTime?        @default(now()) @db.Timestamp(0)
+  concession_sales   concession_sales @relation(fields: [concession_sale_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "concession_sale_items_ibfk_1")
+  products           products?        @relation(fields: [product_id], references: [id], onUpdate: Restrict, map: "concession_sale_items_ibfk_2")
+  combos             combos?          @relation(fields: [combo_id], references: [id], onUpdate: Restrict, map: "concession_sale_items_ibfk_3")
+
+  @@index([combo_id], map: "combo_id")
+  @@index([concession_sale_id], map: "idx_concession_sale")
+  @@index([product_id], map: "product_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model concession_sales {
+  id                    BigInt                  @id @default(autoincrement())
+  sale_id               BigInt
+  sale_date             DateTime                @db.Timestamp(0)
+  total_amount          Decimal                 @db.Decimal(10, 2)
+  discount_amount       Decimal?                @default(0.00) @db.Decimal(10, 2)
+  net_amount            Decimal                 @db.Decimal(10, 2)
+  status                BigInt?
+  created_at            DateTime?               @default(now()) @db.Timestamp(0)
+  concession_sale_items concession_sale_items[]
+  sales                 sales                   @relation(fields: [sale_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "concession_sales_ibfk_1")
+  concession_status     concession_status?      @relation(fields: [status], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "concession_sales_ibfk_2")
+
+  @@index([sale_date], map: "idx_sale_date")
+  @@index([status], map: "idx_status")
+  @@index([sale_id], map: "sale_id")
+}
+
+model concession_status {
+  id                  BigInt             @id @default(autoincrement())
+  name                String             @unique(map: "name") @db.VarChar(50)
+  description         String?            @db.Text
+  allows_modification Boolean?           @default(true)
+  display_order       Int?               @default(0)
+  created_at          DateTime?          @default(now()) @db.Timestamp(0)
+  concession_sales    concession_sales[]
+}
+
+model contingency_reserves {
+  id                 BigInt              @id @default(autoincrement())
+  complexo_id        BigInt
+  contingency_type   BigInt?
+  reserve_amount     Decimal             @db.Decimal(15, 2)
+  reason             String              @db.Text
+  inclusion_date     DateTime            @db.Date
+  clearance_date     DateTime?           @db.Date
+  status             BigInt?
+  notes              String?             @db.Text
+  created_at         DateTime?           @default(now()) @db.Timestamp(0)
+  cinema_complexes   cinema_complexes    @relation(fields: [complexo_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "contingency_reserves_ibfk_1")
+  contingency_status contingency_status? @relation(fields: [status], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_contingency_status")
+  contingency_types  contingency_types?  @relation(fields: [contingency_type], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_contingency_type")
+
+  @@index([contingency_type], map: "fk_contingency_type")
+  @@index([complexo_id], map: "idx_complex")
+  @@index([status], map: "idx_status")
+}
+
+model contingency_status {
+  id                   BigInt                 @id @default(autoincrement())
+  name                 String                 @unique(map: "name") @db.VarChar(50)
+  description          String?                @db.Text
+  display_order        Int?                   @default(0)
+  created_at           DateTime?              @default(now()) @db.Timestamp(0)
+  contingency_reserves contingency_reserves[]
+}
+
+model contingency_types {
+  id                   BigInt                 @id @default(autoincrement())
+  name                 String                 @unique(map: "name") @db.VarChar(100)
+  description          String?                @db.Text
+  display_order        Int?                   @default(0)
+  created_at           DateTime?              @default(now()) @db.Timestamp(0)
+  contingency_reserves contingency_reserves[]
+}
+
+model contract_types {
+  id                   BigInt                 @id @default(autoincrement())
+  name                 String                 @unique(map: "name") @db.VarChar(100)
+  description          String?                @db.Text
+  created_at           DateTime?              @default(now()) @db.Timestamp(0)
+  exhibition_contracts exhibition_contracts[]
+}
+
+model courtesy_parameters {
+  id                           BigInt            @id @default(autoincrement())
+  cinema_complex_id            BigInt?
+  courtesy_taxation_percentage Decimal?          @default(0.00) @db.Decimal(5, 2)
+  monthly_courtesy_limit       Int?              @default(1000)
+  validity_start               DateTime          @db.Date
+  validity_end                 DateTime?         @db.Date
+  cinema_complexes             cinema_complexes? @relation(fields: [cinema_complex_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "courtesy_parameters_ibfk_1")
+
+  @@index([cinema_complex_id], map: "cinema_complex_id")
+}
+
+model credit_types {
+  id                 BigInt               @id @default(autoincrement())
+  name               String               @unique(map: "name") @db.VarChar(100)
+  description        String?              @db.Text
+  credit_percentage  Decimal?             @default(100.00) @db.Decimal(5, 2)
+  display_order      Int?                 @default(0)
+  created_at         DateTime?            @default(now()) @db.Timestamp(0)
+  pis_cofins_credits pis_cofins_credits[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model customer_favorite_combos {
+  id             BigInt    @id @default(autoincrement())
+  customer_id    BigInt
+  combo_id       BigInt
+  purchase_count Int?      @default(0)
+  last_purchase  DateTime? @db.Timestamp(0)
+  created_at     DateTime? @default(now()) @db.Timestamp(0)
+  combos         combos    @relation(fields: [combo_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_customer_combo_combo")
+  customers      customers @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_customer_combo_customer")
+
+  @@unique([customer_id, combo_id], map: "uk_customer_combo")
+  @@index([combo_id], map: "idx_customer_combo_combo")
+  @@index([customer_id], map: "idx_customer_combo_customer")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model customer_favorite_genres {
+  id               BigInt    @id @default(autoincrement())
+  customer_id      BigInt
+  genre            String    @db.VarChar(100)
+  preference_order Int?      @default(0)
+  created_at       DateTime? @default(now()) @db.Timestamp(0)
+  customers        customers @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_customer_genre_customer")
+
+  @@unique([customer_id, genre], map: "uk_customer_genre")
+  @@index([customer_id], map: "idx_customer_genre_customer")
+  @@index([genre], map: "idx_customer_genre_genre")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model customer_favorite_products {
+  id             BigInt    @id @default(autoincrement())
+  customer_id    BigInt
+  product_id     BigInt
+  purchase_count Int?      @default(0)
+  last_purchase  DateTime? @db.Timestamp(0)
+  created_at     DateTime? @default(now()) @db.Timestamp(0)
+  customers      customers @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_customer_product_customer")
+  products       products  @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_customer_product_product")
+
+  @@unique([customer_id, product_id], map: "uk_customer_product")
+  @@index([customer_id], map: "idx_customer_product_customer")
+  @@index([product_id], map: "idx_customer_product_product")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model customer_interactions {
+  id               BigInt    @id @default(autoincrement())
+  customer_id      BigInt
+  interaction_type String    @db.VarChar(50)
+  channel          String?   @db.VarChar(30)
+  description      String?   @db.Text
+  metadata         String?   @db.LongText
+  origin_id        BigInt?
+  origin_type      String?   @db.VarChar(50)
+  created_at       DateTime? @default(now()) @db.Timestamp(0)
+  customers        customers @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "customer_interactions_ibfk_1")
+
+  @@index([customer_id, interaction_type], map: "idx_customer_type")
+  @@index([origin_type, origin_id], map: "idx_origin")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model customer_points {
+  id               BigInt                        @id @default(autoincrement())
+  customer_id      BigInt
+  movement_type    customer_points_movement_type
+  points           Int
+  previous_balance Int
+  current_balance  Int
+  origin_type      String?                       @db.VarChar(50)
+  origin_id        BigInt?
+  description      String?                       @db.Text
+  expiration_date  DateTime?                     @db.Date
+  valid            Boolean?                      @default(true)
+  created_at       DateTime?                     @default(now()) @db.Timestamp(0)
+  customers        customers                     @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "customer_points_ibfk_1")
+
+  @@index([customer_id, created_at], map: "idx_cp_customer_date")
+  @@index([expiration_date, valid], map: "idx_cp_expiration")
+  @@index([customer_id, valid], map: "idx_customer_valid")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model customer_preferences {
+  id                     BigInt                                   @id @default(autoincrement())
+  customer_id            BigInt
+  preferred_session_type String?                                  @db.VarChar(30)
+  preferred_language     String?                                  @db.VarChar(30)
+  preferred_position     customer_preferences_preferred_position?
+  created_at             DateTime?                                @default(now()) @db.Timestamp(0)
+  updated_at             DateTime?                                @default(now()) @db.Timestamp(0)
+  customers              customers                                @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "customer_preferences_ibfk_1")
+
+  @@index([customer_id], map: "idx_customer")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model customer_preferred_rows {
+  id          BigInt    @id @default(autoincrement())
+  customer_id BigInt
+  row_code    String    @db.VarChar(5)
+  usage_count Int?      @default(0)
+  created_at  DateTime? @default(now()) @db.Timestamp(0)
+  customers   customers @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_customer_row_customer")
+
+  @@unique([customer_id, row_code], map: "uk_customer_row")
+  @@index([customer_id], map: "idx_customer_row_customer")
+  @@index([row_code], map: "idx_customer_row_row")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model customer_preferred_times {
+  id          BigInt    @id @default(autoincrement())
+  customer_id BigInt
+  time_slot   String    @db.VarChar(20)
+  created_at  DateTime? @default(now()) @db.Timestamp(0)
+  customers   customers @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_customer_time_customer")
+
+  @@unique([customer_id, time_slot], map: "uk_customer_time")
+  @@index([customer_id], map: "idx_customer_time_customer")
+  @@index([time_slot], map: "idx_customer_time_time")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model customer_preferred_weekdays {
+  id          BigInt    @id @default(autoincrement())
+  customer_id BigInt
+  weekday     Int       @db.TinyInt
+  created_at  DateTime? @default(now()) @db.Timestamp(0)
+  customers   customers @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_customer_weekday_customer")
+
+  @@unique([customer_id, weekday], map: "uk_customer_weekday")
+  @@index([customer_id], map: "idx_customer_weekday_pref_customer")
+  @@index([weekday], map: "idx_customer_weekday_pref_weekday")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model customers {
+  id                          BigInt                        @id @default(autoincrement())
+  cpf                         String                        @unique(map: "cpf") @db.VarChar(14)
+  name                        String                        @db.VarChar(200)
+  email                       String?                       @db.VarChar(100)
+  phone                       String?                       @db.VarChar(20)
+  birth_date                  DateTime?                     @db.Date
+  gender                      customers_gender?             @default(NOT_INFORMED)
+  zip_code                    String?                       @db.VarChar(10)
+  address                     String?                       @db.Text
+  city                        String?                       @db.VarChar(100)
+  state                       String?                       @db.Char(2)
+  accumulated_points          Int?                          @default(0)
+  loyalty_level               String?                       @default("BRONZE") @db.VarChar(20)
+  loyalty_join_date           DateTime?                     @db.Timestamp(0)
+  accepts_marketing           Boolean?                      @default(false)
+  accepts_sms                 Boolean?                      @default(false)
+  accepts_email               Boolean?                      @default(true)
+  terms_accepted              Boolean?                      @default(false)
+  terms_acceptance_date       DateTime?                     @db.Timestamp(0)
+  acceptance_ip               String?                       @db.VarChar(45)
+  active                      Boolean?                      @default(true)
+  blocked                     Boolean?                      @default(false)
+  block_reason                String?                       @db.Text
+  created_at                  DateTime?                     @default(now()) @db.Timestamp(0)
+  updated_at                  DateTime?                     @default(now()) @db.Timestamp(0)
+  collection_purposes         String?                       @db.LongText
+  subject_aware_rights        Boolean?                      @default(false)
+  rights_awareness_date       DateTime?                     @db.Timestamp(0)
+  anonymization_requested     Boolean?                      @default(false)
+  anonymization_date          DateTime?                     @db.Timestamp(0)
+  data_anonymized             Boolean?                      @default(false)
+  registration_source         String?                       @db.VarChar(50)
+  registration_responsible    BigInt?
+  customer_favorite_combos    customer_favorite_combos[]
+  customer_favorite_genres    customer_favorite_genres[]
+  customer_favorite_products  customer_favorite_products[]
+  customer_interactions       customer_interactions[]
+  customer_points             customer_points[]
+  customer_preferences        customer_preferences[]
+  customer_preferred_rows     customer_preferred_rows[]
+  customer_preferred_times    customer_preferred_times[]
+  customer_preferred_weekdays customer_preferred_weekdays[]
+  employees                   employees?                    @relation(fields: [registration_responsible], references: [id], onUpdate: Restrict, map: "fk_customer_registration_responsible")
+  promotional_coupons         promotional_coupons[]
+  promotions_used             promotions_used[]
+  sales                       sales[]
+
+  @@index([registration_responsible], map: "fk_customer_registration_responsible")
+  @@index([data_anonymized], map: "idx_anonymization")
+  @@index([birth_date], map: "idx_birth_date")
+  @@index([cpf], map: "idx_cpf")
+  @@index([email], map: "idx_email")
+  @@index([loyalty_level], map: "idx_loyalty_level")
+  @@index([phone], map: "idx_phone")
+}
+
+model delivery_history {
+  id                    BigInt                @id @default(autoincrement())
+  obligation_id         BigInt
+  delivery_date         DateTime?             @db.Date
+  status                BigInt?
+  receipt_number        String?               @db.VarChar(100)
+  notes                 String?               @db.Text
+  created_at            DateTime?             @default(now()) @db.Timestamp(0)
+  ancillary_obligations ancillary_obligations @relation(fields: [obligation_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "delivery_history_ibfk_1")
+  obligation_status     obligation_status?    @relation(fields: [status], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_delivery_status")
+
+  @@index([delivery_date], map: "idx_delivery_date")
+  @@index([obligation_id], map: "idx_obligation")
+  @@index([status], map: "idx_status")
+}
+
+model departments {
+  id               BigInt           @id @default(autoincrement())
+  complex_id       BigInt
+  name             String           @db.VarChar(100)
+  description      String?          @db.Text
+  cost_center      String?          @db.VarChar(50)
+  manager_id       BigInt?
+  active           Boolean?         @default(true)
+  created_at       DateTime?        @default(now()) @db.Timestamp(0)
+  cinema_complexes cinema_complexes @relation(fields: [complex_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "departments_ibfk_1")
+  employees        employees?       @relation(fields: [manager_id], references: [id], onUpdate: Restrict, map: "fk_department_manager")
+  positions        positions[]
+
+  @@index([manager_id], map: "fk_department_manager")
+  @@index([complex_id], map: "idx_complex")
+}
+
+model distributor_settlement_status {
+  id                      BigInt                    @id @default(autoincrement())
+  name                    String                    @unique(map: "name") @db.VarChar(50)
+  description             String?                   @db.Text
+  allows_modification     Boolean?                  @default(true)
+  display_order           Int?                      @default(0)
+  created_at              DateTime?                 @default(now()) @db.Timestamp(0)
+  distributor_settlements distributor_settlements[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model distributor_settlements {
+  id                            BigInt                         @id @default(autoincrement())
+  contract_id                   BigInt
+  distributor_id                BigInt
+  cinema_complex_id             BigInt
+  competence_start_date         DateTime                       @db.Date
+  competence_end_date           DateTime                       @db.Date
+  total_tickets_sold            Int?                           @default(0)
+  gross_box_office_revenue      Decimal                        @db.Decimal(15, 2)
+  calculation_base              BigInt?
+  taxes_deducted_amount         Decimal?                       @default(0.00) @db.Decimal(15, 2)
+  settlement_base_amount        Decimal                        @db.Decimal(15, 2)
+  distributor_percentage        Decimal                        @db.Decimal(5, 2)
+  calculated_settlement_amount  Decimal                        @db.Decimal(15, 2)
+  minimum_guarantee             Decimal?                       @default(0.00) @db.Decimal(15, 2)
+  final_settlement_amount       Decimal                        @db.Decimal(15, 2)
+  deductions_amount             Decimal?                       @default(0.00) @db.Decimal(15, 2)
+  net_settlement_amount         Decimal                        @db.Decimal(15, 2)
+  irrf_rate                     Decimal?                       @default(0.00) @db.Decimal(5, 2)
+  irrf_calculation_base         Decimal?                       @default(0.00) @db.Decimal(15, 2)
+  irrf_amount                   Decimal?                       @default(0.00) @db.Decimal(15, 2)
+  irrf_exempt                   Boolean?                       @default(false)
+  retained_iss_amount           Decimal?                       @default(0.00) @db.Decimal(15, 2)
+  net_payment_amount            Decimal                        @db.Decimal(15, 2)
+  status                        BigInt?
+  calculation_date              DateTime?                      @db.Date
+  approval_date                 DateTime?                      @db.Date
+  payment_date                  DateTime?                      @db.Date
+  notes                         String?                        @db.Text
+  created_at                    DateTime?                      @default(now()) @db.Timestamp(0)
+  updated_at                    DateTime?                      @default(now()) @db.Timestamp(0)
+  exhibition_contracts          exhibition_contracts           @relation(fields: [contract_id], references: [id], onUpdate: Restrict, map: "distributor_settlements_ibfk_1")
+  suppliers                     suppliers                      @relation(fields: [distributor_id], references: [id], onUpdate: Restrict, map: "distributor_settlements_ibfk_2")
+  cinema_complexes              cinema_complexes               @relation(fields: [cinema_complex_id], references: [id], onUpdate: Restrict, map: "distributor_settlements_ibfk_3")
+  settlement_bases              settlement_bases?              @relation(fields: [calculation_base], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "distributor_settlements_ibfk_4")
+  distributor_settlement_status distributor_settlement_status? @relation(fields: [status], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "distributor_settlements_ibfk_5")
+
+  @@index([calculation_base], map: "calculation_base")
+  @@index([contract_id], map: "contract_id")
+  @@index([competence_start_date, competence_end_date], map: "idx_competence")
+  @@index([cinema_complex_id], map: "idx_complex")
+  @@index([distributor_id], map: "idx_distributor")
+  @@index([status], map: "idx_status")
+}
+
+model employee_time_records {
+  id                 BigInt    @id @default(autoincrement())
+  employee_id        BigInt
+  record_date        DateTime  @db.Date
+  entry_time         DateTime? @db.Time(0)
+  exit_time          DateTime? @db.Time(0)
+  break_start_time   DateTime? @db.Time(0)
+  break_end_time     DateTime? @db.Time(0)
+  total_hours_worked Decimal?  @db.Decimal(5, 2)
+  observations       String?   @db.Text
+  registration_ip    String?   @db.VarChar(45)
+  latitude           Decimal?  @db.Decimal(10, 8)
+  longitude          Decimal?  @db.Decimal(11, 8)
+  created_at         DateTime? @default(now()) @db.Timestamp(0)
+  updated_at         DateTime? @default(now()) @db.Timestamp(0)
+  employees          employees @relation(fields: [employee_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "employee_time_records_ibfk_1")
+
+  @@unique([employee_id, record_date], map: "uk_employee_date")
+  @@index([employee_id, record_date], map: "idx_employee_date")
+  @@index([employee_id, record_date], map: "idx_time_records_period")
+}
+
+model employees {
+  id                        BigInt                    @id @default(autoincrement())
+  complex_id                BigInt
+  position_id               BigInt
+  employee_number           String                    @unique(map: "employee_number") @db.VarChar(50)
+  name                      String                    @db.VarChar(200)
+  cpf                       String                    @unique(map: "cpf") @db.VarChar(14)
+  rg                        String?                   @db.VarChar(20)
+  birth_date                DateTime?                 @db.Date
+  phone                     String?                   @db.VarChar(20)
+  email                     String?                   @db.VarChar(100)
+  address                   String?                   @db.Text
+  hire_date                 DateTime                  @db.Date
+  termination_date          DateTime?                 @db.Date
+  current_salary            Decimal                   @db.Decimal(10, 2)
+  contract_type             BigInt
+  photo_url                 String?                   @db.VarChar(500)
+  active                    Boolean?                  @default(true)
+  created_at                DateTime?                 @default(now()) @db.Timestamp(0)
+  updated_at                DateTime?                 @default(now()) @db.Timestamp(0)
+  customers                 customers[]
+  departments               departments[]
+  employee_time_records     employee_time_records[]
+  cinema_complexes          cinema_complexes          @relation(fields: [complex_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "employees_ibfk_1")
+  positions                 positions                 @relation(fields: [position_id], references: [id], onUpdate: Restrict, map: "employees_ibfk_2")
+  employment_contract_types employment_contract_types @relation(fields: [contract_type], references: [id], onUpdate: Restrict, map: "employees_ibfk_3")
+  system_users              system_users[]
+
+  @@index([contract_type], map: "contract_type")
+  @@index([complex_id], map: "idx_complex")
+  @@index([cpf], map: "idx_cpf")
+  @@index([employee_number], map: "idx_employee_number")
+  @@index([position_id], map: "idx_position")
+}
+
+model employment_contract_types {
+  id            BigInt      @id @default(autoincrement())
+  name          String      @unique(map: "name") @db.VarChar(100)
+  description   String?     @db.Text
+  display_order Int?        @default(0)
+  created_at    DateTime?   @default(now()) @db.Timestamp(0)
+  employees     employees[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model exhibition_contracts {
+  id                      BigInt                    @id @default(autoincrement())
+  movie_id                BigInt
+  cinema_complex_id       BigInt
+  contract_number         String?                   @unique(map: "contract_number") @db.VarChar(50)
+  start_date              DateTime                  @db.Date
+  end_date                DateTime                  @db.Date
+  distributor_percentage  Decimal                   @db.Decimal(5, 2)
+  exhibitor_percentage    Decimal                   @db.Decimal(5, 2)
+  guaranteed_minimum      Decimal?                  @default(0.00) @db.Decimal(15, 2)
+  contract_type           BigInt?
+  revenue_base            BigInt?
+  notes                   String?                   @db.Text
+  created_at              DateTime?                 @default(now()) @db.Timestamp(0)
+  distributor_id          BigInt
+  minimum_guarantee       Decimal?                  @default(0.00) @db.Decimal(15, 2)
+  contract_terms          String?                   @db.Text
+  active                  Boolean?                  @default(true)
+  distributor_settlements distributor_settlements[]
+  cinema_complexes        cinema_complexes          @relation(fields: [cinema_complex_id], references: [id], onUpdate: Restrict, map: "fk_contract_complex")
+  movies                  movies                    @relation(fields: [movie_id], references: [id], onUpdate: Restrict, map: "fk_contract_movie")
+  settlement_bases        settlement_bases?         @relation(fields: [revenue_base], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_contract_revenue_base")
+  suppliers               suppliers                 @relation(fields: [distributor_id], references: [id], onUpdate: Restrict, map: "fk_contract_supplier")
+  contract_types          contract_types?           @relation(fields: [contract_type], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_contract_type")
+
+  @@index([revenue_base], map: "fk_contract_revenue_base")
+  @@index([contract_type], map: "fk_contract_type")
+  @@index([cinema_complex_id], map: "idx_cinema_complex")
+  @@index([distributor_id], map: "idx_contract_supplier")
+  @@index([movie_id], map: "idx_movie")
+}
+
+model federal_tax_rates {
+  id                         BigInt              @id @default(autoincrement())
+  tax_regime                 BigInt?
+  pis_cofins_regime          BigInt?
+  revenue_type               BigInt?
+  pis_rate                   Decimal             @db.Decimal(5, 2)
+  cofins_rate                Decimal             @db.Decimal(5, 2)
+  credit_allowed             Boolean?            @default(false)
+  irpj_base_rate             Decimal?            @db.Decimal(5, 2)
+  irpj_additional_rate       Decimal?            @db.Decimal(5, 2)
+  irpj_additional_limit      Decimal?            @db.Decimal(15, 2)
+  csll_rate                  Decimal?            @db.Decimal(5, 2)
+  presumed_profit_percentage Decimal?            @db.Decimal(5, 2)
+  validity_start             DateTime            @db.Date
+  validity_end               DateTime?           @db.Date
+  active                     Boolean?            @default(true)
+  created_at                 DateTime?           @default(now()) @db.Timestamp(0)
+  pis_cofins_regimes         pis_cofins_regimes? @relation(fields: [pis_cofins_regime], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_tax_rate_pis_cofins_regime")
+  revenue_types              revenue_types?      @relation(fields: [revenue_type], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_tax_rate_revenue_type")
+  tax_regimes                tax_regimes?        @relation(fields: [tax_regime], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_tax_rate_tax_regime")
+
+  @@index([pis_cofins_regime], map: "fk_tax_rate_pis_cofins_regime")
+  @@index([revenue_type], map: "fk_tax_rate_revenue_type")
+  @@index([tax_regime, pis_cofins_regime, revenue_type, validity_start], map: "idx_regime_revenue_validity")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model gdpr_consents {
+  id                  BigInt    @id @default(autoincrement())
+  subject_type        String    @db.VarChar(20)
+  subject_id          BigInt
+  purpose             String    @db.VarChar(100)
+  purpose_description String    @db.Text
+  data_categories     String    @db.LongText
+  sensitive_data      Boolean?  @default(false)
+  consent_given       Boolean
+  consent_date        DateTime? @db.Timestamp(0)
+  revocation_date     DateTime? @db.Timestamp(0)
+  terms_version       String    @db.VarChar(20)
+  consent_ip          String?   @db.VarChar(45)
+  user_agent          String?   @db.Text
+  channel             String?   @db.VarChar(30)
+  active              Boolean?  @default(true)
+  created_at          DateTime? @default(now()) @db.Timestamp(0)
+  updated_at          DateTime? @default(now()) @db.Timestamp(0)
+
+  @@index([active], map: "idx_active")
+  @@index([consent_date], map: "idx_consent_date")
+  @@index([sensitive_data, active], map: "idx_gdpr_sensitive_data")
+  @@index([subject_type, subject_id, active], map: "idx_gdpr_subject")
+  @@index([purpose], map: "idx_purpose")
+  @@index([sensitive_data], map: "idx_sensitive_data")
+  @@index([subject_type, subject_id], map: "idx_subject")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model gdpr_data_subject_requests {
+  id                 BigInt        @id @default(autoincrement())
+  subject_type       String        @db.VarChar(20)
+  subject_id         BigInt
+  subject_name       String        @db.VarChar(200)
+  subject_email      String        @db.VarChar(100)
+  subject_cpf        String?       @db.VarChar(14)
+  request_type       String        @db.VarChar(50)
+  description        String        @db.Text
+  identity_documents String?       @db.LongText
+  status             String?       @default("PENDENTE") @db.VarChar(30)
+  rejection_reason   String?       @db.Text
+  request_date       DateTime?     @default(now()) @db.Timestamp(0)
+  response_deadline  DateTime      @db.Timestamp(0)
+  response_date      DateTime?     @db.Timestamp(0)
+  completion_date    DateTime?     @db.Timestamp(0)
+  handled_by         BigInt?
+  handling_notes     String?       @db.Text
+  export_file_url    String?       @db.VarChar(500)
+  created_at         DateTime?     @default(now()) @db.Timestamp(0)
+  system_users       system_users? @relation(fields: [handled_by], references: [id], onUpdate: Restrict, map: "gdpr_data_subject_requests_ibfk_1")
+
+  @@index([handled_by], map: "handled_by")
+  @@index([response_deadline, status], map: "idx_deadline")
+  @@index([response_deadline, status], map: "idx_requests_deadline")
+  @@index([status], map: "idx_status")
+  @@index([subject_type, subject_id], map: "idx_subject")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model gdpr_security_incidents {
+  id                                                                           BigInt        @id @default(autoincrement())
+  incident_number                                                              String        @unique(map: "incident_number") @db.VarChar(50)
+  incident_type                                                                String        @db.VarChar(50)
+  severity                                                                     String        @db.VarChar(20)
+  description                                                                  String        @db.Text
+  discovery_date                                                               DateTime      @db.Timestamp(0)
+  estimated_occurrence_date                                                    DateTime?     @db.Timestamp(0)
+  affected_subjects                                                            Int?
+  exposed_data_categories                                                      String?       @db.LongText
+  sensitive_data_exposed                                                       Boolean?      @default(false)
+  immediate_actions                                                            String?       @db.Text
+  corrective_actions                                                           String?       @db.Text
+  requires_anpd_notification                                                   Boolean?      @default(false)
+  anpd_notification_date                                                       DateTime?     @db.Timestamp(0)
+  anpd_protocol                                                                String?       @db.VarChar(100)
+  subjects_notified                                                            Boolean?      @default(false)
+  subjects_notification_date                                                   DateTime?     @db.Timestamp(0)
+  notification_channel                                                         String?       @db.VarChar(30)
+  status                                                                       String?       @default("ABERTO") @db.VarChar(30)
+  resolution_date                                                              DateTime?     @db.Timestamp(0)
+  detected_by                                                                  BigInt?
+  investigation_responsible                                                    BigInt?
+  created_at                                                                   DateTime?     @default(now()) @db.Timestamp(0)
+  updated_at                                                                   DateTime?     @default(now()) @db.Timestamp(0)
+  system_users_gdpr_security_incidents_detected_byTosystem_users               system_users? @relation("gdpr_security_incidents_detected_byTosystem_users", fields: [detected_by], references: [id], onUpdate: Restrict, map: "gdpr_security_incidents_ibfk_1")
+  system_users_gdpr_security_incidents_investigation_responsibleTosystem_users system_users? @relation("gdpr_security_incidents_investigation_responsibleTosystem_users", fields: [investigation_responsible], references: [id], onUpdate: Restrict, map: "gdpr_security_incidents_ibfk_2")
+
+  @@index([detected_by], map: "detected_by")
+  @@index([requires_anpd_notification, anpd_notification_date], map: "idx_anpd_notification")
+  @@index([incident_number], map: "idx_number")
+  @@index([severity, status], map: "idx_severity_status")
+  @@index([investigation_responsible], map: "investigation_responsible")
+}
+
+model iss_withholdings {
+  id                  BigInt           @id @default(autoincrement())
+  cinema_complex_id   BigInt
+  service_received_id BigInt?
+  service_description String?          @db.VarChar(200)
+  withholding_rate    Decimal          @db.Decimal(5, 2)
+  withholding_amount  Decimal          @db.Decimal(15, 2)
+  service_code        String?          @db.VarChar(10)
+  withholding_date    DateTime         @db.Date
+  notes               String?          @db.Text
+  created_at          DateTime?        @default(now()) @db.Timestamp(0)
+  cinema_complexes    cinema_complexes @relation(fields: [cinema_complex_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "iss_withholdings_ibfk_1")
+
+  @@index([cinema_complex_id], map: "cinema_complex_id")
+  @@index([withholding_date], map: "idx_date")
+}
+
+model journal_entries {
+  id                   BigInt                @id @default(autoincrement())
+  cinema_complex_id    BigInt
+  entry_number         String                @unique(map: "entry_number") @db.VarChar(50)
+  entry_date           DateTime              @db.Date
+  entry_type           BigInt?
+  origin_type          String?               @db.VarChar(50)
+  origin_id            BigInt?
+  description          String                @db.Text
+  total_amount         Decimal               @db.Decimal(15, 2)
+  status               BigInt?
+  created_at           DateTime?             @default(now()) @db.Timestamp(0)
+  journal_entry_status journal_entry_status? @relation(fields: [status], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_journal_entry_status")
+  journal_entry_types  journal_entry_types?  @relation(fields: [entry_type], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_journal_entry_type")
+  cinema_complexes     cinema_complexes      @relation(fields: [cinema_complex_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "journal_entries_ibfk_1")
+  journal_entry_items  journal_entry_items[]
+
+  @@index([entry_type], map: "fk_journal_entry_type")
+  @@index([cinema_complex_id, entry_date], map: "idx_complex_date")
+  @@index([entry_date], map: "idx_date")
+  @@index([origin_type, origin_id], map: "idx_origin")
+  @@index([status], map: "idx_status")
+}
+
+model journal_entry_items {
+  id                        BigInt                     @id @default(autoincrement())
+  journal_entry_id          BigInt
+  account_id                BigInt
+  movement_type             BigInt?
+  amount                    Decimal                    @db.Decimal(15, 2)
+  item_description          String?                    @db.Text
+  accounting_movement_types accounting_movement_types? @relation(fields: [movement_type], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_journal_item_movement_type")
+  journal_entries           journal_entries            @relation(fields: [journal_entry_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "journal_entry_items_ibfk_1")
+  chart_of_accounts         chart_of_accounts          @relation(fields: [account_id], references: [id], onUpdate: Restrict, map: "journal_entry_items_ibfk_2")
+
+  @@index([movement_type], map: "fk_journal_item_movement_type")
+  @@index([account_id], map: "idx_account")
+  @@index([journal_entry_id], map: "idx_journal_entry")
+}
+
+model journal_entry_status {
+  id                  BigInt            @id @default(autoincrement())
+  name                String            @unique(map: "name") @db.VarChar(50)
+  description         String?           @db.Text
+  allows_modification Boolean?          @default(true)
+  display_order       Int?              @default(0)
+  created_at          DateTime?         @default(now()) @db.Timestamp(0)
+  journal_entries     journal_entries[]
+}
+
+model journal_entry_types {
+  id              BigInt            @id @default(autoincrement())
+  name            String            @unique(map: "name") @db.VarChar(100)
+  description     String?           @db.Text
+  nature          String?           @db.VarChar(20)
+  display_order   Int?              @default(0)
+  created_at      DateTime?         @default(now()) @db.Timestamp(0)
+  journal_entries journal_entries[]
+}
+
+model media_types {
+  id            BigInt        @id @default(autoincrement())
+  name          String        @unique(map: "name") @db.VarChar(100)
+  description   String?       @db.Text
+  display_order Int?          @default(0)
+  created_at    DateTime?     @default(now()) @db.Timestamp(0)
+  movie_media   movie_media[]
+}
+
+model monthly_income_statement {
+  id                      BigInt           @id @default(autoincrement())
+  cinema_complex_id       BigInt
+  year                    Int
+  month                   Int
+  total_gross_revenue     Decimal?         @default(0.00) @db.Decimal(15, 2)
+  sales_deductions        Decimal?         @default(0.00) @db.Decimal(15, 2)
+  net_revenue             Decimal?         @default(0.00) @db.Decimal(15, 2)
+  cost_of_goods_sold      Decimal?         @default(0.00) @db.Decimal(15, 2)
+  distributor_payouts     Decimal?         @default(0.00) @db.Decimal(15, 2)
+  gross_profit            Decimal?         @default(0.00) @db.Decimal(15, 2)
+  administrative_expenses Decimal?         @default(0.00) @db.Decimal(15, 2)
+  selling_expenses        Decimal?         @default(0.00) @db.Decimal(15, 2)
+  financial_expenses      Decimal?         @default(0.00) @db.Decimal(15, 2)
+  financial_income        Decimal?         @default(0.00) @db.Decimal(15, 2)
+  operational_result      Decimal?         @default(0.00) @db.Decimal(15, 2)
+  irpj_provision          Decimal?         @default(0.00) @db.Decimal(15, 2)
+  csll_provision          Decimal?         @default(0.00) @db.Decimal(15, 2)
+  net_result              Decimal?         @default(0.00) @db.Decimal(15, 2)
+  gross_margin_percent    Decimal?         @db.Decimal(5, 2)
+  net_margin_percent      Decimal?         @db.Decimal(5, 2)
+  created_at              DateTime?        @default(now()) @db.Timestamp(0)
+  updated_at              DateTime?        @default(now()) @db.Timestamp(0)
+  cinema_complexes        cinema_complexes @relation(fields: [cinema_complex_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "monthly_income_statement_ibfk_1")
+
+  @@unique([cinema_complex_id, year, month], map: "uk_complex_period")
+  @@index([year, month], map: "idx_period")
+}
+
+model monthly_tax_settlement {
+  id                        BigInt             @id @default(autoincrement())
+  cinema_complex_id         BigInt
+  year                      Int
+  month                     Int
+  settlement_date           DateTime           @db.Date
+  tax_regime                String?            @db.VarChar(50)
+  pis_cofins_regime         String?            @db.VarChar(50)
+  gross_box_office_revenue  Decimal?           @default(0.00) @db.Decimal(15, 2)
+  gross_concession_revenue  Decimal?           @default(0.00) @db.Decimal(15, 2)
+  gross_advertising_revenue Decimal?           @default(0.00) @db.Decimal(15, 2)
+  gross_other_revenue       Decimal?           @default(0.00) @db.Decimal(15, 2)
+  total_gross_revenue       Decimal?           @default(0.00) @db.Decimal(15, 2)
+  total_deductions          Decimal?           @default(0.00) @db.Decimal(15, 2)
+  calculation_base_revenue  Decimal?           @default(0.00) @db.Decimal(15, 2)
+  total_iss_box_office      Decimal?           @default(0.00) @db.Decimal(15, 2)
+  total_iss_concession      Decimal?           @default(0.00) @db.Decimal(15, 2)
+  total_iss                 Decimal?           @default(0.00) @db.Decimal(15, 2)
+  total_pis_debit           Decimal?           @default(0.00) @db.Decimal(15, 2)
+  total_pis_credit          Decimal?           @default(0.00) @db.Decimal(15, 2)
+  total_pis_payable         Decimal?           @default(0.00) @db.Decimal(15, 2)
+  total_cofins_debit        Decimal?           @default(0.00) @db.Decimal(15, 2)
+  total_cofins_credit       Decimal?           @default(0.00) @db.Decimal(15, 2)
+  total_cofins_payable      Decimal?           @default(0.00) @db.Decimal(15, 2)
+  irpj_base                 Decimal?           @default(0.00) @db.Decimal(15, 2)
+  irpj_base_15              Decimal?           @default(0.00) @db.Decimal(15, 2)
+  irpj_additional_10        Decimal?           @default(0.00) @db.Decimal(15, 2)
+  total_irpj                Decimal?           @default(0.00) @db.Decimal(15, 2)
+  csll_base                 Decimal?           @default(0.00) @db.Decimal(15, 2)
+  total_csll                Decimal?           @default(0.00) @db.Decimal(15, 2)
+  gross_revenue_12m         Decimal?           @db.Decimal(15, 2)
+  effective_simples_rate    Decimal?           @db.Decimal(5, 2)
+  total_simples_amount      Decimal?           @db.Decimal(15, 2)
+  total_distributor_payment Decimal?           @default(0.00) @db.Decimal(15, 2)
+  net_revenue_taxed         Decimal?           @default(0.00) @db.Decimal(15, 2)
+  net_total_revenue         Decimal?           @default(0.00) @db.Decimal(15, 2)
+  status                    BigInt?
+  declaration_date          DateTime?          @db.Date
+  payment_date              DateTime?          @db.Date
+  notes                     String?            @db.Text
+  created_at                DateTime?          @default(now()) @db.Timestamp(0)
+  updated_at                DateTime?          @default(now()) @db.Timestamp(0)
+  settlement_status         settlement_status? @relation(fields: [status], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_settlement_status")
+  cinema_complexes          cinema_complexes   @relation(fields: [cinema_complex_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "monthly_tax_settlement_ibfk_1")
+
+  @@unique([cinema_complex_id, year, month], map: "uk_complex_period")
+  @@index([year, month], map: "idx_period")
+  @@index([status], map: "idx_status")
+}
+
+model movie_cast {
+  id             BigInt     @id @default(autoincrement())
+  movie_id       BigInt
+  artist_name    String     @db.VarChar(200)
+  character_name String?    @db.VarChar(200)
+  cast_type      BigInt
+  credit_order   Int?       @default(0)
+  photo_url      String?    @db.VarChar(500)
+  active         Boolean?   @default(true)
+  created_at     DateTime?  @default(now()) @db.Timestamp(0)
+  display_order  Int?       @default(0)
+  movies         movies     @relation(fields: [movie_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "movie_cast_ibfk_1")
+  cast_types     cast_types @relation(fields: [cast_type], references: [id], onUpdate: Restrict, map: "movie_cast_ibfk_2")
+
+  @@index([artist_name], map: "idx_artist")
+  @@index([cast_type], map: "idx_cast_type")
+  @@index([movie_id], map: "idx_movie")
+}
+
+model movie_categories {
+  id                  BigInt                @id @default(autoincrement())
+  name                String                @db.VarChar(100)
+  description         String?               @db.Text
+  minimum_age         Int?                  @default(0)
+  slug                String?               @unique(map: "slug") @db.VarChar(100)
+  display_order       Int?                  @default(0)
+  active              Boolean?              @default(true)
+  created_at          DateTime?             @default(now()) @db.Timestamp(0)
+  campaign_categories campaign_categories[]
+  movies              movies[]
+
+  @@index([name], map: "idx_name")
+  @@index([slug], map: "idx_slug")
+}
+
+model movie_media {
+  id            BigInt      @id @default(autoincrement())
+  movie_id      BigInt
+  media_type    BigInt
+  media_url     String      @db.VarChar(500)
+  description   String?     @db.Text
+  display_order Int?        @default(0)
+  width         Int?
+  height        Int?
+  active        Boolean?    @default(true)
+  created_at    DateTime?   @default(now()) @db.Timestamp(0)
+  title         String?     @db.VarChar(200)
+  movies        movies      @relation(fields: [movie_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "movie_media_ibfk_1")
+  media_types   media_types @relation(fields: [media_type], references: [id], onUpdate: Restrict, map: "movie_media_ibfk_2")
+
+  @@index([movie_id, media_type, active], map: "idx_movie_media")
+  @@index([media_type], map: "movie_media_ibfk_2")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model movies {
+  id                     BigInt                 @id @default(autoincrement())
+  original_title         String                 @db.VarChar(300)
+  brazil_title           String?                @db.VarChar(300)
+  ancine_number          String?                @db.VarChar(50)
+  duration_minutes       Int
+  age_rating             BigInt?
+  genre                  String?                @db.VarChar(100)
+  country_of_origin      String?                @db.VarChar(50)
+  production_year        Int?
+  national               Boolean?               @default(false)
+  active                 Boolean?               @default(true)
+  created_at             DateTime?              @default(now()) @db.Timestamp(0)
+  category_id            BigInt?
+  synopsis               String?                @db.Text
+  short_synopsis         String?                @db.VarChar(500)
+  budget                 Decimal?               @db.Decimal(15, 2)
+  worldwide_box_office   Decimal?               @db.Decimal(15, 2)
+  website                String?                @db.VarChar(200)
+  tmdb_id                String?                @db.VarChar(50)
+  imdb_id                String?                @db.VarChar(20)
+  tags_json              String?                @db.LongText
+  worldwide_release_date DateTime?              @db.Date
+  original_language      String?                @db.VarChar(50)
+  slug                   String?                @unique(map: "slug") @db.VarChar(200)
+  distributor_id         BigInt
+  campaign_movies        campaign_movies[]
+  exhibition_contracts   exhibition_contracts[]
+  movie_cast             movie_cast[]
+  movie_media            movie_media[]
+  age_ratings            age_ratings?           @relation(fields: [age_rating], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_movie_age_rating")
+  movie_categories       movie_categories?      @relation(fields: [category_id], references: [id], onUpdate: Restrict, map: "fk_movie_category")
+  suppliers              suppliers              @relation(fields: [distributor_id], references: [id], onUpdate: Restrict, map: "fk_movie_supplier")
+  showtime_schedule      showtime_schedule[]
+
+  @@index([age_rating], map: "fk_movie_age_rating")
+  @@index([category_id], map: "fk_movie_category")
+  @@index([distributor_id, active], map: "idx_movies_distributor")
+  @@index([national], map: "idx_national")
+  @@index([distributor_id], map: "idx_supplier_distributor")
+}
+
+model municipal_tax_parameters {
+  id                          BigInt    @id @default(autoincrement())
+  ibge_municipality_code      String    @db.VarChar(7)
+  municipality_name           String    @db.VarChar(100)
+  state                       String    @db.Char(2)
+  iss_rate                    Decimal   @db.Decimal(5, 2)
+  iss_service_code            String?   @db.VarChar(10)
+  iss_concession_applicable   Boolean?  @default(false)
+  iss_concession_service_code String?   @db.VarChar(10)
+  iss_withholding             Boolean?  @default(false)
+  validity_start              DateTime  @db.Date
+  validity_end                DateTime? @db.Date
+  notes                       String?   @db.Text
+  active                      Boolean?  @default(true)
+  created_at                  DateTime? @default(now()) @db.Timestamp(0)
+
+  @@index([ibge_municipality_code], map: "idx_ibge_code")
+  @@index([ibge_municipality_code, validity_start, validity_end], map: "idx_municipality_validity")
+}
+
+model obligation_status {
+  id               BigInt             @id @default(autoincrement())
+  name             String             @unique(map: "name") @db.VarChar(50)
+  description      String?            @db.Text
+  display_order    Int?               @default(0)
+  created_at       DateTime?          @default(now()) @db.Timestamp(0)
+  delivery_history delivery_history[]
+}
+
+model order_status {
+  id                  BigInt    @id @default(autoincrement())
+  name                String    @unique(map: "name") @db.VarChar(50)
+  description         String?   @db.Text
+  allows_modification Boolean?  @default(true)
+  display_order       Int?      @default(0)
+  created_at          DateTime? @default(now()) @db.Timestamp(0)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model password_policies {
+  id                      BigInt    @id @default(autoincrement())
+  name                    String    @db.VarChar(100)
+  description             String?   @db.Text
+  min_length              Int?      @default(8)
+  require_uppercase       Boolean?  @default(true)
+  require_lowercase       Boolean?  @default(true)
+  require_number          Boolean?  @default(true)
+  require_special         Boolean?  @default(true)
+  allowed_special_chars   String?   @default("!@#$%^&*()_+-=[]{}|;:,.<>?") @db.VarChar(50)
+  prohibit_sequences      Boolean?  @default(true)
+  prohibit_repetitions    Boolean?  @default(true)
+  prohibit_personal_data  Boolean?  @default(true)
+  password_history_count  Int?      @default(5)
+  password_validity_days  Int?      @default(90)
+  expiration_warning_days Int?      @default(7)
+  max_login_attempts      Int?      @default(5)
+  block_time_minutes      Int?      @default(30)
+  application_level       String?   @default("TODOS") @db.VarChar(30)
+  active                  Boolean?  @default(true)
+  created_at              DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model payment_methods {
+  id              BigInt    @id @default(autoincrement())
+  name            String    @unique(map: "name") @db.VarChar(50)
+  description     String?   @db.Text
+  operator_fee    Decimal?  @default(0.00) @db.Decimal(5, 2)
+  settlement_days Int?      @default(0)
+  display_order   Int?      @default(0)
+  created_at      DateTime? @default(now()) @db.Timestamp(0)
+  sales           sales[]
+}
+
+model periodicities {
+  id                    BigInt                  @id @default(autoincrement())
+  name                  String                  @unique(map: "name") @db.VarChar(50)
+  description           String?                 @db.Text
+  months                Int?
+  display_order         Int?                    @default(0)
+  created_at            DateTime?               @default(now()) @db.Timestamp(0)
+  ancillary_obligations ancillary_obligations[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model permissions {
+  id             BigInt         @id @default(autoincrement())
+  module_id      BigInt
+  code           String         @unique(map: "code") @db.VarChar(50)
+  name           String         @db.VarChar(100)
+  description    String?        @db.Text
+  action         String?        @db.VarChar(20)
+  active         Boolean?       @default(true)
+  created_at     DateTime?      @default(now()) @db.Timestamp(0)
+  system_modules system_modules @relation(fields: [module_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "permissions_ibfk_1")
+
+  @@index([code], map: "idx_code")
+  @@index([module_id], map: "idx_module")
+}
+
+model pis_cofins_credits {
+  id                   BigInt           @id @default(autoincrement())
+  cinema_complex_id    BigInt
+  credit_type          BigInt?
+  description          String           @db.Text
+  fiscal_document      String?          @db.VarChar(50)
+  document_date        DateTime         @db.Date
+  competence_date      DateTime         @db.Date
+  base_amount          Decimal          @db.Decimal(15, 2)
+  pis_credit_rate      Decimal          @db.Decimal(5, 2)
+  pis_credit_amount    Decimal          @db.Decimal(15, 2)
+  cofins_credit_rate   Decimal          @db.Decimal(5, 2)
+  cofins_credit_amount Decimal          @db.Decimal(15, 2)
+  processed            Boolean?         @default(false)
+  created_at           DateTime?        @default(now()) @db.Timestamp(0)
+  credit_types         credit_types?    @relation(fields: [credit_type], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_credit_type")
+  cinema_complexes     cinema_complexes @relation(fields: [cinema_complex_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "pis_cofins_credits_ibfk_1")
+
+  @@index([credit_type], map: "fk_credit_type")
+  @@index([competence_date], map: "idx_competence_date")
+  @@index([cinema_complex_id, competence_date], map: "idx_complex_competence")
+  @@index([competence_date, processed], map: "idx_credits_competence")
+  @@index([processed], map: "idx_processed")
+}
+
+model pis_cofins_regimes {
+  id                BigInt              @id @default(autoincrement())
+  name              String              @unique(map: "name") @db.VarChar(100)
+  description       String?             @db.Text
+  allows_credit     Boolean?            @default(false)
+  created_at        DateTime?           @default(now()) @db.Timestamp(0)
+  companies         companies[]
+  federal_tax_rates federal_tax_rates[]
+  tax_entries       tax_entries[]
+}
+
+model positions {
+  id            BigInt         @id @default(autoincrement())
+  department_id BigInt
+  name          String         @db.VarChar(100)
+  description   String?        @db.Text
+  base_salary   Decimal?       @db.Decimal(10, 2)
+  weekly_hours  Int?           @default(44)
+  access_level  BigInt?
+  active        Boolean?       @default(true)
+  created_at    DateTime?      @default(now()) @db.Timestamp(0)
+  employees     employees[]
+  departments   departments    @relation(fields: [department_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "positions_ibfk_1")
+  access_levels access_levels? @relation(fields: [access_level], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "positions_ibfk_2")
+
+  @@index([access_level], map: "access_level")
+  @@index([department_id], map: "idx_department")
+}
+
+model product_categories {
+  id          BigInt     @id @default(autoincrement())
+  name        String     @db.VarChar(100)
+  code        String     @unique(map: "code") @db.VarChar(20)
+  description String?    @db.Text
+  active      Boolean?   @default(true)
+  products    products[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model product_stock {
+  id               BigInt           @id @default(autoincrement())
+  product_id       BigInt
+  complex_id       BigInt
+  current_quantity Int?             @default(0)
+  minimum_quantity Int?             @default(10)
+  maximum_quantity Int?             @default(100)
+  location         String?          @db.VarChar(100)
+  active           Boolean?         @default(true)
+  created_at       DateTime?        @default(now()) @db.Timestamp(0)
+  updated_at       DateTime?        @default(now()) @db.Timestamp(0)
+  products         products         @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "product_stock_ibfk_1")
+  cinema_complexes cinema_complexes @relation(fields: [complex_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "product_stock_ibfk_2")
+
+  @@unique([product_id, complex_id], map: "uk_product_complex")
+  @@index([complex_id], map: "idx_complex")
+  @@index([current_quantity, minimum_quantity], map: "idx_minimum_alert")
+  @@index([current_quantity], map: "idx_quantity")
+}
+
+model products {
+  id                         BigInt                       @id @default(autoincrement())
+  category_id                BigInt
+  product_code               String                       @unique(map: "product_code") @db.VarChar(50)
+  name                       String                       @db.VarChar(200)
+  description                String?                      @db.Text
+  ncm_code                   String?                      @db.VarChar(10)
+  unit                       String?                      @default("UN") @db.VarChar(10)
+  sale_price                 Decimal                      @db.Decimal(10, 2)
+  cost_price                 Decimal                      @db.Decimal(10, 2)
+  minimum_stock              Int?                         @default(0)
+  active                     Boolean?                     @default(true)
+  created_at                 DateTime?                    @default(now()) @db.Timestamp(0)
+  combo_products             combo_products[]
+  concession_sale_items      concession_sale_items[]
+  customer_favorite_products customer_favorite_products[]
+  product_stock              product_stock[]
+  product_categories         product_categories           @relation(fields: [category_id], references: [id], onUpdate: Restrict, map: "products_ibfk_1")
+  stock_movements            stock_movements[]
+
+  @@index([category_id], map: "idx_category")
+  @@index([product_code], map: "idx_product_code")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model profile_permissions {
+  id              BigInt                        @id @default(autoincrement())
+  profile_id      BigInt
+  routine_code    Int
+  operation       profile_permissions_operation
+  access_profiles access_profiles               @relation(fields: [profile_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "profile_permissions_ibfk_1")
+  system_routines system_routines               @relation(fields: [routine_code], references: [code], onDelete: Cascade, onUpdate: Restrict, map: "profile_permissions_ibfk_2")
+
+  @@unique([profile_id, routine_code, operation], map: "uk_profile_routine_operation")
+  @@index([profile_id, routine_code], map: "idx_profile_routine")
+  @@index([routine_code], map: "routine_code")
+}
+
+model projection_types {
+  id                     BigInt                   @id @default(autoincrement())
+  name                   String                   @unique(map: "name") @db.VarChar(100)
+  description            String?                  @db.Text
+  additional_value       Decimal?                 @default(0.00) @db.Decimal(10, 2)
+  display_order          Int?                     @default(0)
+  created_at             DateTime?                @default(now()) @db.Timestamp(0)
+  campaign_session_types campaign_session_types[]
+  rooms                  rooms[]
+  showtime_schedule      showtime_schedule[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model promotion_types {
+  id                    BigInt                  @id @default(autoincrement())
+  code                  String                  @unique(map: "code") @db.VarChar(30)
+  name                  String                  @db.VarChar(100)
+  description           String?                 @db.Text
+  order_index           Int?                    @default(0)
+  active                Boolean?                @default(true)
+  created_at            DateTime?               @default(now()) @db.Timestamp(0)
+  promotional_campaigns promotional_campaigns[]
+  promotions_used       promotions_used[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model promotion_types_domain {
+  id          BigInt    @id @default(autoincrement())
+  code        String    @unique(map: "code") @db.VarChar(30)
+  name        String    @db.VarChar(100)
+  description String?   @db.Text
+  order_index Int?      @default(0)
+  active      Boolean?  @default(true)
+  created_at  DateTime? @default(now()) @db.Timestamp(0)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model promotional_campaigns {
+  id                     BigInt                   @id @default(autoincrement())
+  campaign_code          String                   @unique(map: "campaign_code") @db.VarChar(50)
+  name                   String                   @db.VarChar(200)
+  description            String?                  @db.Text
+  promotion_type_id      BigInt
+  start_date             DateTime                 @db.Timestamp(0)
+  end_date               DateTime                 @db.Timestamp(0)
+  start_time             DateTime?                @db.Time(0)
+  end_time               DateTime?                @db.Time(0)
+  min_age                Int?
+  max_age                Int?
+  min_loyalty_level      String?                  @db.VarChar(20)
+  new_customers_only     Boolean?                 @default(false)
+  discount_value         Decimal?                 @db.Decimal(10, 2)
+  discount_percentage    Decimal?                 @db.Decimal(5, 2)
+  buy_quantity           Int?
+  get_quantity           Int?
+  fixed_price            Decimal?                 @db.Decimal(10, 2)
+  points_multiplier      Decimal?                 @default(1.00) @db.Decimal(5, 2)
+  max_total_uses         Int?
+  used_count             Int?                     @default(0)
+  max_uses_per_customer  Int?
+  min_purchase_value     Decimal?                 @db.Decimal(10, 2)
+  combinable             Boolean?                 @default(false)
+  priority               Int?                     @default(0)
+  active                 Boolean?                 @default(true)
+  requires_coupon        Boolean?                 @default(false)
+  created_at             DateTime?                @default(now()) @db.Timestamp(0)
+  updated_at             DateTime?                @default(now()) @db.Timestamp(0)
+  campaign_categories    campaign_categories[]
+  campaign_complexes     campaign_complexes[]
+  campaign_movies        campaign_movies[]
+  campaign_rooms         campaign_rooms[]
+  campaign_session_types campaign_session_types[]
+  campaign_weekdays      campaign_weekdays[]
+  promotion_types        promotion_types          @relation(fields: [promotion_type_id], references: [id], onUpdate: Restrict, map: "promotional_campaigns_ibfk_1")
+  promotional_coupons    promotional_coupons[]
+  promotions_used        promotions_used[]
+
+  @@index([start_date, end_date, active], map: "idx_campaigns_validity_active")
+  @@index([campaign_code], map: "idx_code")
+  @@index([promotion_type_id], map: "idx_type")
+  @@index([start_date, end_date, active], map: "idx_validity")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model promotional_coupons {
+  id                    BigInt                @id @default(autoincrement())
+  campaign_id           BigInt
+  coupon_code           String                @unique(map: "coupon_code") @db.VarChar(50)
+  customer_id           BigInt?
+  start_date            DateTime              @db.Timestamp(0)
+  end_date              DateTime              @db.Timestamp(0)
+  max_uses              Int?                  @default(1)
+  used_count            Int?                  @default(0)
+  active                Boolean?              @default(true)
+  used                  Boolean?              @default(false)
+  first_use_date        DateTime?             @db.Timestamp(0)
+  last_use_date         DateTime?             @db.Timestamp(0)
+  created_at            DateTime?             @default(now()) @db.Timestamp(0)
+  promotional_campaigns promotional_campaigns @relation(fields: [campaign_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "promotional_coupons_ibfk_1")
+  customers             customers?            @relation(fields: [customer_id], references: [id], onUpdate: Restrict, map: "promotional_coupons_ibfk_2")
+  promotions_used       promotions_used[]
+
+  @@index([campaign_id], map: "idx_campaign")
+  @@index([coupon_code], map: "idx_code")
+  @@index([customer_id], map: "idx_customer")
+  @@index([start_date, end_date, active], map: "idx_validity")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model promotions_used {
+  id                    BigInt                @id @default(autoincrement())
+  sale_id               BigInt
+  campaign_id           BigInt
+  coupon_id             BigInt?
+  customer_id           BigInt?
+  promotion_type_id     BigInt
+  discount_applied      Decimal               @db.Decimal(10, 2)
+  original_value        Decimal               @db.Decimal(10, 2)
+  final_value           Decimal               @db.Decimal(10, 2)
+  points_earned         Int?                  @default(0)
+  usage_date            DateTime?             @default(now()) @db.Timestamp(0)
+  sales                 sales                 @relation(fields: [sale_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "promotions_used_ibfk_1")
+  promotional_campaigns promotional_campaigns @relation(fields: [campaign_id], references: [id], onUpdate: Restrict, map: "promotions_used_ibfk_2")
+  promotional_coupons   promotional_coupons?  @relation(fields: [coupon_id], references: [id], onUpdate: Restrict, map: "promotions_used_ibfk_3")
+  customers             customers?            @relation(fields: [customer_id], references: [id], onUpdate: Restrict, map: "promotions_used_ibfk_4")
+  promotion_types       promotion_types       @relation(fields: [promotion_type_id], references: [id], onUpdate: Restrict, map: "promotions_used_ibfk_5")
+
+  @@index([coupon_id], map: "coupon_id")
+  @@index([campaign_id], map: "idx_campaign")
+  @@index([customer_id], map: "idx_customer")
+  @@index([sale_id], map: "idx_sale")
+  @@index([usage_date], map: "idx_usage_date")
+  @@index([promotion_type_id], map: "promotion_type_id")
+}
+
+model recine_acquisition_types {
+  id                  BigInt                @id @default(autoincrement())
+  name                String                @unique(map: "name") @db.VarChar(100)
+  description         String?               @db.Text
+  display_order       Int?                  @default(0)
+  created_at          DateTime?             @default(now()) @db.Timestamp(0)
+  recine_acquisitions recine_acquisitions[]
+}
+
+model recine_acquisitions {
+  id                       BigInt                    @id @default(autoincrement())
+  recine_project_id        BigInt
+  acquisition_type         BigInt?
+  item_type                BigInt?
+  item_description         String                    @db.Text
+  supplier                 String?                   @db.VarChar(200)
+  invoice_number           String?                   @db.VarChar(50)
+  acquisition_date         DateTime                  @db.Date
+  item_value               Decimal                   @db.Decimal(15, 2)
+  pis_cofins_saved         Decimal?                  @default(0.00) @db.Decimal(15, 2)
+  ipi_saved                Decimal?                  @default(0.00) @db.Decimal(15, 2)
+  ii_saved                 Decimal?                  @default(0.00) @db.Decimal(15, 2)
+  total_benefit_value      Decimal                   @db.Decimal(15, 2)
+  created_at               DateTime?                 @default(now()) @db.Timestamp(0)
+  recine_item_types        recine_item_types?        @relation(fields: [item_type], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_recine_acquisition_item_type")
+  recine_acquisition_types recine_acquisition_types? @relation(fields: [acquisition_type], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_recine_acquisition_type")
+  recine_projects          recine_projects           @relation(fields: [recine_project_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "recine_acquisitions_ibfk_1")
+
+  @@index([item_type], map: "fk_recine_acquisition_item_type")
+  @@index([acquisition_type], map: "fk_recine_acquisition_type")
+  @@index([acquisition_date], map: "idx_date")
+  @@index([recine_project_id], map: "idx_project")
+}
+
+model recine_deadline_types {
+  id               BigInt             @id @default(autoincrement())
+  name             String             @unique(map: "name") @db.VarChar(100)
+  description      String?            @db.Text
+  display_order    Int?               @default(0)
+  created_at       DateTime?          @default(now()) @db.Timestamp(0)
+  recine_deadlines recine_deadlines[]
+}
+
+model recine_deadlines {
+  id                    BigInt                 @id @default(autoincrement())
+  project_id            BigInt
+  deadline_type         BigInt?
+  due_date              DateTime               @db.Date
+  completion_date       DateTime?              @db.Date
+  estimated_penalty     Decimal?               @db.Decimal(15, 2)
+  notes                 String?                @db.Text
+  created_at            DateTime?              @default(now()) @db.Timestamp(0)
+  recine_deadline_types recine_deadline_types? @relation(fields: [deadline_type], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_recine_deadline_type")
+  recine_projects       recine_projects        @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "recine_deadlines_ibfk_1")
+
+  @@index([deadline_type], map: "fk_recine_deadline_type")
+  @@index([due_date], map: "idx_due_date")
+  @@index([project_id], map: "idx_project")
+}
+
+model recine_item_types {
+  id                  BigInt                @id @default(autoincrement())
+  name                String                @unique(map: "name") @db.VarChar(100)
+  description         String?               @db.Text
+  display_order       Int?                  @default(0)
+  created_at          DateTime?             @default(now()) @db.Timestamp(0)
+  recine_acquisitions recine_acquisitions[]
+}
+
+model recine_project_status {
+  id                  BigInt            @id @default(autoincrement())
+  name                String            @unique(map: "name") @db.VarChar(50)
+  description         String?           @db.Text
+  allows_modification Boolean?          @default(true)
+  display_order       Int?              @default(0)
+  created_at          DateTime?         @default(now()) @db.Timestamp(0)
+  recine_projects     recine_projects[]
+}
+
+model recine_project_types {
+  id              BigInt            @id @default(autoincrement())
+  name            String            @unique(map: "name") @db.VarChar(100)
+  description     String?           @db.Text
+  display_order   Int?              @default(0)
+  created_at      DateTime?         @default(now()) @db.Timestamp(0)
+  recine_projects recine_projects[]
+}
+
+model recine_projects {
+  id                       BigInt                 @id @default(autoincrement())
+  cinema_complex_id        BigInt
+  project_number           String                 @unique(map: "project_number") @db.VarChar(50)
+  description              String                 @db.Text
+  project_type             BigInt?
+  total_project_value      Decimal                @db.Decimal(15, 2)
+  estimated_benefit_value  Decimal                @db.Decimal(15, 2)
+  pis_cofins_suspended     Decimal?               @default(0.00) @db.Decimal(15, 2)
+  ipi_exempt               Decimal?               @default(0.00) @db.Decimal(15, 2)
+  ii_exempt                Decimal?               @default(0.00) @db.Decimal(15, 2)
+  start_date               DateTime               @db.Date
+  expected_completion_date DateTime               @db.Date
+  actual_completion_date   DateTime?              @db.Date
+  status                   BigInt?
+  ancine_process_number    String?                @db.VarChar(50)
+  ancine_approval_date     DateTime?              @db.Date
+  observations             String?                @db.Text
+  created_at               DateTime?              @default(now()) @db.Timestamp(0)
+  updated_at               DateTime?              @default(now()) @db.Timestamp(0)
+  recine_acquisitions      recine_acquisitions[]
+  recine_deadlines         recine_deadlines[]
+  recine_project_status    recine_project_status? @relation(fields: [status], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_recine_project_status")
+  recine_project_types     recine_project_types?  @relation(fields: [project_type], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_recine_project_type")
+  cinema_complexes         cinema_complexes       @relation(fields: [cinema_complex_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "recine_projects_ibfk_1")
+
+  @@index([project_type], map: "fk_recine_project_type")
+  @@index([cinema_complex_id], map: "idx_complex")
+  @@index([status], map: "idx_status")
+}
+
+model revenue_types {
+  id                 BigInt              @id @default(autoincrement())
+  name               String              @unique(map: "name") @db.VarChar(100)
+  description        String?             @db.Text
+  applies_iss        Boolean?            @default(true)
+  applies_pis_cofins Boolean?            @default(true)
+  created_at         DateTime?           @default(now()) @db.Timestamp(0)
+  federal_tax_rates  federal_tax_rates[]
+  tax_entries        tax_entries[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model rooms {
+  id                BigInt              @id @default(autoincrement())
+  cinema_complex_id BigInt
+  room_number       String              @db.VarChar(10)
+  name              String?             @db.VarChar(100)
+  capacity          Int
+  projection_type   BigInt?
+  audio_type        BigInt?
+  active            Boolean?            @default(true)
+  created_at        DateTime?           @default(now()) @db.Timestamp(0)
+  seat_layout       String?             @db.LongText
+  total_rows        Int?
+  total_columns     Int?
+  room_design       String?             @db.VarChar(30)
+  layout_image      String?             @db.VarChar(255)
+  campaign_rooms    campaign_rooms[]
+  audio_types       audio_types?        @relation(fields: [audio_type], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_room_audio_type")
+  projection_types  projection_types?   @relation(fields: [projection_type], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_room_projection_type")
+  cinema_complexes  cinema_complexes    @relation(fields: [cinema_complex_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "rooms_ibfk_1")
+  seats             seats[]
+  showtime_schedule showtime_schedule[]
+
+  @@unique([cinema_complex_id, room_number], map: "uk_complex_room")
+  @@index([audio_type], map: "fk_room_audio_type")
+  @@index([projection_type], map: "fk_room_projection_type")
+  @@index([cinema_complex_id], map: "idx_cinema_complex")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model routine_operations {
+  id              BigInt                       @id @default(autoincrement())
+  routine_code    Int
+  operation       routine_operations_operation
+  name            String                       @db.VarChar(100)
+  description     String?                      @db.Text
+  api_endpoint    String?                      @db.VarChar(200)
+  active          Boolean?                     @default(true)
+  created_at      DateTime?                    @default(now()) @db.Timestamp(0)
+  system_routines system_routines              @relation(fields: [routine_code], references: [code], onDelete: Cascade, onUpdate: Restrict, map: "routine_operations_ibfk_1")
+
+  @@unique([routine_code, operation], map: "uk_routine_operation")
+  @@index([operation], map: "idx_operation")
+  @@index([routine_code], map: "idx_routine")
+}
+
+model sale_status {
+  id                  BigInt    @id @default(autoincrement())
+  name                String    @unique(map: "name") @db.VarChar(50)
+  description         String?   @db.Text
+  allows_modification Boolean?  @default(true)
+  display_order       Int?      @default(0)
+  created_at          DateTime? @default(now()) @db.Timestamp(0)
+  sales               sales[]
+}
+
+model sale_types {
+  id              BigInt    @id @default(autoincrement())
+  name            String    @unique(map: "name") @db.VarChar(50)
+  description     String?   @db.Text
+  convenience_fee Decimal?  @default(0.00) @db.Decimal(5, 2)
+  display_order   Int?      @default(0)
+  created_at      DateTime? @default(now()) @db.Timestamp(0)
+  sales           sales[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model sales {
+  id                  BigInt                @id @default(autoincrement())
+  cinema_complex_id   BigInt
+  sale_number         String                @unique(map: "sale_number") @db.VarChar(50)
+  sale_date           DateTime              @db.Timestamp(0)
+  sale_type           BigInt?
+  user_id             BigInt?
+  customer_cpf        String?               @db.VarChar(14)
+  customer_id         BigInt?
+  total_amount        Decimal               @db.Decimal(10, 2)
+  discount_amount     Decimal?              @default(0.00) @db.Decimal(10, 2)
+  net_amount          Decimal               @db.Decimal(10, 2)
+  payment_method      BigInt?
+  status              BigInt?
+  cancellation_date   DateTime?             @db.Timestamp(0)
+  cancellation_reason String?               @db.Text
+  created_at          DateTime?             @default(now()) @db.Timestamp(0)
+  concession_sales    concession_sales[]
+  promotions_used     promotions_used[]
+  payment_methods     payment_methods?      @relation(fields: [payment_method], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_sale_payment_method")
+  sale_status         sale_status?          @relation(fields: [status], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_sale_status")
+  sale_types          sale_types?           @relation(fields: [sale_type], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_sale_type")
+  cinema_complexes    cinema_complexes      @relation(fields: [cinema_complex_id], references: [id], onUpdate: Restrict, map: "sales_ibfk_1")
+  customers           customers?            @relation(fields: [customer_id], references: [id], onUpdate: Restrict, map: "sales_ibfk_2")
+  session_seat_status session_seat_status[]
+  tickets             tickets[]
+
+  @@index([payment_method], map: "fk_sale_payment_method")
+  @@index([sale_type], map: "fk_sale_type")
+  @@index([cinema_complex_id, sale_date], map: "idx_complex_sale_date")
+  @@index([customer_id], map: "idx_customer")
+  @@index([customer_cpf], map: "idx_customer_cpf")
+  @@index([cinema_complex_id, sale_date, status], map: "idx_sale_complex_date_status")
+  @@index([sale_date, cinema_complex_id], map: "idx_sale_date_complex")
+  @@index([sale_number], map: "idx_sale_number")
+  @@index([customer_cpf], map: "idx_sales_cpf")
+  @@index([customer_id, status], map: "idx_sales_customer_status")
+  @@index([sale_date, status], map: "idx_sales_date_status")
+  @@index([status, sale_date], map: "idx_sales_status_date")
+  @@index([status], map: "idx_status")
+}
+
+model seat_status {
+  id                  BigInt                @id @default(autoincrement())
+  name                String                @unique(map: "name") @db.VarChar(50)
+  description         String?               @db.Text
+  allows_modification Boolean?              @default(true)
+  display_order       Int?                  @default(0)
+  created_at          DateTime?             @default(now()) @db.Timestamp(0)
+  session_seat_status session_seat_status[]
+}
+
+model seat_types {
+  id               BigInt    @id @default(autoincrement())
+  name             String    @unique(map: "name") @db.VarChar(100)
+  description      String?   @db.Text
+  additional_value Decimal?  @default(0.00) @db.Decimal(10, 2)
+  display_order    Int?      @default(0)
+  created_at       DateTime? @default(now()) @db.Timestamp(0)
+  seats            seats[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model seats {
+  id                  BigInt                @id @default(autoincrement())
+  room_id             BigInt
+  seat_code           String                @db.VarChar(10)
+  row_code            String                @db.VarChar(5)
+  column_number       Int
+  seat_type           BigInt?
+  position_x          Int?
+  position_y          Int?
+  accessible          Boolean?              @default(false)
+  active              Boolean?              @default(true)
+  created_at          DateTime?             @default(now()) @db.Timestamp(0)
+  rooms               rooms                 @relation(fields: [room_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "seats_ibfk_1")
+  seat_types          seat_types?           @relation(fields: [seat_type], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "seats_ibfk_2")
+  session_seat_status session_seat_status[]
+  tickets             tickets[]
+
+  @@unique([room_id, seat_code], map: "uk_room_seat")
+  @@index([room_id], map: "idx_room")
+  @@index([seat_type], map: "seat_type")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model sensitive_actions_log {
+  id            BigInt                        @id @default(autoincrement())
+  user_id       BigInt
+  routine_code  Int
+  operation     String?                       @db.VarChar(20)
+  entity_type   String?                       @db.VarChar(50)
+  entity_id     BigInt?
+  origin_ip     String?                       @db.VarChar(45)
+  user_agent    String?                       @db.VarChar(255)
+  data_before   String?                       @db.LongText
+  data_after    String?                       @db.LongText
+  approved_by   BigInt?
+  approval_date DateTime?                     @db.Timestamp(0)
+  status        sensitive_actions_log_status? @default(APROVADO)
+  created_at    DateTime?                     @default(now()) @db.Timestamp(0)
+  system_users  system_users                  @relation(fields: [user_id], references: [id], onUpdate: Restrict, map: "sensitive_actions_log_ibfk_1")
+
+  @@index([created_at, routine_code], map: "idx_created_routine")
+  @@index([entity_type, entity_id], map: "idx_entity")
+  @@index([entity_type, entity_id], map: "idx_log_entity")
+  @@index([user_id, created_at], map: "idx_log_user_date")
+  @@index([routine_code], map: "idx_routine")
+  @@index([status], map: "idx_status")
+  @@index([user_id, created_at], map: "idx_user_date")
+}
+
+model session_languages {
+  id                BigInt              @id @default(autoincrement())
+  name              String              @unique(map: "name") @db.VarChar(50)
+  description       String?             @db.Text
+  abbreviation      String?             @db.VarChar(10)
+  display_order     Int?                @default(0)
+  created_at        DateTime?           @default(now()) @db.Timestamp(0)
+  showtime_schedule showtime_schedule[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model session_seat_status {
+  id                BigInt            @id @default(autoincrement())
+  showtime_id       BigInt
+  seat_id           BigInt
+  status            BigInt
+  sale_id           BigInt?
+  reservation_uuid  String?           @db.VarChar(100)
+  reservation_date  DateTime?         @db.Timestamp(0)
+  expiration_date   DateTime?         @db.Timestamp(0)
+  created_at        DateTime?         @default(now()) @db.Timestamp(0)
+  updated_at        DateTime?         @default(now()) @db.Timestamp(0)
+  showtime_schedule showtime_schedule @relation(fields: [showtime_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "session_seat_status_ibfk_1")
+  seats             seats             @relation(fields: [seat_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "session_seat_status_ibfk_2")
+  seat_status       seat_status       @relation(fields: [status], references: [id], onUpdate: Restrict, map: "session_seat_status_ibfk_3")
+  sales             sales?            @relation(fields: [sale_id], references: [id], onUpdate: Restrict, map: "session_seat_status_ibfk_4")
+
+  @@unique([showtime_id, seat_id], map: "uk_session_seat")
+  @@index([expiration_date], map: "idx_expiration")
+  @@index([reservation_uuid], map: "idx_reservation")
+  @@index([sale_id], map: "sale_id")
+  @@index([seat_id], map: "seat_id")
+  @@index([status], map: "status")
+}
+
+model session_status {
+  id                  BigInt              @id @default(autoincrement())
+  name                String              @unique(map: "name") @db.VarChar(50)
+  description         String?             @db.Text
+  allows_modification Boolean?            @default(true)
+  display_order       Int?                @default(0)
+  created_at          DateTime?           @default(now()) @db.Timestamp(0)
+  showtime_schedule   showtime_schedule[]
+}
+
+model settlement_bases {
+  id                      BigInt                    @id @default(autoincrement())
+  name                    String                    @unique(map: "name") @db.VarChar(100)
+  description             String?                   @db.Text
+  created_at              DateTime?                 @default(now()) @db.Timestamp(0)
+  distributor_settlements distributor_settlements[]
+  exhibition_contracts    exhibition_contracts[]
+}
+
+model settlement_status {
+  id                     BigInt                   @id @default(autoincrement())
+  name                   String                   @unique(map: "name") @db.VarChar(50)
+  description            String?                  @db.Text
+  allows_modification    Boolean?                 @default(true)
+  display_order          Int?                     @default(0)
+  created_at             DateTime?                @default(now()) @db.Timestamp(0)
+  monthly_tax_settlement monthly_tax_settlement[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model showtime_schedule {
+  id                  BigInt                @id @default(autoincrement())
+  cinema_complex_id   BigInt
+  room_id             BigInt
+  movie_id            BigInt
+  session_date        DateTime              @db.Date
+  session_time        DateTime              @db.Time(0)
+  projection_type     BigInt?
+  audio_type          BigInt?
+  session_language    BigInt?
+  status              BigInt?
+  available_seats     Int?                  @default(0)
+  sold_seats          Int?                  @default(0)
+  blocked_seats       Int?                  @default(0)
+  base_ticket_price   Decimal               @db.Decimal(10, 2)
+  created_at          DateTime?             @default(now()) @db.Timestamp(0)
+  session_seat_status session_seat_status[]
+  cinema_complexes    cinema_complexes      @relation(fields: [cinema_complex_id], references: [id], onUpdate: Restrict, map: "showtime_schedule_ibfk_1")
+  rooms               rooms                 @relation(fields: [room_id], references: [id], onUpdate: Restrict, map: "showtime_schedule_ibfk_2")
+  movies              movies                @relation(fields: [movie_id], references: [id], onUpdate: Restrict, map: "showtime_schedule_ibfk_3")
+  projection_types    projection_types?     @relation(fields: [projection_type], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "showtime_schedule_ibfk_4")
+  audio_types         audio_types?          @relation(fields: [audio_type], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "showtime_schedule_ibfk_5")
+  session_languages   session_languages?    @relation(fields: [session_language], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "showtime_schedule_ibfk_6")
+  session_status      session_status?       @relation(fields: [status], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "showtime_schedule_ibfk_7")
+  tickets             tickets[]
+
+  @@index([audio_type], map: "audio_type")
+  @@index([cinema_complex_id], map: "cinema_complex_id")
+  @@index([movie_id], map: "idx_movie")
+  @@index([room_id], map: "idx_room")
+  @@index([session_date, session_time], map: "idx_session_date_time")
+  @@index([projection_type], map: "projection_type")
+  @@index([session_language], map: "session_language")
+  @@index([status], map: "status")
+}
+
+model simple_national_brackets {
+  id                     BigInt    @id @default(autoincrement())
+  annex                  String    @db.VarChar(10)
+  bracket                Int
+  gross_revenue_12m_from Decimal   @db.Decimal(15, 2)
+  gross_revenue_12m_to   Decimal   @db.Decimal(15, 2)
+  nominal_rate           Decimal   @db.Decimal(5, 2)
+  irpj_percentage        Decimal?  @db.Decimal(5, 2)
+  csll_percentage        Decimal?  @db.Decimal(5, 2)
+  cofins_percentage      Decimal?  @db.Decimal(5, 2)
+  pis_percentage         Decimal?  @db.Decimal(5, 2)
+  cpp_percentage         Decimal?  @db.Decimal(5, 2)
+  iss_percentage         Decimal?  @db.Decimal(5, 2)
+  validity_start         DateTime  @db.Date
+  validity_end           DateTime? @db.Date
+  active                 Boolean?  @default(true)
+
+  @@index([annex, gross_revenue_12m_from, gross_revenue_12m_to], map: "idx_annex_revenue")
+}
+
+model state_icms_parameters {
+  id                          BigInt    @id @default(autoincrement())
+  state                       String    @db.Char(2)
+  icms_rate                   Decimal?  @db.Decimal(5, 2)
+  mva_percentage              Decimal?  @db.Decimal(5, 2)
+  tax_substitution_applicable Boolean?  @default(false)
+  validity_start              DateTime  @db.Date
+  validity_end                DateTime? @db.Date
+  active                      Boolean?  @default(true)
+
+  @@index([state, validity_start], map: "idx_state_validity")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model stock_movement_types {
+  id              BigInt            @id @default(autoincrement())
+  name            String            @unique(map: "name") @db.VarChar(100)
+  description     String?           @db.Text
+  affects_stock   Boolean?          @default(true)
+  operation_type  String?           @db.VarChar(10)
+  display_order   Int?              @default(0)
+  created_at      DateTime?         @default(now()) @db.Timestamp(0)
+  stock_movements stock_movements[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model stock_movements {
+  id                   BigInt               @id @default(autoincrement())
+  product_id           BigInt
+  complex_id           BigInt
+  movement_type        BigInt
+  quantity             Int
+  previous_quantity    Int
+  current_quantity     Int
+  origin_type          String?              @db.VarChar(50)
+  origin_id            BigInt?
+  unit_value           Decimal?             @db.Decimal(10, 2)
+  total_value          Decimal?             @db.Decimal(15, 2)
+  observations         String?              @db.Text
+  user_id              BigInt?
+  movement_date        DateTime?            @default(now()) @db.Timestamp(0)
+  created_at           DateTime?            @default(now()) @db.Timestamp(0)
+  products             products             @relation(fields: [product_id], references: [id], onUpdate: Restrict, map: "stock_movements_ibfk_1")
+  cinema_complexes     cinema_complexes     @relation(fields: [complex_id], references: [id], onUpdate: Restrict, map: "stock_movements_ibfk_2")
+  stock_movement_types stock_movement_types @relation(fields: [movement_type], references: [id], onUpdate: Restrict, map: "stock_movements_ibfk_3")
+  system_users         system_users?        @relation(fields: [user_id], references: [id], onUpdate: Restrict, map: "stock_movements_ibfk_4")
+
+  @@index([complex_id], map: "idx_complex")
+  @@index([movement_date], map: "idx_movement_date")
+  @@index([origin_type, origin_id], map: "idx_origin")
+  @@index([product_id], map: "idx_product")
+  @@index([movement_type], map: "movement_type")
+  @@index([user_id], map: "user_id")
+}
+
+model supplier_types {
+  id            BigInt    @id @default(autoincrement())
+  name          String    @unique(map: "name") @db.VarChar(100)
+  description   String?   @db.Text
+  display_order Int?      @default(0)
+  created_at    DateTime? @default(now()) @db.Timestamp(0)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model suppliers {
+  id                      BigInt                    @id @default(autoincrement())
+  corporate_name          String                    @db.VarChar(200)
+  trade_name              String?                   @db.VarChar(200)
+  cnpj                    String?                   @unique(map: "cnpj") @db.VarChar(18)
+  phone                   String?                   @db.VarChar(20)
+  email                   String?                   @db.VarChar(100)
+  address                 String?                   @db.Text
+  supplier_type           BigInt?
+  contact_name            String?                   @db.VarChar(200)
+  contact_phone           String?                   @db.VarChar(20)
+  delivery_days           Int?                      @default(7)
+  active                  Boolean?                  @default(true)
+  created_at              DateTime?                 @default(now()) @db.Timestamp(0)
+  updated_at              DateTime?                 @default(now()) @db.Timestamp(0)
+  is_film_distributor     Boolean?                  @default(false)
+  distributor_settlements distributor_settlements[]
+  exhibition_contracts    exhibition_contracts[]
+  movies                  movies[]
+
+  @@index([supplier_type], map: "idx_type")
+}
+
+model system_modules {
+  id            BigInt        @id @default(autoincrement())
+  code          String        @unique(map: "code") @db.VarChar(50)
+  name          String        @db.VarChar(100)
+  description   String?       @db.Text
+  icon          String?       @db.VarChar(50)
+  display_order Int?          @default(0)
+  active        Boolean?      @default(true)
+  created_at    DateTime?     @default(now()) @db.Timestamp(0)
+  permissions   permissions[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model system_routines {
+  id                           BigInt                      @id @default(autoincrement())
+  code                         Int                         @unique(map: "code")
+  name                         String                      @db.VarChar(200)
+  module                       String                      @db.VarChar(50)
+  description                  String?                     @db.Text
+  category                     String?                     @db.VarChar(100)
+  risk_level                   system_routines_risk_level? @default(BAIXO)
+  requires_approval            Boolean?                    @default(false)
+  requires_supervisor_password Boolean?                    @default(false)
+  active                       Boolean?                    @default(true)
+  created_at                   DateTime?                   @default(now()) @db.Timestamp(0)
+  updated_at                   DateTime?                   @default(now()) @db.Timestamp(0)
+  profile_permissions          profile_permissions[]
+  routine_operations           routine_operations[]
+  user_permissions             user_permissions[]
+
+  @@index([category], map: "idx_category")
+  @@index([code], map: "idx_code")
+  @@index([module], map: "idx_module")
+  @@index([module, active], map: "idx_routine_module_active")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model system_users {
+  id                                                                                      BigInt                       @id @default(autoincrement())
+  employee_id                                                                             BigInt
+  username                                                                                String                       @unique(map: "username") @db.VarChar(50)
+  email                                                                                   String                       @unique(map: "email") @db.VarChar(100)
+  password_hash                                                                           String                       @db.VarChar(255)
+  active                                                                                  Boolean?                     @default(true)
+  last_login_date                                                                         DateTime?                    @db.Timestamp(0)
+  reset_token                                                                             String?                      @db.VarChar(100)
+  token_expiration_date                                                                   DateTime?                    @db.Timestamp(0)
+  failed_login_attempts                                                                   Int?                         @default(0)
+  blocked_until                                                                           DateTime?                    @db.Timestamp(0)
+  created_at                                                                              DateTime?                    @default(now()) @db.Timestamp(0)
+  updated_at                                                                              DateTime?                    @default(now()) @db.Timestamp(0)
+  requires_2fa                                                                            Boolean?                     @default(false)
+  secret_2fa                                                                              String?                      @db.VarChar(100)
+  backup_codes_2fa                                                                        String?                      @db.LongText
+  last_ip                                                                                 String?                      @db.VarChar(45)
+  last_location                                                                           String?                      @db.VarChar(200)
+  active_sessions                                                                         Int?                         @default(0)
+  max_simultaneous_sessions                                                               Int?                         @default(3)
+  password_policy                                                                         String?                      @db.LongText
+  password_expiration_date                                                                DateTime?                    @db.Date
+  password_history                                                                        String?                      @db.LongText
+  security_questions                                                                      String?                      @db.LongText
+  gdpr_data_subject_requests                                                              gdpr_data_subject_requests[]
+  gdpr_security_incidents_gdpr_security_incidents_detected_byTosystem_users               gdpr_security_incidents[]    @relation("gdpr_security_incidents_detected_byTosystem_users")
+  gdpr_security_incidents_gdpr_security_incidents_investigation_responsibleTosystem_users gdpr_security_incidents[]    @relation("gdpr_security_incidents_investigation_responsibleTosystem_users")
+  sensitive_actions_log                                                                   sensitive_actions_log[]
+  stock_movements                                                                         stock_movements[]
+  employees                                                                               employees                    @relation(fields: [employee_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "system_users_ibfk_1")
+  user_permissions_user_permissions_user_idTosystem_users                                 user_permissions[]           @relation("user_permissions_user_idTosystem_users")
+  user_permissions_user_permissions_granted_byTosystem_users                              user_permissions[]           @relation("user_permissions_granted_byTosystem_users")
+  user_profiles_user_profiles_user_idTosystem_users                                       user_profiles[]              @relation("user_profiles_user_idTosystem_users")
+  user_profiles_user_profiles_assigned_byTosystem_users                                   user_profiles[]              @relation("user_profiles_assigned_byTosystem_users")
+
+  @@index([employee_id], map: "employee_id")
+  @@index([requires_2fa], map: "idx_2fa")
+  @@index([email], map: "idx_email")
+  @@index([last_ip], map: "idx_last_ip")
+  @@index([reset_token], map: "idx_token")
+  @@index([username], map: "idx_username")
+}
+
+model tax_compensations {
+  id                     BigInt           @id @default(autoincrement())
+  cinema_complex_id      BigInt
+  tax_type               BigInt?
+  credit_amount          Decimal          @db.Decimal(15, 2)
+  compensated_amount     Decimal?         @default(0.00) @db.Decimal(15, 2)
+  credit_balance         Decimal          @db.Decimal(15, 2)
+  credit_competence_date DateTime         @db.Date
+  usage_date             DateTime?        @db.Date
+  notes                  String?          @db.Text
+  created_at             DateTime?        @default(now()) @db.Timestamp(0)
+  tax_types              tax_types?       @relation(fields: [tax_type], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_compensation_tax_type")
+  cinema_complexes       cinema_complexes @relation(fields: [cinema_complex_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "tax_compensations_ibfk_1")
+
+  @@index([tax_type], map: "fk_compensation_tax_type")
+  @@index([cinema_complex_id, tax_type], map: "idx_complex_tax")
+  @@index([credit_balance], map: "idx_credit_balance")
+}
+
+model tax_entries {
+  id                     BigInt              @id @default(autoincrement())
+  cinema_complex_id      BigInt
+  source_type            BigInt?
+  source_id              BigInt
+  competence_date        DateTime            @db.Date
+  entry_date             DateTime?           @default(now()) @db.Timestamp(0)
+  gross_amount           Decimal             @db.Decimal(15, 2)
+  deductions_amount      Decimal?            @default(0.00) @db.Decimal(15, 2)
+  calculation_base       Decimal             @db.Decimal(15, 2)
+  apply_iss              Boolean?            @default(true)
+  iss_rate               Decimal?            @default(0.00) @db.Decimal(5, 2)
+  iss_amount             Decimal?            @default(0.00) @db.Decimal(15, 2)
+  ibge_municipality_code String?             @db.VarChar(7)
+  iss_service_code       String?             @db.VarChar(10)
+  withheld_at_source     Boolean?            @default(false)
+  pis_cofins_regime      BigInt?
+  pis_rate               Decimal             @db.Decimal(5, 2)
+  pis_debit_amount       Decimal             @db.Decimal(15, 2)
+  pis_credit_amount      Decimal?            @default(0.00) @db.Decimal(15, 2)
+  pis_amount_payable     Decimal             @db.Decimal(15, 2)
+  cofins_rate            Decimal             @db.Decimal(5, 2)
+  cofins_debit_amount    Decimal             @db.Decimal(15, 2)
+  cofins_credit_amount   Decimal?            @default(0.00) @db.Decimal(15, 2)
+  cofins_amount_payable  Decimal             @db.Decimal(15, 2)
+  irpj_csll_base         Decimal?            @db.Decimal(15, 2)
+  presumed_percentage    Decimal?            @db.Decimal(5, 2)
+  snapshot_rates         String?             @db.LongText
+  processed              Boolean?            @default(false)
+  processing_date        DateTime?           @db.Timestamp(0)
+  processing_user_id     BigInt?
+  created_at             DateTime?           @default(now()) @db.Timestamp(0)
+  pis_cofins_regimes     pis_cofins_regimes? @relation(fields: [pis_cofins_regime], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_tax_entry_pis_cofins_regime")
+  revenue_types          revenue_types?      @relation(fields: [source_type], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_tax_entry_source_type")
+  cinema_complexes       cinema_complexes    @relation(fields: [cinema_complex_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "tax_entries_ibfk_1")
+
+  @@index([pis_cofins_regime], map: "fk_tax_entry_pis_cofins_regime")
+  @@index([competence_date], map: "idx_competence_date")
+  @@index([cinema_complex_id, competence_date], map: "idx_complex_competence")
+  @@index([processed], map: "idx_processed")
+  @@index([source_type, source_id], map: "idx_source")
+  @@index([source_type, source_id, competence_date], map: "idx_source_competence")
+  @@index([competence_date, source_type], map: "idx_tax_entries_competence_type")
+}
+
+model tax_regimes {
+  id                BigInt              @id @default(autoincrement())
+  name              String              @unique(map: "name") @db.VarChar(100)
+  description       String?             @db.Text
+  created_at        DateTime?           @default(now()) @db.Timestamp(0)
+  companies         companies[]
+  federal_tax_rates federal_tax_rates[]
+}
+
+model tax_types {
+  id                BigInt              @id @default(autoincrement())
+  name              String              @unique(map: "name") @db.VarChar(100)
+  description       String?             @db.Text
+  jurisdiction      String?             @db.VarChar(20)
+  display_order     Int?                @default(0)
+  created_at        DateTime?           @default(now()) @db.Timestamp(0)
+  tax_compensations tax_compensations[]
+}
+
+model ticket_types {
+  id                  BigInt    @id @default(autoincrement())
+  name                String    @unique(map: "name") @db.VarChar(50)
+  description         String?   @db.Text
+  discount_percentage Decimal?  @default(0.00) @db.Decimal(5, 2)
+  display_order       Int?      @default(0)
+  created_at          DateTime? @default(now()) @db.Timestamp(0)
+  tickets             tickets[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tickets {
+  id                BigInt            @id @default(autoincrement())
+  sale_id           BigInt
+  showtime_id       BigInt
+  seat_id           BigInt?
+  ticket_number     String            @unique(map: "ticket_number") @db.VarChar(50)
+  ticket_type       BigInt?
+  seat              String?           @db.VarChar(10)
+  face_value        Decimal           @db.Decimal(10, 2)
+  service_fee       Decimal?          @default(0.00) @db.Decimal(10, 2)
+  total_amount      Decimal           @db.Decimal(10, 2)
+  used              Boolean?          @default(false)
+  usage_date        DateTime?         @db.Timestamp(0)
+  created_at        DateTime?         @default(now()) @db.Timestamp(0)
+  sales             sales             @relation(fields: [sale_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "tickets_ibfk_1")
+  showtime_schedule showtime_schedule @relation(fields: [showtime_id], references: [id], onUpdate: Restrict, map: "tickets_ibfk_2")
+  seats             seats?            @relation(fields: [seat_id], references: [id], onUpdate: Restrict, map: "tickets_ibfk_3")
+  ticket_types      ticket_types?     @relation(fields: [ticket_type], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "tickets_ibfk_4")
+
+  @@index([sale_id], map: "idx_sale")
+  @@index([showtime_id], map: "idx_showtime")
+  @@index([ticket_number], map: "idx_ticket_number")
+  @@index([seat_id], map: "seat_id")
+  @@index([ticket_type], map: "ticket_type")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model user_permissions {
+  id                                                     BigInt                     @id @default(autoincrement())
+  user_id                                                BigInt
+  routine_code                                           Int
+  operation                                              user_permissions_operation
+  granted_by                                             BigInt?
+  grant_date                                             DateTime?                  @default(now()) @db.Timestamp(0)
+  expiration_date                                        DateTime?                  @db.Timestamp(0)
+  reason                                                 String?                    @db.Text
+  active                                                 Boolean?                   @default(true)
+  system_users_user_permissions_user_idTosystem_users    system_users               @relation("user_permissions_user_idTosystem_users", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "user_permissions_ibfk_1")
+  system_routines                                        system_routines            @relation(fields: [routine_code], references: [code], onDelete: Cascade, onUpdate: Restrict, map: "user_permissions_ibfk_2")
+  system_users_user_permissions_granted_byTosystem_users system_users?              @relation("user_permissions_granted_byTosystem_users", fields: [granted_by], references: [id], onUpdate: Restrict, map: "user_permissions_ibfk_3")
+
+  @@unique([user_id, routine_code, operation], map: "uk_user_routine_operation")
+  @@index([granted_by], map: "granted_by")
+  @@index([active], map: "idx_active")
+  @@index([expiration_date], map: "idx_expiration")
+  @@index([routine_code], map: "idx_routine")
+  @@index([user_id], map: "idx_user")
+  @@index([user_id, routine_code, active], map: "idx_user_routine_active")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model user_profiles {
+  id                                                   BigInt          @id @default(autoincrement())
+  user_id                                              BigInt
+  profile_id                                           BigInt
+  assigned_by                                          BigInt?
+  assignment_date                                      DateTime?       @default(now()) @db.Timestamp(0)
+  active                                               Boolean?        @default(true)
+  system_users_user_profiles_user_idTosystem_users     system_users    @relation("user_profiles_user_idTosystem_users", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "user_profiles_ibfk_1")
+  access_profiles                                      access_profiles @relation(fields: [profile_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "user_profiles_ibfk_2")
+  system_users_user_profiles_assigned_byTosystem_users system_users?   @relation("user_profiles_assigned_byTosystem_users", fields: [assigned_by], references: [id], onUpdate: Restrict, map: "user_profiles_ibfk_3")
+
+  @@unique([user_id, profile_id], map: "uk_user_profile")
+  @@index([assigned_by], map: "assigned_by")
+  @@index([profile_id], map: "profile_id")
+}
+
+enum customer_points_movement_type {
+  CREDIT
+  DEBIT
+  EXPIRATION
+  ADJUSTMENT
+}
+
+enum routine_operations_operation {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+  EXECUTE
+}
+
+enum profile_permissions_operation {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+  EXECUTE
+}
+
+enum user_permissions_operation {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+  EXECUTE
+}
+
+enum customer_preferences_preferred_position {
+  CENTER
+  LEFT_SIDE
+  RIGHT_SIDE
+  BACK
+  FRONT
+}
+
+enum customers_gender {
+  M
+  F
+  OTHER
+  NOT_INFORMED
+}
+
+enum system_routines_risk_level {
+  BAIXO
+  MEDIO
+  ALTO
+  CRITICO
+}
+
+enum sensitive_actions_log_status {
+  PENDENTE
+  APROVADO
+  NEGADO
+}

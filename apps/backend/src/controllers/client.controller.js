@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 // Lista todos os clientes
 export const getAllCustomers = async (req, res) => {
   try {
-    const customers = await prisma.client.findMany();
+    const customers = await prisma.customers.findMany();
     res.json(customers);
   } catch (error) {
     res.status(500).json({ error: 'Não foi possível buscar os clientes.' });
@@ -17,7 +17,7 @@ export const createCustomer = async (req, res) => {
     const { name, email, password } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newCustomer = await prisma.client.create({
+    const newCustomer = await prisma.customers.create({
       data: {
         name,
         email,
