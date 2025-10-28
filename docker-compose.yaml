@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   db:
-    image: mariadb:lts
+    image: mariadb
     container_name: frame24-mariadb
     restart: always
     ports:
@@ -13,8 +13,25 @@ services:
       MARIADB_USER: frame24
       MARIADB_PASSWORD: frame24pass
     volumes:
-      - ./dump-frame24-202510112307.sql:/docker-entrypoint-initdb.d/init.sql
       - mariadb_data:/var/lib/mysql
+    networks:
+      - frame24-net
+
+  opa:
+    image: openpolicyagent/opa
+    container_name: frame24-opa
+    restart: unless-stopped
+    command: ["run", "--server", "--addr=0.0.0.0:8181", "--set=decision_logs.console=true", "/policies/authz.rego"]
+    ports:
+      - "8181:8181"
+    volumes:
+      - ./opa/policies:/policies
+    networks:
+      - frame24-net
 
 volumes:
   mariadb_data:
+
+networks:
+  frame24-net:
+    driver: bridge
