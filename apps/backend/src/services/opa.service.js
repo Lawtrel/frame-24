@@ -1,5 +1,5 @@
 import logger from '../utils/logger.js';
-export class OPAService {
+export class OpaService {
 
     static getOpaUrl() {
         return process.env.OPA_URL || 'http://localhost:8181';

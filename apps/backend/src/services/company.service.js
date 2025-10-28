@@ -2,7 +2,7 @@ import prisma from '../lib/prisma.js';
 import { hashPassword } from './auth-util.service.js';
 import { generateEmployeeNumber, generateTenantSlug } from '../utils/company.util.js';
 import logger from '../utils/logger.js';
-import { initializeTenantData } from './tenant-init.service.js';
+import { initializeTenantData } from './tenant.init.service.js';
 
 export const createCompanyAndAdminStructure = async (data) => {
     const {
