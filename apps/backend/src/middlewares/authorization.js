@@ -1,4 +1,4 @@
-import { OPAService } from '../services/opa-service.js';
+import { OpaService } from '../services/opa.service.js';
 import { permissionRegistry } from '../utils/PermissionRegistry.js';
 import logger from "../utils/logger.js";
 
@@ -91,7 +91,7 @@ export const authorize = (resourceType, action = null) => {
                 resourceTenant: input.resource.tenant_id || 'GLOBAL'
             });
 
-            const allowed = await OPAService.check(input);
+            const allowed = await OpaService.check(input);
 
             if (allowed) {
                 logger.info('✅ Acesso permitido pelo OPA');
