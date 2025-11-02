@@ -18,7 +18,7 @@
     "build:styles": "tailwindcss -i ./src/styles.css -o ./dist/index.css",
     "build:components": "tsc",
     "check-types": "tsc --noEmit",
-    "dev:styles": "tailwindcss -i ./src/styles.css -o ./dist/index.css --watch",
+    "dev:styles": "tailwindcss -i ./src/styles.css -o ./dist/index.css --watch > /dev/null 2>&1 &",
     "dev:components": "tsc --watch",
     "lint": "eslint src --max-warnings 0"
   },
@@ -29,18 +29,18 @@
     "@repo/eslint-config": "workspace:*",
     "@repo/tailwind-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@tailwindcss/cli": "^4.1.5",
-    "@types/react": "^19.1.0",
-    "eslint": "^9.33.0",
-    "tailwindcss": "^4.1.5",
-    "typescript": "5.9.2"
+    "@tailwindcss/cli": "^4.1.16",
+    "@types/react": "^19.2.2",
+    "eslint": "^9.38.0",
+    "tailwindcss": "^4.1.16",
+    "typescript": "5.9.3"
   },
   "dependencies": {
     "clsx": "^2.1.1",
-    "lucide-react": "^0.544.0",
-    "next": "^15.5.4",
+    "lucide-react": "^0.548.0",
+    "next": "^16.0.1",
     "next-themes": "^0.4.6",
-    "react-dom": "^19.1.1",
+    "react-dom": "^19.2.0",
     "tailwind-merge": "^3.3.1"
   }
 }
