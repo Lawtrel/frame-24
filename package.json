@@ -4,7 +4,7 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
-    "dev:api": "turbo run dev --filter=backend",
+    "dev:api": "turbo run dev --filter=api",
     "dev:web": "turbo run dev --filter=web",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
@@ -13,14 +13,14 @@
   "devDependencies": {
     "prettier": "^3.6.2",
     "turbo": "^2.5.8",
-    "typescript": "5.9.2"
+    "typescript": "^5.9.3"
   },
-  "packageManager": "pnpm@9.0.0",
+  "packageManager": "pnpm@10.20.0",
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
     "@types/axios": "^0.14.4",
-    "axios": "^1.12.2"
+    "axios": "^1.13.1"
   }
 }
