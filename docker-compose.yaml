@@ -39,6 +39,23 @@ services:
       timeout: 10s
       retries: 5
 
+  minio:
+    image: minio/minio:latest
+    container_name: frame24-minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: frame24
+      MINIO_ROOT_PASSWORD: frame24pass
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000" # API S3
+      - "9001:9001" # Painel web
+    volumes:
+      - minio_data:/data
+    networks:
+      - frame24-network
+
+
   elasticsearch:
     image: elasticsearch:9.2.0
     container_name: elasticsearch
@@ -56,10 +73,24 @@ services:
     networks:
       - frame24-network
 
+  kibana:
+    image: kibana:9.2.0
+    container_name: frame24-kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    networks:
+      - frame24-network
+    depends_on:
+      - elasticsearch
+
+
 volumes:
   es_data:
   postgres_data:
   rabbitmq_data:
+  minio_data:
 
 networks:
   frame24-network:
