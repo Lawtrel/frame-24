@@ -2420,7 +2420,8 @@ model age_ratings {
   description String?   @db.Text
   created_at  DateTime? @default(now()) @db.Timestamp(0)
 
-  movies movies[]
+  category_links movies_on_categories[]
+  movies         movies[]
 
   @@unique([company_id, code])
   @@index([company_id])
@@ -2431,16 +2432,17 @@ model movie_categories {
   id         String @id @default("")
   company_id String
 
-  name        String    @db.VarChar(100)
-  description String?   @db.Text
-  minimum_age Int?      @default(0)
-  slug        String?   @db.VarChar(100)
-  active      Boolean?  @default(true)
-  created_at  DateTime? @default(now()) @db.Timestamp(0)
+  name        String   @db.VarChar(100)
+  description String?  @db.Text
+  minimum_age Int?     @default(0)
+  slug        String   @unique @db.VarChar(100)
+  active      Boolean  @default(true)
+  created_at  DateTime @default(now()) @db.Timestamp(0)
 
-  movies movies[]
+  category_links movies_on_categories[]
+  movies         movies[]
 
-  @@unique([company_id, slug])
+  @@unique([company_id, name])
   @@index([company_id])
   @@index([active])
   @@schema("catalog")
@@ -2476,23 +2478,36 @@ model media_types {
   @@schema("catalog")
 }
 
+model movies_on_categories {
+  movie_id    String
+  category_id String
+
+  movie         movies           @relation(fields: [movie_id], references: [id], onDelete: Cascade)
+  category      movie_categories @relation(fields: [category_id], references: [id])
+  age_ratings   age_ratings?     @relation(fields: [age_ratingsId], references: [id])
+  age_ratingsId String?
+
+  @@id([movie_id, category_id])
+  @@index([category_id])
+  @@schema("catalog")
+}
+
 model movies {
   id             String @id @default("")
   distributor_id String
+  company_id     String
 
-  age_rating  String?
-  category_id String?
+  age_rating_id String?
 
   original_title         String    @db.VarChar(300)
   brazil_title           String?   @db.VarChar(300)
   ancine_number          String?   @db.VarChar(50)
   duration_minutes       Int
-  genre                  String?   @db.VarChar(100)
   country_of_origin      String?   @db.VarChar(50)
   production_year        Int?
-  national               Boolean?  @default(false)
-  active                 Boolean?  @default(true)
-  created_at             DateTime? @default(now()) @db.Timestamp(0)
+  national               Boolean   @default(false)
+  active                 Boolean   @default(true)
+  created_at             DateTime  @default(now()) @db.Timestamp(0)
   synopsis               String?   @db.Text
   short_synopsis         String?   @db.VarChar(500)
   budget                 Decimal?  @db.Decimal(15, 2)
@@ -2504,17 +2519,18 @@ model movies {
   original_language      String?   @db.VarChar(50)
   slug                   String?   @unique @db.VarChar(200)
 
-  age_ratings      age_ratings?      @relation(fields: [age_rating], references: [id])
-  movie_categories movie_categories? @relation(fields: [category_id], references: [id])
-  movie_cast       movie_cast[]
-  movie_media      movie_media[]
+  age_rating         age_ratings?           @relation(fields: [age_rating_id], references: [id])
+  category_links     movies_on_categories[]
+  movie_cast         movie_cast[]
+  movie_media        movie_media[]
+  movie_categories   movie_categories?      @relation(fields: [movie_categoriesId], references: [id])
+  movie_categoriesId String?
 
+  @@index([company_id])
   @@index([distributor_id])
-  @@index([age_rating])
-  @@index([category_id])
+  @@index([age_rating_id])
   @@index([active])
   @@index([national])
-  @@index([genre])
   @@index([slug])
   @@index([tmdb_id])
   @@index([imdb_id])
