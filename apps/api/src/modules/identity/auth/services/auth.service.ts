@@ -24,7 +24,7 @@ import {
 
 import { LoggerService } from 'src/common/services/logger.service';
 import { MasterDataSetupService } from 'src/modules/setup/services/master-data-setup.service';
-import { SnowflakeService } from 'src/common/services/snowflake.service';
+import { EmployeeIdGeneratorService } from 'src/modules/identity/auth/services/employee-id-generator';
 
 @Injectable()
 export class AuthService {
@@ -38,10 +38,10 @@ export class AuthService {
     private readonly companyUserRepository: CompanyUserRepository,
     private readonly companyRepository: CompanyRepository,
     private readonly customRoleRepository: CustomRoleRepository,
+    private readonly employeeIdGenerator: EmployeeIdGeneratorService,
     private readonly jwtService: JwtService,
     private readonly logger: LoggerService,
     private readonly masterDataSetup: MasterDataSetupService,
-    private readonly snowflake: SnowflakeService,
   ) {}
 
   async validateUser(
@@ -229,11 +229,18 @@ export class AuthService {
 
     this.logger.log(`Admin role created: ${adminRole.id}`, AuthService.name);
 
+    const employee_id = await this.employeeIdGenerator.generate(company.id);
+
+    this.logger.log(
+      `Generated employee_id: ${employee_id} for admin user`,
+      AuthService.name,
+    );
+
     await this.companyUserRepository.create({
       identities: { connect: { id: identity.id } },
       companies: { connect: { id: company.id } },
       custom_roles: { connect: { id: adminRole.id } },
-      employee_id: this.snowflake.generate(),
+      employee_id,
       active: true,
       start_date: new Date(),
     } as Prisma.company_usersCreateInput);
@@ -313,11 +320,18 @@ export class AuthService {
 
     this.logger.log(`Default role found: ${defaultRole.id}`, AuthService.name);
 
+    const employee_id = await this.employeeIdGenerator.generate(dto.company_id);
+
+    this.logger.log(
+      `Generated employee_id: ${employee_id} for new user`,
+      AuthService.name,
+    );
+
     await this.companyUserRepository.create({
       identities: { connect: { id: identity.id } },
       companies: { connect: { id: dto.company_id } },
       custom_roles: { connect: { id: defaultRole.id } },
-      employee_id: this.snowflake.generate(),
+      employee_id,
       active: true,
       start_date: new Date(),
     } as Prisma.company_usersCreateInput);

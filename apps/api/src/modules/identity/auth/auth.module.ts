@@ -17,6 +17,7 @@ import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 
 import { AuthController } from './controllers/auth.controller';
+import { EmployeeIdGeneratorService } from 'src/modules/identity/auth/services/employee-id-generator';
 
 @Module({
   imports: [
@@ -33,7 +34,7 @@ import { AuthController } from './controllers/auth.controller';
     CompanyUserRepository,
     CustomRoleRepository,
     CompanyRepository,
-
+    EmployeeIdGeneratorService,
     AuthService,
     MasterDataSetupService,
 
