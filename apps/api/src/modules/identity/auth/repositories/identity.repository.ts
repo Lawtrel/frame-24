@@ -13,12 +13,14 @@ export class IdentityRepository {
   async findById(id: string): Promise<identities | null> {
     return this.prisma.identities.findUnique({
       where: { id },
+      include: { persons: true },
     });
   }
 
   async findByEmail(email: string): Promise<identities | null> {
     return this.prisma.identities.findFirst({
       where: { email },
+      include: { persons: true },
     });
   }
 
@@ -36,7 +38,9 @@ export class IdentityRepository {
         },
       },
       include: {
-        identities: true,
+        identities: {
+          include: { persons: true },
+        },
       },
     });
 
@@ -49,6 +53,7 @@ export class IdentityRepository {
         id: this.snowflake.generate(),
         ...data,
       },
+      include: { persons: true },
     });
   }
 
