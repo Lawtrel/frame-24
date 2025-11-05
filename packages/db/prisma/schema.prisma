@@ -2345,6 +2345,9 @@ model products {
   company_id String
 
   category_id String
+  image_url   String? @db.VarChar(500)
+  supplier_id String?
+  barcode     String? @unique @db.VarChar(50)
 
   product_code String  @unique @db.VarChar(50)
   name         String  @db.VarChar(200)
@@ -2352,16 +2355,17 @@ model products {
   ncm_code     String? @db.VarChar(10)
   unit         String? @default("UN") @db.VarChar(10)
 
-  sale_price Decimal @db.Decimal(10, 2)
-  cost_price Decimal @db.Decimal(10, 2)
-
-  minimum_stock Int?      @default(0)
-  active        Boolean?  @default(true)
-  created_at    DateTime? @default(now()) @db.Timestamp(0)
+  minimum_stock       Int?      @default(0)
+  is_available_online Boolean?  @default(false)
+  active              Boolean?  @default(true)
+  created_at          DateTime? @default(now()) @db.Timestamp(0)
 
   product_categories product_categories @relation(fields: [category_id], references: [id])
   combo_products     combo_products[]
+  product_prices     product_prices[]
 
+  @@unique([company_id, product_code])
+  @@index([barcode])
   @@index([company_id])
   @@index([category_id])
   @@index([product_code])
@@ -2577,6 +2581,30 @@ model movie_media {
   @@index([movie_id])
   @@index([media_type])
   @@index([active])
+  @@schema("catalog")
+}
+
+model product_prices {
+  id         String  @id @default("")
+  product_id String
+  complex_id String?
+  company_id String
+
+  sale_price Decimal @db.Decimal(10, 2)
+  cost_price Decimal @db.Decimal(10, 2)
+
+  valid_from DateTime  @default(now())
+  valid_to   DateTime?
+  active     Boolean   @default(true)
+  created_at DateTime  @default(now())
+
+  products products @relation(fields: [product_id], references: [id])
+
+  @@unique([product_id, complex_id, valid_from])
+  @@index([product_id])
+  @@index([product_id, complex_id, active])
+  @@index([valid_from, valid_to])
+  @@index([company_id])
   @@schema("catalog")
 }
 
