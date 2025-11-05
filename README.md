@@ -1,135 +1,237 @@
-# Turborepo starter
+# Frame-24
 
-This Turborepo starter is maintained by the Turborepo core team.
+Sistema de gestão integrada para cinema, desenvolvido com arquitetura monorepo usando Turborepo, TypeScript, NestJS e Next.js.
 
-## Using this example
+## 🏗️ Arquitetura
 
-Run the following command:
+Este projeto utiliza uma arquitetura monorepo organizada da seguinte forma:
 
-```sh
-npx create-turbo@latest
+### Apps
+
+- **`api`** - Backend em [NestJS](https://nestjs.com/) (porta 3002)
+  - RESTful API com Swagger/Scalar documentation
+  - Autenticação JWT
+  - Integração com Prisma ORM
+  - Multi-schema database (identity, hr, finance, crm, sales, inventory, marketing, operations, projects, stock, tax, catalog, contracts)
+
+- **`frontend`** - Dashboard administrativo em [Next.js 16](https://nextjs.org/) (porta 3001)
+  - React 19
+  - Tailwind CSS 4
+  - Next Themes para dark mode
+  - UI components compartilhados
+
+- **`landing-page`** - Página institucional em [Next.js 16](https://nextjs.org/) (porta 3003)
+  - React 19
+  - Tailwind CSS 4
+  - Otimizada para SEO
+
+### Packages
+
+- **`@repo/db`** - Camada de dados com Prisma
+  - Schema multi-tenant
+  - 13 schemas PostgreSQL separados
+  - Prisma Client gerado
+
+- **`@repo/ui`** - Biblioteca de componentes compartilhados
+
+- **`@repo/eslint-config`** - Configurações ESLint compartilhadas
+
+- **`@repo/tailwind-config`** - Configuração Tailwind CSS compartilhada
+
+- **`@repo/typescript-config`** - Configurações TypeScript compartilhadas
+
+## 🚀 Tecnologias
+
+- **Node.js** >= 18
+- **TypeScript** 5.9.3
+- **pnpm** 10.20.0
+- **Turborepo** 2.5.8
+- **NestJS** 11.0.1
+- **Next.js** 16.0.1
+- **React** 19.2.0
+- **Prisma** 6.18.0
+- **PostgreSQL** 18.0
+- **RabbitMQ** 4.2
+- **Elasticsearch** 9.2.0
+
+## 📋 Pré-requisitos
+
+- Node.js >= 18
+- pnpm 10.20.0
+- Docker & Docker Compose (para infraestrutura)
+
+## ⚙️ Variáveis de Ambiente
+
+### Raiz do projeto (`.env`)
+
+```env
+# Database
+DATABASE_URL="postgresql://frame24:frame24pass@localhost:5432/frame24?schema=public&connection_limit=30"
+
+# Message Queue
+RABBITMQ_URL=amqp://frame24:frame24pass@localhost:5672
+
+# API Configuration
+PORT=3002
+NODE_ENV=development
+
+# Frontend URL
+FRONTEND_URL=http://localhost:3001
+
+
+# JWT Configuration
+JWT_SECRET=frame24-super-secret-jwt-key-2024
+
+# Worker Configuration
+WORKER_ID=1
 ```
 
-## What's inside?
+### Frontend (`apps/frontend/.env.local`)
 
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+```env
+# API URL
+NEXT_PUBLIC_API_URL=http://localhost:3002
 ```
 
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+### Package DB (`packages/db/.env`)
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+```env
+# Database
+DATABASE_URL="postgresql://frame24:frame24pass@localhost:5432/frame24?schema=public&connection_limit=30"
 ```
 
-### Develop
+## 🐳 Infraestrutura (Docker)
 
-To develop all apps and packages, run the following command:
+O projeto inclui os seguintes serviços via Docker Compose:
 
-```
-cd my-turborepo
+- **PostgreSQL 18.0** - Porta 5432
+- **RabbitMQ 4.2** com Management UI - Portas 5672 (AMQP) e 15672 (UI)
+- **Elasticsearch 9.2.0** - Porta 9200
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
+### Iniciar infraestrutura
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+```bash
+docker-compose up -d
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+### Acessar RabbitMQ Management
 
 ```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+http://localhost:15672
+User: frame24
+Password: frame24pass
 ```
 
-### Remote Caching
+## 📦 Instalação
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+```bash
+# Instalar dependências
+pnpm install
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+# Gerar Prisma Client
+cd packages/db
+pnpm db:generate
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
+# Executar migrations
+pnpm db:migrate:dev
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+## 🏃 Desenvolvimento
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+### Iniciar todos os serviços
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
+```bash
+pnpm dev
 ```
 
-## Useful Links
+### Iniciar serviços específicos
 
-Learn more about the power of Turborepo:
+```bash
+# Apenas API
+pnpm dev:api
 
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+# Apenas Frontend
+pnpm dev:web
+
+# Usando filtros do Turbo
+turbo dev --filter=landing-page
+turbo dev --filter=api
+turbo dev --filter=frontend
+```
+
+## 🏗️ Build
+
+```bash
+# Build de todos os apps
+pnpm build
+
+# Build específico
+turbo build --filter=api
+turbo build --filter=frontend
+turbo build --filter=landing-page
+```
+
+## 🧪 Comandos Úteis
+
+```bash
+# Linting
+pnpm lint
+
+# Type checking
+pnpm check-types
+
+# Formatação de código
+pnpm format
+
+# Prisma Studio
+cd packages/db
+pnpm db:studio
+
+# Reset database
+cd packages/db
+pnpm db:reset
+```
+
+## 📊 Database Schemas
+
+O projeto utiliza 13 schemas PostgreSQL separados para organização modular:
+
+- **identity** - Usuários, empresas, autenticação, permissões
+- **hr** - Recursos humanos, funcionários, departamentos
+- **finance** - Contabilidade, lançamentos, apurações
+- **crm** - Clientes, preferências, pontos de fidelidade
+- **sales** - Vendas, ingressos, concessão
+- **inventory** - Fornecedores, estoque
+- **marketing** - Campanhas promocionais, cupons
+- **operations** - Complexos, salas, sessões, assentos
+- **projects** - Projetos RECINE
+- **stock** - Movimentação de estoque
+- **tax** - Tributos, apurações fiscais
+- **catalog** - Filmes, produtos, combos
+- **contracts** - Contratos de exibição
+
+## 🔐 Autenticação
+
+A API utiliza JWT para autenticação. Endpoints protegidos requerem um token Bearer no header:
+
+```
+Authorization: Bearer <seu-token-jwt>
+```
+
+## 📚 Documentação da API
+
+Após iniciar a API, acesse:
+
+- **Swagger/Scalar**: http://localhost:3002/docs
+
+## 🤝 Contribuindo
+
+1. Clone o repositório
+2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
+3. Commit suas mudanças (`git commit -m 'feat: adiciona nova feature'`)
+4. Push para a branch (`git push origin feature/nova-feature`)
+5. Abra um Pull Request
+
+## 📄 Licença
+
+UNLICENSED - Projeto privado

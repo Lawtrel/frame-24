@@ -2,15 +2,35 @@
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
     "dev": {
+      "dependsOn": ["^db:generate"],
       "cache": false,
       "persistent": true,
       "env": ["DATABASE_URL", "PORT", "NODE_ENV"]
     },
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^db:generate","^build"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
       "env": ["DATABASE_URL", "PORT", "NODE_ENV"]
     },
-    "lint": {}
+    "db:generate": {
+      "cache": false
+    },
+    "db:migrate": {
+      "cache": false,
+      "persistent": true
+    },
+    "db:deploy": {
+      "cache": false
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "check-types": {
+      "dependsOn": ["^check-types"]
+    },
+    "test": {
+      "outputs": ["coverage/**"],
+      "cache": false
+    }
   }
 }

@@ -1,0 +1,2630 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["identity", "hr", "finance", "crm", "sales", "inventory", "marketing", "operations", "projects", "stock", "tax", "catalog", "contracts"]
+}
+
+enum identity_type {
+  CUSTOMER
+  EMPLOYEE
+  SYSTEM
+
+  @@schema("identity")
+}
+
+enum company_plan_type {
+  BASIC
+  PREMIUM
+  ENTERPRISE
+
+  @@schema("identity")
+}
+
+enum session_context {
+  EMPLOYEE
+  CUSTOMER
+  SYSTEM
+
+  @@schema("identity")
+}
+
+model companies {
+  id String @id @default("")
+
+  corporate_name String  @db.VarChar(200)
+  trade_name     String? @db.VarChar(200)
+  cnpj           String  @unique @db.VarChar(18)
+
+  zip_code           String? @db.VarChar(10)
+  street_address     String? @db.VarChar(300)
+  address_number     String? @db.VarChar(20)
+  address_complement String? @db.VarChar(100)
+  neighborhood       String? @db.VarChar(100)
+  city               String? @db.VarChar(100)
+  state              String? @db.VarChar(2)
+  country            String? @default("BR") @db.VarChar(2)
+
+  phone   String? @db.VarChar(20)
+  mobile  String? @db.VarChar(20)
+  email   String? @db.VarChar(100)
+  website String? @db.VarChar(200)
+
+  state_registration     String? @db.VarChar(20)
+  municipal_registration String? @db.VarChar(20)
+
+  tax_regime        String?
+  pis_cofins_regime String?
+
+  recine_opt_in    Boolean?  @default(false)
+  recine_join_date DateTime? @db.Date
+
+  tenant_slug String  @unique @db.VarChar(50)
+  logo_url    String? @db.VarChar(500)
+
+  max_complexes   Int?              @default(5)
+  max_employees   Int?              @default(50)
+  max_storage_gb  Int?              @default(10)
+  plan_type       company_plan_type @default(BASIC)
+  plan_expires_at DateTime?         @db.Date
+
+  active            Boolean? @default(true)
+  suspended         Boolean? @default(false)
+  suspension_reason String?  @db.Text
+
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @updatedAt @db.Timestamp(0)
+
+  company_users company_users[]
+  custom_roles  custom_roles[]
+  permissions   permissions[]
+
+  @@index([cnpj])
+  @@index([tenant_slug])
+  @@index([active])
+  @@index([suspended])
+  @@index([plan_expires_at])
+  @@schema("identity")
+}
+
+model persons {
+  id String @id @default("")
+
+  cpf             String? @unique @db.VarChar(14)
+  passport_number String? @unique @db.VarChar(50)
+
+  full_name  String    @db.VarChar(200)
+  birth_date DateTime? @db.Date
+
+  phone  String? @db.VarChar(20)
+  mobile String? @db.VarChar(20)
+  email  String? @db.VarChar(100)
+
+  zip_code           String? @db.VarChar(10)
+  street_address     String? @db.VarChar(300)
+  address_number     String? @db.VarChar(20)
+  address_complement String? @db.VarChar(100)
+  neighborhood       String? @db.VarChar(100)
+  city               String? @db.VarChar(100)
+  state              String? @db.VarChar(2)
+  country            String? @default("BR") @db.VarChar(2)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  identities identities[]
+
+  @@index([cpf])
+  @@index([full_name])
+  @@schema("identity")
+}
+
+model identities {
+  id String @id @default("")
+
+  person_id String?
+
+  email         String        @db.VarChar(100)
+  external_id   String?       @db.VarChar(200)
+  identity_type identity_type @default(CUSTOMER)
+
+  password_hash       String?   @db.VarChar(255)
+  password_changed_at DateTime? @db.Timestamp(0)
+  password_expires_at DateTime? @db.Timestamp(0)
+
+  active                        Boolean?  @default(true)
+  email_verified                Boolean?  @default(false)
+  email_verification_token      String?   @db.VarChar(100)
+  email_verification_expires_at DateTime? @db.Timestamp(0)
+
+  blocked_until         DateTime? @db.Timestamp(0)
+  block_reason          String?   @db.Text
+  failed_login_attempts Int?      @default(0)
+  last_failed_login     DateTime? @db.Timestamp(0)
+
+  requires_2fa     Boolean? @default(false)
+  secret_2fa       String?  @db.VarChar(100)
+  backup_codes_2fa String?  @db.Text
+
+  reset_token            String?   @db.VarChar(100)
+  reset_token_expires_at DateTime? @db.Timestamp(0)
+
+  last_login_date DateTime? @db.Timestamp(0)
+  last_login_ip   String?   @db.VarChar(45)
+  last_user_agent String?   @db.VarChar(500)
+  login_count     Int?      @default(0)
+
+  linked_identity_id String?
+
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @updatedAt @db.Timestamp(0)
+
+  persons                 persons?     @relation(fields: [person_id], references: [id])
+  linked_identity         identities?  @relation("IdentityLinks", fields: [linked_identity_id], references: [id])
+  other_linked_identities identities[] @relation("IdentityLinks")
+
+  company_users company_users[]
+  user_sessions user_sessions[]
+
+  @@unique([email, identity_type])
+  @@index([email])
+  @@index([identity_type, active])
+  @@index([email_verified])
+  @@index([blocked_until])
+  @@index([email_verification_expires_at])
+  @@index([reset_token_expires_at])
+  @@index([external_id])
+  @@schema("identity")
+}
+
+model custom_roles {
+  id         String @id @default("")
+  company_id String
+
+  name           String  @db.VarChar(100)
+  description    String? @db.Text
+  is_system_role Boolean @default(false)
+
+  hierarchy_level Int? @default(0)
+
+  created_at DateTime? @default(now())
+  updated_at DateTime? @updatedAt
+
+  companies companies @relation(fields: [company_id], references: [id], onDelete: Cascade)
+
+  role_permissions role_permissions[]
+  company_users    company_users[]
+
+  @@unique([company_id, name])
+  @@index([company_id, is_system_role])
+  @@index([hierarchy_level])
+  @@schema("identity")
+}
+
+model permissions {
+  id         String @id @default("")
+  company_id String
+
+  resource String @db.VarChar(100)
+  action   String @db.VarChar(50)
+
+  code String @db.VarChar(150)
+
+  name        String  @db.VarChar(200)
+  description String? @db.Text
+
+  module String? @db.VarChar(50)
+
+  active     Boolean?  @default(true)
+  created_at DateTime? @default(now())
+
+  companies companies @relation(fields: [company_id], references: [id], onDelete: Cascade)
+
+  role_permissions role_permissions[]
+
+  @@unique([company_id, code])
+  @@index([company_id, resource, action])
+  @@index([module, active])
+  @@index([active])
+  @@schema("identity")
+}
+
+model role_permissions {
+  id String @id @default("")
+
+  role_id       String
+  permission_id String
+
+  conditions String? @db.Text
+
+  granted_at DateTime? @default(now())
+
+  granted_by String?
+
+  custom_roles custom_roles @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  permissions  permissions  @relation(fields: [permission_id], references: [id], onDelete: Cascade)
+
+  @@unique([role_id, permission_id])
+  @@index([role_id])
+  @@index([permission_id])
+  @@schema("identity")
+}
+
+model company_users {
+  id String @id @default("")
+
+  identity_id String
+  company_id  String
+
+  employee_id String
+
+  role_id String
+
+  department String? @db.VarChar(100)
+  job_level  String? @db.VarChar(50)
+  location   String? @db.VarChar(100)
+
+  allowed_complexes String? @db.Text
+  ip_whitelist      String? @db.Text
+
+  active     Boolean?  @default(true)
+  start_date DateTime? @default(now()) @db.Date
+  end_date   DateTime? @db.Date
+
+  assigned_by String?
+  assigned_at DateTime? @default(now())
+
+  last_access  DateTime? @db.Timestamp(0)
+  access_count Int?      @default(0)
+
+  created_at DateTime? @default(now())
+  updated_at DateTime? @updatedAt
+
+  companies    companies    @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  identities   identities   @relation(fields: [identity_id], references: [id], onDelete: Cascade)
+  custom_roles custom_roles @relation(fields: [role_id], references: [id], onDelete: Restrict)
+
+  user_attributes user_attributes[]
+
+  @@unique([company_id, identity_id])
+  @@index([company_id, identity_id])
+  @@index([role_id, active])
+  @@index([end_date])
+  @@index([employee_id])
+  @@index([active])
+  @@index([last_access])
+  @@schema("identity")
+}
+
+model user_attributes {
+  id      String @id @default("")
+  user_id String
+
+  key   String @db.VarChar(100)
+  value String @db.VarChar(500)
+
+  data_type String? @db.VarChar(20)
+
+  created_at DateTime? @default(now())
+  updated_at DateTime? @updatedAt
+
+  created_by String?
+
+  company_users company_users @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, key])
+  @@index([key, value])
+  @@index([user_id])
+  @@schema("identity")
+}
+
+model user_sessions {
+  id          String  @id @default("")
+  identity_id String
+  company_id  String?
+
+  access_token_hash  String  @db.VarChar(255)
+  refresh_token_hash String? @db.VarChar(255)
+  session_id         String  @unique @db.VarChar(100)
+
+  session_context session_context
+
+  expires_at    DateTime  @db.Timestamp(0)
+  last_activity DateTime? @default(now())
+
+  ip_address         String? @db.VarChar(45)
+  user_agent         String? @db.VarChar(500)
+  device_fingerprint String? @db.VarChar(255)
+
+  active     Boolean?  @default(true)
+  revoked    Boolean?  @default(false)
+  revoked_at DateTime? @db.Timestamp(0)
+
+  created_at DateTime? @default(now())
+
+  identities identities @relation(fields: [identity_id], references: [id], onDelete: Cascade)
+
+  @@index([identity_id])
+  @@index([expires_at, active])
+  @@index([session_id])
+  @@index([revoked])
+  @@index([last_activity])
+  @@schema("identity")
+}
+
+model tax_regimes {
+  id         String @id @default("")
+  company_id String
+
+  name        String    @db.VarChar(100)
+  description String?   @db.Text
+  created_at  DateTime? @default(now())
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("identity")
+}
+
+model pis_cofins_regimes {
+  id         String @id @default("")
+  company_id String
+
+  name          String    @db.VarChar(100)
+  description   String?   @db.Text
+  allows_credit Boolean?  @default(false)
+  created_at    DateTime? @default(now())
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("identity")
+}
+
+model employment_contract_types {
+  id         String @id @default("")
+  company_id String
+
+  name        String    @db.VarChar(100)
+  description String?   @db.Text
+  created_at  DateTime? @default(now()) @db.Timestamp(0)
+
+  employees employees[]
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("hr")
+}
+
+model departments {
+  id         String  @id @default("")
+  company_id String
+  complex_id String
+  manager_id String?
+
+  name        String  @db.VarChar(100)
+  description String? @db.Text
+  cost_center String? @db.VarChar(50)
+
+  active     Boolean?  @default(true)
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+
+  manager   employees?  @relation("ManagedDepartments", fields: [manager_id], references: [id])
+  positions positions[]
+
+  @@index([company_id])
+  @@index([complex_id])
+  @@index([manager_id])
+  @@index([active])
+  @@schema("hr")
+}
+
+model positions {
+  id         String @id @default("")
+  company_id String
+
+  department_id String
+
+  name         String   @db.VarChar(100)
+  description  String?  @db.Text
+  base_salary  Decimal? @db.Decimal(10, 2)
+  weekly_hours Int?     @default(44)
+
+  active     Boolean?  @default(true)
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+
+  departments departments @relation(fields: [department_id], references: [id])
+  employees   employees[]
+
+  @@index([company_id])
+  @@index([department_id])
+  @@index([active])
+  @@schema("hr")
+}
+
+model employees {
+  id         String @id @default("")
+  person_id  String
+  company_id String
+  complex_id String
+
+  position_id String
+
+  employee_number  String    @unique
+  work_email       String?   @db.VarChar(100)
+  hire_date        DateTime  @db.Date
+  termination_date DateTime? @db.Date
+
+  contract_type String
+
+  current_salary Decimal @db.Decimal(10, 2)
+
+  photo_url String? @db.VarChar(500)
+  address   String? @db.Text
+
+  active     Boolean?  @default(true)
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @updatedAt @db.Timestamp(0)
+
+  employment_contract_types employment_contract_types @relation(fields: [contract_type], references: [id])
+  positions                 positions                 @relation(fields: [position_id], references: [id])
+  managed_departments       departments[]             @relation("ManagedDepartments")
+
+  @@index([person_id])
+  @@index([company_id])
+  @@index([complex_id])
+  @@index([position_id])
+  @@index([contract_type])
+  @@index([active])
+  @@index([hire_date])
+  @@index([termination_date])
+  @@index([work_email])
+  @@schema("hr")
+}
+
+model settlement_bases {
+  id         String @id @default("")
+  company_id String
+
+  name        String    @db.VarChar(100)
+  description String?   @db.Text
+  created_at  DateTime? @default(now())
+
+  distributor_settlements distributor_settlements[]
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("finance")
+}
+
+model distributor_settlements {
+  id String @id @default("")
+
+  contract_id       String
+  distributor_id    String
+  cinema_complex_id String
+
+  calculation_base String?
+  status           String?
+
+  competence_start_date        DateTime @db.Date
+  competence_end_date          DateTime @db.Date
+  total_tickets_sold           Int?     @default(0)
+  gross_box_office_revenue     Decimal  @db.Decimal(15, 2)
+  taxes_deducted_amount        Decimal? @default(0.00) @db.Decimal(15, 2)
+  settlement_base_amount       Decimal  @db.Decimal(15, 2)
+  distributor_percentage       Decimal  @db.Decimal(5, 2)
+  calculated_settlement_amount Decimal  @db.Decimal(15, 2)
+  minimum_guarantee            Decimal? @default(0.00) @db.Decimal(15, 2)
+  final_settlement_amount      Decimal  @db.Decimal(15, 2)
+  deductions_amount            Decimal? @default(0.00) @db.Decimal(15, 2)
+  net_settlement_amount        Decimal  @db.Decimal(15, 2)
+  irrf_rate                    Decimal? @default(0.00) @db.Decimal(5, 2)
+  irrf_calculation_base        Decimal? @default(0.00) @db.Decimal(15, 2)
+  irrf_amount                  Decimal? @default(0.00) @db.Decimal(15, 2)
+  irrf_exempt                  Boolean? @default(false)
+  retained_iss_amount          Decimal? @default(0.00) @db.Decimal(15, 2)
+  net_payment_amount           Decimal  @db.Decimal(15, 2)
+
+  calculation_date DateTime? @db.Date
+  approval_date    DateTime? @db.Date
+  payment_date     DateTime? @db.Date
+  notes            String?   @db.Text
+
+  created_at DateTime? @default(now())
+  updated_at DateTime? @updatedAt
+
+  settlement_bases              settlement_bases?              @relation(fields: [calculation_base], references: [id])
+  distributor_settlement_status distributor_settlement_status? @relation(fields: [status], references: [id])
+
+  @@index([contract_id])
+  @@index([distributor_id])
+  @@index([cinema_complex_id])
+  @@index([competence_start_date, competence_end_date])
+  @@index([status])
+  @@index([calculation_base])
+  @@index([payment_date])
+  @@index([approval_date])
+  @@schema("finance")
+}
+
+model distributor_settlement_status {
+  id         String @id @default("")
+  company_id String
+
+  name                String    @db.VarChar(50)
+  description         String?   @db.Text
+  allows_modification Boolean?  @default(true)
+  created_at          DateTime? @default(now())
+
+  distributor_settlements distributor_settlements[]
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("finance")
+}
+
+model journal_entry_status {
+  id         String @id @default("")
+  company_id String
+
+  name                String    @db.VarChar(50)
+  description         String?   @db.Text
+  allows_modification Boolean?  @default(true)
+  created_at          DateTime? @default(now())
+
+  journal_entries journal_entries[]
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("finance")
+}
+
+model journal_entry_types {
+  id         String @id @default("")
+  company_id String
+
+  name        String    @db.VarChar(100)
+  description String?   @db.Text
+  nature      String?   @db.VarChar(20)
+  created_at  DateTime? @default(now())
+
+  journal_entries journal_entries[]
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@index([nature])
+  @@schema("finance")
+}
+
+model journal_entries {
+  id String @id @default("")
+
+  cinema_complex_id String
+
+  status     String?
+  entry_type String?
+
+  origin_type String?
+  origin_id   String?
+
+  entry_number String   @unique
+  entry_date   DateTime @db.Date
+  description  String   @db.Text
+  total_amount Decimal  @db.Decimal(15, 2)
+
+  created_at DateTime? @default(now())
+
+  journal_entry_status journal_entry_status? @relation(fields: [status], references: [id])
+  journal_entry_types  journal_entry_types?  @relation(fields: [entry_type], references: [id])
+  journal_entry_items  journal_entry_items[]
+
+  @@index([cinema_complex_id])
+  @@index([entry_date])
+  @@index([cinema_complex_id, entry_date])
+  @@index([status])
+  @@index([entry_type])
+  @@index([origin_type, origin_id])
+  @@schema("finance")
+}
+
+model journal_entry_items {
+  id String @id @default("")
+
+  journal_entry_id String
+  account_id       String
+  movement_type    String?
+
+  amount           Decimal @db.Decimal(15, 2)
+  item_description String? @db.Text
+
+  accounting_movement_types accounting_movement_types? @relation(fields: [movement_type], references: [id])
+  journal_entries           journal_entries            @relation(fields: [journal_entry_id], references: [id], onDelete: Cascade)
+  chart_of_accounts         chart_of_accounts          @relation(fields: [account_id], references: [id])
+
+  @@index([journal_entry_id])
+  @@index([account_id])
+  @@index([movement_type])
+  @@schema("finance")
+}
+
+model account_natures {
+  id         String @id @default("")
+  company_id String
+
+  name        String    @db.VarChar(50)
+  description String?   @db.Text
+  created_at  DateTime? @default(now())
+
+  chart_of_accounts chart_of_accounts[]
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("finance")
+}
+
+model account_types {
+  id         String @id @default("")
+  company_id String
+
+  name        String    @db.VarChar(50)
+  description String?   @db.Text
+  created_at  DateTime? @default(now())
+
+  chart_of_accounts chart_of_accounts[]
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("finance")
+}
+
+model accounting_movement_types {
+  id         String @id @default("")
+  company_id String
+
+  name        String    @db.VarChar(50)
+  description String?   @db.Text
+  created_at  DateTime? @default(now())
+
+  journal_entry_items journal_entry_items[]
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("finance")
+}
+
+model chart_of_accounts {
+  id         String @id @default("")
+  company_id String
+
+  account_code String @db.VarChar(20)
+  account_name String @db.VarChar(200)
+
+  account_type      String?
+  account_nature    String?
+  parent_account_id String?
+
+  level        Int
+  allows_entry Boolean?  @default(true)
+  active       Boolean?  @default(true)
+  created_at   DateTime? @default(now())
+
+  account_natures account_natures? @relation(fields: [account_nature], references: [id])
+  account_types   account_types?   @relation(fields: [account_type], references: [id])
+
+  parent_account chart_of_accounts?  @relation("AccountHierarchy", fields: [parent_account_id], references: [id])
+  child_accounts chart_of_accounts[] @relation("AccountHierarchy")
+
+  journal_entry_items journal_entry_items[]
+
+  @@unique([company_id, account_code])
+  @@index([parent_account_id])
+  @@index([company_id, active])
+  @@index([company_id])
+  @@index([active])
+  @@index([level])
+  @@index([allows_entry])
+  @@index([account_type])
+  @@index([account_nature])
+  @@schema("finance")
+}
+
+model monthly_income_statement {
+  id                      String    @id @default("")
+  cinema_complex_id       String
+  year                    Int
+  month                   Int
+  total_gross_revenue     Decimal?  @default(0.00) @db.Decimal(15, 2)
+  sales_deductions        Decimal?  @default(0.00) @db.Decimal(15, 2)
+  net_revenue             Decimal?  @default(0.00) @db.Decimal(15, 2)
+  cost_of_goods_sold      Decimal?  @default(0.00) @db.Decimal(15, 2)
+  distributor_payouts     Decimal?  @default(0.00) @db.Decimal(15, 2)
+  gross_profit            Decimal?  @default(0.00) @db.Decimal(15, 2)
+  administrative_expenses Decimal?  @default(0.00) @db.Decimal(15, 2)
+  selling_expenses        Decimal?  @default(0.00) @db.Decimal(15, 2)
+  financial_expenses      Decimal?  @default(0.00) @db.Decimal(15, 2)
+  financial_income        Decimal?  @default(0.00) @db.Decimal(15, 2)
+  operational_result      Decimal?  @default(0.00) @db.Decimal(15, 2)
+  irpj_provision          Decimal?  @default(0.00) @db.Decimal(15, 2)
+  csll_provision          Decimal?  @default(0.00) @db.Decimal(15, 2)
+  net_result              Decimal?  @default(0.00) @db.Decimal(15, 2)
+  gross_margin_percent    Decimal?  @db.Decimal(5, 2)
+  net_margin_percent      Decimal?  @db.Decimal(5, 2)
+  created_at              DateTime? @default(now())
+  updated_at              DateTime? @updatedAt
+
+  @@unique([cinema_complex_id, year, month])
+  @@index([cinema_complex_id])
+  @@index([year, month])
+  @@schema("finance")
+}
+
+model contingency_reserves {
+  id               String    @id @default("")
+  complex_id       String
+  contingency_type String?
+  reserve_amount   Decimal   @db.Decimal(15, 2)
+  reason           String    @db.Text
+  inclusion_date   DateTime  @db.Date
+  clearance_date   DateTime? @db.Date
+  status           String?
+  notes            String?   @db.Text
+  created_at       DateTime? @default(now())
+
+  @@index([complex_id])
+  @@index([status])
+  @@index([complex_id, status])
+  @@index([contingency_type])
+  @@index([clearance_date])
+  @@schema("finance")
+}
+
+model contingency_types {
+  id          String    @id @default("")
+  company_id  String
+  name        String    @db.VarChar(100)
+  description String?   @db.Text
+  created_at  DateTime? @default(now())
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("finance")
+}
+
+model contingency_status {
+  id          String    @id @default("")
+  company_id  String
+  name        String    @db.VarChar(50)
+  description String?   @db.Text
+  created_at  DateTime? @default(now())
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("finance")
+}
+
+enum customers_gender {
+  NOT_INFORMED
+  MALE
+  FEMALE
+  OTHER
+
+  @@schema("crm")
+}
+
+enum customer_points_movement_type {
+  EARNED
+  SPENT
+  ADJUSTMENT
+  EXPIRATION
+
+  @@schema("crm")
+}
+
+enum customer_preferences_preferred_position {
+  FRONT
+  MIDDLE
+  BACK
+
+  @@schema("crm")
+}
+
+model customer_preferences {
+  id                  String @id @default("")
+  company_customer_id String
+
+  preferred_session_type String?                                  @db.VarChar(30)
+  preferred_language     String?                                  @db.VarChar(30)
+  preferred_position     customer_preferences_preferred_position?
+
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @updatedAt @db.Timestamp(0)
+
+  company_customers company_customers @relation(fields: [company_customer_id], references: [id], onDelete: Cascade)
+
+  @@index([company_customer_id])
+  @@schema("crm")
+}
+
+model customer_preferred_rows {
+  id                  String @id @default("")
+  company_customer_id String
+
+  row_code    String    @db.VarChar(5)
+  usage_count Int?      @default(0)
+  created_at  DateTime? @default(now()) @db.Timestamp(0)
+
+  company_customers company_customers @relation(fields: [company_customer_id], references: [id], onDelete: Cascade)
+
+  @@unique([company_customer_id, row_code])
+  @@index([company_customer_id])
+  @@schema("crm")
+}
+
+model customer_preferred_times {
+  id                  String @id @default("")
+  company_customer_id String
+
+  time_slot  String    @db.VarChar(20)
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+
+  company_customers company_customers @relation(fields: [company_customer_id], references: [id], onDelete: Cascade)
+
+  @@unique([company_customer_id, time_slot])
+  @@index([company_customer_id])
+  @@schema("crm")
+}
+
+model customer_preferred_weekdays {
+  id                  String @id @default("")
+  company_customer_id String
+
+  weekday    Int
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+
+  company_customers company_customers @relation(fields: [company_customer_id], references: [id], onDelete: Cascade)
+
+  @@unique([company_customer_id, weekday])
+  @@index([company_customer_id])
+  @@schema("crm")
+}
+
+model customer_favorite_combos {
+  id                  String @id @default("")
+  company_customer_id String
+  combo_id            String
+
+  purchase_count Int?      @default(0)
+  last_purchase  DateTime? @db.Timestamp(0)
+  created_at     DateTime? @default(now()) @db.Timestamp(0)
+
+  company_customers company_customers @relation(fields: [company_customer_id], references: [id], onDelete: Cascade)
+
+  @@unique([company_customer_id, combo_id])
+  @@index([company_customer_id])
+  @@index([combo_id])
+  @@schema("crm")
+}
+
+model customer_favorite_genres {
+  id                  String @id @default("")
+  company_customer_id String
+
+  genre            String    @db.VarChar(100)
+  preference_order Int?      @default(0)
+  created_at       DateTime? @default(now()) @db.Timestamp(0)
+
+  company_customers company_customers @relation(fields: [company_customer_id], references: [id], onDelete: Cascade)
+
+  @@unique([company_customer_id, genre])
+  @@index([company_customer_id])
+  @@schema("crm")
+}
+
+model customer_interactions {
+  id                  String @id @default("")
+  company_customer_id String
+
+  interaction_type String  @db.VarChar(50)
+  channel          String? @db.VarChar(30)
+  description      String? @db.Text
+  metadata         String? @db.Text
+
+  origin_id   String?
+  origin_type String?
+
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+
+  company_customers company_customers @relation(fields: [company_customer_id], references: [id], onDelete: Cascade)
+
+  @@index([company_customer_id])
+  @@index([interaction_type])
+  @@index([origin_type, origin_id])
+  @@schema("crm")
+}
+
+model customer_points {
+  id                  String @id @default("")
+  company_customer_id String
+
+  movement_type    customer_points_movement_type
+  points           Int
+  previous_balance Int
+  current_balance  Int
+
+  origin_type String?
+  origin_id   String?
+
+  description     String?   @db.Text
+  expiration_date DateTime? @db.Date
+  valid           Boolean?  @default(true)
+  created_at      DateTime? @default(now()) @db.Timestamp(0)
+
+  company_customers company_customers @relation(fields: [company_customer_id], references: [id], onDelete: Cascade)
+
+  @@index([company_customer_id])
+  @@index([expiration_date, valid])
+  @@index([origin_type, origin_id])
+  @@schema("crm")
+}
+
+model customer_favorite_products {
+  id                  String @id @default("")
+  company_customer_id String
+  product_id          String
+
+  purchase_count Int?      @default(0)
+  last_purchase  DateTime? @db.Timestamp(0)
+  created_at     DateTime? @default(now()) @db.Timestamp(0)
+
+  company_customers company_customers @relation(fields: [company_customer_id], references: [id], onDelete: Cascade)
+
+  @@unique([company_customer_id, product_id])
+  @@index([company_customer_id])
+  @@index([product_id])
+  @@schema("crm")
+}
+
+model customers {
+  id          String @id @default("")
+  identity_id String @unique
+
+  cpf        String            @unique @db.VarChar(14)
+  full_name  String            @db.VarChar(200)
+  email      String?           @db.VarChar(100)
+  phone      String?           @db.VarChar(20)
+  birth_date DateTime?         @db.Date
+  gender     customers_gender? @default(NOT_INFORMED)
+
+  zip_code String? @db.VarChar(10)
+  address  String? @db.Text
+  city     String? @db.VarChar(100)
+  state    String? @db.Char(2)
+
+  accepts_marketing       Boolean?  @default(false)
+  accepts_sms             Boolean?  @default(false)
+  accepts_email           Boolean?  @default(true)
+  terms_accepted          Boolean?  @default(false)
+  terms_acceptance_date   DateTime? @db.Timestamp(0)
+  data_anonymized         Boolean?  @default(false)
+  anonymization_date      DateTime? @db.Timestamp(0)
+  acceptance_ip           String?   @db.VarChar(45)
+  anonymization_requested Boolean?  @default(false)
+  collection_purposes     String?   @db.Text
+  subject_aware_rights    Boolean?  @default(false)
+  rights_awareness_date   DateTime? @db.Timestamp(0)
+
+  active              Boolean?  @default(true)
+  blocked             Boolean?  @default(false)
+  block_reason        String?   @db.Text
+  created_at          DateTime? @default(now()) @db.Timestamp(0)
+  updated_at          DateTime? @updatedAt @db.Timestamp(0)
+  registration_source String?   @db.VarChar(50)
+
+  registration_responsible String?
+
+  company_customers company_customers[]
+
+  @@index([cpf])
+  @@index([email])
+  @@index([phone])
+  @@index([active, blocked])
+  @@schema("crm")
+}
+
+model company_customers {
+  id          String @id @default("")
+  company_id  String
+  customer_id String
+
+  is_active_in_loyalty  Boolean? @default(true)
+  tenant_loyalty_number String?  @db.VarChar(50)
+
+  accumulated_points Int?      @default(0)
+  loyalty_level      String?   @default("BRONZE") @db.VarChar(20)
+  loyalty_join_date  DateTime? @db.Timestamp(0)
+
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @updatedAt @db.Timestamp(0)
+
+  customers                   customers                     @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  customer_points             customer_points[]
+  customer_interactions       customer_interactions[]
+  customer_preferences        customer_preferences[]
+  customer_favorite_combos    customer_favorite_combos[]
+  customer_favorite_genres    customer_favorite_genres[]
+  customer_preferred_rows     customer_preferred_rows[]
+  customer_preferred_times    customer_preferred_times[]
+  customer_preferred_weekdays customer_preferred_weekdays[]
+  customer_favorite_products  customer_favorite_products[]
+
+  @@unique([company_id, customer_id])
+  @@index([company_id])
+  @@index([customer_id])
+  @@index([is_active_in_loyalty])
+  @@index([loyalty_level])
+  @@schema("crm")
+}
+
+enum concession_item_type {
+  PRODUCT
+  COMBO
+
+  @@schema("sales")
+}
+
+model sale_types {
+  id         String @id @default("")
+  company_id String
+
+  name            String    @db.VarChar(50)
+  description     String?   @db.Text
+  convenience_fee Decimal?  @default(0.00) @db.Decimal(5, 2)
+  created_at      DateTime? @default(now())
+
+  sales sales[]
+
+  @@unique([company_id, name])
+  @@schema("sales")
+}
+
+model sale_status {
+  id         String @id @default("")
+  company_id String
+
+  name                String    @db.VarChar(50)
+  description         String?   @db.Text
+  allows_modification Boolean?  @default(true)
+  created_at          DateTime? @default(now())
+
+  sales sales[]
+
+  @@unique([company_id, name])
+  @@schema("sales")
+}
+
+model payment_methods {
+  id         String @id @default("")
+  company_id String
+
+  name            String    @db.VarChar(50)
+  description     String?   @db.Text
+  operator_fee    Decimal?  @default(0.00) @db.Decimal(5, 2)
+  settlement_days Int?      @default(0)
+  created_at      DateTime? @default(now())
+
+  sales sales[]
+
+  @@unique([company_id, name])
+  @@schema("sales")
+}
+
+model ticket_types {
+  id         String @id @default("")
+  company_id String
+
+  name                String    @db.VarChar(50)
+  description         String?   @db.Text
+  discount_percentage Decimal?  @default(0.00) @db.Decimal(5, 2)
+  created_at          DateTime? @default(now())
+
+  tickets tickets[]
+
+  @@unique([company_id, name])
+  @@schema("sales")
+}
+
+model concession_status {
+  id         String @id @default("")
+  company_id String
+
+  name                String    @db.VarChar(50)
+  description         String?   @db.Text
+  allows_modification Boolean?  @default(true)
+  created_at          DateTime? @default(now())
+
+  concession_sales concession_sales[]
+
+  @@unique([company_id, name])
+  @@schema("sales")
+}
+
+model sales {
+  id                String  @id @default("")
+  cinema_complex_id String
+  user_id           String?
+  customer_id       String?
+
+  sale_type      String?
+  payment_method String?
+  status         String?
+
+  sale_number String   @unique @db.VarChar(50)
+  sale_date   DateTime @db.Timestamp(0)
+
+  total_amount    Decimal  @db.Decimal(10, 2)
+  discount_amount Decimal? @default(0.00) @db.Decimal(10, 2)
+  net_amount      Decimal  @db.Decimal(10, 2)
+
+  cancellation_date   DateTime? @db.Timestamp(0)
+  cancellation_reason String?   @db.Text
+  created_at          DateTime? @default(now())
+
+  sale_types      sale_types?      @relation(fields: [sale_type], references: [id])
+  payment_methods payment_methods? @relation(fields: [payment_method], references: [id])
+  sale_status     sale_status?     @relation(fields: [status], references: [id])
+
+  tickets          tickets[]
+  concession_sales concession_sales[]
+  promotions_used  promotions_used[]
+
+  @@index([cinema_complex_id])
+  @@index([sale_date])
+  @@index([customer_id])
+  @@index([status])
+  @@index([sale_date, status])
+  @@index([user_id])
+  @@schema("sales")
+}
+
+model tickets {
+  id      String @id @default("")
+  sale_id String
+
+  showtime_id String
+  seat_id     String?
+
+  ticket_type String?
+
+  ticket_number String  @unique
+  seat          String?
+
+  face_value   Decimal  @db.Decimal(10, 2)
+  service_fee  Decimal? @default(0.00) @db.Decimal(10, 2)
+  total_amount Decimal  @db.Decimal(10, 2)
+
+  used       Boolean?  @default(false)
+  usage_date DateTime? @db.Timestamp(0)
+  created_at DateTime? @default(now())
+
+  sales        sales         @relation(fields: [sale_id], references: [id], onDelete: Cascade)
+  ticket_types ticket_types? @relation(fields: [ticket_type], references: [id])
+
+  @@index([sale_id])
+  @@index([showtime_id])
+  @@index([seat_id])
+  @@index([used])
+  @@index([ticket_type])
+  @@schema("sales")
+}
+
+model concession_sales {
+  id      String @id @default("")
+  sale_id String
+
+  status String?
+
+  sale_date       DateTime @db.Timestamp(0)
+  total_amount    Decimal  @db.Decimal(10, 2)
+  discount_amount Decimal? @default(0.00) @db.Decimal(10, 2)
+  net_amount      Decimal  @db.Decimal(10, 2)
+
+  created_at DateTime? @default(now())
+
+  sales             sales              @relation(fields: [sale_id], references: [id], onDelete: Cascade)
+  concession_status concession_status? @relation(fields: [status], references: [id])
+
+  concession_sale_items concession_sale_items[]
+
+  @@index([sale_id])
+  @@index([sale_date])
+  @@index([status])
+  @@schema("sales")
+}
+
+model concession_sale_items {
+  id                 String @id @default("")
+  concession_sale_id String
+
+  item_type concession_item_type
+  item_id   String
+
+  quantity    Int
+  unit_price  Decimal   @db.Decimal(10, 2)
+  total_price Decimal   @db.Decimal(10, 2)
+  created_at  DateTime? @default(now())
+
+  concession_sales concession_sales @relation(fields: [concession_sale_id], references: [id], onDelete: Cascade)
+
+  @@index([concession_sale_id])
+  @@index([item_type, item_id])
+  @@schema("sales")
+}
+
+model promotions_used {
+  id      String @id @default("")
+  sale_id String
+
+  campaign_id String
+  coupon_id   String?
+  customer_id String?
+
+  promotion_type_code String? @db.VarChar(50)
+
+  discount_applied Decimal   @db.Decimal(10, 2)
+  original_value   Decimal   @db.Decimal(10, 2)
+  final_value      Decimal   @db.Decimal(10, 2)
+  points_earned    Int?      @default(0)
+  usage_date       DateTime? @default(now())
+
+  sales sales @relation(fields: [sale_id], references: [id], onDelete: Cascade)
+
+  @@index([sale_id])
+  @@index([campaign_id])
+  @@index([customer_id])
+  @@index([usage_date])
+  @@index([coupon_id])
+  @@schema("sales")
+}
+
+model supplier_types {
+  id         String @id @default("")
+  company_id String
+
+  name        String    @db.VarChar(100)
+  description String?   @db.Text
+  created_at  DateTime? @default(now()) @db.Timestamp(0)
+
+  suppliers suppliers[]
+
+  @@unique([company_id, name])
+  @@schema("inventory")
+}
+
+model suppliers {
+  id         String @id @default("")
+  company_id String
+
+  supplier_type_id String?
+
+  corporate_name String  @db.VarChar(200)
+  trade_name     String? @db.VarChar(200)
+  cnpj           String? @db.VarChar(18)
+  phone          String? @db.VarChar(20)
+  email          String? @db.VarChar(100)
+  address        String? @db.Text
+
+  contact_name  String? @db.VarChar(200)
+  contact_phone String? @db.VarChar(20)
+  delivery_days Int?    @default(7)
+
+  active     Boolean?  @default(true)
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @updatedAt @db.Timestamp(0)
+
+  is_film_distributor Boolean? @default(false)
+
+  supplier_type supplier_types? @relation(fields: [supplier_type_id], references: [id])
+
+  @@unique([company_id, cnpj])
+  @@index([company_id])
+  @@index([supplier_type_id])
+  @@index([active])
+  @@index([is_film_distributor])
+  @@schema("inventory")
+}
+
+model campaign_categories {
+  id          String @id @default("")
+  campaign_id String
+  category_id String
+
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+
+  promotional_campaigns promotional_campaigns @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+
+  @@unique([campaign_id, category_id])
+  @@index([campaign_id])
+  @@index([category_id])
+  @@schema("marketing")
+}
+
+model campaign_complexes {
+  id          String @id @default("")
+  campaign_id String
+  complex_id  String
+
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+
+  promotional_campaigns promotional_campaigns @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+
+  @@unique([campaign_id, complex_id])
+  @@index([campaign_id])
+  @@index([complex_id])
+  @@schema("marketing")
+}
+
+model campaign_movies {
+  id          String @id @default("")
+  campaign_id String
+  movie_id    String
+
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+
+  promotional_campaigns promotional_campaigns @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+
+  @@unique([campaign_id, movie_id])
+  @@index([campaign_id])
+  @@index([movie_id])
+  @@schema("marketing")
+}
+
+model campaign_rooms {
+  id          String @id @default("")
+  campaign_id String
+  room_id     String
+
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+
+  promotional_campaigns promotional_campaigns @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+
+  @@unique([campaign_id, room_id])
+  @@index([campaign_id])
+  @@index([room_id])
+  @@schema("marketing")
+}
+
+model campaign_session_types {
+  id                 String @id @default("")
+  campaign_id        String
+  projection_type_id String
+
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+
+  promotional_campaigns promotional_campaigns @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+
+  @@unique([campaign_id, projection_type_id])
+  @@index([campaign_id])
+  @@index([projection_type_id])
+  @@schema("marketing")
+}
+
+model campaign_weekdays {
+  id          String @id @default("")
+  campaign_id String
+  weekday     Int
+
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+
+  promotional_campaigns promotional_campaigns @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+
+  @@unique([campaign_id, weekday])
+  @@index([campaign_id])
+  @@schema("marketing")
+}
+
+model promotion_types {
+  id         String @id @default("")
+  company_id String
+
+  code        String  @db.VarChar(30)
+  name        String  @db.VarChar(100)
+  description String? @db.Text
+
+  active     Boolean?  @default(true)
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+
+  promotional_campaigns promotional_campaigns[]
+
+  @@unique([company_id, code])
+  @@index([company_id])
+  @@index([active])
+  @@schema("marketing")
+}
+
+model promotional_campaigns {
+  id         String @id @default("")
+  company_id String
+
+  promotion_type_id String
+
+  campaign_code String  @unique
+  name          String  @db.VarChar(200)
+  description   String? @db.Text
+
+  start_date DateTime  @db.Timestamp(0)
+  end_date   DateTime  @db.Timestamp(0)
+  start_time DateTime? @db.Time(0)
+  end_time   DateTime? @db.Time(0)
+
+  min_age Int?
+  max_age Int?
+
+  min_loyalty_level String? @db.VarChar(20)
+
+  new_customers_only    Boolean? @default(false)
+  discount_value        Decimal? @db.Decimal(10, 2)
+  discount_percentage   Decimal? @db.Decimal(5, 2)
+  buy_quantity          Int?
+  get_quantity          Int?
+  fixed_price           Decimal? @db.Decimal(10, 2)
+  points_multiplier     Decimal? @default(1.00) @db.Decimal(5, 2)
+  max_total_uses        Int?
+  used_count            Int?     @default(0)
+  max_uses_per_customer Int?
+  min_purchase_value    Decimal? @db.Decimal(10, 2)
+  combinable            Boolean? @default(false)
+  priority              Int?     @default(0)
+  active                Boolean? @default(true)
+  requires_coupon       Boolean? @default(false)
+
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @updatedAt @db.Timestamp(0)
+
+  promotion_types        promotion_types          @relation(fields: [promotion_type_id], references: [id])
+  promotional_coupons    promotional_coupons[]
+  campaign_categories    campaign_categories[]
+  campaign_complexes     campaign_complexes[]
+  campaign_movies        campaign_movies[]
+  campaign_rooms         campaign_rooms[]
+  campaign_session_types campaign_session_types[]
+  campaign_weekdays      campaign_weekdays[]
+
+  @@index([company_id])
+  @@index([promotion_type_id])
+  @@index([active])
+  @@index([start_date, end_date])
+  @@index([campaign_code])
+  @@schema("marketing")
+}
+
+model promotional_coupons {
+  id          String  @id @default("")
+  campaign_id String
+  customer_id String?
+
+  coupon_code    String    @unique
+  start_date     DateTime  @db.Timestamp(0)
+  end_date       DateTime  @db.Timestamp(0)
+  max_uses       Int?      @default(1)
+  used_count     Int?      @default(0)
+  active         Boolean?  @default(true)
+  used           Boolean?  @default(false)
+  first_use_date DateTime? @db.Timestamp(0)
+  last_use_date  DateTime? @db.Timestamp(0)
+  created_at     DateTime? @default(now()) @db.Timestamp(0)
+
+  promotional_campaigns promotional_campaigns @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+
+  @@index([campaign_id])
+  @@index([customer_id])
+  @@index([coupon_code])
+  @@index([active, used])
+  @@index([start_date, end_date])
+  @@schema("marketing")
+}
+
+model projection_types {
+  id         String @id @default("")
+  company_id String
+
+  name             String    @db.VarChar(100)
+  description      String?   @db.Text
+  additional_value Decimal?  @default(0.00) @db.Decimal(10, 2)
+  created_at       DateTime? @default(now()) @db.Timestamp(0)
+
+  rooms             rooms[]
+  showtime_schedule showtime_schedule[]
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("operations")
+}
+
+model audio_types {
+  id         String @id @default("")
+  company_id String
+
+  name             String    @db.VarChar(100)
+  description      String?   @db.Text
+  additional_value Decimal?  @default(0.00) @db.Decimal(10, 2)
+  created_at       DateTime? @default(now()) @db.Timestamp(0)
+
+  rooms             rooms[]
+  showtime_schedule showtime_schedule[]
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("operations")
+}
+
+model session_languages {
+  id         String @id @default("")
+  company_id String
+
+  name         String    @db.VarChar(50)
+  description  String?   @db.Text
+  abbreviation String?   @db.VarChar(10)
+  created_at   DateTime? @default(now()) @db.Timestamp(0)
+
+  showtime_schedule showtime_schedule[]
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("operations")
+}
+
+model session_status {
+  id         String @id @default("")
+  company_id String
+
+  name                String   @db.VarChar(50)
+  description         String?  @db.Text
+  allows_modification Boolean? @default(true)
+
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+
+  showtime_schedule showtime_schedule[]
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("operations")
+}
+
+model rooms {
+  id                String @id @default("")
+  cinema_complex_id String
+
+  room_number String  @db.VarChar(10)
+  name        String? @db.VarChar(100)
+  capacity    Int
+
+  projection_type String?
+  audio_type      String?
+
+  active     Boolean?  @default(true)
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+
+  seat_layout   String? @db.Text
+  total_rows    Int?
+  total_columns Int?
+  room_design   String? @db.VarChar(30)
+  layout_image  String? @db.VarChar(255)
+
+  audio_types       audio_types?        @relation(fields: [audio_type], references: [id])
+  projection_types  projection_types?   @relation(fields: [projection_type], references: [id])
+  cinema_complexes  cinema_complexes    @relation(fields: [cinema_complex_id], references: [id], onDelete: Cascade)
+  seats             seats[]
+  showtime_schedule showtime_schedule[]
+
+  @@unique([cinema_complex_id, room_number])
+  @@index([cinema_complex_id])
+  @@index([audio_type])
+  @@index([projection_type])
+  @@index([active])
+  @@schema("operations")
+}
+
+model cinema_complexes {
+  id         String @id @default("")
+  company_id String
+
+  name String  @db.VarChar(200)
+  code String  @unique @db.VarChar(50)
+  cnpj String? @db.VarChar(18)
+
+  address                String? @db.Text
+  city                   String? @db.VarChar(100)
+  state                  String? @db.Char(2)
+  postal_code            String? @db.VarChar(10)
+  ibge_municipality_code String  @db.VarChar(7)
+
+  ancine_registry String?   @db.VarChar(50)
+  opening_date    DateTime? @db.Date
+
+  active     Boolean?  @default(true)
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @updatedAt @db.Timestamp(0)
+
+  rooms             rooms[]
+  showtime_schedule showtime_schedule[]
+
+  @@index([code])
+  @@index([company_id])
+  @@index([ibge_municipality_code])
+  @@index([active])
+  @@schema("operations")
+}
+
+model showtime_schedule {
+  id                String @id @default("")
+  cinema_complex_id String
+  room_id           String
+  movie_id          String
+
+  session_date DateTime @db.Date
+  session_time DateTime @db.Time(0)
+
+  projection_type  String?
+  audio_type       String?
+  session_language String?
+  status           String?
+
+  available_seats   Int?    @default(0)
+  sold_seats        Int?    @default(0)
+  blocked_seats     Int?    @default(0)
+  base_ticket_price Decimal @db.Decimal(10, 2)
+
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+
+  cinema_complexes  cinema_complexes   @relation(fields: [cinema_complex_id], references: [id])
+  rooms             rooms              @relation(fields: [room_id], references: [id])
+  projection_types  projection_types?  @relation(fields: [projection_type], references: [id])
+  audio_types       audio_types?       @relation(fields: [audio_type], references: [id])
+  session_languages session_languages? @relation(fields: [session_language], references: [id])
+  session_status    session_status?    @relation(fields: [status], references: [id])
+
+  session_seat_status session_seat_status[]
+
+  @@index([cinema_complex_id])
+  @@index([room_id])
+  @@index([movie_id])
+  @@index([session_date, session_time])
+  @@index([status])
+  @@index([projection_type])
+  @@index([audio_type])
+  @@index([session_language])
+  @@schema("operations")
+}
+
+model seat_types {
+  id         String @id @default("")
+  company_id String
+
+  name             String    @db.VarChar(100)
+  description      String?   @db.Text
+  additional_value Decimal?  @default(0.00) @db.Decimal(10, 2)
+  created_at       DateTime? @default(now()) @db.Timestamp(0)
+
+  seats seats[]
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("operations")
+}
+
+model seat_status {
+  id         String @id @default("")
+  company_id String
+
+  name                String    @db.VarChar(50)
+  description         String?   @db.Text
+  allows_modification Boolean?  @default(true)
+  created_at          DateTime? @default(now()) @db.Timestamp(0)
+
+  session_seat_status session_seat_status[]
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("operations")
+}
+
+model session_seat_status {
+  id          String @id @default("")
+  showtime_id String
+  seat_id     String
+  status      String
+
+  sale_id String?
+
+  reservation_uuid String?   @db.VarChar(100)
+  reservation_date DateTime? @db.Timestamp(0)
+  expiration_date  DateTime? @db.Timestamp(0)
+  created_at       DateTime? @default(now()) @db.Timestamp(0)
+  updated_at       DateTime? @updatedAt @db.Timestamp(0)
+
+  showtime_schedule showtime_schedule @relation(fields: [showtime_id], references: [id], onDelete: Cascade)
+  seats             seats             @relation(fields: [seat_id], references: [id], onDelete: Cascade)
+  seat_status       seat_status       @relation(fields: [status], references: [id])
+
+  @@unique([showtime_id, seat_id])
+  @@index([showtime_id])
+  @@index([seat_id])
+  @@index([status])
+  @@index([sale_id])
+  @@index([expiration_date])
+  @@schema("operations")
+}
+
+model seats {
+  id        String  @id @default("")
+  room_id   String
+  seat_type String?
+
+  seat_code     String    @db.VarChar(10)
+  row_code      String    @db.VarChar(5)
+  column_number Int
+  position_x    Int?
+  position_y    Int?
+  accessible    Boolean?  @default(false)
+  active        Boolean?  @default(true)
+  created_at    DateTime? @default(now()) @db.Timestamp(0)
+
+  rooms      rooms       @relation(fields: [room_id], references: [id], onDelete: Cascade)
+  seat_types seat_types? @relation(fields: [seat_type], references: [id])
+
+  session_seat_status session_seat_status[]
+
+  @@unique([room_id, seat_code])
+  @@index([room_id])
+  @@index([seat_type])
+  @@index([active])
+  @@index([accessible])
+  @@schema("operations")
+}
+
+model courtesy_parameters {
+  id                           String    @id @default("")
+  cinema_complex_id            String
+  courtesy_taxation_percentage Decimal?  @default(0.00) @db.Decimal(5, 2)
+  monthly_courtesy_limit       Int?      @default(1000)
+  validity_start               DateTime  @db.Date
+  validity_end                 DateTime? @db.Date
+
+  @@index([cinema_complex_id])
+  @@index([validity_start, validity_end])
+  @@schema("operations")
+}
+
+model recine_projects {
+  id                       String    @id @default("")
+  cinema_complex_id        String
+  project_number           String    @unique @db.VarChar(50)
+  description              String    @db.Text
+  project_type             String?
+  total_project_value      Decimal   @db.Decimal(15, 2)
+  estimated_benefit_value  Decimal   @db.Decimal(15, 2)
+  pis_cofins_suspended     Decimal?  @default(0.00) @db.Decimal(15, 2)
+  ipi_exempt               Decimal?  @default(0.00) @db.Decimal(15, 2)
+  ii_exempt                Decimal?  @default(0.00) @db.Decimal(15, 2)
+  start_date               DateTime  @db.Date
+  expected_completion_date DateTime  @db.Date
+  actual_completion_date   DateTime? @db.Date
+  status                   String?
+  ancine_process_number    String?   @db.VarChar(50)
+  ancine_approval_date     DateTime? @db.Date
+  observations             String?   @db.Text
+  created_at               DateTime? @default(now())
+  updated_at               DateTime? @updatedAt
+
+  recine_acquisitions recine_acquisitions[]
+  recine_deadlines    recine_deadlines[]
+
+  @@index([cinema_complex_id])
+  @@index([status])
+  @@index([project_type])
+  @@index([start_date])
+  @@index([expected_completion_date])
+  @@schema("projects")
+}
+
+model recine_acquisitions {
+  id                  String    @id @default("")
+  recine_project_id   String
+  acquisition_type    String?
+  item_type           String?
+  item_description    String    @db.Text
+  supplier            String?   @db.VarChar(200)
+  invoice_number      String?   @db.VarChar(50)
+  acquisition_date    DateTime  @db.Date
+  item_value          Decimal   @db.Decimal(15, 2)
+  pis_cofins_saved    Decimal?  @default(0.00) @db.Decimal(15, 2)
+  ipi_saved           Decimal?  @default(0.00) @db.Decimal(15, 2)
+  ii_saved            Decimal?  @default(0.00) @db.Decimal(15, 2)
+  total_benefit_value Decimal   @db.Decimal(15, 2)
+  created_at          DateTime? @default(now())
+
+  recine_projects recine_projects @relation(fields: [recine_project_id], references: [id], onDelete: Cascade)
+
+  @@index([recine_project_id])
+  @@index([acquisition_date])
+  @@index([acquisition_type])
+  @@index([item_type])
+  @@index([supplier])
+  @@schema("projects")
+}
+
+model recine_deadlines {
+  id                String    @id @default("")
+  project_id        String
+  deadline_type     String?
+  due_date          DateTime  @db.Date
+  completion_date   DateTime? @db.Date
+  estimated_penalty Decimal?  @db.Decimal(15, 2)
+  notes             String?   @db.Text
+  created_at        DateTime? @default(now())
+
+  recine_projects recine_projects @relation(fields: [project_id], references: [id], onDelete: Cascade)
+
+  @@index([project_id])
+  @@index([due_date])
+  @@index([deadline_type])
+  @@index([completion_date])
+  @@schema("projects")
+}
+
+model recine_project_types {
+  id          String    @id @default("")
+  company_id  String
+  name        String    @db.VarChar(100)
+  description String?   @db.Text
+  created_at  DateTime? @default(now())
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("projects")
+}
+
+model recine_project_status {
+  id                  String    @id @default("")
+  company_id          String
+  name                String    @db.VarChar(100)
+  description         String?   @db.Text
+  allows_modification Boolean?  @default(true)
+  created_at          DateTime? @default(now())
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("projects")
+}
+
+model recine_item_types {
+  id          String    @id @default("")
+  company_id  String
+  name        String    @db.VarChar(100)
+  description String?   @db.Text
+  created_at  DateTime? @default(now())
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("projects")
+}
+
+model recine_acquisition_types {
+  id          String    @id @default("")
+  company_id  String
+  name        String    @db.VarChar(100)
+  description String?   @db.Text
+  created_at  DateTime? @default(now())
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("projects")
+}
+
+model recine_deadline_types {
+  id          String    @id @default("")
+  company_id  String
+  name        String    @db.VarChar(100)
+  description String?   @db.Text
+  created_at  DateTime? @default(now())
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("projects")
+}
+
+model stock_movement_types {
+  id         String @id @default("")
+  company_id String
+
+  name           String    @db.VarChar(100)
+  description    String?   @db.Text
+  affects_stock  Boolean?  @default(true)
+  operation_type String?   @db.VarChar(10)
+  created_at     DateTime? @default(now()) @db.Timestamp(0)
+
+  stock_movements stock_movements[]
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@index([affects_stock])
+  @@schema("stock")
+}
+
+model stock_movements {
+  id         String  @id @default("")
+  product_id String
+  complex_id String
+  user_id    String?
+
+  movement_type String
+
+  quantity          Int
+  previous_quantity Int
+  current_quantity  Int
+
+  origin_type String?
+  origin_id   String?
+
+  unit_value  Decimal? @db.Decimal(10, 2)
+  total_value Decimal? @db.Decimal(15, 2)
+
+  observations  String?   @db.Text
+  movement_date DateTime? @default(now()) @db.Timestamp(0)
+  created_at    DateTime? @default(now()) @db.Timestamp(0)
+
+  stock_movement_types stock_movement_types @relation(fields: [movement_type], references: [id])
+
+  @@index([product_id])
+  @@index([complex_id])
+  @@index([movement_date])
+  @@index([movement_type])
+  @@index([origin_type, origin_id])
+  @@index([user_id])
+  @@schema("stock")
+}
+
+model product_stock {
+  id         String @id @default("")
+  product_id String
+  complex_id String
+
+  current_quantity Int? @default(0)
+  minimum_quantity Int? @default(10)
+  maximum_quantity Int? @default(100)
+
+  location   String?   @db.VarChar(100)
+  active     Boolean?  @default(true)
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @updatedAt @db.Timestamp(0)
+
+  @@unique([product_id, complex_id])
+  @@index([product_id])
+  @@index([complex_id])
+  @@index([current_quantity])
+  @@index([active])
+  @@index([current_quantity, minimum_quantity])
+  @@schema("stock")
+}
+
+model settlement_status {
+  id         String @id @default("")
+  company_id String
+
+  name                String    @db.VarChar(50)
+  description         String?   @db.Text
+  allows_modification Boolean?  @default(true)
+  created_at          DateTime? @default(now()) @db.Timestamp(0)
+
+  monthly_tax_settlement monthly_tax_settlement[]
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("tax")
+}
+
+model tax_entries {
+  id                 String  @id @default("")
+  cinema_complex_id  String
+  source_type        String?
+  source_id          String?
+  pis_cofins_regime  String?
+  processing_user_id String?
+
+  competence_date DateTime  @db.Date
+  entry_date      DateTime? @default(now()) @db.Timestamp(0)
+
+  gross_amount      Decimal  @db.Decimal(15, 2)
+  deductions_amount Decimal? @default(0.00) @db.Decimal(15, 2)
+  calculation_base  Decimal  @db.Decimal(15, 2)
+  apply_iss         Boolean? @default(true)
+  iss_rate          Decimal? @default(0.00) @db.Decimal(5, 2)
+  iss_amount        Decimal? @default(0.00) @db.Decimal(15, 2)
+
+  ibge_municipality_code String?  @db.VarChar(7)
+  iss_service_code       String?  @db.VarChar(10)
+  withheld_at_source     Boolean? @default(false)
+  snapshot_rates         String?  @db.Text
+
+  pis_rate              Decimal  @db.Decimal(5, 2)
+  pis_debit_amount      Decimal  @db.Decimal(15, 2)
+  pis_credit_amount     Decimal? @default(0.00) @db.Decimal(15, 2)
+  pis_amount_payable    Decimal  @db.Decimal(15, 2)
+  cofins_rate           Decimal  @db.Decimal(5, 2)
+  cofins_debit_amount   Decimal  @db.Decimal(15, 2)
+  cofins_credit_amount  Decimal? @default(0.00) @db.Decimal(15, 2)
+  cofins_amount_payable Decimal  @db.Decimal(15, 2)
+  irpj_csll_base        Decimal? @db.Decimal(15, 2)
+  presumed_percentage   Decimal? @db.Decimal(5, 2)
+
+  processed       Boolean?  @default(false)
+  processing_date DateTime? @db.Timestamp(0)
+
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+
+  @@index([cinema_complex_id])
+  @@index([competence_date])
+  @@index([source_type, source_id])
+  @@index([processed])
+  @@index([pis_cofins_regime])
+  @@schema("tax")
+}
+
+model monthly_tax_settlement {
+  id                String  @id @default("")
+  cinema_complex_id String
+  status            String?
+
+  year            Int
+  month           Int
+  settlement_date DateTime @db.Date
+
+  tax_regime        String?
+  pis_cofins_regime String?
+
+  gross_box_office_revenue  Decimal? @default(0.00) @db.Decimal(15, 2)
+  gross_concession_revenue  Decimal? @default(0.00) @db.Decimal(15, 2)
+  gross_advertising_revenue Decimal? @default(0.00) @db.Decimal(15, 2)
+  gross_other_revenue       Decimal? @default(0.00) @db.Decimal(15, 2)
+  total_gross_revenue       Decimal? @default(0.00) @db.Decimal(15, 2)
+  total_deductions          Decimal? @default(0.00) @db.Decimal(15, 2)
+  calculation_base_revenue  Decimal? @default(0.00) @db.Decimal(15, 2)
+  total_iss_box_office      Decimal? @default(0.00) @db.Decimal(15, 2)
+  total_iss_concession      Decimal? @default(0.00) @db.Decimal(15, 2)
+  total_iss                 Decimal? @default(0.00) @db.Decimal(15, 2)
+  total_pis_debit           Decimal? @default(0.00) @db.Decimal(15, 2)
+  total_pis_credit          Decimal? @default(0.00) @db.Decimal(15, 2)
+  total_pis_payable         Decimal? @default(0.00) @db.Decimal(15, 2)
+  total_cofins_debit        Decimal? @default(0.00) @db.Decimal(15, 2)
+  total_cofins_credit       Decimal? @default(0.00) @db.Decimal(15, 2)
+  total_cofins_payable      Decimal? @default(0.00) @db.Decimal(15, 2)
+  irpj_base                 Decimal? @default(0.00) @db.Decimal(15, 2)
+  irpj_base_15              Decimal? @default(0.00) @db.Decimal(15, 2)
+  irpj_additional_10        Decimal? @default(0.00) @db.Decimal(15, 2)
+  total_irpj                Decimal? @default(0.00) @db.Decimal(15, 2)
+  csll_base                 Decimal? @default(0.00) @db.Decimal(15, 2)
+  total_csll                Decimal? @default(0.00) @db.Decimal(15, 2)
+  gross_revenue_12m         Decimal? @db.Decimal(15, 2)
+  effective_simples_rate    Decimal? @db.Decimal(5, 2)
+  total_simples_amount      Decimal? @db.Decimal(15, 2)
+  total_distributor_payment Decimal? @default(0.00) @db.Decimal(15, 2)
+  net_revenue_taxed         Decimal? @default(0.00) @db.Decimal(15, 2)
+  net_total_revenue         Decimal? @default(0.00) @db.Decimal(15, 2)
+
+  declaration_date DateTime? @db.Date
+  payment_date     DateTime? @db.Date
+  notes            String?   @db.Text
+
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @updatedAt @db.Timestamp(0)
+
+  settlement_status settlement_status? @relation(fields: [status], references: [id])
+
+  @@unique([cinema_complex_id, year, month])
+  @@index([cinema_complex_id])
+  @@index([year, month])
+  @@index([status])
+  @@index([settlement_date])
+  @@schema("tax")
+}
+
+model federal_tax_rates {
+  id                         String    @id @default("")
+  company_id                 String
+  tax_regime                 String?
+  pis_cofins_regime          String?
+  revenue_type               String?
+  pis_rate                   Decimal   @db.Decimal(5, 2)
+  cofins_rate                Decimal   @db.Decimal(5, 2)
+  credit_allowed             Boolean?  @default(false)
+  irpj_base_rate             Decimal?  @db.Decimal(5, 2)
+  irpj_additional_rate       Decimal?  @db.Decimal(5, 2)
+  irpj_additional_limit      Decimal?  @db.Decimal(15, 2)
+  csll_rate                  Decimal?  @db.Decimal(5, 2)
+  presumed_profit_percentage Decimal?  @db.Decimal(5, 2)
+  validity_start             DateTime  @db.Date
+  validity_end               DateTime? @db.Date
+  active                     Boolean?  @default(true)
+  created_at                 DateTime? @default(now())
+
+  @@index([company_id])
+  @@index([validity_start, validity_end])
+  @@index([tax_regime])
+  @@index([pis_cofins_regime])
+  @@index([active])
+  @@schema("tax")
+}
+
+model municipal_tax_parameters {
+  id                          String    @id @default("")
+  company_id                  String
+  ibge_municipality_code      String    @db.VarChar(7)
+  municipality_name           String    @db.VarChar(100)
+  state                       String    @db.Char(2)
+  iss_rate                    Decimal   @db.Decimal(5, 2)
+  iss_service_code            String?   @db.VarChar(10)
+  iss_concession_applicable   Boolean?  @default(false)
+  iss_concession_service_code String?   @db.VarChar(10)
+  iss_withholding             Boolean?  @default(false)
+  validity_start              DateTime  @db.Date
+  validity_end                DateTime? @db.Date
+  notes                       String?   @db.Text
+  active                      Boolean?  @default(true)
+  created_at                  DateTime? @default(now())
+
+  @@unique([company_id, ibge_municipality_code, validity_start])
+  @@index([company_id])
+  @@index([ibge_municipality_code])
+  @@index([validity_start, validity_end])
+  @@index([active])
+  @@schema("tax")
+}
+
+model simple_national_brackets {
+  id                     String    @id @default("")
+  company_id             String
+  annex                  String    @db.VarChar(10)
+  bracket                Int
+  gross_revenue_12m_from Decimal   @db.Decimal(15, 2)
+  gross_revenue_12m_to   Decimal   @db.Decimal(15, 2)
+  nominal_rate           Decimal   @db.Decimal(5, 2)
+  irpj_percentage        Decimal?  @db.Decimal(5, 2)
+  csll_percentage        Decimal?  @db.Decimal(5, 2)
+  cofins_percentage      Decimal?  @db.Decimal(5, 2)
+  pis_percentage         Decimal?  @db.Decimal(5, 2)
+  cpp_percentage         Decimal?  @db.Decimal(5, 2)
+  iss_percentage         Decimal?  @db.Decimal(5, 2)
+  validity_start         DateTime  @db.Date
+  validity_end           DateTime? @db.Date
+  active                 Boolean?  @default(true)
+
+  @@unique([company_id, annex, bracket, validity_start])
+  @@index([company_id])
+  @@index([annex])
+  @@index([validity_start, validity_end])
+  @@index([active])
+  @@schema("tax")
+}
+
+model state_icms_parameters {
+  id                          String    @id @default("")
+  company_id                  String
+  state                       String    @db.Char(2)
+  icms_rate                   Decimal?  @db.Decimal(5, 2)
+  mva_percentage              Decimal?  @db.Decimal(5, 2)
+  tax_substitution_applicable Boolean?  @default(false)
+  validity_start              DateTime  @db.Date
+  validity_end                DateTime? @db.Date
+  active                      Boolean?  @default(true)
+
+  @@unique([company_id, state, validity_start])
+  @@index([company_id])
+  @@index([state])
+  @@index([validity_start, validity_end])
+  @@index([active])
+  @@schema("tax")
+}
+
+model pis_cofins_credits {
+  id                   String    @id @default("")
+  cinema_complex_id    String
+  credit_type          String?
+  description          String    @db.Text
+  fiscal_document      String?   @db.VarChar(100)
+  document_date        DateTime  @db.Date
+  competence_date      DateTime  @db.Date
+  base_amount          Decimal   @db.Decimal(15, 2)
+  pis_credit_rate      Decimal   @db.Decimal(5, 2)
+  pis_credit_amount    Decimal   @db.Decimal(15, 2)
+  cofins_credit_rate   Decimal   @db.Decimal(5, 2)
+  cofins_credit_amount Decimal   @db.Decimal(15, 2)
+  processed            Boolean?  @default(false)
+  created_at           DateTime? @default(now())
+
+  @@index([cinema_complex_id])
+  @@index([competence_date])
+  @@index([credit_type])
+  @@index([processed])
+  @@schema("tax")
+}
+
+model iss_withholdings {
+  id                  String    @id @default("")
+  cinema_complex_id   String
+  service_received_id String?
+  service_description String?   @db.VarChar(200)
+  withholding_rate    Decimal   @db.Decimal(5, 2)
+  withholding_amount  Decimal   @db.Decimal(15, 2)
+  service_code        String?   @db.VarChar(10)
+  withholding_date    DateTime  @db.Date
+  notes               String?   @db.Text
+  created_at          DateTime? @default(now())
+
+  @@index([cinema_complex_id])
+  @@index([withholding_date])
+  @@schema("tax")
+}
+
+model tax_compensations {
+  id                     String    @id @default("")
+  cinema_complex_id      String
+  tax_type               String?
+  credit_amount          Decimal   @db.Decimal(15, 2)
+  compensated_amount     Decimal?  @default(0.00) @db.Decimal(15, 2)
+  credit_balance         Decimal   @db.Decimal(15, 2)
+  credit_competence_date DateTime  @db.Date
+  usage_date             DateTime? @db.Date
+  notes                  String?   @db.Text
+  created_at             DateTime? @default(now())
+
+  @@index([cinema_complex_id])
+  @@index([tax_type])
+  @@index([credit_competence_date])
+  @@schema("tax")
+}
+
+model revenue_types {
+  id                 String    @id @default("")
+  company_id         String
+  name               String    @db.VarChar(100)
+  description        String?   @db.Text
+  applies_iss        Boolean?  @default(true)
+  applies_pis_cofins Boolean?  @default(true)
+  created_at         DateTime? @default(now())
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("tax")
+}
+
+model tax_types {
+  id           String    @id @default("")
+  company_id   String
+  name         String    @db.VarChar(100)
+  description  String?   @db.Text
+  jurisdiction String?   @db.VarChar(20)
+  created_at   DateTime? @default(now())
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("tax")
+}
+
+model credit_types {
+  id                String    @id @default("")
+  company_id        String
+  name              String    @db.VarChar(100)
+  description       String?   @db.Text
+  credit_percentage Decimal?  @default(100.00) @db.Decimal(5, 2)
+  created_at        DateTime? @default(now())
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("tax")
+}
+
+model product_categories {
+  id         String @id @default("")
+  company_id String
+
+  name        String  @db.VarChar(100)
+  description String? @db.Text
+
+  products products[]
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("catalog")
+}
+
+model products {
+  id         String @id @default("")
+  company_id String
+
+  category_id String
+
+  product_code String  @unique @db.VarChar(50)
+  name         String  @db.VarChar(200)
+  description  String? @db.Text
+  ncm_code     String? @db.VarChar(10)
+  unit         String? @default("UN") @db.VarChar(10)
+
+  sale_price Decimal @db.Decimal(10, 2)
+  cost_price Decimal @db.Decimal(10, 2)
+
+  minimum_stock Int?      @default(0)
+  active        Boolean?  @default(true)
+  created_at    DateTime? @default(now()) @db.Timestamp(0)
+
+  product_categories product_categories @relation(fields: [category_id], references: [id])
+  combo_products     combo_products[]
+
+  @@index([company_id])
+  @@index([category_id])
+  @@index([product_code])
+  @@index([active])
+  @@schema("catalog")
+}
+
+model combos {
+  id         String @id @default("")
+  company_id String
+
+  combo_code  String  @unique @db.VarChar(50)
+  name        String  @db.VarChar(200)
+  description String? @db.Text
+
+  sale_price        Decimal  @db.Decimal(10, 2)
+  promotional_price Decimal? @db.Decimal(10, 2)
+
+  promotion_start_date DateTime? @db.Date
+  promotion_end_date   DateTime? @db.Date
+  active               Boolean?  @default(true)
+  created_at           DateTime? @default(now()) @db.Timestamp(0)
+
+  combo_products combo_products[]
+
+  @@index([company_id])
+  @@index([combo_code])
+  @@index([active])
+  @@index([promotion_start_date, promotion_end_date])
+  @@schema("catalog")
+}
+
+model combo_products {
+  id         String @id @default("")
+  combo_id   String
+  product_id String
+
+  quantity Int @default(1)
+
+  combos   combos   @relation(fields: [combo_id], references: [id], onDelete: Cascade)
+  products products @relation(fields: [product_id], references: [id])
+
+  @@unique([combo_id, product_id])
+  @@index([combo_id])
+  @@index([product_id])
+  @@schema("catalog")
+}
+
+model age_ratings {
+  id         String @id @default("")
+  company_id String
+
+  code        String    @db.VarChar(5)
+  name        String    @db.VarChar(50)
+  minimum_age Int?
+  description String?   @db.Text
+  created_at  DateTime? @default(now()) @db.Timestamp(0)
+
+  category_links movies_on_categories[]
+  movies         movies[]
+
+  @@unique([company_id, code])
+  @@index([company_id])
+  @@schema("catalog")
+}
+
+model movie_categories {
+  id         String @id @default("")
+  company_id String
+
+  name        String   @db.VarChar(100)
+  description String?  @db.Text
+  minimum_age Int?     @default(0)
+  slug        String   @unique @db.VarChar(100)
+  active      Boolean  @default(true)
+  created_at  DateTime @default(now()) @db.Timestamp(0)
+
+  category_links movies_on_categories[]
+  movies         movies[]
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@index([active])
+  @@schema("catalog")
+}
+
+model cast_types {
+  id         String @id @default("")
+  company_id String
+
+  name        String    @db.VarChar(100)
+  description String?   @db.Text
+  created_at  DateTime? @default(now()) @db.Timestamp(0)
+
+  movie_cast movie_cast[]
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("catalog")
+}
+
+model media_types {
+  id         String @id @default("")
+  company_id String
+
+  name        String    @db.VarChar(100)
+  description String?   @db.Text
+  created_at  DateTime? @default(now()) @db.Timestamp(0)
+
+  movie_media movie_media[]
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("catalog")
+}
+
+model movies_on_categories {
+  movie_id    String
+  category_id String
+
+  movie         movies           @relation(fields: [movie_id], references: [id], onDelete: Cascade)
+  category      movie_categories @relation(fields: [category_id], references: [id])
+  age_ratings   age_ratings?     @relation(fields: [age_ratingsId], references: [id])
+  age_ratingsId String?
+
+  @@id([movie_id, category_id])
+  @@index([category_id])
+  @@schema("catalog")
+}
+
+model movies {
+  id             String @id @default("")
+  distributor_id String
+  company_id     String
+
+  age_rating_id String?
+
+  original_title         String    @db.VarChar(300)
+  brazil_title           String?   @db.VarChar(300)
+  ancine_number          String?   @db.VarChar(50)
+  duration_minutes       Int
+  country_of_origin      String?   @db.VarChar(50)
+  production_year        Int?
+  national               Boolean   @default(false)
+  active                 Boolean   @default(true)
+  created_at             DateTime  @default(now()) @db.Timestamp(0)
+  synopsis               String?   @db.Text
+  short_synopsis         String?   @db.VarChar(500)
+  budget                 Decimal?  @db.Decimal(15, 2)
+  website                String?   @db.VarChar(200)
+  tmdb_id                String?   @db.VarChar(50)
+  imdb_id                String?   @db.VarChar(20)
+  tags_json              String?   @db.Text
+  worldwide_release_date DateTime? @db.Date
+  original_language      String?   @db.VarChar(50)
+  slug                   String?   @unique @db.VarChar(200)
+
+  age_rating         age_ratings?           @relation(fields: [age_rating_id], references: [id])
+  category_links     movies_on_categories[]
+  movie_cast         movie_cast[]
+  movie_media        movie_media[]
+  movie_categories   movie_categories?      @relation(fields: [movie_categoriesId], references: [id])
+  movie_categoriesId String?
+
+  @@index([company_id])
+  @@index([distributor_id])
+  @@index([age_rating_id])
+  @@index([active])
+  @@index([national])
+  @@index([slug])
+  @@index([tmdb_id])
+  @@index([imdb_id])
+  @@schema("catalog")
+}
+
+model movie_cast {
+  id        String @id @default("")
+  movie_id  String
+  cast_type String
+
+  artist_name    String    @db.VarChar(200)
+  character_name String?   @db.VarChar(200)
+  credit_order   Int?      @default(0)
+  photo_url      String?   @db.VarChar(500)
+  active         Boolean?  @default(true)
+  created_at     DateTime? @default(now()) @db.Timestamp(0)
+
+  movies     movies     @relation(fields: [movie_id], references: [id], onDelete: Cascade)
+  cast_types cast_types @relation(fields: [cast_type], references: [id])
+
+  @@index([movie_id])
+  @@index([cast_type])
+  @@index([active])
+  @@schema("catalog")
+}
+
+model movie_media {
+  id         String @id @default("")
+  movie_id   String
+  media_type String
+
+  media_url   String    @db.VarChar(500)
+  description String?   @db.Text
+  width       Int?
+  height      Int?
+  active      Boolean?  @default(true)
+  created_at  DateTime? @default(now()) @db.Timestamp(0)
+  title       String?   @db.VarChar(200)
+
+  movies      movies      @relation(fields: [movie_id], references: [id], onDelete: Cascade)
+  media_types media_types @relation(fields: [media_type], references: [id])
+
+  @@index([movie_id])
+  @@index([media_type])
+  @@index([active])
+  @@schema("catalog")
+}
+
+model contract_types {
+  id         String @id @default("")
+  company_id String
+
+  name        String    @db.VarChar(100)
+  description String?   @db.Text
+  created_at  DateTime? @default(now()) @db.Timestamp(0)
+
+  exhibition_contracts exhibition_contracts[]
+
+  @@unique([company_id, name])
+  @@index([company_id])
+  @@schema("contracts")
+}
+
+model exhibition_contracts {
+  id String @id @default("")
+
+  movie_id          String
+  cinema_complex_id String
+  distributor_id    String
+
+  contract_type String?
+  revenue_base  String?
+
+  contract_number        String?   @unique @db.VarChar(50)
+  start_date             DateTime  @db.Date
+  end_date               DateTime  @db.Date
+  distributor_percentage Decimal   @db.Decimal(5, 2)
+  exhibitor_percentage   Decimal   @db.Decimal(5, 2)
+  guaranteed_minimum     Decimal?  @default(0.00) @db.Decimal(15, 2)
+  minimum_guarantee      Decimal?  @default(0.00) @db.Decimal(15, 2)
+  contract_terms         String?   @db.Text
+  notes                  String?   @db.Text
+  active                 Boolean?  @default(true)
+  created_at             DateTime? @default(now()) @db.Timestamp(0)
+
+  contract_types contract_types? @relation(fields: [contract_type], references: [id])
+
+  @@index([movie_id])
+  @@index([cinema_complex_id])
+  @@index([distributor_id])
+  @@index([contract_type])
+  @@index([revenue_base])
+  @@index([start_date, end_date])
+  @@index([active])
+  @@schema("contracts")
+}
