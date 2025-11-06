@@ -3,19 +3,14 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 import { CompanyService } from './services/company.service';
 import { CompanyRepository } from './repositories/company.repository';
 import { LoggerService } from 'src/common/services/logger.service';
-import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { AuthModule } from 'src/modules/identity/auth/auth.module';
 import { SuppliersModule } from 'src/modules/inventory/suppliers/suppliers.module';
+import { CommonModule } from 'src/common/common.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, SuppliersModule],
+  imports: [PrismaModule, AuthModule, SuppliersModule, CommonModule],
   controllers: [],
-  providers: [
-    CompanyRepository,
-    CompanyService,
-    LoggerService,
-    SnowflakeService,
-  ],
+  providers: [CompanyRepository, CompanyService, LoggerService],
   exports: [CompanyService],
 })
 export class CompanyModule {}
