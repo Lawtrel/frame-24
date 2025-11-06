@@ -10,8 +10,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { PrismaService } from './prisma/prisma.service';
 import { IdentityModule } from 'src/modules/identity/identity.module';
 import { SuppliersModule } from 'src/modules/inventory/suppliers/suppliers.module';
-import { MoviesModule } from 'src/modules/catalog/movies/movies.module';
-import { MovieCategoriesModule } from 'src/modules/catalog/movie_categories/movie-categories.module';
+import { CatalogModule } from 'src/modules/catalog/catalog.module';
 
 @Module({
   imports: [
@@ -27,10 +26,8 @@ import { MovieCategoriesModule } from 'src/modules/catalog/movie_categories/movi
     }),
     PrismaModule,
     IdentityModule,
-    IdentityModule,
     SuppliersModule,
-    MoviesModule,
-    MovieCategoriesModule,
+    CatalogModule,
   ],
   providers: [
     LoggerService,
