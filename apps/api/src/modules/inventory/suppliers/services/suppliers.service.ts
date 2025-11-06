@@ -9,13 +9,11 @@ import { SupplierRepository } from '../repositories/supplier.repository';
 import { CreateSupplierDto } from '../dto/create-supplier.dto';
 import { UpdateSupplierDto } from '../dto/update-supplier.dto';
 import { LoggerService } from 'src/common/services/logger.service';
-import { SnowflakeService } from 'src/common/services/snowflake.service';
 
 @Injectable()
 export class SuppliersService {
   constructor(
     private readonly repository: SupplierRepository,
-    private readonly snowflake: SnowflakeService,
     private readonly logger: LoggerService,
   ) {}
 
@@ -59,10 +57,7 @@ export class SuppliersService {
 
     const supplier = await this.repository.create(data);
 
-    this.logger.log(
-      `✅ Supplier created: ${supplier.id}`,
-      SuppliersService.name,
-    );
+    this.logger.log(`Supplier created: ${supplier.id}`, SuppliersService.name);
 
     return supplier;
   }
