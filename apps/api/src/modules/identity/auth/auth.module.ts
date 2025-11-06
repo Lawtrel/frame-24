@@ -11,13 +11,12 @@ import { CompanyRepository } from '../companies/repositories/company.repository'
 
 import { AuthService } from './services/auth.service';
 import { MasterDataSetupService } from 'src/modules/setup/services/master-data-setup.service';
-import { LoggerService } from 'src/common/services/logger.service';
-import { SnowflakeService } from 'src/common/services/snowflake.service';
 
 import { JwtStrategy } from './strategies/jwt.strategy';
 
 import { AuthController } from './controllers/auth.controller';
 import { EmployeeIdGeneratorService } from 'src/modules/identity/auth/services/employee-id-generator';
+import { CommonModule } from 'src/common/common.module';
 
 @Module({
   imports: [
@@ -27,6 +26,7 @@ import { EmployeeIdGeneratorService } from 'src/modules/identity/auth/services/e
       secret: process.env.JWT_SECRET || 'dev_secret',
       signOptions: { expiresIn: '1h' },
     }),
+    CommonModule,
   ],
   providers: [
     IdentityRepository,
@@ -37,10 +37,6 @@ import { EmployeeIdGeneratorService } from 'src/modules/identity/auth/services/e
     EmployeeIdGeneratorService,
     AuthService,
     MasterDataSetupService,
-
-    LoggerService,
-    SnowflakeService,
-
     JwtStrategy,
   ],
   controllers: [AuthController],
