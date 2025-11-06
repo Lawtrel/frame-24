@@ -6,7 +6,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  schemas  = ["identity", "hr", "finance", "crm", "sales", "inventory", "marketing", "operations", "projects", "stock", "tax", "catalog", "contracts"]
+  schemas  = ["identity", "hr", "finance", "crm", "sales", "inventory", "marketing", "operations", "projects", "stock", "tax", "catalog", "contracts", "audit"]
 }
 
 enum identity_type {
@@ -2655,4 +2655,30 @@ model exhibition_contracts {
   @@index([start_date, end_date])
   @@index([active])
   @@schema("contracts")
+}
+
+model audit_logs {
+  id         String @id @default("")
+  company_id String
+
+  event_type    String
+  resource_type String
+  resource_id   String
+  action        String
+
+  user_id        String?
+  correlation_id String?
+
+  old_values Json?
+  new_values Json?
+
+  created_at DateTime @default(now())
+
+  @@index([company_id])
+  @@index([resource_type])
+  @@index([resource_id])
+  @@index([user_id])
+  @@index([company_id, resource_type, created_at])
+  @@index([created_at])
+  @@schema("audit")
 }
