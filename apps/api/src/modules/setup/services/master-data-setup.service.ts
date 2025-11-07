@@ -74,9 +74,11 @@ export class MasterDataSetupService {
 
   private async setupCustomRoles(company_id: string): Promise<void> {
     for (const role of MASTER_DATA.identity.custom_roles) {
-      await this.prisma.custom_roles.create({
-        data: {
-          id: this.snowflake.generate(),
+      await this.prisma.custom_roles.upsert({
+        where: { company_id_name: { company_id, name: role.name } },
+        update: {},
+        create: {
+          id: this.snowflake.generate().toString(),
           company_id,
           name: role.name,
           description: role.description,
@@ -248,9 +250,16 @@ export class MasterDataSetupService {
 
   private async setupMovieCategories(company_id: string): Promise<void> {
     for (const category of MASTER_DATA.catalog.movie_categories) {
-      await this.prisma.movie_categories.create({
-        data: {
-          id: this.snowflake.generate(),
+      await this.prisma.movie_categories.upsert({
+        where: {
+          company_id_slug: {
+            company_id,
+            slug: category.slug,
+          },
+        },
+        update: {},
+        create: {
+          id: this.snowflake.generate().toString(),
           company_id,
           name: category.name,
           description: category.description,
