@@ -5,8 +5,9 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { Transactional } from '@nestjs-cls/transactional';
-import { Prisma, custom_roles } from '@repo/db'; // ✅ Importar tipo
+import { Prisma, custom_roles } from '@repo/db';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { CustomRoleRepository } from '../repositories/custom-role.repository';
 import { CreateRoleDto } from '../dto/create-role.dto';
 import { UpdateRoleDto } from '../dto/update-role.dto';
@@ -19,6 +20,7 @@ export class RolesService {
     private readonly prisma: PrismaService,
     private readonly roleRepo: CustomRoleRepository,
     private readonly logger: LoggerService,
+    private readonly snowflake: SnowflakeService,
   ) {}
 
   @Transactional()
@@ -47,7 +49,7 @@ export class RolesService {
 
     await this.prisma.role_permissions.createMany({
       data: permissionIds.map((permId) => ({
-        id: `${role.id}_${permId.substring(0, 10)}`,
+        id: this.snowflake.generate().toString(),
         role_id: role.id,
         permission_id: permId,
         granted_at: new Date(),
@@ -129,9 +131,10 @@ export class RolesService {
         where: { role_id: id },
       });
 
+      // ✅ Usar Snowflake aqui também
       await this.prisma.role_permissions.createMany({
         data: permissionIds.map((permId) => ({
-          id: `${id}_${permId.substring(0, 10)}`,
+          id: this.snowflake.generate().toString(),
           role_id: id,
           permission_id: permId,
           granted_at: new Date(),
@@ -214,5 +217,73 @@ export class RolesService {
       created_at: role.created_at?.toISOString() ?? '',
       updated_at: role.updated_at?.toISOString() ?? '',
     };
+  }
+
+  async roleHasPermission(
+    roleId: string,
+    resource: string,
+    action: 'create' | 'read' | 'update' | 'delete' | 'audit',
+  ): Promise<boolean> {
+    try {
+      // ✅ Busca direto pela role
+      const hasPermission = await this.prisma.role_permissions.findFirst({
+        where: {
+          role_id: roleId,
+          permissions: {
+            code: `${resource}:${action}`,
+            active: true,
+          },
+        },
+      });
+
+      return !!hasPermission;
+    } catch (error) {
+      this.logger.error(
+        `Error checking role permission: ${error instanceof Error ? error.message : 'Unknown'}`,
+        error instanceof Error ? error.stack : '',
+        'RolesService',
+      );
+      return false;
+    }
+  }
+  async userHasPermissionSimple(
+    companyUserId: string,
+    companyId: string,
+    resource: string,
+    action: 'create' | 'read' | 'update' | 'delete' | 'audit',
+  ): Promise<boolean> {
+    try {
+      const companyUser = await this.prisma.company_users.findUnique({
+        where: { id: companyUserId },
+        select: { company_id: true },
+      });
+
+      if (!companyUser || companyUser.company_id !== companyId) {
+        return false;
+      }
+
+      const hasPermission = await this.prisma.role_permissions.findFirst({
+        where: {
+          custom_roles: {
+            company_users: {
+              some: { id: companyUserId },
+            },
+          },
+          permissions: {
+            code: `${resource}:${action}`,
+            active: true,
+          },
+        },
+      });
+
+      return !!hasPermission;
+    } catch (error) {
+      this.logger.error(
+        `Error checking permission: ${error instanceof Error ? error.message : 'Unknown'}`,
+        error instanceof Error ? error.stack : '',
+        'RolesService',
+      );
+      return false;
+    }
   }
 }

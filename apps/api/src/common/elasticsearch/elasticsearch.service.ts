@@ -111,6 +111,7 @@ export class ElasticsearchService implements OnModuleInit {
     query: Record<string, unknown>;
     from?: number;
     size?: number;
+    sort?: Array<Record<string, unknown>>;
   }): Promise<Array<Record<string, unknown>>> {
     try {
       const result = await this.client.search({
@@ -118,7 +119,8 @@ export class ElasticsearchService implements OnModuleInit {
         query: params.query,
         from: params.from || 0,
         size: params.size || 20,
-        sort: [{ '@timestamp': { order: 'desc' as const } }],
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        sort: (params.sort || [{ '@timestamp': { order: 'desc' } }]) as any,
       });
 
       return (
