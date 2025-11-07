@@ -32,6 +32,7 @@ import {
   IdentityCreatedEventData,
   IdentityEventPattern,
   IdentityVerifiedEventData,
+  PasswordResetEventData,
 } from 'src/modules/identity/events/identity.events';
 
 @Injectable()
@@ -467,6 +468,110 @@ export class AuthService {
         AuthService.name,
       );
     }
+  }
+
+  @Transactional()
+  async requestPasswordReset(email: string): Promise<void> {
+    this.logger.log(`Password reset requested for: ${email}`, AuthService.name);
+
+    const identity = await this.identityRepository.findByEmail(email);
+
+    // Não retorne um erro se o e-mail não for encontrado para evitar que atacantes
+    if (!identity || !identity.active) {
+      this.logger.warn(
+        `Password reset attempt for non-existent or inactive account: ${email}`,
+      );
+      return;
+    }
+
+    if (!identity.person_id) {
+      this.logger.error(
+        `Identity ${identity.id} is inconsistent and has no associated person_id.`,
+        AuthService.name,
+      );
+      return;
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 1);
+
+    await this.identityRepository.update(identity.id, {
+      reset_token: resetToken,
+      reset_token_expires_at: expiresAt,
+    });
+
+    const person = await this.personRepository.findById(identity.person_id);
+    if (!person) {
+      this.logger.error(
+        `Could not find person data for person_id ${identity.person_id}.`,
+        AuthService.name,
+      );
+      return;
+    }
+
+    this.rabbitmq.publish<PasswordResetEventData>({
+      pattern: IdentityEventPattern.PASSWORD_RESET,
+      data: {
+        identity_id: identity.id,
+        email: identity.email,
+        full_name: person.full_name,
+        reset_token: resetToken,
+      },
+      metadata: {
+        correlationId: this.generateCorrelationId(),
+      },
+    });
+
+    this.logger.log(
+      `Password reset event published for: ${email}`,
+      AuthService.name,
+    );
+  }
+
+  @Transactional()
+  async resetPassword(
+    token: string,
+    newPassword: string,
+  ): Promise<{ message: string }> {
+    this.logger.log(
+      `Attempting to reset password with token: ${token.substring(0, 10)}...`,
+      AuthService.name,
+    );
+
+    const identity =
+      await this.identityRepository.findByPasswordResetToken(token);
+
+    if (
+      !identity ||
+      !identity.reset_token_expires_at ||
+      identity.reset_token_expires_at < new Date()
+    ) {
+      throw new BadRequestException(
+        'Token de redefinição inválido ou expirado.',
+      );
+    }
+
+    const newPasswordHash = await bcrypt.hash(newPassword, this.SALT_ROUNDS);
+
+    await this.identityRepository.update(identity.id, {
+      password_hash: newPasswordHash,
+      password_changed_at: new Date(),
+      // Invalida o token para que não possa ser usado novamente
+      reset_token: null,
+      reset_token_expires_at: null,
+      // Reseta o bloqueio de conta, se houver
+      failed_login_attempts: 0,
+      blocked_until: null,
+      block_reason: null,
+    });
+
+    this.logger.log(
+      `Password has been reset for identity: ${identity.id}`,
+      AuthService.name,
+    );
+
+    return { message: 'Sua senha foi redefinida com sucesso!' };
   }
 
   private async resetFailedAttempts(identity_id: string): Promise<void> {

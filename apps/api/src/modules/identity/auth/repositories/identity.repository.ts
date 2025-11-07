@@ -58,6 +58,17 @@ export class IdentityRepository {
     });
   }
 
+  async findByPasswordResetToken(token: string) {
+    return this.prisma.identities.findFirst({
+      where: {
+        reset_token: token,
+        reset_token_expires_at: {
+          gte: new Date(),
+        },
+      },
+    });
+  }
+
   async create(data: Prisma.identitiesCreateInput): Promise<identities> {
     return this.prisma.identities.create({
       data: {

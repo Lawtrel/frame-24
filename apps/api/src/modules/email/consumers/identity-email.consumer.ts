@@ -10,6 +10,7 @@ import {
   IdentityCreatedEventData,
   IdentityEventPattern,
   IdentityVerifiedEventData,
+  PasswordResetEventData,
 } from 'src/modules/identity/events/identity.events';
 
 interface IdentityMessage {
@@ -128,6 +129,10 @@ export class IdentityEmailConsumer implements OnModuleInit, OnModuleDestroy {
         );
         break;
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+      case IdentityEventPattern.PASSWORD_RESET:
+        await this.handlePasswordReset(message.data as PasswordResetEventData);
+        break;
       default:
         this.logger.warn(`Padrão desconhecido: ${message.pattern}`);
     }
@@ -155,5 +160,21 @@ export class IdentityEmailConsumer implements OnModuleInit, OnModuleDestroy {
     await this.emailService.sendWelcomeEmail(data.email, data.full_name);
 
     this.logger.log(`Email de boas-vindas enviado para: ${data.email}`);
+  }
+
+  private async handlePasswordReset(
+    data: PasswordResetEventData,
+  ): Promise<void> {
+    this.logger.log(`Processando identity.password_reset: ${data.email}`);
+
+    await this.emailService.sendPasswordResetEmail(
+      data.email,
+      data.full_name,
+      data.reset_token,
+    );
+
+    this.logger.log(
+      `Email de redefinição de senha enviado para: ${data.email}`,
+    );
   }
 }
