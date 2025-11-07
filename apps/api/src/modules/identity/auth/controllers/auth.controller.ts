@@ -16,6 +16,7 @@ import {
   LoginResponseDto,
   RegisterResponseDto,
 } from '../dto/auth-response.dto';
+import { VerifyEmailDto } from 'src/modules/identity/auth/dto/verify-email.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -114,5 +115,12 @@ export class AuthController {
   })
   async register(@Body() dto: RegisterDto): Promise<RegisterResponseDto> {
     return this.authService.register(dto);
+  }
+
+  @Post('verify-email')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verificar email com token' })
+  async verifyEmail(@Body() dto: VerifyEmailDto) {
+    return this.authService.verifyEmail(dto.token);
   }
 }
