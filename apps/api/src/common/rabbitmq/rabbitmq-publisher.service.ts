@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import amqplib from 'amqplib';
 import { LoggerService } from '../services/logger.service';
 
@@ -16,9 +16,9 @@ export interface RabbitMQMessage<T = any> {
 @Injectable()
 export class RabbitMQPublisherService implements OnModuleInit {
   private channel: amqplib.Channel | null = null;
+  private readonly logger = new Logger('RabbitMQPublisher');
 
-  constructor(private logger: LoggerService) {}
-
+  constructor(private loggerService: LoggerService) {}
   async onModuleInit(): Promise<void> {
     await this.connect();
   }
@@ -28,16 +28,23 @@ export class RabbitMQPublisherService implements OnModuleInit {
       const url = `amqp://${process.env.RABBITMQ_USER || 'frame24'}:${process.env.RABBITMQ_PASSWORD || 'frame24pass'}@${process.env.RABBITMQ_HOST || 'localhost'}:${process.env.RABBITMQ_PORT || 5672}`;
       const connection = await amqplib.connect(url);
       this.channel = await connection.createChannel();
-      await this.channel.assertQueue('frame24_queue', { durable: true });
-      this.logger.log('Connected to RabbitMQ', 'RabbitMQPublisher');
+
+      await this.channel.assertExchange('frame24-events', 'topic', {
+        durable: true,
+      });
+      this.loggerService.log('Connected to RabbitMQ', 'RabbitMQPublisher');
     } catch (error) {
-      this.logger.error(`Failed to connect: ${error}`, '', 'RabbitMQPublisher');
+      this.loggerService.error(
+        `Failed to connect: ${error}`,
+        '',
+        'RabbitMQPublisher',
+      );
     }
   }
 
   publish<T = any>(message: RabbitMQMessage<T>): void {
     if (!this.channel) {
-      this.logger.error('Channel not ready', '', 'RabbitMQPublisher');
+      this.loggerService.error('Channel not ready', '', 'RabbitMQPublisher');
       return;
     }
 
@@ -51,13 +58,14 @@ export class RabbitMQPublisherService implements OnModuleInit {
       },
     };
 
-    this.channel.sendToQueue(
-      'frame24_queue',
+    this.channel.publish(
+      'frame24-events',
+      message.pattern,
       Buffer.from(JSON.stringify(enrichedMessage)),
       { persistent: true },
     );
 
-    this.logger.log(
+    this.loggerService.log(
       `Message published: ${message.pattern}`,
       'RabbitMQPublisher',
     );

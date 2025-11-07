@@ -46,12 +46,17 @@ export class AuditConsumerService implements OnModuleInit, OnModuleDestroy {
       const url = 'amqp://frame24:frame24pass@localhost:5672';
       this.connection = await connect(url);
       this.channel = await this.connection.createChannel();
-      await this.channel.assertQueue('frame24_queue', { durable: true });
+      await this.channel.assertExchange('frame24-events', 'topic', {
+        durable: true,
+      });
 
+      await this.channel.assertQueue('audit-queue', { durable: true });
+
+      await this.channel.bindQueue('audit-queue', 'frame24-events', 'audit.#');
       this.logger.log('Conectado! Escutando fila...');
 
       await this.channel.consume(
-        'frame24_queue',
+        'audit-queue',
         (msg: ConsumeMessage | null) => {
           if (!msg) return;
 

@@ -3,9 +3,11 @@ import {
   UnauthorizedException,
   ConflictException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 import { Transactional } from '@nestjs-cls/transactional';
 import { identities, identity_type, Prisma } from '@repo/db';
 
@@ -25,6 +27,12 @@ import {
 import { LoggerService } from 'src/common/services/logger.service';
 import { MasterDataSetupService } from 'src/modules/setup/services/master-data-setup.service';
 import { EmployeeIdGeneratorService } from 'src/modules/identity/auth/services/employee-id-generator';
+import { RabbitMQPublisherService } from 'src/common/rabbitmq/rabbitmq-publisher.service';
+import {
+  IdentityCreatedEventData,
+  IdentityEventPattern,
+  IdentityVerifiedEventData,
+} from 'src/modules/identity/events/identity.events';
 
 @Injectable()
 export class AuthService {
@@ -33,6 +41,7 @@ export class AuthService {
   private readonly BLOCK_DURATION_MINUTES = 30;
 
   constructor(
+    private rabbitmq: RabbitMQPublisherService,
     private readonly identityRepository: IdentityRepository,
     private readonly personRepository: PersonRepository,
     private readonly companyUserRepository: CompanyUserRepository,
@@ -177,6 +186,10 @@ export class AuthService {
       throw new ConflictException('Email já cadastrado no sistema.');
     }
 
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 24);
+
     const password_hash = await bcrypt.hash(dto.password, this.SALT_ROUNDS);
 
     const company = await this.companyRepository.create({
@@ -215,6 +228,8 @@ export class AuthService {
       password_hash,
       active: true,
       email_verified: false,
+      email_verification_token: verificationToken,
+      email_verification_expires_at: expiresAt,
     } as Prisma.identitiesCreateInput);
 
     this.logger.log(`Identity created: ${identity.id}`, AuthService.name);
@@ -231,11 +246,6 @@ export class AuthService {
 
     const employee_id = await this.employeeIdGenerator.generate(company.id);
 
-    this.logger.log(
-      `Generated employee_id: ${employee_id} for admin user`,
-      AuthService.name,
-    );
-
     await this.companyUserRepository.create({
       identities: { connect: { id: identity.id } },
       companies: { connect: { id: company.id } },
@@ -249,10 +259,18 @@ export class AuthService {
 
     await this.masterDataSetup.setupCompanyMasterData(company.id);
 
-    this.logger.log(
-      `Master data setup complete: ${company.id}`,
-      AuthService.name,
-    );
+    this.rabbitmq.publish<IdentityCreatedEventData>({
+      pattern: IdentityEventPattern.CREATED,
+      data: {
+        identity_id: identity.id,
+        email: identity.email,
+        full_name: dto.full_name,
+        verification_token: verificationToken,
+      },
+      metadata: {
+        correlationId: this.generateCorrelationId(),
+      },
+    });
 
     this.logger.log(`Signup completed: ${identity.email}`, AuthService.name);
 
@@ -260,7 +278,7 @@ export class AuthService {
       success: true,
       user_id: identity.id,
       email: identity.email,
-      message: 'Conta criada com sucesso! Verifique seu email.',
+      message: 'Conta criada com sucesso! Verifique seu email para ativar.',
     };
   }
 
@@ -289,6 +307,10 @@ export class AuthService {
       );
     }
 
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 24);
+
     const password_hash = await bcrypt.hash(dto.password, this.SALT_ROUNDS);
 
     const person = await this.personRepository.create({
@@ -304,6 +326,8 @@ export class AuthService {
       password_hash,
       active: true,
       email_verified: false,
+      email_verification_token: verificationToken,
+      email_verification_expires_at: expiresAt,
     } as Prisma.identitiesCreateInput);
 
     this.logger.log(`Identity created: ${identity.id}`, AuthService.name);
@@ -318,14 +342,7 @@ export class AuthService {
       );
     }
 
-    this.logger.log(`Default role found: ${defaultRole.id}`, AuthService.name);
-
     const employee_id = await this.employeeIdGenerator.generate(dto.company_id);
-
-    this.logger.log(
-      `Generated employee_id: ${employee_id} for new user`,
-      AuthService.name,
-    );
 
     await this.companyUserRepository.create({
       identities: { connect: { id: identity.id } },
@@ -336,14 +353,83 @@ export class AuthService {
       start_date: new Date(),
     } as Prisma.company_usersCreateInput);
 
-    this.logger.log(`CompanyUser created: ${identity.id}`, AuthService.name);
+    this.rabbitmq.publish<IdentityCreatedEventData>({
+      pattern: IdentityEventPattern.CREATED,
+      data: {
+        identity_id: identity.id,
+        email: identity.email,
+        full_name: dto.full_name,
+        verification_token: verificationToken,
+      },
+      metadata: {
+        correlationId: this.generateCorrelationId(),
+      },
+    });
+
     this.logger.log(`Register completed: ${identity.email}`, AuthService.name);
 
     return {
       success: true,
       user_id: identity.id,
       email: identity.email,
-      message: 'Usuário criado com sucesso. Verifique seu email.',
+      message: 'Usuário criado com sucesso. Verifique seu email para ativar.',
+    };
+  }
+
+  async verifyEmail(token: string): Promise<{ message: string }> {
+    const identity =
+      await this.identityRepository.findByVerificationToken(token);
+
+    if (
+      !identity ||
+      !identity.email_verification_expires_at ||
+      identity.email_verification_expires_at < new Date()
+    ) {
+      throw new BadRequestException('Token inválido ou expirado');
+    }
+
+    if (identity.email_verified) {
+      throw new BadRequestException('Email já verificado');
+    }
+
+    if (!identity.person_id) {
+      this.logger.error(
+        `Identity ${identity.id} não possui person_id associado.`,
+        'AuthService',
+      );
+      throw new NotFoundException(
+        'Dados de usuário inconsistentes. Contate o suporte.',
+      );
+    }
+
+    const person = await this.personRepository.findById(identity.person_id);
+    if (!person) {
+      throw new NotFoundException(
+        'Dados de usuário associados não encontrados.',
+      );
+    }
+    await this.identityRepository.update(identity.id, {
+      email_verified: true,
+      email_verification_token: null,
+      email_verification_expires_at: null,
+    });
+
+    this.rabbitmq.publish<IdentityVerifiedEventData>({
+      pattern: IdentityEventPattern.VERIFIED,
+      data: {
+        identity_id: identity.id,
+        email: identity.email,
+        full_name: person.full_name,
+      },
+      metadata: {
+        correlationId: this.generateCorrelationId(),
+      },
+    });
+
+    this.logger.log(`Email verified: ${identity.email}`, AuthService.name);
+
+    return {
+      message: 'Email verificado com sucesso! Você já pode fazer login.',
     };
   }
 
@@ -414,5 +500,9 @@ export class AuthService {
 
   private normalizeMobile(mobile: string): string {
     return mobile.replace(/\D/g, '');
+  }
+
+  private generateCorrelationId(): string {
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 }
