@@ -11,6 +11,7 @@ import { SuppliersModule } from 'src/modules/inventory/suppliers/suppliers.modul
 import { CatalogModule } from 'src/modules/catalog/catalog.module';
 import { WorkersModule } from 'src/workers/workers.module';
 import { CommonModule } from 'src/common/common.module';
+import { AuditModule } from 'src/common/audit/audit.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { CommonModule } from 'src/common/common.module';
     SuppliersModule,
     CatalogModule,
     WorkersModule,
+    AuditModule,
   ],
   providers: [
     {

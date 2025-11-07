@@ -46,7 +46,7 @@ export class MovieCategoriesController {
     @Body() dto: CreateMovieCategoryDto,
     @CurrentUser() user: RequestUser,
   ) {
-    return this.service.create(dto, user.company_id);
+    return this.service.create(dto, user);
   }
 
   @Get()
@@ -83,7 +83,7 @@ export class MovieCategoriesController {
     @Body() dto: UpdateMovieCategoryDto,
     @CurrentUser() user: RequestUser,
   ) {
-    return this.service.update(id, dto, user.company_id);
+    return this.service.update(id, dto, user);
   }
 
   @Delete(':id')
@@ -92,6 +92,6 @@ export class MovieCategoriesController {
   @ApiResponse({ status: 200, description: 'Categoria excluída com sucesso.' })
   @ApiNotFoundResponse({ description: 'Categoria não encontrada.' })
   async delete(@Param('id') id: string, @CurrentUser() user: RequestUser) {
-    return this.service.delete(id, user.company_id);
+    return this.service.delete(id, user);
   }
 }
