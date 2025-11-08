@@ -13,6 +13,7 @@ import { WorkersModule } from 'src/workers/workers.module';
 import { CommonModule } from 'src/common/common.module';
 import { AuditModule } from 'src/common/audit/audit.module';
 import { EmailModule } from 'src/modules/email/email.module';
+import { OperationsModule } from 'src/modules/operations/operations.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { EmailModule } from 'src/modules/email/email.module';
     WorkersModule,
     AuditModule,
     EmailModule,
+    OperationsModule,
   ],
   providers: [
     {
