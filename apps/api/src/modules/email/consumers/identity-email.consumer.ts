@@ -54,7 +54,23 @@ export class IdentityEmailConsumer implements OnModuleInit, OnModuleDestroy {
         durable: true,
       });
 
-      await this.channel.assertQueue('email-queue', { durable: true });
+      await this.channel.assertExchange('frame24-dlx', 'topic', {
+        durable: true,
+      });
+      await this.channel.assertQueue('email-queue-dlq', { durable: true });
+      await this.channel.bindQueue('email-queue-dlq', 'frame24-dlx', '#');
+
+      await this.channel.assertQueue('email-queue-retry', {
+        durable: true,
+        messageTtl: 10000,
+        deadLetterExchange: 'frame24-events',
+        deadLetterRoutingKey: 'identity.created',
+      });
+
+      await this.channel.assertQueue('email-queue', {
+        durable: true,
+        deadLetterExchange: 'frame24-dlx',
+      });
 
       await this.channel.bindQueue(
         'email-queue',
@@ -68,13 +84,7 @@ export class IdentityEmailConsumer implements OnModuleInit, OnModuleDestroy {
         (msg: ConsumeMessage | null) => {
           if (!msg) return;
 
-          this.processMessage(msg).catch((error) => {
-            this.logger.error(
-              `Erro ao processar mensagem: ${error instanceof Error ? error.message : 'Unknown'}`,
-              error instanceof Error ? error.stack : '',
-            );
-            this.channel?.nack(msg, false, false);
-          });
+          this.processMessage(msg).catch(() => {});
         },
       );
     } catch (error) {
@@ -89,7 +99,7 @@ export class IdentityEmailConsumer implements OnModuleInit, OnModuleDestroy {
             err instanceof Error ? err.stack : '',
           );
         });
-      }, 5000);
+      }, 10000);
     }
   }
 
@@ -105,11 +115,32 @@ export class IdentityEmailConsumer implements OnModuleInit, OnModuleDestroy {
 
       this.channel?.ack(msg);
     } catch (error) {
+      const retryCount = (msg.properties.headers?.['x-retry-count'] ||
+        0) as number;
+      const MAX_RETRIES = 5;
+
       this.logger.error(
-        `Erro ao processar mensagem: ${error instanceof Error ? error.message : 'Unknown'}`,
-        error instanceof Error ? error.stack : '',
+        `Erro ao processar mensagem (tentativa ${retryCount + 1}/${MAX_RETRIES}): ${error instanceof Error ? error.message : 'Unknown'}`,
       );
-      throw error;
+
+      if (retryCount >= MAX_RETRIES) {
+        this.logger.error('Max retries reached. Sending to DLQ.');
+        this.channel?.nack(msg, false, false);
+      } else {
+        this.logger.warn(
+          `Sending to retry queue (will retry in 5s) - Attempt ${retryCount + 1}/${MAX_RETRIES}`,
+        );
+
+        this.channel?.sendToQueue('email-queue-retry', msg.content, {
+          persistent: true,
+          headers: {
+            ...msg.properties.headers,
+            'x-retry-count': retryCount + 1,
+          },
+        });
+
+        this.channel?.ack(msg);
+      }
     }
   }
 
