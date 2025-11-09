@@ -34,7 +34,7 @@ import { ShowtimesService } from 'src/modules/operations/showtime_schedule/servi
 
 @ApiTags('Showtimes')
 @ApiBearerAuth()
-@Controller('showtimes')
+@Controller({ path: 'showtimes', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class ShowtimesController {
   constructor(private readonly service: ShowtimesService) {}

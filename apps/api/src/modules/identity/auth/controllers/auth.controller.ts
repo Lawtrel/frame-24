@@ -23,7 +23,7 @@ import {
 } from 'src/modules/identity/auth/dto/password.dto';
 
 @ApiTags('Auth')
-@Controller('auth')
+@Controller({ path: 'auth', version: '1' })
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 

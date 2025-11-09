@@ -16,7 +16,7 @@ import { ProjectionTypesService } from '../services/projection-types.service';
 
 @ApiTags('Projection Types')
 @ApiBearerAuth()
-@Controller('projection-types')
+@Controller({ path: 'projection-types', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class ProjectionTypesController {
   constructor(private readonly service: ProjectionTypesService) {}

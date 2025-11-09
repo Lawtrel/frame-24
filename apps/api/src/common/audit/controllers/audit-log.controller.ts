@@ -29,7 +29,7 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('Audit Logs')
-@Controller('audit-logs')
+@Controller({ path: 'audit-logs', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 @ApiBearerAuth('access-token')
 export class AuditLogController {

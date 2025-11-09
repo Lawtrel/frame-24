@@ -27,7 +27,7 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('Movie Categories')
-@Controller('movie-categories')
+@Controller({ path: 'movie-categories', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class MovieCategoriesController {
   constructor(private readonly service: MovieCategoriesService) {}
