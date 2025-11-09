@@ -6,6 +6,21 @@ export const CreateCompanySchema = z.object({
   cnpj: z.string().regex(/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/),
   tax_regime: z.nativeEnum(tax_regime_type).optional(),
   trade_name: z.string().max(200).optional(),
+
+  zip_code: z.string().max(10).optional(),
+  street_address: z.string().max(300).optional(),
+  address_number: z.string().max(20).optional(),
+  address_complement: z.string().max(100).optional(),
+  neighborhood: z.string().max(100).optional(),
+  city: z.string().max(100).optional(),
+  state: z.string().max(2).optional(),
+  country: z.string().max(2).optional(),
+
+  phone: z.string().max(20).optional(),
+  mobile: z.string().max(20).optional(),
+  email: z.string().email().max(100).optional(),
+  website: z.string().url().max(200).optional(),
+
   state_registration: z.string().max(20).optional(),
   municipal_registration: z.string().max(20).optional(),
   recine_opt_in: z.boolean().optional(),

@@ -4,6 +4,7 @@
     "outDir": "dist",
     "rootDir": "src",
     "declaration": true,
+    "declarationDir": "dist",
     "composite": true,
     "emitDeclarationOnly": false,
     "module": "CommonJS",

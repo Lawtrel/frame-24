@@ -34,6 +34,7 @@ import {
   IdentityVerifiedEventData,
   PasswordResetEventData,
 } from 'src/modules/identity/events/identity.events';
+import { CompanyService } from '../../companies/services/company.service';
 
 @Injectable()
 export class AuthService {
@@ -47,6 +48,7 @@ export class AuthService {
     private readonly personRepository: PersonRepository,
     private readonly companyUserRepository: CompanyUserRepository,
     private readonly companyRepository: CompanyRepository,
+    private readonly companyService: CompanyService,
     private readonly customRoleRepository: CustomRoleRepository,
     private readonly employeeIdGenerator: EmployeeIdGeneratorService,
     private readonly jwtService: JwtService,
@@ -193,11 +195,10 @@ export class AuthService {
 
     const password_hash = await bcrypt.hash(dto.password, this.SALT_ROUNDS);
 
-    const company = await this.companyRepository.create({
+    const company = await this.companyService.create({
       corporate_name: dto.corporate_name,
       trade_name: dto.trade_name,
       cnpj: this.normalizeCnpj(dto.cnpj),
-      tenant_slug: this.generateTenantSlug(dto.corporate_name, dto.cnpj),
       zip_code: this.normalizeZipCode(dto.company_zip_code),
       street_address: dto.company_street_address,
       address_number: dto.company_address_number,
@@ -209,8 +210,7 @@ export class AuthService {
       phone: this.normalizeMobile(dto.company_phone || ''),
       email: dto.company_email,
       plan_type: dto.plan_type || 'BASIC',
-      active: true,
-    } as Prisma.companiesCreateInput);
+    });
 
     this.logger.log(`Company created: ${company.id}`, AuthService.name);
 
@@ -237,7 +237,7 @@ export class AuthService {
 
     const adminRole = await this.customRoleRepository.create({
       companies: { connect: { id: company.id } },
-      name: 'Administrador',
+      name: 'Super Admin',
       description: 'Administrador com acesso total',
       is_system_role: true,
       hierarchy_level: 1,
@@ -581,18 +581,6 @@ export class AuthService {
       blocked_until: null,
       block_reason: null,
     });
-  }
-
-  private generateTenantSlug(name: string, cnpj: string): string {
-    const slug = name
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-
-    const suffix = cnpj.replace(/\D/g, '').slice(-4);
-    return `${slug}-${suffix}`;
   }
 
   private normalizeCnpj(cnpj: string): string {
