@@ -1664,8 +1664,8 @@ model showtime_schedule {
   room_id           String
   movie_id          String
 
-  session_date DateTime @db.Date
-  session_time DateTime @db.Time(0)
+  start_time DateTime
+  end_time   DateTime
 
   projection_type  String?
   audio_type       String?
@@ -1691,7 +1691,7 @@ model showtime_schedule {
   @@index([cinema_complex_id])
   @@index([room_id])
   @@index([movie_id])
-  @@index([session_date, session_time])
+  @@index([start_time, end_time])
   @@index([status])
   @@index([projection_type])
   @@index([audio_type])
@@ -1721,6 +1721,7 @@ model seat_status {
 
   name                String    @db.VarChar(50)
   description         String?   @db.Text
+  is_default          Boolean   @default(false)
   allows_modification Boolean?  @default(true)
   created_at          DateTime? @default(now()) @db.Timestamp(0)
 
@@ -1728,6 +1729,7 @@ model seat_status {
 
   @@unique([company_id, name])
   @@index([company_id])
+  @@index([company_id, is_default])
   @@schema("operations")
 }
 
