@@ -8,9 +8,8 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 
 @Module({
   imports: [PrismaModule, CommonModule],
-
   controllers: [CinemaComplexesController],
-
   providers: [CinemaComplexesService, CinemaComplexesRepository],
+  exports: [CinemaComplexesRepository],
 })
 export class CinemaComplexesModule {}

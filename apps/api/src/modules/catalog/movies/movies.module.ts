@@ -11,6 +11,6 @@ import { SupplierRepository } from 'src/modules/inventory/suppliers/repositories
   imports: [PrismaModule, AuthModule, CommonModule],
   controllers: [MoviesController],
   providers: [MoviesService, MovieRepository, SupplierRepository],
-  exports: [MoviesService],
+  exports: [MoviesService, MovieRepository],
 })
 export class MoviesModule {}

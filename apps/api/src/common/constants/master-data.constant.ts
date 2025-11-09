@@ -150,21 +150,25 @@ export const MASTER_DATA = {
         name: 'Disponível',
         description: 'Assento disponível',
         allows_modification: true,
+        is_default: true,
       },
       {
         name: 'Reservado',
         description: 'Assento reservado temporariamente',
         allows_modification: true,
+        is_default: false,
       },
       {
         name: 'Vendido',
         description: 'Assento vendido',
         allows_modification: false,
+        is_default: false,
       },
       {
         name: 'Bloqueado',
         description: 'Assento bloqueado',
         allows_modification: false,
+        is_default: false,
       },
     ],
 
