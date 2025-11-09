@@ -2,19 +2,22 @@ import {
   Injectable,
   ConflictException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
-import { companies, Prisma } from '@repo/db';
+import { companies, Prisma, tax_regime_type } from '@repo/db';
 import { Transactional } from '@nestjs-cls/transactional';
 
 import { CompanyRepository } from '../repositories/company.repository';
 import { CreateCompanyDto } from '../dto/create-company.dto';
 import { UpdateCompanyDto } from '../dto/update-company.dto';
 import { LoggerService } from 'src/common/services/logger.service';
+import { BrasilApiService } from 'src/common/services/brasil-api.service';
 
 @Injectable()
 export class CompanyService {
   constructor(
     private readonly repository: CompanyRepository,
+    private readonly brasilApiService: BrasilApiService,
     private readonly logger: LoggerService,
   ) {}
 
@@ -29,12 +32,37 @@ export class CompanyService {
     if (exists) {
       throw new ConflictException(`CNPJ ${dto.cnpj} já cadastrado.`);
     }
+    const cnpjData = await this.brasilApiService.getCnpjData(dto.cnpj);
 
+    if (!cnpjData) {
+      throw new NotFoundException(
+        `CNPJ ${dto.cnpj} não encontrado na base de dados da Receita Federal.`,
+      );
+    }
+
+    let determinedTaxRegime: tax_regime_type;
+
+    if (cnpjData.opcao_pelo_simples === true) {
+      determinedTaxRegime = tax_regime_type.SIMPLES_NACIONAL;
+      this.logger.log(
+        `CNPJ ${dto.cnpj} is SIMPLES_NACIONAL. Set automatically.`,
+      );
+    } else if (
+      dto.tax_regime &&
+      dto.tax_regime !== tax_regime_type.SIMPLES_NACIONAL
+    ) {
+      determinedTaxRegime = dto.tax_regime;
+    } else {
+      throw new BadRequestException(
+        'Esta empresa não é optante pelo Simples Nacional. Por favor, especifique o regime tributário (LUCRO_PRESUMIDO ou LUCRO_REAL).',
+      );
+    }
     const tenant_slug = this.generateTenantSlug(dto.corporate_name, dto.cnpj);
 
     const data: Prisma.companiesCreateInput = {
       ...dto,
       tenant_slug,
+      tax_regime: determinedTaxRegime,
       active: true,
     };
 

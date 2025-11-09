@@ -33,6 +33,14 @@ enum session_context {
   @@schema("identity")
 }
 
+enum tax_regime_type {
+  SIMPLES_NACIONAL
+  LUCRO_PRESUMIDO
+  LUCRO_REAL
+
+  @@schema("identity")
+}
+
 model companies {
   id String @id @default("")
 
@@ -57,8 +65,7 @@ model companies {
   state_registration     String? @db.VarChar(20)
   municipal_registration String? @db.VarChar(20)
 
-  tax_regime        String?
-  pis_cofins_regime String?
+  tax_regime tax_regime_type
 
   recine_opt_in    Boolean?  @default(false)
   recine_join_date DateTime? @db.Date
@@ -66,7 +73,7 @@ model companies {
   tenant_slug String  @unique @db.VarChar(50)
   logo_url    String? @db.VarChar(500)
 
-  max_complexes   Int?              @default(5)
+  max_complexes   Int?              @default(1)
   max_employees   Int?              @default(50)
   max_storage_gb  Int?              @default(10)
   plan_type       company_plan_type @default(BASIC)
@@ -353,33 +360,6 @@ model user_sessions {
   @@index([session_id])
   @@index([revoked])
   @@index([last_activity])
-  @@schema("identity")
-}
-
-model tax_regimes {
-  id         String @id @default("")
-  company_id String
-
-  name        String    @db.VarChar(100)
-  description String?   @db.Text
-  created_at  DateTime? @default(now())
-
-  @@unique([company_id, name])
-  @@index([company_id])
-  @@schema("identity")
-}
-
-model pis_cofins_regimes {
-  id         String @id @default("")
-  company_id String
-
-  name          String    @db.VarChar(100)
-  description   String?   @db.Text
-  allows_credit Boolean?  @default(false)
-  created_at    DateTime? @default(now())
-
-  @@unique([company_id, name])
-  @@index([company_id])
   @@schema("identity")
 }
 
