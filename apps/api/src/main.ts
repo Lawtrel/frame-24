@@ -6,6 +6,7 @@ import { Request, Response } from 'express';
 import { AppModule } from './app.module';
 // ERRO 1: Você esqueceu de importar TAG_GROUPS
 import { getAllTags, TAG_GROUPS } from './swagger.config';
+import { VersioningType } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -39,6 +40,9 @@ async function bootstrap() {
       },
       'access-token',
     );
+  app.enableVersioning({
+    type: VersioningType.URI,
+  });
 
   getAllTags().forEach((tag) => configBuilder.addTag(tag));
 

@@ -32,7 +32,7 @@ import { CinemaComplexesService } from 'src/modules/operations/cinema-complexes/
 
 @ApiTags('Cinema Complexes')
 @ApiBearerAuth()
-@Controller('cinema-complexes')
+@Controller({ path: 'cinema-complexes', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class CinemaComplexesController {
   constructor(private readonly service: CinemaComplexesService) {}

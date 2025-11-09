@@ -16,7 +16,7 @@ import { AudioTypesService } from '../services/audio-types.service';
 
 @ApiTags('Audio Types')
 @ApiBearerAuth()
-@Controller('audio-types')
+@Controller({ path: 'audio-types', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class AudioTypesController {
   constructor(private readonly service: AudioTypesService) {}

@@ -16,7 +16,7 @@ import { SeatTypesService } from '../services/seat-types.service';
 
 @ApiTags('Seat Types')
 @ApiBearerAuth()
-@Controller('seat-types')
+@Controller({ path: 'seat-types', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class SeatTypesController {
   constructor(private readonly service: SeatTypesService) {}

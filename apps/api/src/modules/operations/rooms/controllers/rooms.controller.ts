@@ -32,7 +32,7 @@ import { UpdateRoomDto } from '../dto/update-room.dto';
 
 @ApiTags('Operations', 'Rooms')
 @ApiBearerAuth()
-@Controller('cinema-complexes/:cinemaComplexId/rooms')
+@Controller({ path: 'cinema-complexes/:cinemaComplexId/rooms', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class RoomsController {
   constructor(private readonly service: RoomsService) {}

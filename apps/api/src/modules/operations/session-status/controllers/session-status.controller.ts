@@ -10,7 +10,7 @@ import { SessionStatusService } from '../services/session-status.service';
 
 @ApiTags('Session Status')
 @ApiBearerAuth()
-@Controller('session-status')
+@Controller({ path: 'session-status', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class SessionStatusController {
   constructor(private readonly service: SessionStatusService) {}

@@ -30,7 +30,7 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('Suppliers')
-@Controller('suppliers')
+@Controller({ path: 'suppliers', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class SuppliersController {
   constructor(private readonly suppliersService: SuppliersService) {}

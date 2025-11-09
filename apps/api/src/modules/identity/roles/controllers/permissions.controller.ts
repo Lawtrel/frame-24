@@ -1,6 +1,6 @@
 import { Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { PermissionDiscoveryService } from '../services/permission-discovery.service';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
@@ -10,7 +10,7 @@ import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 
 @ApiTags('Permissions')
 @ApiBearerAuth()
-@Controller('admin/permissions')
+@Controller({ path: 'permissions', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class PermissionsController {
   constructor(
@@ -34,7 +34,7 @@ export class PermissionsController {
       orderBy: [{ resource: 'asc' }, { action: 'asc' }],
     });
 
-    const grouped = permissions.reduce(
+    return permissions.reduce(
       (acc, perm) => {
         if (!acc[perm.resource]) {
           acc[perm.resource] = [];
@@ -51,8 +51,6 @@ export class PermissionsController {
       },
       {} as Record<string, any[]>,
     );
-
-    return grouped;
   }
 
   @Post('sync')

@@ -25,7 +25,7 @@ import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strat
 
 @ApiTags('Product Categories')
 @ApiBearerAuth()
-@Controller('admin/product-categories')
+@Controller({ path: 'product-categories', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class ProductCategoriesController {
   constructor(private readonly categoriesService: ProductCategoriesService) {}

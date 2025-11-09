@@ -10,7 +10,7 @@ import { SeatStatusService } from '../services/seat-status.service';
 
 @ApiTags('Seat Status')
 @ApiBearerAuth()
-@Controller('seat-status')
+@Controller({ path: 'seat-status', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class SeatStatusController {
   constructor(private readonly service: SeatStatusService) {}

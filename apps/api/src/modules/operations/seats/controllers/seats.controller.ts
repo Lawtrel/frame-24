@@ -28,7 +28,7 @@ import { UpdateSeatsStatusBatchDto } from '../dto/update-seats-status-batch.dto'
 
 @ApiTags('Seats')
 @ApiBearerAuth()
-@Controller('seats')
+@Controller({ path: 'seats', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class SeatsController {
   constructor(private readonly service: SeatsService) {}

@@ -10,7 +10,7 @@ import { SessionLanguagesService } from '../services/session-languages.service';
 
 @ApiTags('Session Languages')
 @ApiBearerAuth()
-@Controller('session-languages')
+@Controller({ path: 'session-languages', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class SessionLanguagesController {
   constructor(private readonly service: SessionLanguagesService) {}
