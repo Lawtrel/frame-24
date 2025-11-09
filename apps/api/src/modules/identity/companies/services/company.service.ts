@@ -53,9 +53,7 @@ export class CompanyService {
     ) {
       determinedTaxRegime = dto.tax_regime;
     } else {
-      throw new BadRequestException(
-        'Esta empresa não é optante pelo Simples Nacional. Por favor, especifique o regime tributário (LUCRO_PRESUMIDO ou LUCRO_REAL).',
-      );
+      determinedTaxRegime = tax_regime_type.LUCRO_PRESUMIDO;
     }
     const tenant_slug = this.generateTenantSlug(dto.corporate_name, dto.cnpj);
 

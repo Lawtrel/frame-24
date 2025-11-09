@@ -2,12 +2,6 @@ export const MASTER_DATA = {
   identity: {
     custom_roles: [
       {
-        name: 'Super Admin',
-        description: 'Acesso total e configurações de Tenant/Sistema.',
-        hierarchy_level: 1,
-        is_system_role: true,
-      },
-      {
         name: 'Administrador',
         description: 'Acesso administrativo completo ao tenant.',
         hierarchy_level: 2,
