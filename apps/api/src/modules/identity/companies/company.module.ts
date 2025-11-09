@@ -6,11 +6,17 @@ import { LoggerService } from 'src/common/services/logger.service';
 import { AuthModule } from 'src/modules/identity/auth/auth.module';
 import { SuppliersModule } from 'src/modules/inventory/suppliers/suppliers.module';
 import { CommonModule } from 'src/common/common.module';
+import { BrasilApiService } from 'src/common/services/brasil-api.service';
 
 @Module({
   imports: [PrismaModule, AuthModule, SuppliersModule, CommonModule],
   controllers: [],
-  providers: [CompanyRepository, CompanyService, LoggerService],
+  providers: [
+    CompanyRepository,
+    CompanyService,
+    LoggerService,
+    BrasilApiService,
+  ],
   exports: [CompanyService],
 })
 export class CompanyModule {}
