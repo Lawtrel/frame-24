@@ -2,12 +2,6 @@ export const MASTER_DATA = {
   identity: {
     custom_roles: [
       {
-        name: 'Super Admin',
-        description: 'Acesso total e configurações de Tenant/Sistema.',
-        hierarchy_level: 1,
-        is_system_role: true,
-      },
-      {
         name: 'Administrador',
         description: 'Acesso administrativo completo ao tenant.',
         hierarchy_level: 2,
@@ -150,21 +144,25 @@ export const MASTER_DATA = {
         name: 'Disponível',
         description: 'Assento disponível',
         allows_modification: true,
+        is_default: true,
       },
       {
         name: 'Reservado',
         description: 'Assento reservado temporariamente',
         allows_modification: true,
+        is_default: false,
       },
       {
         name: 'Vendido',
         description: 'Assento vendido',
         allows_modification: false,
+        is_default: false,
       },
       {
         name: 'Bloqueado',
         description: 'Assento bloqueado',
         allows_modification: false,
+        is_default: false,
       },
     ],
 

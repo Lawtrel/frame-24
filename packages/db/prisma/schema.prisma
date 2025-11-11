@@ -6,7 +6,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  schemas  = ["identity", "hr", "finance", "crm", "sales", "inventory", "marketing", "operations", "projects", "stock", "tax", "catalog", "contracts"]
+  schemas  = ["identity", "hr", "finance", "crm", "sales", "inventory", "marketing", "operations", "projects", "stock", "tax", "catalog", "contracts", "audit"]
 }
 
 enum identity_type {
@@ -29,6 +29,14 @@ enum session_context {
   EMPLOYEE
   CUSTOMER
   SYSTEM
+
+  @@schema("identity")
+}
+
+enum tax_regime_type {
+  SIMPLES_NACIONAL
+  LUCRO_PRESUMIDO
+  LUCRO_REAL
 
   @@schema("identity")
 }
@@ -57,8 +65,7 @@ model companies {
   state_registration     String? @db.VarChar(20)
   municipal_registration String? @db.VarChar(20)
 
-  tax_regime        String?
-  pis_cofins_regime String?
+  tax_regime tax_regime_type
 
   recine_opt_in    Boolean?  @default(false)
   recine_join_date DateTime? @db.Date
@@ -66,7 +73,7 @@ model companies {
   tenant_slug String  @unique @db.VarChar(50)
   logo_url    String? @db.VarChar(500)
 
-  max_complexes   Int?              @default(5)
+  max_complexes   Int?              @default(1)
   max_employees   Int?              @default(50)
   max_storage_gb  Int?              @default(10)
   plan_type       company_plan_type @default(BASIC)
@@ -353,33 +360,6 @@ model user_sessions {
   @@index([session_id])
   @@index([revoked])
   @@index([last_activity])
-  @@schema("identity")
-}
-
-model tax_regimes {
-  id         String @id @default("")
-  company_id String
-
-  name        String    @db.VarChar(100)
-  description String?   @db.Text
-  created_at  DateTime? @default(now())
-
-  @@unique([company_id, name])
-  @@index([company_id])
-  @@schema("identity")
-}
-
-model pis_cofins_regimes {
-  id         String @id @default("")
-  company_id String
-
-  name          String    @db.VarChar(100)
-  description   String?   @db.Text
-  allows_credit Boolean?  @default(false)
-  created_at    DateTime? @default(now())
-
-  @@unique([company_id, name])
-  @@index([company_id])
   @@schema("identity")
 }
 
@@ -1664,8 +1644,8 @@ model showtime_schedule {
   room_id           String
   movie_id          String
 
-  session_date DateTime @db.Date
-  session_time DateTime @db.Time(0)
+  start_time DateTime
+  end_time   DateTime
 
   projection_type  String?
   audio_type       String?
@@ -1691,7 +1671,7 @@ model showtime_schedule {
   @@index([cinema_complex_id])
   @@index([room_id])
   @@index([movie_id])
-  @@index([session_date, session_time])
+  @@index([start_time, end_time])
   @@index([status])
   @@index([projection_type])
   @@index([audio_type])
@@ -1721,6 +1701,7 @@ model seat_status {
 
   name                String    @db.VarChar(50)
   description         String?   @db.Text
+  is_default          Boolean   @default(false)
   allows_modification Boolean?  @default(true)
   created_at          DateTime? @default(now()) @db.Timestamp(0)
 
@@ -1728,6 +1709,7 @@ model seat_status {
 
   @@unique([company_id, name])
   @@index([company_id])
+  @@index([company_id, is_default])
   @@schema("operations")
 }
 
@@ -2439,7 +2421,7 @@ model movie_categories {
   name        String   @db.VarChar(100)
   description String?  @db.Text
   minimum_age Int?     @default(0)
-  slug        String   @unique @db.VarChar(100)
+  slug        String   @db.VarChar(100)
   active      Boolean  @default(true)
   created_at  DateTime @default(now()) @db.Timestamp(0)
 
@@ -2447,6 +2429,7 @@ model movie_categories {
   movies         movies[]
 
   @@unique([company_id, name])
+  @@unique([company_id, slug])
   @@index([company_id])
   @@index([active])
   @@schema("catalog")
@@ -2655,4 +2638,30 @@ model exhibition_contracts {
   @@index([start_date, end_date])
   @@index([active])
   @@schema("contracts")
+}
+
+model audit_logs {
+  id         String @id @default("")
+  company_id String
+
+  event_type    String
+  resource_type String
+  resource_id   String
+  action        String
+
+  user_id        String?
+  correlation_id String?
+
+  old_values Json?
+  new_values Json?
+
+  created_at DateTime @default(now())
+
+  @@index([company_id])
+  @@index([resource_type])
+  @@index([resource_id])
+  @@index([user_id])
+  @@index([company_id, resource_type, created_at])
+  @@index([created_at])
+  @@schema("audit")
 }

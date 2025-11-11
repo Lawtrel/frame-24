@@ -4,6 +4,9 @@ import { ZodValidationPipe } from 'nestjs-zod';
 import { apiReference } from '@scalar/nestjs-api-reference';
 import { Request, Response } from 'express';
 import { AppModule } from './app.module';
+// ERRO 1: Você esqueceu de importar TAG_GROUPS
+import { getAllTags, TAG_GROUPS } from './swagger.config';
+import { VersioningType } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,7 +17,7 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ZodValidationPipe());
 
-  const config = new DocumentBuilder()
+  const configBuilder = new DocumentBuilder()
     .setTitle('Frame24 API')
     .setDescription(
       'API completa para gestão de cinemas multi-tenant com controle de usuários, permissões, vendas e operações.',
@@ -27,8 +30,6 @@ async function bootstrap() {
     )
     .addServer('http://localhost:4000', 'Desenvolvimento')
     .addServer('https://api.frame24.com.br', 'Produção')
-    .addTag('Auth', 'Autenticação e registro de usuários')
-    .addTag('Companies', 'Gestão de empresas (tenants)')
     .addBearerAuth(
       {
         type: 'http',
@@ -38,8 +39,17 @@ async function bootstrap() {
         description: 'Token JWT obtido no endpoint /auth/login',
       },
       'access-token',
-    )
-    .build();
+    );
+  app.enableVersioning({
+    type: VersioningType.URI,
+  });
+
+  getAllTags().forEach((tag) => configBuilder.addTag(tag));
+
+  const config = configBuilder.build();
+
+  // @ts-ignore
+  config['x-tagGroups'] = TAG_GROUPS;
 
   const document = SwaggerModule.createDocument(app, config);
 

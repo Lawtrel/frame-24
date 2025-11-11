@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { PrismaModule } from 'src/prisma/prisma.module';
@@ -11,13 +11,13 @@ import { CompanyRepository } from '../companies/repositories/company.repository'
 
 import { AuthService } from './services/auth.service';
 import { MasterDataSetupService } from 'src/modules/setup/services/master-data-setup.service';
-import { LoggerService } from 'src/common/services/logger.service';
-import { SnowflakeService } from 'src/common/services/snowflake.service';
 
 import { JwtStrategy } from './strategies/jwt.strategy';
 
 import { AuthController } from './controllers/auth.controller';
 import { EmployeeIdGeneratorService } from 'src/modules/identity/auth/services/employee-id-generator';
+import { CommonModule } from 'src/common/common.module';
+import { CompanyModule } from '../companies/company.module';
 
 @Module({
   imports: [
@@ -25,8 +25,10 @@ import { EmployeeIdGeneratorService } from 'src/modules/identity/auth/services/e
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'dev_secret',
-      signOptions: { expiresIn: '1h' },
+      signOptions: { expiresIn: '8h' },
     }),
+    CommonModule,
+    forwardRef(() => CompanyModule),
   ],
   providers: [
     IdentityRepository,
@@ -37,10 +39,6 @@ import { EmployeeIdGeneratorService } from 'src/modules/identity/auth/services/e
     EmployeeIdGeneratorService,
     AuthService,
     MasterDataSetupService,
-
-    LoggerService,
-    SnowflakeService,
-
     JwtStrategy,
   ],
   controllers: [AuthController],

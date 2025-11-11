@@ -47,6 +47,28 @@ export class IdentityRepository {
     return companyUser?.identities ?? null;
   }
 
+  async findByVerificationToken(token: string) {
+    return this.prisma.identities.findFirst({
+      where: {
+        email_verification_token: token,
+        email_verification_expires_at: {
+          gte: new Date(),
+        },
+      },
+    });
+  }
+
+  async findByPasswordResetToken(token: string) {
+    return this.prisma.identities.findFirst({
+      where: {
+        reset_token: token,
+        reset_token_expires_at: {
+          gte: new Date(),
+        },
+      },
+    });
+  }
+
   async create(data: Prisma.identitiesCreateInput): Promise<identities> {
     return this.prisma.identities.create({
       data: {

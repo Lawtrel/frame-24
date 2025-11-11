@@ -6,12 +6,11 @@ import { PersonRepository } from '../auth/repositories/person.repository';
 import { CompanyUserRepository } from '../auth/repositories/company-user.repository';
 import { CustomRoleRepository } from 'src/modules/identity/auth/repositories/custom-role.repository';
 import { PrismaModule } from 'src/prisma/prisma.module';
-import { SnowflakeService } from 'src/common/services/snowflake.service';
-import { LoggerService } from 'src/common/services/logger.service';
+import { CommonModule } from 'src/common/common.module';
 import { EmployeeIdGeneratorService } from 'src/modules/identity/auth/services/employee-id-generator';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, CommonModule],
   controllers: [UserManagementController],
   providers: [
     UsersService,
@@ -20,8 +19,6 @@ import { EmployeeIdGeneratorService } from 'src/modules/identity/auth/services/e
     CompanyUserRepository,
     CustomRoleRepository,
     EmployeeIdGeneratorService,
-    SnowflakeService,
-    LoggerService,
   ],
   exports: [UsersService, EmployeeIdGeneratorService],
 })

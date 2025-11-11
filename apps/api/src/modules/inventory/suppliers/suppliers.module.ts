@@ -1,21 +1,13 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from 'src/prisma/prisma.module';
-
 import { SupplierRepository } from './repositories/supplier.repository';
 import { SuppliersService } from './services/suppliers.service';
 import { SuppliersController } from './controllers/suppliers.controller';
-
-import { LoggerService } from 'src/common/services/logger.service';
-import { SnowflakeService } from 'src/common/services/snowflake.service';
+import { CommonModule } from 'src/common/common.module';
 
 @Module({
-  imports: [PrismaModule],
-  providers: [
-    SupplierRepository,
-    SuppliersService,
-    LoggerService,
-    SnowflakeService,
-  ],
+  imports: [PrismaModule, CommonModule],
+  providers: [SupplierRepository, SuppliersService],
   controllers: [SuppliersController],
   exports: [SuppliersService],
 })
