@@ -29,7 +29,7 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('Movies')
-@Controller('movies')
+@Controller({ path: 'movies', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class MoviesController {
   constructor(private readonly service: MoviesService) {}

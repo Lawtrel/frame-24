@@ -25,7 +25,7 @@ import { RoleResponseDto } from '../dto/role-response.dto';
 
 @ApiTags('Roles')
 @ApiBearerAuth()
-@Controller('admin/roles')
+@Controller({ path: 'roles', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}

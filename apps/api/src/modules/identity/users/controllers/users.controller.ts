@@ -32,7 +32,7 @@ import { UserResponseDto } from '../dto/user-response.dto';
 
 @ApiTags('User Management')
 @ApiBearerAuth()
-@Controller('admin/users')
+@Controller({ path: 'users', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class UserManagementController {
   constructor(private readonly usersService: UsersService) {}

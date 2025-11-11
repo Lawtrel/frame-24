@@ -37,7 +37,6 @@ const SignupSchema = z.object({
     .transform((val) => val.replace(/\D/g, ''))
     .refine((val) => /^\d{10,11}$/.test(val), 'Celular inválido'),
 
-  // ✅ CORRIGIDO: sem .optional() quando tem .default()
   plan_type: z.enum(['BASIC', 'PREMIUM', 'ENTERPRISE']).default('BASIC'),
 });
 

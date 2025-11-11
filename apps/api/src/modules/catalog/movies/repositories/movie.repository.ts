@@ -22,6 +22,14 @@ export class MovieRepository {
     });
   }
 
+  async findByIds(ids: string[]): Promise<movies[]> {
+    return this.prisma.movies.findMany({
+      where: {
+        id: { in: ids },
+      },
+    });
+  }
+
   async findByCompany(company_id: string): Promise<movies[]> {
     return this.prisma.movies.findMany({
       where: { company_id, active: true },

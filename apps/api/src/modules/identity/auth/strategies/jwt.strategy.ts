@@ -22,6 +22,7 @@ export interface RequestUser {
   name: string;
   tenant_slug: string;
   company_id: string;
+  role_id: string;
   role: string;
   role_hierarchy: number;
   permissions: string[];
@@ -109,6 +110,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       name: identity.persons?.full_name || payload.email,
       tenant_slug: companyUser.companies.tenant_slug,
       company_id: payload.company_id,
+      role_id: companyUser.custom_roles.id,
       role: companyUser.custom_roles.name,
       role_hierarchy: companyUser.custom_roles.hierarchy_level ?? 99,
       permissions,

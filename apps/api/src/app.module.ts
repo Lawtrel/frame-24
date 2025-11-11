@@ -4,13 +4,16 @@ import { ClsModule } from 'nestjs-cls';
 import { ClsPluginTransactional } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
-import { LoggerService } from './common/services/logger.service';
-import { SnowflakeService } from './common/services/snowflake.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { PrismaService } from './prisma/prisma.service';
 import { IdentityModule } from 'src/modules/identity/identity.module';
 import { SuppliersModule } from 'src/modules/inventory/suppliers/suppliers.module';
 import { CatalogModule } from 'src/modules/catalog/catalog.module';
+import { WorkersModule } from 'src/workers/workers.module';
+import { CommonModule } from 'src/common/common.module';
+import { AuditModule } from 'src/common/audit/audit.module';
+import { EmailModule } from 'src/modules/email/email.module';
+import { OperationsModule } from 'src/modules/operations/operations.module';
 
 @Module({
   imports: [
@@ -24,19 +27,21 @@ import { CatalogModule } from 'src/modules/catalog/catalog.module';
         }),
       ],
     }),
+    CommonModule,
     PrismaModule,
     IdentityModule,
     SuppliersModule,
     CatalogModule,
+    WorkersModule,
+    AuditModule,
+    EmailModule,
+    OperationsModule,
   ],
   providers: [
-    LoggerService,
-    SnowflakeService,
     {
       provide: APP_FILTER,
       useClass: AllExceptionsFilter,
     },
   ],
-  exports: [LoggerService, SnowflakeService],
 })
 export class AppModule {}

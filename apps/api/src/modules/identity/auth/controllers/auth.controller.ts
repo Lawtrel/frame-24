@@ -16,9 +16,14 @@ import {
   LoginResponseDto,
   RegisterResponseDto,
 } from '../dto/auth-response.dto';
+import { VerifyEmailDto } from 'src/modules/identity/auth/dto/verify-email.dto';
+import {
+  ForgotPasswordDto,
+  ResetPasswordDto,
+} from 'src/modules/identity/auth/dto/password.dto';
 
 @ApiTags('Auth')
-@Controller('auth')
+@Controller({ path: 'auth', version: '1' })
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -114,5 +119,107 @@ export class AuthController {
   })
   async register(@Body() dto: RegisterDto): Promise<RegisterResponseDto> {
     return this.authService.register(dto);
+  }
+
+  @Post('verify-email')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Verifica o e-mail do usuário usando um token',
+    description:
+      'Valida o token enviado para o e-mail do usuário após o cadastro, ativando a conta.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'E-mail verificado com sucesso.',
+    schema: {
+      example: {
+        message: 'Email verificado com sucesso! Você já pode fazer login.',
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'Token inválido, expirado ou e-mail já verificado.',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: 'Token inválido ou expirado',
+        error: 'Bad Request',
+      },
+    },
+  })
+  async verifyEmail(@Body() dto: VerifyEmailDto) {
+    return this.authService.verifyEmail(dto.token);
+  }
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Inicia o processo de redefinição de senha',
+    description:
+      'Recebe um e-mail e, se o usuário existir e estiver ativo, envia um link para redefinição de senha. A resposta é sempre a mesma para evitar a enumeração de e-mails.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Resposta genérica de sucesso.',
+    schema: {
+      example: {
+        message:
+          'Se um usuário com este e-mail existir, um link para redefinição de senha será enviado.',
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'O e-mail fornecido não é válido.',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: 'Por favor, forneça um e-mail válido.',
+        error: 'Bad Request',
+      },
+    },
+  })
+  async forgotPassword(
+    @Body() forgotPasswordDto: ForgotPasswordDto,
+  ): Promise<{ message: string }> {
+    await this.authService.requestPasswordReset(forgotPasswordDto.email);
+    return {
+      message:
+        'Se um usuário com este e-mail existir, um link para redefinição de senha será enviado.',
+    };
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Finaliza o processo de redefinição de senha',
+    description:
+      'Recebe um token de redefinição e uma nova senha para atualizar as credenciais do usuário.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Senha redefinida com sucesso.',
+    schema: {
+      example: {
+        message: 'Sua senha foi redefinida com sucesso!',
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'Token inválido/expirado ou senha fora do padrão.',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: 'Token de redefinição inválido ou expirado.',
+        error: 'Bad Request',
+      },
+    },
+  })
+  async resetPassword(
+    @Body() resetPasswordDto: ResetPasswordDto,
+  ): Promise<{ message: string }> {
+    return this.authService.resetPassword(
+      resetPasswordDto.token,
+      resetPasswordDto.password,
+    );
   }
 }
