@@ -39,7 +39,7 @@ export class PasswordResetService {
       resetTokenExpiresAt: expiresAt,
     });
 
-    const person = await this.personRepository.findById(identity.personId); // ✅ camelCase
+    const person = await this.personRepository.findById(identity.personId);
     if (!person) {
       this.logger.error(
         `Pessoa não encontrada para identity ${identity.id}`,
@@ -79,7 +79,7 @@ export class PasswordResetService {
     });
 
     this.logger.log(
-      `Senha redefinida: ${identity.id}`,
+      `Senha redefinida com sucesso: ${identity.id}`,
       PasswordResetService.name,
     );
   }

@@ -206,27 +206,28 @@ describe('CustomRoleRepository', () => {
   describe('findDefaultRole', () => {
     const mockDefaultRole = {
       ...mockCustomRole,
-      name: 'Operador',
-      description: 'Role padrão para novos usuários',
-      hierarchy_level: 5,
+      name: 'Super Admin',
+      description: 'Administrador com acesso total',
+      is_system_role: true,
+      hierarchy_level: 1,
     };
 
-    it('deve retornar a role "Operador" quando existir', async () => {
+    it('deve retornar a primeira role de sistema quando existir', async () => {
       prismaService.custom_roles.findFirst.mockResolvedValue(mockDefaultRole);
 
       const result = await repository.findDefaultRole('company-456');
 
       expect(result).toEqual(mockDefaultRole);
-      expect(result?.name).toBe('Operador');
+      expect(result?.is_system_role).toBe(true);
       expect(prismaService.custom_roles.findFirst).toHaveBeenCalledWith({
         where: {
           company_id: 'company-456',
-          name: 'Operador',
+          is_system_role: true,
         },
       });
     });
 
-    it('deve retornar null quando role "Operador" não existir', async () => {
+    it('deve retornar null quando não houver role de sistema', async () => {
       prismaService.custom_roles.findFirst.mockResolvedValue(null);
 
       const result = await repository.findDefaultRole('company-456');
@@ -234,7 +235,7 @@ describe('CustomRoleRepository', () => {
       expect(result).toBeNull();
     });
 
-    it('deve buscar especificamente pela role "Operador"', async () => {
+    it('deve buscar especificamente por is_system_role true', async () => {
       prismaService.custom_roles.findFirst.mockResolvedValue(mockDefaultRole);
 
       await repository.findDefaultRole('company-456');
@@ -242,7 +243,7 @@ describe('CustomRoleRepository', () => {
       expect(prismaService.custom_roles.findFirst).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
-            name: 'Operador',
+            is_system_role: true,
           }),
         }),
       );
@@ -260,6 +261,16 @@ describe('CustomRoleRepository', () => {
           }),
         }),
       );
+    });
+
+    it('deve retornar a primeira role de sistema encontrada', async () => {
+      prismaService.custom_roles.findFirst.mockResolvedValue(mockDefaultRole);
+
+      const result = await repository.findDefaultRole('company-456');
+
+      expect(result).toBeDefined();
+      expect(result?.is_system_role).toBe(true);
+      expect(result?.name).toBe('Super Admin');
     });
   });
 

@@ -2,41 +2,36 @@ import { Injectable } from '@nestjs/common';
 import { $Enums } from '@repo/db';
 import { Identity } from '../domain/entities/identity.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
-import identity_type = $Enums.identity_type;
 import { IdentityMapper } from 'src/modules/identity/auth/infraestructure/mappers/indentity.mapper';
+
+type IdentityType = $Enums.identity_type;
 
 @Injectable()
 export class IdentityRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findByEmail(email: string): Promise<Identity | null> {
-    const raw = await this.prisma.identities.findFirst({
-      where: { email },
-    });
+    const raw = await this.prisma.identities.findFirst({ where: { email } });
     return raw ? IdentityMapper.toDomain(raw) : null;
   }
 
   async findById(id: string): Promise<Identity | null> {
-    const raw = await this.prisma.identities.findUnique({
-      where: { id },
-    });
+    const raw = await this.prisma.identities.findUnique({ where: { id } });
     return raw ? IdentityMapper.toDomain(raw) : null;
   }
 
   async findByEmailAndCompany(
     email: string,
     companyId: string | undefined,
-    identityType: identity_type,
+    identityType: IdentityType,
   ): Promise<Identity | null> {
     const raw = await this.prisma.identities.findFirst({
       where: {
         email,
         identity_type: identityType,
-        ...(companyId && {
-          company_users: {
-            some: { company_id: companyId },
-          },
-        }),
+        ...(companyId
+          ? { company_users: { some: { company_id: companyId } } }
+          : {}),
       },
     });
     return raw ? IdentityMapper.toDomain(raw) : null;
@@ -122,10 +117,7 @@ export class IdentityRepository {
   async updateEmail(id: string, email: string): Promise<Identity> {
     const raw = await this.prisma.identities.update({
       where: { id },
-      data: {
-        email,
-        email_verified: false,
-      },
+      data: { email, email_verified: false },
     });
 
     return IdentityMapper.toDomain(raw);
@@ -133,10 +125,7 @@ export class IdentityRepository {
 
   async updateLoginTracking(
     id: string,
-    data: {
-      lastLoginDate: Date;
-      loginCount: number;
-    },
+    data: { lastLoginDate: Date; loginCount: number },
   ): Promise<Identity> {
     const raw = await this.prisma.identities.update({
       where: { id },
@@ -163,8 +152,12 @@ export class IdentityRepository {
       data: {
         failed_login_attempts: data.failedLoginAttempts,
         last_failed_login: data.lastFailedLogin,
-        blocked_until: data.blockedUntil,
-        block_reason: data.blockReason,
+        ...(data.blockedUntil !== undefined && {
+          blocked_until: data.blockedUntil,
+        }),
+        ...(data.blockReason !== undefined && {
+          block_reason: data.blockReason,
+        }),
       },
     });
 
@@ -173,10 +166,7 @@ export class IdentityRepository {
 
   async updatePasswordReset(
     id: string,
-    data: {
-      resetToken: string;
-      resetTokenExpiresAt: Date;
-    },
+    data: { resetToken: string; resetTokenExpiresAt: Date },
   ): Promise<Identity> {
     const raw = await this.prisma.identities.update({
       where: { id },
@@ -191,10 +181,7 @@ export class IdentityRepository {
 
   async completePasswordReset(
     id: string,
-    data: {
-      passwordHash: string;
-      passwordChangedAt: Date;
-    },
+    data: { passwordHash: string; passwordChangedAt: Date },
   ): Promise<Identity> {
     const raw = await this.prisma.identities.update({
       where: { id },
@@ -214,18 +201,14 @@ export class IdentityRepository {
 
   async save(identity: Identity): Promise<Identity> {
     const prismaData = IdentityMapper.toPrisma(identity);
-
     const raw = await this.prisma.identities.update({
       where: { id: identity.id },
       data: prismaData,
     });
-
     return IdentityMapper.toDomain(raw);
   }
 
   async delete(id: string): Promise<void> {
-    await this.prisma.identities.delete({
-      where: { id },
-    });
+    await this.prisma.identities.delete({ where: { id } });
   }
 }
