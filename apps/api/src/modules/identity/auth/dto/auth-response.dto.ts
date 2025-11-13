@@ -1,6 +1,39 @@
 import { z } from 'zod';
 import { createZodDto } from 'nestjs-zod';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
+const CompanySelectionSchema = z.object({
+  company_id: z.string(),
+  company_name: z.string(),
+  tenant_slug: z.string(),
+  role_name: z.string(),
+});
+
+export class CompanySelectionDto extends createZodDto(CompanySelectionSchema) {
+  @ApiProperty({
+    description: 'ID da empresa',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
+  company_id!: string;
+
+  @ApiProperty({
+    description: 'Nome fantasia da empresa',
+    example: 'Cine Estrela',
+  })
+  company_name!: string;
+
+  @ApiProperty({
+    description: 'Slug único da empresa',
+    example: 'cine-estrela',
+  })
+  tenant_slug!: string;
+
+  @ApiProperty({
+    description: 'Nome da role do usuário nesta empresa',
+    example: 'Administrador',
+  })
+  role_name!: string;
+}
 
 const LoginUserSchema = z.object({
   id: z.string(),
@@ -11,11 +44,46 @@ const LoginUserSchema = z.object({
 });
 
 const LoginResponseSchema = z.object({
+  access_token: z.string().optional(),
+  user: LoginUserSchema,
+  companies: z.array(CompanySelectionSchema).optional(),
+});
+
+export class LoginResponseDto extends createZodDto(LoginResponseSchema) {
+  @ApiPropertyOptional({
+    description:
+      'JWT access token (retornado quando usuário tem apenas 1 empresa)',
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+  })
+  access_token?: string;
+
+  @ApiProperty({
+    description: 'Dados do usuário autenticado',
+  })
+  user!: {
+    id: string;
+    email: string;
+    company_id: string;
+    role_id: string;
+    employee_id: string;
+  };
+
+  @ApiPropertyOptional({
+    description:
+      'Lista de empresas (retornado quando usuário tem múltiplas empresas)',
+    type: [CompanySelectionDto],
+  })
+  companies?: CompanySelectionDto[];
+}
+
+const SelectCompanyResponseSchema = z.object({
   access_token: z.string(),
   user: LoginUserSchema,
 });
 
-export class LoginResponseDto extends createZodDto(LoginResponseSchema) {
+export class SelectCompanyResponseDto extends createZodDto(
+  SelectCompanyResponseSchema,
+) {
   @ApiProperty({
     description: 'JWT access token',
     example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
@@ -24,14 +92,6 @@ export class LoginResponseDto extends createZodDto(LoginResponseSchema) {
 
   @ApiProperty({
     description: 'Dados do usuário autenticado',
-    type: 'object',
-    properties: {
-      id: { type: 'string', example: '123456789' },
-      email: { type: 'string', example: 'maria@cineestrela.com' },
-      company_id: { type: 'string', example: '987654321' },
-      role_id: { type: 'string', example: 'role-admin' },
-      employee_id: { type: 'string', example: 'ADM-12345678' },
-    },
   })
   user!: {
     id: string;
@@ -70,10 +130,11 @@ export class RegisterResponseDto extends createZodDto(RegisterResponseSchema) {
 
   @ApiProperty({
     description: 'Mensagem de sucesso',
-    example: 'Conta criada com sucesso!',
+    example: 'Conta criada com sucesso! Verifique seu email para ativar.',
   })
   message!: string;
 }
 
 export type LoginResponse = z.infer<typeof LoginResponseSchema>;
+export type SelectCompanyResponse = z.infer<typeof SelectCompanyResponseSchema>;
 export type RegisterResponse = z.infer<typeof RegisterResponseSchema>;
