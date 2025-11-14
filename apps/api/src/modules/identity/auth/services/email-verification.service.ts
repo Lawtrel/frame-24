@@ -57,7 +57,7 @@ export class EmailVerificationService {
       );
     }
 
-    const person = await this.personRepository.findById(identity.personId); // ✅ camelCase
+    const person = await this.personRepository.findById(identity.personId);
     if (!person) {
       throw new NotFoundException(
         'Dados de usuário associados não encontrados.',
