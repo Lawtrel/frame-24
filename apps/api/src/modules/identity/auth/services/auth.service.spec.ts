@@ -233,7 +233,7 @@ describe('AuthService', () => {
 
   describe('login', () => {
     const email = 'usuario@example.com';
-    const password = 'SenhaCorreta123!';
+    const password = 'mockedPassword123';
 
     beforeEach(() => {
       credentialValidator.validate.mockResolvedValue(mockIdentity);
@@ -394,7 +394,7 @@ describe('AuthService', () => {
   describe('signup', () => {
     const signupDto = {
       email: 'novo@example.com',
-      password: 'SenhaSegura123!',
+      password: 'mockedPassword123',
       full_name: 'João Novo',
       cnpj: '12.345.678/0001-99',
       corporate_name: 'Empresa Nova LTDA',

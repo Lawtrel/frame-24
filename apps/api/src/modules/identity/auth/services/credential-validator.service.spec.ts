@@ -58,7 +58,7 @@ describe('CredentialValidatorService', () => {
 
   describe('validate', () => {
     const email = 'usuario@example.com';
-    const plainPassword = 'SenhaCorreta123!';
+    const plainPassword = 'mockedPassword123';
     const companyId = 'company-456';
 
     beforeEach(() => {
