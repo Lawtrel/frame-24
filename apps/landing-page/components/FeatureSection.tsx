@@ -1,13 +1,7 @@
 "use client";
-import {
-    Ticket,
-    ShoppingBag,
-    Clapperboard,
-    BarChart2,
-    DollarSign,
-    Users,
-} from "lucide-react";
-import React, { useState } from "react";
+import {BarChart2, Clapperboard, DollarSign, ShoppingBag, Ticket, Users,} from "lucide-react";
+import React, {useState} from "react";
+import {AnimatePresence, motion} from "framer-motion";
 
 const MODULES = [
     {
@@ -16,7 +10,7 @@ const MODULES = [
         description:
             "Gestão completa de bilheteria, vendas online e terminais de autoatendimento.",
         icon: Ticket,
-        position: "top-12 left-1/4",
+        position: "top-[15%] left-[20%]",
     },
     {
         id: 2,
@@ -24,7 +18,7 @@ const MODULES = [
         description:
             "Controle de estoque, fluxo de vendas e integração com fornecedores.",
         icon: ShoppingBag,
-        position: "top-1/4 right-12",
+        position: "top-[15%] right-[15%]",
     },
     {
         id: 3,
@@ -32,7 +26,7 @@ const MODULES = [
         description:
             "Planejamento de sessões com arrasto e solte, e integração direta com distribuidoras.",
         icon: Clapperboard,
-        position: "bottom-12 right-1/4",
+        position: "bottom-[20%] right-[25%]",
     },
     {
         id: 4,
@@ -40,7 +34,7 @@ const MODULES = [
         description:
             "Relatórios estratégicos e insights de desempenho em tempo real.",
         icon: BarChart2,
-        position: "bottom-1/4 left-12",
+        position: "bottom-[20%] left-[25%]",
     },
     {
         id: 5,
@@ -48,7 +42,7 @@ const MODULES = [
         description:
             "Gestão de fluxo de caixa, automação de contas e conciliação bancária.",
         icon: DollarSign,
-        position: "top-1/3 left-12",
+        position: "top-[55%] left-[5%]",
     },
     {
         id: 6,
@@ -56,7 +50,7 @@ const MODULES = [
         description:
             "Gerencie clubes, pontos e campanhas de engajamento personalizadas.",
         icon: Users,
-        position: "bottom-1/3 right-12",
+        position: "bottom-[45%] right-[5%]",
     },
 ];
 
@@ -66,62 +60,93 @@ const FeaturesSection = () => {
 
     return (
         <section className="py-28 md:py-40 bg-gray-950 text-white relative overflow-hidden">
-            {/* Fundo Dinâmico */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,0,0,0.15),_transparent_70%)] pointer-events-none"></div>
 
-            {/* Container Principal */}
+            <style>{`
+                @keyframes float {
+                  0%, 100% { transform: translateY(-6px); }
+                  50% { transform: translateY(6px); }
+                }
+                .animate-float {
+                  animation: float 8s ease-in-out infinite;
+                }
+            `}</style>
+
+            <div
+                className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,0,0,0.15),_transparent_60%)] pointer-events-none"></div>
+            <div className="absolute inset-0 [background-image:linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)]
+                            bg-[size:40px_40px] opacity-50 animate-[pan_120s_linear_infinite] [mask-image:radial-gradient(1000px_at_center,white,transparent)]">
+                <style>{`
+                    @keyframes pan { 0% { background-position: 0% 0%; } 100% { background-position: 100% 100%; } }
+                `}</style>
+            </div>
+
             <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center relative z-10">
                 <h2 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">
                     Operações Sincronizadas, Resultados Exponenciais
                 </h2>
                 <p className="text-lg text-gray-400 max-w-3xl mx-auto mb-20">
-                    Cada módulo do ecossistema <span className="text-red-500 font-semibold">Frame24 ERP</span>
+                    Cada módulo do ecossistema <span className="text-red-500 font-semibold">Frame24 ERP </span>
                     atua em sinergia total — conectando bilheteria, estoque, programação e análise de desempenho.
                 </p>
 
-                {/* Orbital System */}
                 <div className="relative h-[640px] w-full mx-auto max-w-5xl">
-                    {/* Núcleo Central */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-60 h-60 bg-red-700/10 rounded-full border border-red-700/40 backdrop-blur-sm
-                            shadow-[0_0_80px_-10px_rgba(255,0,0,0.2)] relative flex flex-col items-center justify-center animate-pulse">
-              <span className="text-2xl font-bold text-gray-200 tracking-wide">
-                ERP Hub
-              </span>
-                            <span className="text-xs text-red-400 uppercase tracking-wider mt-1">
-                Core Integrado
-              </span>
 
-                            {/* Brilho interno animado */}
-                            <div className="absolute inset-0 rounded-full bg-red-600/20 blur-2xl animate-pulse-slow"></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-64 h-64 bg-red-900/10 rounded-full border border-red-700/40 backdrop-blur-md
+                            shadow-[0_0_80px_-10px_rgba(255,0,0,0.3)] relative flex flex-col items-center justify-center
+                            transition-all duration-300">
+
+                            <div
+                                className="absolute inset-0 rounded-full bg-red-600/20 blur-2xl animate-pulse-slow"></div>
+
+                            <AnimatePresence mode="wait">
+                                {activeModule ? (
+                                    <motion.div
+                                        key={activeModule.id}
+                                        initial={{opacity: 0, scale: 0.9}}
+                                        animate={{opacity: 1, scale: 1}}
+                                        exit={{opacity: 0, scale: 0.9}}
+                                        transition={{duration: 0.2}}
+                                        className="flex flex-col items-center justify-center p-6 text-center"
+                                    >
+                                        <activeModule.icon className="w-10 h-10 text-red-400 mb-3"/>
+                                        <h3 className="text-xl font-semibold text-gray-100 mb-1">
+                                            {activeModule.title}
+                                        </h3>
+                                        <p className="text-gray-300 text-sm leading-snug">
+                                            {activeModule.description}
+                                        </p>
+                                    </motion.div>
+                                ) : (
+                                    <motion.div
+                                        key="hub"
+                                        initial={{opacity: 0, scale: 0.9}}
+                                        animate={{opacity: 1, scale: 1}}
+                                        exit={{opacity: 0, scale: 0.9}}
+                                        transition={{duration: 0.2}}
+                                        className="flex flex-col items-center justify-center"
+                                    >
+                                        <span className="text-3xl font-bold text-gray-200 tracking-wide">
+                                          ERP Hub
+                                        </span>
+                                        <span className="text-sm text-red-400 uppercase tracking-wider mt-1">
+                                          Core Integrado
+                                        </span>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     </div>
 
-                    {/* Módulos orbitais */}
                     {MODULES.map((module) => (
                         <FeatureModule
                             key={module.id}
                             module={module}
                             setHoveredModuleId={setHoveredModuleId}
                             isActive={module.id === hoveredModuleId}
+                            isAnyActive={hoveredModuleId !== null}
                         />
                     ))}
-
-                    {/* Tooltip de destaque */}
-                    {activeModule && (
-                        <div
-                            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2
-                         bg-gray-900/95 border border-red-600/40 rounded-2xl shadow-[0_0_40px_-10px_rgba(255,0,0,0.3)]
-                         p-6 w-96 backdrop-blur-lg transition-all duration-300"
-                        >
-                            <h3 className="text-xl font-semibold text-red-400 mb-2">
-                                {activeModule.title}
-                            </h3>
-                            <p className="text-gray-300 text-sm leading-relaxed">
-                                {activeModule.description}
-                            </p>
-                        </div>
-                    )}
                 </div>
             </div>
         </section>
@@ -140,34 +165,38 @@ interface FeatureModuleProps {
     module: ModuleData;
     setHoveredModuleId: (id: number | null) => void;
     isActive: boolean;
+    isAnyActive: boolean;
 }
 
 const FeatureModule: React.FC<FeatureModuleProps> = ({
                                                          module,
                                                          setHoveredModuleId,
                                                          isActive,
+                                                         isAnyActive,
                                                      }) => {
     const IconComponent = module.icon;
 
     return (
         <div
-            className={`absolute ${module.position} transition-transform duration-500 ease-out 
-                  cursor-pointer ${isActive ? "scale-125" : "hover:scale-110"}`}
+            className={`absolute ${module.position} animate-float cursor-pointer z-20`}
             onMouseEnter={() => setHoveredModuleId(module.id)}
             onMouseLeave={() => setHoveredModuleId(null)}
         >
             <div
                 className={`w-28 h-28 flex flex-col items-center justify-center rounded-full border-2 
-                    backdrop-blur-md bg-gray-900/70 shadow-lg transition-all duration-300
+                    backdrop-blur-md bg-gray-900/70 shadow-lg 
+                    transition-all duration-300
                     ${
                     isActive
-                        ? "border-red-600 shadow-red-600/40 bg-gray-900/90"
-                        : "border-gray-700 hover:border-red-600/50"
+                        ? "border-red-600 shadow-red-600/40 bg-gray-900/90 scale-125"
+                        : isAnyActive
+                            ? "border-gray-700 opacity-50 grayscale"
+                            : "border-gray-700 hover:border-red-600/50 hover:scale-110"
                 }`}
             >
                 <IconComponent
                     className={`w-8 h-8 mb-1 transition-colors duration-300 ${
-                        isActive ? "text-red-500" : "text-gray-400 hover:text-red-500"
+                        isActive ? "text-red-500" : "text-gray-400"
                     }`}
                 />
                 <span
@@ -175,13 +204,12 @@ const FeatureModule: React.FC<FeatureModuleProps> = ({
                         isActive ? "text-red-300" : "text-gray-300"
                     }`}
                 >
-          {module.title.split(" ")[0]}
-        </span>
+                    {module.title.split(" ")[0]}
+                </span>
             </div>
 
-            {/* Glow animado ao hover */}
             {isActive && (
-                <div className="absolute inset-0 rounded-full bg-red-600/20 blur-2xl animate-pulse"></div>
+                <div className="absolute inset-0 rounded-full bg-red-600/20 blur-2xl animate-pulse -z-10"></div>
             )}
         </div>
     );

@@ -5,7 +5,7 @@ import { LoggerService } from 'src/common/services/logger.service';
 @Injectable()
 export class EmailService {
   private readonly frontendUrl =
-    process.env.FRONTEND_URL || 'http://localhost:3000';
+    process.env.FRONTEND_URL || 'http://localhost:3003';
   private readonly brandName = 'Frame 24';
   private readonly brandColor = '#BF0603';
   private readonly successColor = '#28a745';
