@@ -15,7 +15,8 @@ const HeroSection = () => {
                     <div className="lg:col-span-6 xl:col-span-5 text-center lg:text-left space-y-8">
 
                         {/* Selo */}
-                        <div className="inline-flex items-center space-x-2 bg-red-600/10 px-4 py-2 rounded-full border border-red-600/30">
+                        <div
+                            className="inline-flex items-center space-x-2 bg-red-600/10 px-4 py-2 rounded-full border border-red-600/30">
                             <span className="text-red-500 font-semibold text-sm tracking-wide">
                                 ERP PARA CINEMAS
                             </span>
@@ -63,7 +64,8 @@ const HeroSection = () => {
                     </div>
 
                     {/* COLUNA DIREITA */}
-                    <div className="mt-20 lg:mt-0 lg:col-span-6 xl:col-span-7 flex justify-center lg:justify-end relative">
+                    <div
+                        className="mt-20 lg:mt-0 lg:col-span-6 xl:col-span-7 flex justify-center lg:justify-end relative">
 
                         {/* Aura */}
                         <div className="absolute inset-x-1/4 top-1/4 h-2/3 -z-10
@@ -75,7 +77,8 @@ const HeroSection = () => {
                             {/* Desktop */}
                             <div className="absolute top-0 left-0 w-3/4 transform -rotate-6
                                             shadow-2xl shadow-red-900/40 hover:rotate-0 transition-transform duration-700">
-                                <div className="aspect-video bg-gray-900 border border-gray-700 rounded-xl overflow-hidden">
+                                <div
+                                    className="aspect-video bg-gray-900 border border-gray-700 rounded-xl overflow-hidden">
                                     <span className="block w-full h-full bg-gradient-to-br from-red-900/10 via-gray-900 to-gray-950
                                                      flex items-center justify-center text-sm text-gray-400 font-medium">
                                         [Dashboard Analytics – KPIs em Tempo Real]
@@ -86,7 +89,8 @@ const HeroSection = () => {
                             {/* Tablet */}
                             <div className="absolute top-1/3 right-0 w-1/3 transform rotate-12 scale-95
                                             shadow-2xl shadow-red-900/30 hover:rotate-0 transition-transform duration-700 delay-100">
-                                <div className="aspect-[4/3] bg-gray-900 border border-gray-700 rounded-lg overflow-hidden">
+                                <div
+                                    className="aspect-[4/3] bg-gray-900 border border-gray-700 rounded-lg overflow-hidden">
                                     <span className="block w-full h-full bg-gradient-to-br from-red-800/10 via-gray-900 to-gray-950
                                                      flex items-center justify-center text-xs text-gray-400 font-medium">
                                         [Gestão de Sessões e Programação]
@@ -97,7 +101,8 @@ const HeroSection = () => {
                             {/* Mobile */}
                             <div className="absolute bottom-4 right-1/4 w-1/4 transform scale-110
                                             shadow-2xl shadow-red-900/50 hover:scale-125 transition-transform duration-700 delay-200">
-                                <div className="aspect-[9/16] bg-gray-900 border-4 border-gray-700 rounded-2xl overflow-hidden">
+                                <div
+                                    className="aspect-[9/16] bg-gray-900 border-4 border-gray-700 rounded-2xl overflow-hidden">
                                     <span className="block w-full h-full bg-gradient-to-b from-red-900/20 via-gray-900 to-gray-950
                                                      flex items-center justify-center text-xs text-gray-400 font-medium">
                                         [App de Vendas e Check-in]
@@ -111,7 +116,8 @@ const HeroSection = () => {
             </div>
 
             {/* Fundo decorativo */}
-            <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_30%_20%,_rgba(239,68,68,0.2),_transparent_70%)]"></div>
+            <div
+                className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_30%_20%,_rgba(239,68,68,0.2),_transparent_70%)]"></div>
         </section>
     );
 };
