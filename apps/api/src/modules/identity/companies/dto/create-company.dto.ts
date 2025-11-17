@@ -93,4 +93,46 @@ export class CreateCompanyDto extends createZodDto(CreateCompanySchema) {
     format: 'date-time',
   })
   plan_expires_at?: string;
+
+  @ApiPropertyOptional({
+    description: 'CEP',
+    example: '01310-100',
+  })
+  zip_code?: string;
+
+  @ApiPropertyOptional({
+    description: 'Logradouro',
+    example: 'Av. Paulista',
+  })
+  street_address?: string;
+
+  @ApiPropertyOptional({
+    description: 'Número do endereço',
+    example: '1578',
+  })
+  address_number?: string;
+
+  @ApiPropertyOptional({
+    description: 'Telefone fixo',
+    example: '(11) 3333-4444',
+  })
+  phone?: string;
+
+  @ApiPropertyOptional({
+    description: 'Celular',
+    example: '(11) 99999-9999',
+  })
+  mobile?: string;
+
+  @ApiPropertyOptional({
+    description: 'E-mail corporativo',
+    example: 'contato@empresa.com.br',
+  })
+  email?: string;
+
+  @ApiPropertyOptional({
+    description: 'Website',
+    example: 'https://www.empresa.com.br',
+  })
+  website?: string;
 }

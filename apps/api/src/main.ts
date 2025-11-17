@@ -4,12 +4,16 @@ import { ZodValidationPipe } from 'nestjs-zod';
 import { apiReference } from '@scalar/nestjs-api-reference';
 import { Request, Response } from 'express';
 import { AppModule } from './app.module';
-// ERRO 1: Você esqueceu de importar TAG_GROUPS
 import { getAllTags, TAG_GROUPS } from './swagger.config';
 import { VersioningType } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.enableCors({
+    origin: true,
+    credentials: true,
+  });
 
   app.use('/favicon.ico', (req: Request, res: Response) =>
     res.status(204).end(),
@@ -53,11 +57,17 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
 
+  app
+    .getHttpAdapter()
+    .get('/api/openapi.json', (req: Request, res: Response) => {
+      res.json(document);
+    });
+
   app.use(
     '/api/docs',
     apiReference({
       content: document,
-      theme: 'purple', // ou 'kepler', 'moon', 'default'
+      theme: 'purple',
       layout: 'modern',
       darkMode: true,
       showSidebar: true,
@@ -73,6 +83,7 @@ async function bootstrap() {
 
   console.log('\nFrame24 API iniciada com sucesso!\n');
   console.log('Documentação Scalar:   http://localhost:4000/api/docs');
+  console.log('OpenAPI JSON:          http://localhost:4000/api/openapi.json');
   console.log('API Base:              http://localhost:4000\n');
 }
 

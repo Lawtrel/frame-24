@@ -33,12 +33,6 @@ export class CustomRoleRepository {
     });
   }
 
-  async findDefaultRole(company_id: string): Promise<custom_roles | null> {
-    return this.prisma.custom_roles.findFirst({
-      where: { company_id, name: 'Operador' },
-    });
-  }
-
   async create(data: Prisma.custom_rolesCreateInput): Promise<custom_roles> {
     return this.prisma.custom_roles.create({
       data: {
@@ -48,6 +42,27 @@ export class CustomRoleRepository {
     });
   }
 
+  async createAdminRole(companyId: string): Promise<custom_roles> {
+    return this.prisma.custom_roles.create({
+      data: {
+        id: this.snowflake.generate(),
+        companies: { connect: { id: companyId } },
+        name: 'Super Admin',
+        description: 'Administrador com acesso total',
+        is_system_role: true,
+        hierarchy_level: 1,
+      },
+    });
+  }
+
+  async findDefaultRole(companyId: string): Promise<custom_roles | null> {
+    return this.prisma.custom_roles.findFirst({
+      where: {
+        company_id: companyId,
+        is_system_role: true,
+      },
+    });
+  }
   async update(
     id: string,
     data: Prisma.custom_rolesUpdateInput,

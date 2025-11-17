@@ -1,21 +1,21 @@
 import Link from 'next/link';
-import { Twitter, Linkedin } from 'lucide-react';
+import {Linkedin, Twitter} from 'lucide-react';
 
 const footerLinks = {
     empresa: [
-        { name: 'Sobre Nós', href: '/about' },
-        { name: 'Carreiras', href: '/careers' },
-        { name: 'Contato', href: '/contact' },
+        {name: 'Sobre Nós', href: '/about'},
+        {name: 'Carreiras', href: '/careers'},
+        {name: 'Contato', href: '/contact'},
     ],
     produtos: [
-        { name: 'Funcionalidades', href: '/#features' },
-        { name: 'Planos e Preços', href: '/#planos' },
-        { name: 'Registro (Demo)', href: '/register-tenant' },
+        {name: 'Funcionalidades', href: '/#features'},
+        {name: 'Planos e Preços', href: '/#planos'},
+        {name: 'Registro (Demo)', href: '/register-tenant'},
     ],
     legal: [
-        { name: 'Termos de Serviço', href: '/terms' },
-        { name: 'Política de Privacidade', href: '/privacy' },
-        { name: 'Política de Cookies', href: '/cookies' },
+        {name: 'Termos de Serviço', href: '/terms'},
+        {name: 'Política de Privacidade', href: '/privacy'},
+        {name: 'Política de Cookies', href: '/cookies'},
     ],
 };
 
@@ -30,7 +30,8 @@ export default function Footer() {
                     <div className="md:col-span-2">
                         <h3 className="text-2xl font-bold text-red-500 mb-4 tracking-tight">Frame24</h3>
                         <p className="text-sm leading-relaxed max-w-sm text-gray-400">
-                            O ERP premier para a gestão de cinema — projetado para escalar com o futuro do entretenimento.
+                            O ERP premier para a gestão de cinema — projetado para escalar com o futuro do
+                            entretenimento.
                         </p>
 
                         <div className="mt-6 flex items-center gap-4">
@@ -41,7 +42,7 @@ export default function Footer() {
                                 aria-label="Twitter"
                                 className="text-gray-300 hover:text-red-500 transition-colors"
                             >
-                                <Twitter className="w-5 h-5" />
+                                <Twitter className="w-5 h-5"/>
                             </a>
                             <a
                                 href="#"
@@ -50,7 +51,7 @@ export default function Footer() {
                                 aria-label="LinkedIn"
                                 className="text-gray-300 hover:text-red-500 transition-colors"
                             >
-                                <Linkedin className="w-5 h-5" />
+                                <Linkedin className="w-5 h-5"/>
                             </a>
                         </div>
                     </div>
