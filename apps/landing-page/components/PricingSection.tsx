@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Check } from "lucide-react";
+import {Check} from "lucide-react";
 
 const PLANS = [
     {
@@ -56,7 +56,8 @@ const PricingSection = () => {
     return (
         <section id="planos" className="py-28 md:py-36 bg-gray-950 text-white relative overflow-hidden">
             {/* Background Gradiente Corporativo */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,0,0,0.1),_transparent_70%)]" />
+            <div
+                className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,0,0,0.1),_transparent_70%)]"/>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 {/* Cabeçalho */}
@@ -105,7 +106,7 @@ const PricingSection = () => {
                                 <ul className="mt-8 space-y-3">
                                     {plan.features.map((feature) => (
                                         <li key={feature} className="flex items-start">
-                                            <Check className="h-5 w-5 text-red-500 mr-2 mt-0.5" />
+                                            <Check className="h-5 w-5 text-red-500 mr-2 mt-0.5"/>
                                             <span className="text-gray-300 text-sm">{feature}</span>
                                         </li>
                                     ))}

@@ -2,7 +2,6 @@ import {
   Injectable,
   ConflictException,
   NotFoundException,
-  BadRequestException,
 } from '@nestjs/common';
 import { companies, Prisma, tax_regime_type } from '@repo/db';
 import { Transactional } from '@nestjs-cls/transactional';
@@ -12,6 +11,7 @@ import { CreateCompanyDto } from '../dto/create-company.dto';
 import { UpdateCompanyDto } from '../dto/update-company.dto';
 import { LoggerService } from 'src/common/services/logger.service';
 import { BrasilApiService } from 'src/common/services/brasil-api.service';
+import { Company } from 'src/modules/identity/auth/domain/entities/company.entity';
 
 @Injectable()
 export class CompanyService {
@@ -71,7 +71,7 @@ export class CompanyService {
     return company;
   }
 
-  async findById(id: string): Promise<companies> {
+  async findById(id: string): Promise<Company> {
     const company = await this.repository.findById(id);
 
     if (!company) {

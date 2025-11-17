@@ -1,97 +1,214 @@
 import { Injectable } from '@nestjs/common';
-import { identities, Prisma } from '@repo/db';
+import { $Enums } from '@repo/db';
+import { Identity } from '../domain/entities/identity.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { SnowflakeService } from 'src/common/services/snowflake.service';
+import { IdentityMapper } from 'src/modules/identity/auth/infraestructure/mappers/indentity.mapper';
+
+type IdentityType = $Enums.identity_type;
 
 @Injectable()
 export class IdentityRepository {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly snowflake: SnowflakeService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async findById(id: string): Promise<identities | null> {
-    return this.prisma.identities.findUnique({
-      where: { id },
-      include: { persons: true },
-    });
+  async findByEmail(email: string): Promise<Identity | null> {
+    const raw = await this.prisma.identities.findFirst({ where: { email } });
+    return raw ? IdentityMapper.toDomain(raw) : null;
   }
 
-  async findByEmail(email: string): Promise<identities | null> {
-    return this.prisma.identities.findFirst({
-      where: { email },
-      include: { persons: true },
-    });
+  async findById(id: string): Promise<Identity | null> {
+    const raw = await this.prisma.identities.findUnique({ where: { id } });
+    return raw ? IdentityMapper.toDomain(raw) : null;
   }
 
   async findByEmailAndCompany(
     email: string,
-    company_id?: string,
-    identityType?: 'EMPLOYEE' | 'CUSTOMER' | 'SYSTEM',
-  ): Promise<identities | null> {
-    const companyUser = await this.prisma.company_users.findFirst({
+    companyId: string | undefined,
+    identityType: IdentityType,
+  ): Promise<Identity | null> {
+    const raw = await this.prisma.identities.findFirst({
       where: {
-        ...(company_id && { company_id }),
-        identities: {
-          email,
-          ...(identityType && { identity_type: identityType }),
-        },
-      },
-      include: {
-        identities: {
-          include: { persons: true },
-        },
+        email,
+        identity_type: identityType,
+        ...(companyId
+          ? { company_users: { some: { company_id: companyId } } }
+          : {}),
       },
     });
-
-    return companyUser?.identities ?? null;
+    return raw ? IdentityMapper.toDomain(raw) : null;
   }
 
-  async findByVerificationToken(token: string) {
-    return this.prisma.identities.findFirst({
-      where: {
-        email_verification_token: token,
-        email_verification_expires_at: {
-          gte: new Date(),
-        },
-      },
+  async findByVerificationToken(token: string): Promise<Identity | null> {
+    const raw = await this.prisma.identities.findFirst({
+      where: { email_verification_token: token },
     });
+    return raw ? IdentityMapper.toDomain(raw) : null;
   }
 
-  async findByPasswordResetToken(token: string) {
-    return this.prisma.identities.findFirst({
-      where: {
-        reset_token: token,
-        reset_token_expires_at: {
-          gte: new Date(),
-        },
-      },
+  async findByPasswordResetToken(token: string): Promise<Identity | null> {
+    const raw = await this.prisma.identities.findFirst({
+      where: { reset_token: token },
     });
+    return raw ? IdentityMapper.toDomain(raw) : null;
   }
 
-  async create(data: Prisma.identitiesCreateInput): Promise<identities> {
-    return this.prisma.identities.create({
+  async createWithVerification(data: {
+    personId: string;
+    email: string;
+    passwordHash: string;
+    verificationToken: string;
+    verificationExpiresAt: Date;
+  }): Promise<Identity> {
+    const raw = await this.prisma.identities.create({
       data: {
-        id: this.snowflake.generate(),
-        ...data,
+        persons: { connect: { id: data.personId } },
+        email: data.email,
+        identity_type: 'EMPLOYEE',
+        password_hash: data.passwordHash,
+        active: true,
+        email_verified: false,
+        email_verification_token: data.verificationToken,
+        email_verification_expires_at: data.verificationExpiresAt,
       },
-      include: { persons: true },
     });
+
+    return IdentityMapper.toDomain(raw);
   }
 
-  async update(
+  async createEmployee(data: {
+    personId: string;
+    email: string;
+    passwordHash: string;
+    active: boolean;
+  }): Promise<Identity> {
+    const raw = await this.prisma.identities.create({
+      data: {
+        persons: { connect: { id: data.personId } },
+        email: data.email,
+        identity_type: 'EMPLOYEE',
+        password_hash: data.passwordHash,
+        active: data.active,
+        email_verified: false,
+      },
+    });
+
+    return IdentityMapper.toDomain(raw);
+  }
+
+  async updateEmailVerification(
     id: string,
-    data: Prisma.identitiesUpdateInput,
-  ): Promise<identities> {
-    return this.prisma.identities.update({
+    data: {
+      emailVerified: boolean;
+      emailVerificationToken: string | null;
+      emailVerificationExpiresAt: Date | null;
+    },
+  ): Promise<Identity> {
+    const raw = await this.prisma.identities.update({
       where: { id },
-      data,
+      data: {
+        email_verified: data.emailVerified,
+        email_verification_token: data.emailVerificationToken,
+        email_verification_expires_at: data.emailVerificationExpiresAt,
+      },
     });
+
+    return IdentityMapper.toDomain(raw);
   }
 
-  async delete(id: string): Promise<identities> {
-    return this.prisma.identities.delete({
+  async updateEmail(id: string, email: string): Promise<Identity> {
+    const raw = await this.prisma.identities.update({
       where: { id },
+      data: { email, email_verified: false },
     });
+
+    return IdentityMapper.toDomain(raw);
+  }
+
+  async updateLoginTracking(
+    id: string,
+    data: { lastLoginDate: Date; loginCount: number },
+  ): Promise<Identity> {
+    const raw = await this.prisma.identities.update({
+      where: { id },
+      data: {
+        last_login_date: data.lastLoginDate,
+        login_count: data.loginCount,
+      },
+    });
+
+    return IdentityMapper.toDomain(raw);
+  }
+
+  async updateLoginAttempts(
+    id: string,
+    data: {
+      failedLoginAttempts: number;
+      lastFailedLogin: Date | null;
+      blockedUntil?: Date | null;
+      blockReason?: string | null;
+    },
+  ): Promise<Identity> {
+    const raw = await this.prisma.identities.update({
+      where: { id },
+      data: {
+        failed_login_attempts: data.failedLoginAttempts,
+        last_failed_login: data.lastFailedLogin,
+        ...(data.blockedUntil !== undefined && {
+          blocked_until: data.blockedUntil,
+        }),
+        ...(data.blockReason !== undefined && {
+          block_reason: data.blockReason,
+        }),
+      },
+    });
+
+    return IdentityMapper.toDomain(raw);
+  }
+
+  async updatePasswordReset(
+    id: string,
+    data: { resetToken: string; resetTokenExpiresAt: Date },
+  ): Promise<Identity> {
+    const raw = await this.prisma.identities.update({
+      where: { id },
+      data: {
+        reset_token: data.resetToken,
+        reset_token_expires_at: data.resetTokenExpiresAt,
+      },
+    });
+
+    return IdentityMapper.toDomain(raw);
+  }
+
+  async completePasswordReset(
+    id: string,
+    data: { passwordHash: string; passwordChangedAt: Date },
+  ): Promise<Identity> {
+    const raw = await this.prisma.identities.update({
+      where: { id },
+      data: {
+        password_hash: data.passwordHash,
+        password_changed_at: data.passwordChangedAt,
+        reset_token: null,
+        reset_token_expires_at: null,
+        failed_login_attempts: 0,
+        blocked_until: null,
+        block_reason: null,
+      },
+    });
+
+    return IdentityMapper.toDomain(raw);
+  }
+
+  async save(identity: Identity): Promise<Identity> {
+    const prismaData = IdentityMapper.toPrisma(identity);
+    const raw = await this.prisma.identities.update({
+      where: { id: identity.id },
+      data: prismaData,
+    });
+    return IdentityMapper.toDomain(raw);
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.prisma.identities.delete({ where: { id } });
   }
 }

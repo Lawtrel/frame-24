@@ -2,25 +2,34 @@ import React from 'react';
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     label: string;
-    error?: string | null;
+    error?: string | string[] | null;
 }
 
-const Input: React.FC<InputProps> = ({ label, name, error, ...props }) => (
-    <div>
-        <label htmlFor={name} className="block text-sm font-medium text-gray-300 mb-1">
-            {label}
-        </label>
-        <input
-            id={name}
-            name={name}
-            className={`w-full px-4 py-2 bg-gray-700 text-white border rounded-md focus:outline-none transition-all duration-150 
-        ${error
-                ? 'border-red-600 focus:border-red-500'
-                : 'border-gray-600 focus:border-red-700 focus:ring-1 focus:ring-red-700'
-            }`}
-            {...props}
-        />
-    </div>
-);
+const Input: React.FC<InputProps> = ({label, name, error, ...props}) => {
+    const errorMessage = Array.isArray(error) ? error : error;
+
+    return (
+        <div>
+            <label htmlFor={name} className="block text-sm font-medium text-gray-300 mb-1">
+                {label}
+            </label>
+            <input
+                id={name}
+                name={name}
+                className={`w-full px-4 py-2 bg-gray-700 text-white border rounded-md focus:outline-none transition-all duration-150 
+                ${errorMessage
+                    ? 'border-red-600 focus:border-red-500'
+                    : 'border-gray-600 focus:border-red-700 focus:ring-1 focus:ring-red-700'
+                }`}
+                {...props}
+            />
+            {errorMessage && (
+                <p className="mt-1 text-sm text-red-400">
+                    {errorMessage}
+                </p>
+            )}
+        </div>
+    );
+};
 
 export default Input;

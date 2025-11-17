@@ -35,14 +35,14 @@ export class RabbitMQPublisherService implements OnModuleInit {
       this.loggerService.log('Connected to RabbitMQ', 'RabbitMQPublisher');
     } catch (error) {
       this.loggerService.error(
-        `Failed to connect: ${error}`,
+        `Failed to connect: ${(error as Error).message}`,
         '',
         'RabbitMQPublisher',
       );
     }
   }
 
-  publish<T = any>(message: RabbitMQMessage<T>): void {
+  async publish<T = any>(message: RabbitMQMessage<T>): Promise<void> {
     if (!this.channel) {
       this.loggerService.error('Channel not ready', '', 'RabbitMQPublisher');
       return;
@@ -58,17 +58,37 @@ export class RabbitMQPublisherService implements OnModuleInit {
       },
     };
 
-    this.channel.publish(
-      'frame24-events',
-      message.pattern,
-      Buffer.from(JSON.stringify(enrichedMessage)),
-      { persistent: true },
-    );
+    await new Promise<void>((resolve, reject) => {
+      if (!this.channel) {
+        reject(new Error('Channel not initialized'));
+        return;
+      }
 
-    this.loggerService.log(
-      `Message published: ${message.pattern}`,
-      'RabbitMQPublisher',
-    );
+      const result = this.channel.publish(
+        'frame24-events',
+        message.pattern,
+        Buffer.from(JSON.stringify(enrichedMessage)),
+        { persistent: true },
+      );
+
+      if (!result) {
+        reject(new Error('Failed to publish message'));
+        return;
+      }
+
+      this.channel.on('error', (err: Error) => {
+        if (err) {
+          this.loggerService.error(
+            `Failed to publish message: ${err.message}`,
+            '',
+            'RabbitMQPublisher',
+          );
+          reject(new Error(err.message || 'Unknown error'));
+        }
+      });
+
+      resolve();
+    });
   }
 
   private generateCorrelationId(): string {

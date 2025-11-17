@@ -1,11 +1,10 @@
 import { z } from 'zod';
 import { createZodDto } from 'nestjs-zod';
-import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 
 const LoginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
-  company_id: z.string().optional(),
+  email: z.string().email('Email inválido'),
+  password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
 });
 
 export class LoginDto extends createZodDto(LoginSchema) {
@@ -22,7 +21,4 @@ export class LoginDto extends createZodDto(LoginSchema) {
     minLength: 6,
   })
   password!: string;
-
-  @ApiHideProperty()
-  company_id?: string;
 }
