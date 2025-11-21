@@ -3,10 +3,23 @@ import { z } from 'zod';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export const CreateRoleSchema = z.object({
-  name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres').max(50, 'Nome deve ter no máximo 50 caracteres'),
-  description: z.string().max(255, 'Descrição deve ter no máximo 255 caracteres').optional(),
-  permissions: z.array(z.string()).min(1, 'Pelo menos uma permissão é necessária'),
-  hierarchy_level: z.number().int('Nível hierárquico deve ser inteiro').min(1, 'Nível mínimo é 1').max(100, 'Nível máximo é 100').optional(),
+  name: z
+    .string()
+    .min(3, 'Nome deve ter no mínimo 3 caracteres')
+    .max(50, 'Nome deve ter no máximo 50 caracteres'),
+  description: z
+    .string()
+    .max(255, 'Descrição deve ter no máximo 255 caracteres')
+    .optional(),
+  permissions: z
+    .array(z.string())
+    .min(1, 'Pelo menos uma permissão é necessária'),
+  hierarchy_level: z
+    .number()
+    .int('Nível hierárquico deve ser inteiro')
+    .min(1, 'Nível mínimo é 1')
+    .max(100, 'Nível máximo é 100')
+    .optional(),
 });
 
 export class CreateRoleDto extends createZodDto(CreateRoleSchema) {

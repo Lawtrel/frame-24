@@ -8,10 +8,21 @@ export const CreateDistributorSettlementSchema = z.object({
   cinema_complex_id: z.string().min(1, 'Complexo de cinema é obrigatório'),
   competence_start_date: z.string().min(1, 'Data inicial é obrigatória'),
   competence_end_date: z.string().min(1, 'Data final é obrigatória'),
-  gross_box_office_revenue: z.number().nonnegative('Receita bruta não pode ser negativa'),
-  distributor_percentage: z.number().min(0, 'Porcentagem do distribuidor não pode ser negativa').max(100, 'Porcentagem do distribuidor não pode ser maior que 100'),
-  taxes_deducted_amount: z.number().nonnegative('Impostos retidos não podem ser negativos').optional(),
-  deductions_amount: z.number().nonnegative('Deduções não podem ser negativas').optional(),
+  gross_box_office_revenue: z
+    .number()
+    .nonnegative('Receita bruta não pode ser negativa'),
+  distributor_percentage: z
+    .number()
+    .min(0, 'Porcentagem do distribuidor não pode ser negativa')
+    .max(100, 'Porcentagem do distribuidor não pode ser maior que 100'),
+  taxes_deducted_amount: z
+    .number()
+    .nonnegative('Impostos retidos não podem ser negativos')
+    .optional(),
+  deductions_amount: z
+    .number()
+    .nonnegative('Deduções não podem ser negativas')
+    .optional(),
   notes: z.string().optional(),
 });
 

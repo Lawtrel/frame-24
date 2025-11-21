@@ -4,8 +4,8 @@ import { StorageService } from './storage.service';
 
 @Global()
 @Module({
-    imports: [ClsModule],
-    providers: [StorageService],
-    exports: [StorageService],
+  imports: [ClsModule],
+  providers: [StorageService],
+  exports: [StorageService],
 })
-export class StorageModule { }
+export class StorageModule {}

@@ -20,7 +20,7 @@ export class RabbitMQPublisherService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = 'RabbitMQPublisher';
   private isConnecting = false;
 
-  constructor(private loggerService: LoggerService) { }
+  constructor(private loggerService: LoggerService) {}
 
   async onModuleInit(): Promise<void> {
     await this.connect();
@@ -41,12 +41,19 @@ export class RabbitMQPublisherService implements OnModuleInit, OnModuleDestroy {
       const port = process.env.RABBITMQ_PORT || 5672;
       const url = `amqp://${user}:${password}@${host}:${port}`;
 
-      this.loggerService.log(`Connecting to RabbitMQ at ${host}:${port}...`, this.logger);
+      this.loggerService.log(
+        `Connecting to RabbitMQ at ${host}:${port}...`,
+        this.logger,
+      );
 
       this.connection = await connect(url);
 
       this.connection.on('error', (err) => {
-        this.loggerService.error(`Connection error: ${err.message}`, '', this.logger);
+        this.loggerService.error(
+          `Connection error: ${err.message}`,
+          '',
+          this.logger,
+        );
         this.handleDisconnect();
       });
 
@@ -58,7 +65,11 @@ export class RabbitMQPublisherService implements OnModuleInit, OnModuleDestroy {
       this.channel = await this.connection.createChannel();
 
       this.channel.on('error', (err) => {
-        this.loggerService.error(`Channel error: ${err.message}`, '', this.logger);
+        this.loggerService.error(
+          `Channel error: ${err.message}`,
+          '',
+          this.logger,
+        );
       });
 
       this.channel.on('close', () => {
@@ -103,7 +114,10 @@ export class RabbitMQPublisherService implements OnModuleInit, OnModuleDestroy {
 
   async publish<T = any>(message: RabbitMQMessage<T>): Promise<void> {
     if (!this.channel) {
-      this.loggerService.warn('Channel not ready, attempting to reconnect...', this.logger);
+      this.loggerService.warn(
+        'Channel not ready, attempting to reconnect...',
+        this.logger,
+      );
       await this.connect();
       if (!this.channel) {
         throw new Error('RabbitMQ channel is not available');
@@ -129,7 +143,10 @@ export class RabbitMQPublisherService implements OnModuleInit, OnModuleDestroy {
       );
 
       if (!result) {
-        this.loggerService.warn('Message buffer full, message may be lost', this.logger);
+        this.loggerService.warn(
+          'Message buffer full, message may be lost',
+          this.logger,
+        );
       }
     } catch (error) {
       this.loggerService.error(

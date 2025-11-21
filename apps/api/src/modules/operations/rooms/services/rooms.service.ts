@@ -33,7 +33,7 @@ export class RoomsService {
     private readonly snowflake: SnowflakeService,
     private readonly rabbitmq: RabbitMQPublisherService,
     private readonly storageService: StorageService,
-  ) { }
+  ) {}
 
   @Transactional()
   async create(
