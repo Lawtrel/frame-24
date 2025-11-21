@@ -31,7 +31,7 @@ import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strat
 @Controller({ path: 'products', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) { }
+  constructor(private readonly productsService: ProductsService) {}
 
   @Post()
   @FileUpload('image', false)

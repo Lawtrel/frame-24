@@ -13,10 +13,12 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Security: HTTP headers protection
-  app.use(helmet({
-    contentSecurityPolicy: false, // Disable for Swagger/Scalar to work
-    crossOriginEmbedderPolicy: false,
-  }));
+  app.use(
+    helmet({
+      contentSecurityPolicy: false, // Disable for Swagger/Scalar to work
+      crossOriginEmbedderPolicy: false,
+    }),
+  );
 
   app.enableCors({
     origin: true,

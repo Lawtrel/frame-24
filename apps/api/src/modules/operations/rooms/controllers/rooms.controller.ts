@@ -37,7 +37,7 @@ import { UpdateRoomDto } from '../dto/update-room.dto';
 @Controller({ path: 'cinema-complexes/:cinemaComplexId/rooms', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class RoomsController {
-  constructor(private readonly service: RoomsService) { }
+  constructor(private readonly service: RoomsService) {}
 
   @Post()
   @FileUpload('layout_image', false)

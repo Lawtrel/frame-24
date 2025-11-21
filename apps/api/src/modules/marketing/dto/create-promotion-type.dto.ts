@@ -33,7 +33,8 @@ export class CreatePromotionTypeDto {
 
   @ApiPropertyOptional({
     description: 'Descrição detalhada do tipo de promoção',
-    example: 'Aplica um desconto baseado em percentual sobre o valor do pedido.',
+    example:
+      'Aplica um desconto baseado em percentual sobre o valor do pedido.',
   })
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsOptional()
@@ -52,7 +53,10 @@ export class CreatePromotionTypeDto {
 }
 
 export class PromotionTypeResponseDto {
-  @ApiProperty({ description: 'Identificador do tipo', example: '01JAB1234XYZ' })
+  @ApiProperty({
+    description: 'Identificador do tipo',
+    example: '01JAB1234XYZ',
+  })
   id!: string;
 
   @ApiProperty({ description: 'Código interno único', example: 'PERCENTUAL' })
@@ -83,4 +87,3 @@ export class PromotionTypeResponseDto {
   })
   created_at!: Date | null;
 }
-

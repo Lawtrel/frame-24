@@ -19,14 +19,26 @@ export const CreatePurchaseSchema = z.object({
   concession_items: z
     .array(
       z.object({
-        item_type: z.enum(['PRODUCT', 'COMBO'], { message: 'Tipo de item inválido' }),
+        item_type: z.enum(['PRODUCT', 'COMBO'], {
+          message: 'Tipo de item inválido',
+        }),
         item_id: z.string().min(1, 'Item é obrigatório'),
-        quantity: z.number().int('Quantidade deve ser um número inteiro').min(1, 'Quantidade deve ser pelo menos 1'),
+        quantity: z
+          .number()
+          .int('Quantidade deve ser um número inteiro')
+          .min(1, 'Quantidade deve ser pelo menos 1'),
       }),
     )
     .optional(),
-  discount_amount: z.number().min(0, 'Desconto não pode ser negativo').optional(),
-  use_points: z.number().int('Pontos devem ser um número inteiro').min(0, 'Pontos não podem ser negativos').optional(),
+  discount_amount: z
+    .number()
+    .min(0, 'Desconto não pode ser negativo')
+    .optional(),
+  use_points: z
+    .number()
+    .int('Pontos devem ser um número inteiro')
+    .min(0, 'Pontos não podem ser negativos')
+    .optional(),
 });
 
 export class CreatePurchaseDto extends createZodDto(CreatePurchaseSchema) {

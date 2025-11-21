@@ -21,7 +21,7 @@ export class ProductsService {
     private readonly categoryRepo: ProductCategoryRepository,
     private readonly logger: LoggerService,
     private readonly storageService: StorageService,
-  ) { }
+  ) {}
 
   @Transactional()
   async create(

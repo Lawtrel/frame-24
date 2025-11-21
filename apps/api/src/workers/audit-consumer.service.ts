@@ -30,7 +30,7 @@ export class AuditConsumerService implements OnModuleInit, OnModuleDestroy {
   private channel: Channel | null = null;
   private isConnecting = false;
 
-  constructor(private auditWorker: AuditWorkerService) { }
+  constructor(private auditWorker: AuditWorkerService) {}
 
   async onModuleInit(): Promise<void> {
     this.logger.log('Starting consumer...');

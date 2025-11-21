@@ -4,7 +4,9 @@ import { ApiProperty } from '@nestjs/swagger';
 
 const JournalEntryItemSchema = z.object({
   account_id: z.string().min(1, 'Conta contábil é obrigatória'),
-  movement_type: z.enum(['DEBIT', 'CREDIT'], { message: 'Tipo de movimento inválido' }),
+  movement_type: z.enum(['DEBIT', 'CREDIT'], {
+    message: 'Tipo de movimento inválido',
+  }),
   amount: z.number().positive('Valor deve ser positivo'),
   item_description: z.string().optional(),
 });
@@ -15,7 +17,9 @@ export const CreateJournalEntrySchema = z.object({
   description: z.string().min(1, 'Descrição é obrigatória'),
   origin_type: z.string().optional(),
   origin_id: z.string().optional(),
-  items: z.array(JournalEntryItemSchema).min(2, 'Lançamento deve ter pelo menos 2 itens (partida dobrada)'),
+  items: z
+    .array(JournalEntryItemSchema)
+    .min(2, 'Lançamento deve ter pelo menos 2 itens (partida dobrada)'),
 });
 
 export class CreateJournalEntryDto extends createZodDto(

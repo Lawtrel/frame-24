@@ -30,7 +30,8 @@ interface SeatReservation {
   namespace: '/seats',
 })
 export class SeatsReservationGateway
-  implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit {
+  implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit
+{
   @WebSocketServer()
   server!: Server;
 
@@ -55,41 +56,56 @@ export class SeatsReservationGateway
 
   private async loadActiveReservations() {
     try {
-      this.logger.log('Loading active reservations from database...', 'SeatsReservationGateway');
+      this.logger.log(
+        'Loading active reservations from database...',
+        'SeatsReservationGateway',
+      );
       const now = new Date();
 
       // Buscar todas as reservas ativas no banco
-      const activeReservations = await this.prisma.session_seat_status.findMany({
-        where: {
-          reservation_uuid: { not: null },
-          expiration_date: { gt: now },
-          sale_id: null,
+      const activeReservations = await this.prisma.session_seat_status.findMany(
+        {
+          where: {
+            reservation_uuid: { not: null },
+            expiration_date: { gt: now },
+            sale_id: null,
+          },
         },
-      });
+      );
 
       // Agrupar por UUID
-      const grouped = activeReservations.reduce((acc, curr) => {
-        if (!curr.reservation_uuid) return acc;
-        if (!acc[curr.reservation_uuid]) {
-          acc[curr.reservation_uuid] = {
-            showtime_id: curr.showtime_id,
-            seat_ids: [],
-            expires_at: curr.expiration_date!,
-            reservation_uuid: curr.reservation_uuid,
-            socket_id: '', // Não temos o socket ID após restart, mas a reserva persiste
-          };
-        }
-        acc[curr.reservation_uuid].seat_ids.push(curr.seat_id);
-        return acc;
-      }, {} as Record<string, SeatReservation>);
+      const grouped = activeReservations.reduce(
+        (acc, curr) => {
+          if (!curr.reservation_uuid) return acc;
+          if (!acc[curr.reservation_uuid]) {
+            acc[curr.reservation_uuid] = {
+              showtime_id: curr.showtime_id,
+              seat_ids: [],
+              expires_at: curr.expiration_date!,
+              reservation_uuid: curr.reservation_uuid,
+              socket_id: '', // Não temos o socket ID após restart, mas a reserva persiste
+            };
+          }
+          acc[curr.reservation_uuid].seat_ids.push(curr.seat_id);
+          return acc;
+        },
+        {} as Record<string, SeatReservation>,
+      );
 
       for (const res of Object.values(grouped)) {
         this.reservations.set(res.reservation_uuid, res);
       }
 
-      this.logger.log(`Loaded ${this.reservations.size} active reservations.`, 'SeatsReservationGateway');
+      this.logger.log(
+        `Loaded ${this.reservations.size} active reservations.`,
+        'SeatsReservationGateway',
+      );
     } catch (error) {
-      this.logger.error(`Failed to load active reservations: ${error}`, '', 'SeatsReservationGateway');
+      this.logger.error(
+        `Failed to load active reservations: ${error}`,
+        '',
+        'SeatsReservationGateway',
+      );
     }
   }
 
@@ -174,11 +190,11 @@ export class SeatsReservationGateway
               {
                 AND: [
                   { reservation_uuid: { not: null } },
-                  { expiration_date: { gt: now } }
-                ]
-              }
-            ]
-          }
+                  { expiration_date: { gt: now } },
+                ],
+              },
+            ],
+          },
         });
 
         if (unavailable) {
@@ -186,31 +202,30 @@ export class SeatsReservationGateway
         }
 
         // Se chegou aqui, teoricamente estão livres, mas precisamos garantir atomicidade no update
-        // O updateMany não garante que TODOS foram atualizados se a condição for parcial, 
-        // mas como fizemos a verificação antes dentro da mesma transação (com nível de isolamento padrão), 
-        // deve ser seguro o suficiente para este caso de uso. 
+        // O updateMany não garante que TODOS foram atualizados se a condição for parcial,
+        // mas como fizemos a verificação antes dentro da mesma transação (com nível de isolamento padrão),
+        // deve ser seguro o suficiente para este caso de uso.
         // Para ser 100% bulletproof, deveríamos fazer um update com where clause estrita.
 
         const updateResult = await tx.session_seat_status.updateMany({
           where: {
             showtime_id,
             seat_id: { in: seat_ids },
-            OR: [
-              { reservation_uuid: null },
-              { expiration_date: { lte: now } }
-            ],
-            sale_id: null
+            OR: [{ reservation_uuid: null }, { expiration_date: { lte: now } }],
+            sale_id: null,
           },
           data: {
             status: reservedStatus.id,
             reservation_uuid: reservationUuid,
             reservation_date: new Date(),
             expiration_date: expiresAt,
-          }
+          },
         });
 
         if (updateResult.count !== seat_ids.length) {
-          throw new Error('Não foi possível reservar todos os assentos (concorrência detectada)');
+          throw new Error(
+            'Não foi possível reservar todos os assentos (concorrência detectada)',
+          );
         }
       });
 
@@ -286,13 +301,13 @@ export class SeatsReservationGateway
         where: {
           showtime_id: reservation.showtime_id,
           seat_id: { in: reservation.seat_ids },
-          reservation_uuid: reservation_uuid
+          reservation_uuid: reservation_uuid,
         },
         data: {
           sale_id,
           // Manter reservation_uuid para histórico ou limpar? Geralmente limpa ou mantém como ref.
           // Vamos manter por enquanto mas limpar expiração para não ser coletado
-          expiration_date: null
+          expiration_date: null,
         },
       });
 
@@ -312,7 +327,11 @@ export class SeatsReservationGateway
         sale_id,
       });
     } catch (error) {
-      this.logger.error(`Error confirming reservation: ${error}`, '', 'SeatsReservationGateway');
+      this.logger.error(
+        `Error confirming reservation: ${error}`,
+        '',
+        'SeatsReservationGateway',
+      );
       client.emit('confirmation-error', {
         message: 'Erro ao confirmar reserva',
       });
@@ -341,7 +360,7 @@ export class SeatsReservationGateway
             where: {
               showtime_id: reservation.showtime_id,
               seat_id: { in: reservation.seat_ids },
-              reservation_uuid: reservationUuid
+              reservation_uuid: reservationUuid,
             },
             data: {
               status: availableStatus.id,
@@ -364,12 +383,12 @@ export class SeatsReservationGateway
           // Fallback: limpar pelo UUID diretamente (pode ser necessário buscar showtime_id antes para notificar)
           const seatsToFree = await this.prisma.session_seat_status.findMany({
             where: { reservation_uuid: reservationUuid },
-            select: { showtime_id: true, seat_id: true }
+            select: { showtime_id: true, seat_id: true },
           });
 
           if (seatsToFree.length > 0) {
             const showtimeId = seatsToFree[0].showtime_id;
-            const seatIds = seatsToFree.map(s => s.seat_id);
+            const seatIds = seatsToFree.map((s) => s.seat_id);
 
             await this.prisma.session_seat_status.updateMany({
               where: { reservation_uuid: reservationUuid },
@@ -381,12 +400,10 @@ export class SeatsReservationGateway
               },
             });
 
-            this.server
-              .to(`showtime:${showtimeId}`)
-              .emit('seats-released', {
-                seat_ids: seatIds,
-                reservation_uuid: reservationUuid,
-              });
+            this.server.to(`showtime:${showtimeId}`).emit('seats-released', {
+              seat_ids: seatIds,
+              reservation_uuid: reservationUuid,
+            });
           }
         }
       }
@@ -396,7 +413,11 @@ export class SeatsReservationGateway
         'SeatsReservationGateway',
       );
     } catch (error) {
-      this.logger.error(`Error expiring reservation: ${error}`, '', 'SeatsReservationGateway');
+      this.logger.error(
+        `Error expiring reservation: ${error}`,
+        '',
+        'SeatsReservationGateway',
+      );
     }
   }
 
@@ -424,14 +445,20 @@ export class SeatsReservationGateway
       include: {
         showtime_schedule: {
           include: {
-            cinema_complexes: true
-          }
-        }
-      }
+            cinema_complexes: true,
+          },
+        },
+      },
     });
 
-    if (reservation && reservation.showtime_schedule?.cinema_complexes?.company_id) {
-      await this.expireReservation(uuid, reservation.showtime_schedule.cinema_complexes.company_id);
+    if (
+      reservation &&
+      reservation.showtime_schedule?.cinema_complexes?.company_id
+    ) {
+      await this.expireReservation(
+        uuid,
+        reservation.showtime_schedule.cinema_complexes.company_id,
+      );
     } else {
       // Se não achar, remove da memória apenas
       this.reservations.delete(uuid);

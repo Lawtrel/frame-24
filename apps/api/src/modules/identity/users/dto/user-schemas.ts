@@ -45,7 +45,11 @@ export const UserCompanyDataSchema = z.object({
     )
     .optional(),
   start_date: z.string().datetime('Data de início inválida').optional(),
-  end_date: z.string().datetime('Data de término inválida').nullable().optional(),
+  end_date: z
+    .string()
+    .datetime('Data de término inválida')
+    .nullable()
+    .optional(),
   active: z.boolean().default(true),
 });
 

@@ -98,14 +98,15 @@ export class DistributorSettlementsService {
 
   async create(company_id: string, dto: CreateDistributorSettlementDto) {
     await this.ensureContractBelongsToCompany(dto.contract_id, company_id);
-    await this.ensureDistributorBelongsToCompany(dto.distributor_id, company_id);
+    await this.ensureDistributorBelongsToCompany(
+      dto.distributor_id,
+      company_id,
+    );
     await this.ensureComplexBelongsToCompany(dto.cinema_complex_id, company_id);
 
     const gross = dto.gross_box_office_revenue;
     const distributorPercentage = dto.distributor_percentage / 100;
-    const calculatedAmount = Number(
-      (gross * distributorPercentage).toFixed(2),
-    );
+    const calculatedAmount = Number((gross * distributorPercentage).toFixed(2));
     const deductions = dto.deductions_amount || 0;
     const taxes = dto.taxes_deducted_amount || 0;
     const finalAmount = Math.max(calculatedAmount - deductions, 0);
@@ -135,5 +136,3 @@ export class DistributorSettlementsService {
     });
   }
 }
-
-
