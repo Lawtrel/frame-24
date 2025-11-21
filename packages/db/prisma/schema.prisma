@@ -2629,6 +2629,7 @@ model exhibition_contracts {
   created_at             DateTime? @default(now()) @db.Timestamp(0)
 
   contract_types contract_types? @relation(fields: [contract_type], references: [id])
+  sliding_scales exhibition_contract_sliding_scales[]
 
   @@index([movie_id])
   @@index([cinema_complex_id])
@@ -2637,6 +2638,22 @@ model exhibition_contracts {
   @@index([revenue_base])
   @@index([start_date, end_date])
   @@index([active])
+  @@schema("contracts")
+}
+
+model exhibition_contract_sliding_scales {
+  id String @id @default("")
+
+  contract_id String
+  week_number Int
+  distributor_percentage Decimal @db.Decimal(5, 2)
+  exhibitor_percentage   Decimal @db.Decimal(5, 2)
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+
+  exhibition_contracts exhibition_contracts @relation(fields: [contract_id], references: [id], onDelete: Cascade)
+
+  @@unique([contract_id, week_number])
+  @@index([contract_id])
   @@schema("contracts")
 }
 

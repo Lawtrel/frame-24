@@ -13,6 +13,11 @@ import { ShowtimesService } from 'src/modules/operations/showtime_schedule/servi
 import { ShowtimesRepository } from 'src/modules/operations/showtime_schedule/repositories/showtime.repository';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { SessionStatusModule } from 'src/modules/operations/session-status/session-status.module';
+import { ContractsModule } from 'src/modules/contracts/contracts.module';
+import { TaxModule } from 'src/modules/tax/tax.module';
+import { SeatTypesModule } from 'src/modules/operations/seat-types/seat-types.module';
+import { ProjectionTypesModule } from 'src/modules/operations/projection-types/projection-types.module';
+import { AudioTypesModule } from 'src/modules/operations/audio-types/audio-types.module';
 
 @Module({
   imports: [
@@ -25,8 +30,14 @@ import { SessionStatusModule } from 'src/modules/operations/session-status/sessi
     SeatStatusModule,
     SessionSeatStatusModule,
     SessionStatusModule,
+    ContractsModule,
+    TaxModule,
+    SeatTypesModule,
+    ProjectionTypesModule,
+    AudioTypesModule,
   ],
   controllers: [ShowtimesController],
   providers: [ShowtimesService, ShowtimesRepository],
+  exports: [ShowtimesService, ShowtimesRepository],
 })
 export class ShowtimesModule {}

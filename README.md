@@ -432,6 +432,11 @@ O sistema é **multi-tenant**, ou seja, uma única instância serve múltiplas e
 - 👥 Permissões granulares baseadas em roles customizáveis por empresa
 - 🛡️ Isolamento completo de dados entre tenants
 
+## 📚 Documentação de Domínio
+
+- [`docs/marketing-campaigns.md`](docs/marketing-campaigns.md) — fluxo completo de campanhas promocionais, endpoints, validações e integração com vendas.
+- [`docs/finance-distributor-settlements.md`](docs/finance-distributor-settlements.md) — processo de cálculo e conciliação de repasses para distribuidoras.
+
 ## 🚀 Funcionalidades Principais
 
 ### 🎬 Gerenciamento de Cinemas

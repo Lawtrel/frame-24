@@ -1,0 +1,79 @@
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
+export const RegisterCustomerSchema = z.object({
+  company_id: z.string().min(1, 'ID da empresa é obrigatório'),
+  cpf: z.string().regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, 'CPF inválido'),
+  full_name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres').max(200, 'Nome deve ter no máximo 200 caracteres'),
+  email: z.string().email('Email inválido'),
+  phone: z.string().optional(),
+  birth_date: z.string().optional(),
+  password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
+  accepts_marketing: z.boolean().default(false).optional(),
+  accepts_email: z.boolean().default(true).optional(),
+  accepts_sms: z.boolean().default(false).optional(),
+});
+
+export class RegisterCustomerDto extends createZodDto(RegisterCustomerSchema) {
+  @ApiProperty({
+    description: 'ID da empresa',
+    example: '243244130367442946',
+  })
+  company_id!: string;
+
+  @ApiProperty({
+    description: 'CPF do cliente',
+    example: '123.456.789-00',
+  })
+  cpf!: string;
+
+  @ApiProperty({
+    description: 'Nome completo',
+    example: 'João Silva',
+  })
+  full_name!: string;
+
+  @ApiProperty({
+    description: 'Email',
+    example: 'joao@example.com',
+  })
+  email!: string;
+
+  @ApiPropertyOptional({
+    description: 'Telefone',
+    example: '(11) 99999-9999',
+  })
+  phone?: string;
+
+  @ApiPropertyOptional({
+    description: 'Data de nascimento',
+    example: '1990-01-01',
+  })
+  birth_date?: string;
+
+  @ApiProperty({
+    description: 'Senha',
+    example: 'senha123',
+    minLength: 6,
+  })
+  password!: string;
+
+  @ApiPropertyOptional({
+    description: 'Aceita marketing',
+    default: false,
+  })
+  accepts_marketing?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Aceita emails',
+    default: true,
+  })
+  accepts_email?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Aceita SMS',
+    default: false,
+  })
+  accepts_sms?: boolean;
+}

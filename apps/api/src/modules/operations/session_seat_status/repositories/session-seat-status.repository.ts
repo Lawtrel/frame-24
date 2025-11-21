@@ -50,6 +50,13 @@ export class SessionSeatStatusRepository {
     });
   }
 
+  async findByShowtimeAndSeat(
+    showtime_id: string,
+    seat_id: string,
+  ): Promise<SessionSeatStatus | null> {
+    return this.findBySeatAndShowtime(showtime_id, seat_id);
+  }
+
   async updateStatus(
     showtime_id: string,
     seat_id: string,
@@ -88,6 +95,66 @@ export class SessionSeatStatusRepository {
   async deleteByShowtimeId(showtime_id: string): Promise<Prisma.BatchPayload> {
     return this.prisma.session_seat_status.deleteMany({
       where: { showtime_id },
+    });
+  }
+
+  async findActiveReservationsByCompany(company_id: string) {
+    const now = new Date();
+    return this.prisma.session_seat_status.findMany({
+      where: {
+        reservation_uuid: { not: null },
+        expiration_date: { gt: now },
+        showtime_schedule: {
+          cinema_complexes: {
+            company_id,
+          },
+        },
+      },
+      include: {
+        seats: true,
+        seat_status: true,
+        showtime_schedule: {
+          include: {
+            cinema_complexes: true,
+            rooms: true,
+          },
+        },
+      },
+      orderBy: { reservation_date: 'desc' },
+    });
+  }
+
+  async findByIdWithRelations(id: string) {
+    return this.prisma.session_seat_status.findUnique({
+      where: { id },
+      include: {
+        seats: true,
+        seat_status: true,
+        showtime_schedule: {
+          include: {
+            cinema_complexes: true,
+            rooms: true,
+          },
+        },
+      },
+    });
+  }
+
+  async releaseReservation(id: string, seat_status_id: string) {
+    return this.prisma.session_seat_status.update({
+      where: { id },
+      data: {
+        reservation_uuid: null,
+        reservation_date: null,
+        expiration_date: null,
+        seat_status: {
+          connect: { id: seat_status_id },
+        },
+      },
+      include: {
+        seats: true,
+        seat_status: true,
+      },
     });
   }
 }
