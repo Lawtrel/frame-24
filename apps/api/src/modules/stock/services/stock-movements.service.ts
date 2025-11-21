@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Transactional } from '@nestjs-cls/transactional';
 import { StockMovementsRepository } from '../repositories/stock-movements.repository';
 import { ProductStockRepository } from '../repositories/product-stock.repository';
@@ -17,7 +13,6 @@ import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strat
 import {
   InsufficientStockException,
   ProductNotFoundException,
-  InvalidMovementTypeException,
   MovementTypeNotFoundException,
 } from '../exceptions/stock.exceptions';
 

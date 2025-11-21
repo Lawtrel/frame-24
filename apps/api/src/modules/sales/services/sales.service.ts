@@ -4,14 +4,7 @@ import {
   BadRequestException,
   ConflictException,
 } from '@nestjs/common';
-import {
-  SeatAlreadyOccupiedException,
-  ShowtimeNotFoundException,
-  ShowtimeAlreadyStartedException,
-  ProductPriceNotFoundException,
-  ComboNotFoundException,
-  InvalidSaleException,
-} from '../exceptions/sales.exceptions';
+import { ProductPriceNotFoundException } from '../exceptions/sales.exceptions';
 import { Transactional } from '@nestjs-cls/transactional';
 import { SalesRepository } from '../repositories/sales.repository';
 import { TicketsRepository } from '../repositories/tickets.repository';
