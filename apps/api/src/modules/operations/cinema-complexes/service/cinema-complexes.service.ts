@@ -43,7 +43,7 @@ export class CinemaComplexesService {
 
     const createdComplex = await this.repository.create(dataToCreate);
 
-    this.rabbitmq.publish({
+    void this.rabbitmq.publish({
       pattern: 'audit.cinema_complex.created',
       data: {
         id: createdComplex.id,
@@ -94,7 +94,7 @@ export class CinemaComplexesService {
 
     const updatedComplex = await this.repository.update(id, dto);
 
-    this.rabbitmq.publish({
+    void this.rabbitmq.publish({
       pattern: 'audit.cinema_complex.updated',
       data: {
         id: updatedComplex.id,
@@ -116,7 +116,7 @@ export class CinemaComplexesService {
 
     await this.repository.remove(id);
 
-    this.rabbitmq.publish({
+    void this.rabbitmq.publish({
       pattern: 'audit.cinema_complex.deleted',
       data: {
         id: existingComplex.id,

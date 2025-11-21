@@ -30,7 +30,7 @@ export class MovieCategoriesService {
 
     const created = await this.repository.create(data);
 
-    this.rabbitmq.publish({
+    void this.rabbitmq.publish({
       pattern: 'audit.movie_category.created',
       data: {
         id: created.id,
@@ -91,7 +91,7 @@ export class MovieCategoriesService {
       updateData as Prisma.movie_categoriesUpdateInput,
     );
 
-    this.rabbitmq.publish({
+    void this.rabbitmq.publish({
       pattern: 'audit.movie_category.updated',
       data: {
         id: updated.id,
@@ -116,7 +116,7 @@ export class MovieCategoriesService {
 
     await this.repository.delete(id);
 
-    this.rabbitmq.publish({
+    void this.rabbitmq.publish({
       pattern: 'audit.movie_category.deleted',
       data: {
         id: existing.id,

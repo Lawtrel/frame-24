@@ -40,10 +40,7 @@ export class TicketsController {
   @RequirePermission('tickets', 'update')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Marcar ingresso como usado' })
-  async markAsUsed(
-    @Param('id') id: string,
-    @CurrentUser() user: RequestUser,
-  ): Promise<any> {
+  async markAsUsed(@Param('id') id: string): Promise<any> {
     return await this.ticketsRepository.markAsUsed(id, new Date());
   }
 }

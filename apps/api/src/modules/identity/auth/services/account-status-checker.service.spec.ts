@@ -149,7 +149,7 @@ describe('AccountStatusCheckerService', () => {
 
       try {
         service.check(invalidIdentity);
-      } catch (e) {
+      } catch {
         // Esperado
       }
 
