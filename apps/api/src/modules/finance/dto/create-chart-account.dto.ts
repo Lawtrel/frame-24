@@ -3,8 +3,14 @@ import { z } from 'zod';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export const CreateChartAccountSchema = z.object({
-  account_code: z.string().min(1, 'Código da conta é obrigatório').max(20, 'Código da conta deve ter no máximo 20 caracteres'),
-  account_name: z.string().min(1, 'Nome da conta é obrigatório').max(200, 'Nome da conta deve ter no máximo 200 caracteres'),
+  account_code: z
+    .string()
+    .min(1, 'Código da conta é obrigatório')
+    .max(20, 'Código da conta deve ter no máximo 20 caracteres'),
+  account_name: z
+    .string()
+    .min(1, 'Nome da conta é obrigatório')
+    .max(200, 'Nome da conta deve ter no máximo 200 caracteres'),
   account_type: z.string().optional(),
   account_nature: z.string().optional(),
   parent_account_id: z.string().optional(),
@@ -52,4 +58,4 @@ export class CreateChartAccountDto extends createZodDto(
 
 export class UpdateChartAccountDto extends createZodDto(
   CreateChartAccountSchema.partial(),
-) { }
+) {}

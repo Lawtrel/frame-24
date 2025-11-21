@@ -27,10 +27,12 @@ import { CrmModule } from 'src/modules/crm/crm.module';
 @Module({
   imports: [
     // Security: Rate limiting
-    ThrottlerModule.forRoot([{
-      ttl: 60000, // 1 minute
-      limit: 100, // 100 requests per minute
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000, // 1 minute
+        limit: 100, // 100 requests per minute
+      },
+    ]),
     ClsModule.forRoot({
       plugins: [
         new ClsPluginTransactional({
@@ -66,4 +68,4 @@ import { CrmModule } from 'src/modules/crm/crm.module';
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}

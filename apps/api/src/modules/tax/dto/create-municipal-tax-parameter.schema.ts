@@ -4,7 +4,10 @@ export const CreateMunicipalTaxParameterSchema = z.object({
   ibge_municipality_code: z
     .string()
     .length(7, 'Código IBGE deve conter 7 dígitos'),
-  municipality_name: z.string().min(2, 'Nome do município deve ter no mínimo 2 caracteres').max(100, 'Nome do município deve ter no máximo 100 caracteres'),
+  municipality_name: z
+    .string()
+    .min(2, 'Nome do município deve ter no mínimo 2 caracteres')
+    .max(100, 'Nome do município deve ter no máximo 100 caracteres'),
   state: z.string().length(2, 'Estado deve ser informado com a sigla (ex: SP)'),
   iss_rate: z
     .number({ message: 'A alíquota ISS deve ser numérica' })

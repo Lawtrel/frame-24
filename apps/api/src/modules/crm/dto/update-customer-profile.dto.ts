@@ -3,7 +3,11 @@ import { z } from 'zod';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export const UpdateCustomerProfileSchema = z.object({
-  full_name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres').max(200, 'Nome deve ter no máximo 200 caracteres').optional(),
+  full_name: z
+    .string()
+    .min(3, 'Nome deve ter no mínimo 3 caracteres')
+    .max(200, 'Nome deve ter no máximo 200 caracteres')
+    .optional(),
   phone: z.string().optional(),
   birth_date: z.string().optional().nullable(),
 });

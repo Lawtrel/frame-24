@@ -31,4 +31,3 @@ export class PromotionTypesRepository {
     return this.prisma.promotion_types.create({ data });
   }
 }
-

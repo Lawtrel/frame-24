@@ -19,7 +19,9 @@ export const CreateShowtimeSchema = z.object({
 
   session_language: z.string().min(1, 'O idioma da sessão é obrigatório.'),
 
-  base_ticket_price: z.number().positive('O preço base deve ser um valor positivo.'),
+  base_ticket_price: z
+    .number()
+    .positive('O preço base deve ser um valor positivo.'),
 
   status: z.string().optional(),
 });
