@@ -62,7 +62,7 @@ async function bootstrap() {
 
   const config = configBuilder.build();
 
-  // @ts-ignore
+  // @ts-expect-error - Swagger config doesn't have x-tagGroups in types but it's valid
   config['x-tagGroups'] = TAG_GROUPS;
 
   const document = SwaggerModule.createDocument(app, config);
@@ -97,4 +97,4 @@ async function bootstrap() {
   console.log('API Base:              http://localhost:4000\n');
 }
 
-bootstrap();
+void bootstrap();

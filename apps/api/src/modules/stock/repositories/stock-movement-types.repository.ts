@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { stock_movement_types, Prisma } from '@repo/db';
+import { stock_movement_types } from '@repo/db';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
