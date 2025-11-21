@@ -10,7 +10,6 @@ import { CombosRepository } from 'src/modules/catalog/products/repositories/comb
 import { CinemaComplexesRepository } from 'src/modules/operations/cinema-complexes/repositories/cinema-complexes.repository';
 import { LoggerService } from 'src/common/services/logger.service';
 import { RabbitMQPublisherService } from 'src/common/rabbitmq/rabbitmq-publisher.service';
-import { NotFoundException } from '@nestjs/common';
 import { ProductPriceNotFoundException } from '../exceptions/sales.exceptions';
 
 describe('SalesService', () => {

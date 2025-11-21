@@ -110,7 +110,7 @@ export class RoomsService {
       await this.seatsRepository.createMany(seatsToCreate);
     }
 
-    this.rabbitmq.publish({
+    void this.rabbitmq.publish({
       pattern: 'audit.room.created',
       data: {
         id: newRoom.id,
@@ -293,7 +293,7 @@ export class RoomsService {
 
     const updatedRoom = await this.roomsRepository.update(id, updateData);
 
-    this.rabbitmq.publish({
+    void this.rabbitmq.publish({
       pattern: 'audit.room.updated',
       data: {
         id: updatedRoom.id,
@@ -313,7 +313,7 @@ export class RoomsService {
 
     await this.roomsRepository.remove(id);
 
-    this.rabbitmq.publish({
+    void this.rabbitmq.publish({
       pattern: 'audit.room.deleted',
       data: { id: existingRoom.id, old_values: existingRoom },
       metadata: { companyId, userId: user.company_user_id },

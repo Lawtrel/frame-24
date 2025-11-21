@@ -34,7 +34,7 @@ export class SeatsService {
 
     const updatedSeat = await this.seatsRepository.update(seatId, { active });
 
-    this.rabbitmq.publish({
+    void this.rabbitmq.publish({
       pattern: 'audit.seat.updated',
       data: {
         id: updatedSeat.id,
@@ -107,7 +107,7 @@ export class SeatsService {
       totalUpdated += result.count;
     }
 
-    this.rabbitmq.publish({
+    void this.rabbitmq.publish({
       pattern: 'audit.seat.batch_updated',
       data: {
         changes: dto.seats,

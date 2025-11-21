@@ -3,15 +3,9 @@ import {
   Prisma,
   seat_status,
   seats,
-  session_seat_status,
   session_seat_status as SessionSeatStatus,
 } from '@repo/db';
 import { PrismaService } from 'src/prisma/prisma.service';
-
-type SessionSeatWithDetails = session_seat_status & {
-  seats: seats;
-  seat_status: seat_status;
-};
 
 @Injectable()
 export class SessionSeatStatusRepository {

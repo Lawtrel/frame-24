@@ -3,9 +3,6 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { LoggerService } from 'src/common/services/logger.service';
-import { Reflector } from '@nestjs/core';
-import { IS_PUBLIC_KEY } from 'src/common/decorators/public.decorator';
-import { ExecutionContext } from '@nestjs/common';
 
 export interface JwtPayload {
   sub: string;

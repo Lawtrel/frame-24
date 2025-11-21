@@ -130,7 +130,7 @@ export class AuditConsumerService implements OnModuleInit, OnModuleDestroy {
     try {
       if (this.channel) await this.channel.close();
       if (this.connection) await this.connection.close();
-    } catch (err) {
+    } catch {
       // Ignore errors
     }
   }
