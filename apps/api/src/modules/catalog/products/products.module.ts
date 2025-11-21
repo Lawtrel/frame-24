@@ -17,6 +17,11 @@ import { CommonModule } from 'src/common/common.module';
     ProductRepository,
     ProductCategoryRepository,
   ],
-  exports: [ProductsService, ProductCategoriesService],
+  exports: [
+    ProductsService,
+    ProductCategoriesService,
+    ProductRepository,
+    ProductCategoryRepository,
+  ],
 })
 export class ProductsModule {}

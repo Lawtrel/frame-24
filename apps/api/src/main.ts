@@ -1,14 +1,22 @@
+import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { apiReference } from '@scalar/nestjs-api-reference';
 import { Request, Response } from 'express';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { getAllTags, TAG_GROUPS } from './swagger.config';
 import { VersioningType } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Security: HTTP headers protection
+  app.use(helmet({
+    contentSecurityPolicy: false, // Disable for Swagger/Scalar to work
+    crossOriginEmbedderPolicy: false,
+  }));
 
   app.enableCors({
     origin: true,

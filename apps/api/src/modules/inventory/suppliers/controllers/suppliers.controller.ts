@@ -87,6 +87,21 @@ export class SuppliersController {
     );
   }
 
+  @Get('types')
+  @RequirePermission('suppliers', 'read')
+  @ApiOperation({
+    summary: 'Listagem de tipos de fornecedores',
+    description:
+      'Retorna todos os tipos de fornecedores disponíveis para a empresa logada.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Tipos de fornecedores retornados com sucesso.',
+  })
+  async findTypes(@CurrentUser() user: jwtStrategy.RequestUser) {
+    return this.suppliersService.findTypes(user.company_id);
+  }
+
   @Get('distributors')
   @RequirePermission('suppliers', 'read')
   @ApiOperation({

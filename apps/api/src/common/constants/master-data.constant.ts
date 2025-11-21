@@ -173,6 +173,23 @@ export const MASTER_DATA = {
     ],
   },
 
+  contracts: {
+    contract_types: [
+      {
+        name: 'Percentual Fixo',
+        description: 'Percentuais constantes durante toda a vigência.',
+      },
+      {
+        name: 'Escala Móvel',
+        description: 'Percentuais variáveis por semana (sliding scale).',
+      },
+      {
+        name: 'Mínimo Garantido',
+        description: 'Inclui valor mínimo garantido ao distribuidor.',
+      },
+    ],
+  },
+
   finance: {
     account_types: [
       { name: 'Ativo', description: 'Contas de ativo' },
@@ -185,6 +202,70 @@ export const MASTER_DATA = {
     account_natures: [
       { name: 'Devedora', description: 'Natureza devedora' },
       { name: 'Credora', description: 'Natureza credora' },
+    ],
+
+    settlement_bases: [
+      {
+        name: 'Bilheteria Bruta',
+        description: 'Receita bruta total da bilheteria.',
+      },
+      {
+        name: 'Bilheteria Líquida',
+        description: 'Receita após taxas e impostos.',
+      },
+      {
+        name: 'Receita Líquida',
+        description: 'Receita líquida sujeita a repartição.',
+      },
+    ],
+
+    distributor_settlement_status: [
+      {
+        name: 'Em Cálculo',
+        description: 'Settlement em preparação.',
+        allows_modification: true,
+      },
+      {
+        name: 'Aprovado',
+        description: 'Aguardando pagamento.',
+        allows_modification: false,
+      },
+      {
+        name: 'Pago',
+        description: 'Settlement liquidado.',
+        allows_modification: false,
+      },
+    ],
+
+    journal_entry_status: [
+      {
+        name: 'Rascunho',
+        description: 'Lançamento ainda editável.',
+        allows_modification: true,
+      },
+      {
+        name: 'Postado',
+        description: 'Lançamento contabilizado.',
+        allows_modification: false,
+      },
+    ],
+
+    journal_entry_types: [
+      {
+        name: 'Receita de Bilheteria',
+        description: 'Entradas de vendas de ingressos.',
+        nature: 'Receita',
+      },
+      {
+        name: 'Pagamento a Distribuidor',
+        description: 'Saída referente a settlements.',
+        nature: 'Despesa',
+      },
+      {
+        name: 'Ajuste Contábil',
+        description: 'Correções e provisões contábeis.',
+        nature: 'Ajuste',
+      },
     ],
   },
 
@@ -340,6 +421,56 @@ export const MASTER_DATA = {
         name: 'Cortesia',
         description: 'Ingresso gratuito',
         discount_percentage: 100,
+      },
+    ],
+  },
+
+  inventory: {
+    supplier_types: [
+      {
+        name: 'Distribuidora de Filmes',
+        description: 'Fornecedor de conteúdo cinematográfico',
+      },
+      {
+        name: 'Fornecedor de Alimentos',
+        description: 'Pipoca, doces, refrigerantes',
+      },
+      {
+        name: 'Fornecedor de Equipamentos',
+        description: 'Projetores, sistemas de som',
+      },
+      { name: 'Serviços Gerais', description: 'Limpeza, manutenção' },
+    ],
+  },
+
+  marketing: {
+    promotion_types: [
+      {
+        code: 'PERCENTUAL',
+        name: 'Desconto Percentual',
+        description: 'Aplica um percentual sobre o subtotal da venda.',
+      },
+      {
+        code: 'VALOR_FIXO',
+        name: 'Desconto em Valor Fixo',
+        description: 'Abate um valor fixo do subtotal até zerar o pedido.',
+      },
+      {
+        code: 'PRECO_FIXO',
+        name: 'Preço Fixo',
+        description:
+          'Define um preço final específico independentemente do subtotal.',
+      },
+      {
+        code: 'COMBO',
+        name: 'Combo Ingresso + Concessão',
+        description:
+          'Aplica desconto quando há combinação de ingressos e itens de concessão.',
+      },
+      {
+        code: 'CASHBACK',
+        name: 'Cashback em Pontos',
+        description: 'Concede pontos extras ou crédito para compras futuras.',
       },
     ],
   },

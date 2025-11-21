@@ -11,6 +11,8 @@ describe('ExhibitionContractsRepository', () => {
       findFirst: jest.fn(),
       findUnique: jest.fn(),
       findMany: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
     },
   };
 
@@ -70,10 +72,11 @@ describe('ExhibitionContractsRepository', () => {
           cinema_complex_id: complexoId,
           active: true,
           start_date: { lte: data },
-          OR: [{ end_date: { gte: data } }, { end_date: undefined }],
+          OR: [{ end_date: { gte: data } }, { end_date: null }],
         },
         include: {
           contract_types: true,
+          sliding_scales: { orderBy: { week_number: 'asc' } },
         },
       });
     });
@@ -136,7 +139,10 @@ describe('ExhibitionContractsRepository', () => {
       expect(resultado).toEqual(contratoMock);
       expect(prisma.exhibition_contracts.findUnique).toHaveBeenCalledWith({
         where: { id: contratoId },
-        include: { contract_types: true },
+        include: {
+          contract_types: true,
+          sliding_scales: { orderBy: { week_number: 'asc' } },
+        },
       });
     });
 
@@ -165,6 +171,11 @@ describe('ExhibitionContractsRepository', () => {
       expect(resultado).toEqual(contratosMock);
       expect(prisma.exhibition_contracts.findMany).toHaveBeenCalledWith({
         where: { movie_id: 'filme-123' },
+        include: {
+          contract_types: true,
+          sliding_scales: { orderBy: { week_number: 'asc' } },
+        },
+        orderBy: { start_date: 'desc' },
       });
     });
   });

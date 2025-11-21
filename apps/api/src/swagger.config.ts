@@ -15,7 +15,7 @@ export const TAG_GROUPS: TagGroup[] = [
     name: 'Identity',
     description:
       'Conjunto de endpoints responsáveis pela autenticação, autorização e gestão de identidade organizacional. Abrange login, controle de acesso baseado em papéis e cadastro de usuários e empresas. Essencial para o fluxo de segurança e controle de permissões do sistema.',
-    tags: ['Auth', 'Companies', 'Roles', 'Users'],
+    tags: ['Auth', 'Companies', 'Roles', 'User Management', 'Permissions'],
   },
   {
     name: 'Operations',
@@ -45,6 +45,59 @@ export const TAG_GROUPS: TagGroup[] = [
     description:
       'Camada de controle logístico e de suprimentos. Reúne endpoints voltados ao cadastro e gestão de fornecedores e insumos utilizados nas operações do cinema. Permite rastrear origem, disponibilidade e relacionamento com parceiros comerciais.',
     tags: ['Suppliers'],
+  },
+  {
+    name: 'Tax',
+    description:
+      'Módulo fiscal e tributário. Gerencia parâmetros de impostos municipais e federais, incluindo ISS, PIS, COFINS, IRPJ e CSLL. Permite configuração de alíquotas por município e regime tributário, essencial para cálculos fiscais automáticos e apurações mensais.',
+    tags: ['Tax'],
+  },
+  {
+    name: 'Contracts',
+    description:
+      'Módulo de contratos de exibição. Gerencia tipos de contratos e acordos com distribuidoras de filmes, incluindo escalas progressivas (sliding scales) e percentuais de divisão de receita. Essencial para cálculo de repasses e gestão de relacionamento com distribuidoras.',
+    tags: ['Contracts'],
+  },
+  {
+    name: 'Sales',
+    description:
+      'Módulo de vendas e bilheteria. Gerencia vendas de ingressos, produtos de concessão e processamento de pagamentos.',
+    tags: ['Sales', 'Tickets'],
+  },
+  {
+    name: 'Stock',
+    description:
+      'Módulo de controle de estoque. Gerencia movimentações de estoque, níveis de produtos e alertas de estoque baixo.',
+    tags: ['Stock Movements', 'Product Stock'],
+  },
+  {
+    name: 'Marketing',
+    description:
+      'Módulo de marketing e promoções. Gerencia campanhas promocionais, cupons e regras de desconto para vendas.',
+    tags: ['Campaigns'],
+  },
+  {
+    name: 'Finance',
+    description:
+      'Módulo financeiro e contábil. Gerencia plano de contas, lançamentos contábeis, conciliações com distribuidoras e demonstrações de resultados.',
+    tags: [
+      'Chart of Accounts',
+      'Journal Entries',
+      'Distributor Settlements',
+      'Income Statement',
+    ],
+  },
+  {
+    name: 'Public',
+    description:
+      'Endpoints públicos para acesso sem autenticação. Permite listar empresas, complexos, filmes, sessões e produtos disponíveis. Essencial para o site público de compra de ingressos.',
+    tags: ['Public'],
+  },
+  {
+    name: 'Customer',
+    description:
+      'Endpoints para clientes finais. Inclui autenticação (registro/login), perfil do cliente, pontos de fidelidade e histórico de compras. Permite que clientes gerenciem suas próprias informações.',
+    tags: ['Customer Auth', 'Customer'],
   },
 ];
 

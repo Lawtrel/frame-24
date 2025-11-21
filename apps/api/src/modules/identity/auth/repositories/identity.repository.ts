@@ -2,13 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { $Enums } from '@repo/db';
 import { Identity } from '../domain/entities/identity.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { IdentityMapper } from 'src/modules/identity/auth/infraestructure/mappers/indentity.mapper';
 
 type IdentityType = $Enums.identity_type;
 
 @Injectable()
 export class IdentityRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly snowflake: SnowflakeService,
+  ) {}
 
   async findByEmail(email: string): Promise<Identity | null> {
     const raw = await this.prisma.identities.findFirst({ where: { email } });
@@ -60,6 +64,7 @@ export class IdentityRepository {
   }): Promise<Identity> {
     const raw = await this.prisma.identities.create({
       data: {
+        id: this.snowflake.generate(),
         persons: { connect: { id: data.personId } },
         email: data.email,
         identity_type: 'EMPLOYEE',
@@ -82,6 +87,7 @@ export class IdentityRepository {
   }): Promise<Identity> {
     const raw = await this.prisma.identities.create({
       data: {
+        id: this.snowflake.generate(),
         persons: { connect: { id: data.personId } },
         email: data.email,
         identity_type: 'EMPLOYEE',
