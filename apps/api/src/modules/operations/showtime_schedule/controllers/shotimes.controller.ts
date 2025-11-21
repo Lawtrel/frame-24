@@ -39,7 +39,7 @@ import { ShowtimesService } from 'src/modules/operations/showtime_schedule/servi
 @Controller({ path: 'showtimes', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class ShowtimesController {
-  constructor(private readonly service: ShowtimesService) { }
+  constructor(private readonly service: ShowtimesService) {}
 
   @Post('preview')
   @RequirePermission('showtimes', 'create')

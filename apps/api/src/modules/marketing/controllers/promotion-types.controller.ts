@@ -30,9 +30,7 @@ import {
 @Controller({ path: 'promotion-types', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class PromotionTypesController {
-  constructor(
-    private readonly promotionTypesService: PromotionTypesService,
-  ) {}
+  constructor(private readonly promotionTypesService: PromotionTypesService) {}
 
   @Get()
   @RequirePermission('campaigns', 'read')
@@ -68,4 +66,3 @@ export class PromotionTypesController {
     return this.promotionTypesService.create(user.company_id, dto);
   }
 }
-
