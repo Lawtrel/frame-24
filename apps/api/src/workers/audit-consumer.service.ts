@@ -28,24 +28,53 @@ export class AuditConsumerService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger('AuditConsumer');
   private connection: ChannelModel | null = null;
   private channel: Channel | null = null;
+  private isConnecting = false;
 
-  constructor(private auditWorker: AuditWorkerService) {}
+  constructor(private auditWorker: AuditWorkerService) { }
 
   async onModuleInit(): Promise<void> {
-    this.logger.log('Iniciando consumer...');
+    this.logger.log('Starting consumer...');
     await this.connect();
   }
 
   async onModuleDestroy(): Promise<void> {
-    if (this.channel) await this.channel.close();
-    if (this.connection) await this.connection.close();
+    await this.close();
   }
 
   private async connect(): Promise<void> {
+    if (this.isConnecting) return;
+    this.isConnecting = true;
+
     try {
-      const url = 'amqp://frame24:frame24pass@localhost:5672';
+      const user = process.env.RABBITMQ_USER || 'frame24';
+      const password = process.env.RABBITMQ_PASSWORD || 'frame24pass';
+      const host = process.env.RABBITMQ_HOST || 'localhost';
+      const port = process.env.RABBITMQ_PORT || 5672;
+      const url = `amqp://${user}:${password}@${host}:${port}`;
+
       this.connection = await connect(url);
+
+      this.connection.on('error', (err) => {
+        this.logger.error(`Connection error: ${err.message}`);
+        this.handleDisconnect();
+      });
+
+      this.connection.on('close', () => {
+        this.logger.warn('Connection closed');
+        this.handleDisconnect();
+      });
+
       this.channel = await this.connection.createChannel();
+
+      this.channel.on('error', (err) => {
+        this.logger.error(`Channel error: ${err.message}`);
+      });
+
+      this.channel.on('close', () => {
+        this.logger.warn('Channel closed');
+        this.channel = null;
+      });
+
       await this.channel.assertExchange('frame24-events', 'topic', {
         durable: true,
       });
@@ -53,7 +82,7 @@ export class AuditConsumerService implements OnModuleInit, OnModuleDestroy {
       await this.channel.assertQueue('audit-queue', { durable: true });
 
       await this.channel.bindQueue('audit-queue', 'frame24-events', 'audit.#');
-      this.logger.log('Conectado! Escutando fila...');
+      this.logger.log('Connected! Listening to queue...');
 
       await this.channel.consume(
         'audit-queue',
@@ -62,16 +91,20 @@ export class AuditConsumerService implements OnModuleInit, OnModuleDestroy {
 
           this.processMessage(msg).catch((error) => {
             this.logger.error(
-              `Erro ao processar: ${error instanceof Error ? error.message : 'Unknown'}`,
+              `Error processing message: ${error instanceof Error ? error.message : 'Unknown'}`,
               error instanceof Error ? error.stack : '',
             );
+            // Requeue the message if processing failed, but be careful about infinite loops
+            // For now, we nack without requeue to avoid blocking, or we could implement a dead letter queue
             this.channel?.nack(msg, false, false);
           });
         },
       );
+      this.isConnecting = false;
     } catch (error) {
+      this.isConnecting = false;
       this.logger.error(
-        `Conexão falhou: ${error instanceof Error ? error.message : String(error)}`,
+        `Connection failed: ${error instanceof Error ? error.message : String(error)}`,
       );
 
       setTimeout(() => {
@@ -85,15 +118,38 @@ export class AuditConsumerService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  private async processMessage(msg: ConsumeMessage): Promise<void> {
-    const content = JSON.parse(msg.content.toString()) as AuditMessage;
-    this.logger.log(`Recebido: ${content.pattern}`);
-
-    if (content.pattern?.startsWith('audit.')) {
-      await this.auditWorker.handleAuditEvent(content);
-      this.logger.log(`Processado: ${content.pattern}`);
+  private handleDisconnect() {
+    this.connection = null;
+    this.channel = null;
+    if (!this.isConnecting) {
+      setTimeout(() => this.connect(), 5000);
     }
+  }
 
-    this.channel?.ack(msg);
+  private async close() {
+    try {
+      if (this.channel) await this.channel.close();
+      if (this.connection) await this.connection.close();
+    } catch (err) {
+      // Ignore errors
+    }
+  }
+
+  private async processMessage(msg: ConsumeMessage): Promise<void> {
+    try {
+      const content = JSON.parse(msg.content.toString()) as AuditMessage;
+      this.logger.debug(`Received: ${content.pattern}`);
+
+      if (content.pattern?.startsWith('audit.')) {
+        await this.auditWorker.handleAuditEvent(content);
+        this.logger.debug(`Processed: ${content.pattern}`);
+      }
+
+      this.channel?.ack(msg);
+    } catch (error) {
+      this.logger.error(`Failed to parse or process message: ${error}`);
+      // If JSON parse fails, we should probably ack or nack without requeue as it will never succeed
+      this.channel?.nack(msg, false, false);
+    }
   }
 }

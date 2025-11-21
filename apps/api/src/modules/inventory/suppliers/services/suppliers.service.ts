@@ -147,4 +147,13 @@ export class SuppliersService {
 
     return this.repository.findDistributors(company_id);
   }
+
+  async findTypes(company_id: string) {
+    this.logger.log(
+      `Listing supplier types: company=${company_id}`,
+      SuppliersService.name,
+    );
+
+    return this.repository.findTypes(company_id);
+  }
 }

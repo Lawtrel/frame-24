@@ -24,6 +24,7 @@ export class ShowtimesRepository {
         sold_seats: true,
         blocked_seats: true,
         movie_id: true,
+        room_id: true,
         rooms: {
           select: {
             id: true,
