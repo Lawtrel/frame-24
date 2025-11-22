@@ -21,7 +21,7 @@ export class RolesService {
     private readonly roleRepo: CustomRoleRepository,
     private readonly logger: LoggerService,
     private readonly snowflake: SnowflakeService,
-  ) { }
+  ) {}
 
   @Transactional()
   async create(

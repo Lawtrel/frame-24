@@ -33,7 +33,7 @@ import {
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 @ApiBearerAuth('access-token')
 export class AuditLogController {
-  constructor(private readonly service: AuditLogService) { }
+  constructor(private readonly service: AuditLogService) {}
 
   @Get()
   @RequirePermission('audit', 'read')

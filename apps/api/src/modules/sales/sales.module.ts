@@ -60,4 +60,4 @@ import { TransactionsModule } from '../finance/transactions/transactions.module'
     ConcessionSalesRepository,
   ],
 })
-export class SalesModule { }
+export class SalesModule {}
