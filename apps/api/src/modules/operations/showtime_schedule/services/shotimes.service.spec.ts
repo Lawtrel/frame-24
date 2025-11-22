@@ -17,6 +17,7 @@ import { ProjectionTypesRepository } from 'src/modules/operations/projection-typ
 import { AudioTypesRepository } from 'src/modules/operations/audio-types/repositories/audio-types.repository';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { RabbitMQPublisherService } from 'src/common/rabbitmq/rabbitmq-publisher.service';
+import { CacheService } from 'src/common/cache/cache.service';
 import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 
 describe('ShowtimesService', () => {
@@ -159,6 +160,15 @@ describe('ShowtimesService', () => {
           provide: RabbitMQPublisherService,
           useValue: {
             publish: jest.fn(),
+          },
+        },
+        {
+          provide: CacheService,
+          useValue: {
+            wrap: jest.fn((key, fn) => fn()),
+            get: jest.fn(),
+            set: jest.fn(),
+            del: jest.fn(),
           },
         },
       ],

@@ -5,12 +5,16 @@ import { ZodValidationPipe } from 'nestjs-zod';
 import { apiReference } from '@scalar/nestjs-api-reference';
 import { Request, Response } from 'express';
 import helmet from 'helmet';
+import compression from 'compression';
 import { AppModule } from './app.module';
 import { getAllTags, TAG_GROUPS } from './swagger.config';
 import { VersioningType } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Enable compression
+  app.use(compression());
 
   // Security: HTTP headers protection
   app.use(
