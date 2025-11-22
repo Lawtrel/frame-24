@@ -21,6 +21,10 @@ import { TicketsRepository } from './repositories/tickets.repository';
 import { ConcessionSalesRepository } from './repositories/concession-sales.repository';
 import { SeatsReservationGateway } from './gateways/seats-reservation.gateway';
 
+import { CashFlowModule } from '../finance/cash-flow/cash-flow.module';
+import { AccountsReceivableModule } from '../finance/accounts-receivable/accounts-receivable.module';
+import { TransactionsModule } from '../finance/transactions/transactions.module';
+
 @Module({
   imports: [
     PrismaModule,
@@ -33,6 +37,9 @@ import { SeatsReservationGateway } from './gateways/seats-reservation.gateway';
     ProductsModule,
     TaxModule,
     MarketingModule,
+    CashFlowModule,
+    AccountsReceivableModule,
+    TransactionsModule,
   ],
   controllers: [SalesController, TicketsController],
   providers: [
@@ -53,4 +60,4 @@ import { SeatsReservationGateway } from './gateways/seats-reservation.gateway';
     ConcessionSalesRepository,
   ],
 })
-export class SalesModule {}
+export class SalesModule { }

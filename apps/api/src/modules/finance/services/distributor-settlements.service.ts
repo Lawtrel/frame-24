@@ -3,12 +3,15 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { CreateDistributorSettlementDto } from '../dto/create-distributor-settlement.dto';
 
+import { AccountsPayableService } from '../accounts-payable/services/accounts-payable.service';
+
 @Injectable()
 export class DistributorSettlementsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly snowflake: SnowflakeService,
-  ) {}
+    private readonly accountsPayableService: AccountsPayableService,
+  ) { }
 
   private async ensureComplexBelongsToCompany(
     cinema_complex_id: string,
@@ -112,7 +115,7 @@ export class DistributorSettlementsService {
     const finalAmount = Math.max(calculatedAmount - deductions, 0);
     const netAmount = Math.max(finalAmount - taxes, 0);
 
-    return this.prisma.distributor_settlements.create({
+    const settlement = await this.prisma.distributor_settlements.create({
       data: {
         id: this.snowflake.generate(),
         contract_id: dto.contract_id,
@@ -134,5 +137,31 @@ export class DistributorSettlementsService {
         status: undefined,
       },
     });
+
+    // Create Account Payable
+    try {
+      if (netAmount > 0) {
+        await this.accountsPayableService.create(company_id, {
+          cinema_complex_id: dto.cinema_complex_id,
+          supplier_id: dto.distributor_id,
+          source_type: 'distributor_settlement',
+          source_id: settlement.id,
+          document_number: `SETT-${settlement.id.substring(0, 8)}`,
+          description: `Acerto Distribuidor - Contrato ${dto.contract_id}`,
+          issue_date: new Date().toISOString().split('T')[0],
+          due_date: new Date(dto.competence_end_date).toISOString().split('T')[0], // Assuming due date is end of competence
+          competence_date: new Date(dto.competence_start_date).toISOString().split('T')[0],
+          original_amount: netAmount,
+          interest_amount: 0,
+          penalty_amount: 0,
+          discount_amount: 0,
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao criar conta a pagar para acerto:', error);
+      // Don't fail the settlement creation, but log error
+    }
+
+    return settlement;
   }
 }

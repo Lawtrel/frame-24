@@ -13,6 +13,9 @@ import { LoggerService } from 'src/common/services/logger.service';
 import { RabbitMQPublisherService } from 'src/common/rabbitmq/rabbitmq-publisher.service';
 import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 
+import { CashFlowEntriesService } from 'src/modules/finance/cash-flow/services/cash-flow-entries.service';
+import { BankAccountsRepository } from 'src/modules/finance/cash-flow/repositories/bank-accounts.repository';
+
 @Injectable()
 export class TaxEntriesService {
   constructor(
@@ -21,7 +24,9 @@ export class TaxEntriesService {
     private readonly cinemaComplexesRepository: CinemaComplexesRepository,
     private readonly logger: LoggerService,
     private readonly rabbitmq: RabbitMQPublisherService,
-  ) {}
+    private readonly cashFlowEntriesService: CashFlowEntriesService,
+    private readonly bankAccountsRepository: BankAccountsRepository,
+  ) { }
 
   async findAll(
     user: RequestUser,
@@ -143,6 +148,38 @@ export class TaxEntriesService {
       `Lançamento fiscal criado: ${entry.id} - R$ ${calculation.gross_amount.toFixed(2)}`,
       TaxEntriesService.name,
     );
+
+    // Lançamento no Fluxo de Caixa (Previsão de Pagamento de Impostos)
+    try {
+      const bankAccounts = await this.bankAccountsRepository.findAll(company_id);
+      const defaultAccount = bankAccounts.find((acc: any) => acc.active);
+
+      if (defaultAccount) {
+        const totalTaxes = Number(entry.iss_amount || 0) + Number(entry.pis_amount_payable) + Number(entry.cofins_amount_payable);
+
+        if (totalTaxes > 0) {
+          await this.cashFlowEntriesService.create(company_id, 'SYSTEM', {
+            bank_account_id: defaultAccount.id,
+            cinema_complex_id: dto.cinema_complex_id,
+            entry_type: 'payment',
+            category: 'tax',
+            amount: totalTaxes,
+            entry_date: new Date().toISOString().split('T')[0],
+            competence_date: dto.competence_date.toISOString().split('T')[0],
+            description: `Impostos (ISS/PIS/COFINS) - Ref. ${entry.id}`,
+            document_number: entry.id,
+            source_type: 'TAX_ENTRY',
+            source_id: entry.id,
+            status: 'pending',
+          });
+        }
+      }
+    } catch (error) {
+      this.logger.error(
+        `Erro ao criar lançamento de fluxo de caixa para impostos ${entry.id}: ${error}`,
+        TaxEntriesService.name,
+      );
+    }
 
     return this.mapToDto(entry);
   }
