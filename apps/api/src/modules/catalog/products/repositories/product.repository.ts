@@ -8,7 +8,7 @@ export class ProductRepository {
   constructor(
     private readonly prisma: PrismaService,
     private readonly snowflake: SnowflakeService,
-  ) {}
+  ) { }
 
   async findById(
     id: string,
@@ -111,6 +111,23 @@ export class ProductRepository {
         },
       },
       orderBy: { name: 'asc' },
+    });
+  }
+
+  async findAllByIds(
+    ids: string[],
+    company_id: string,
+  ): Promise<(products & { product_categories: { name: string } | null })[]> {
+    return this.prisma.products.findMany({
+      where: {
+        id: { in: ids },
+        company_id,
+      },
+      include: {
+        product_categories: {
+          select: { name: true },
+        },
+      },
     });
   }
 

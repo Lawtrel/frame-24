@@ -421,47 +421,154 @@ export class SeatsReservationGateway
     }
   }
 
-  private cleanExpiredReservations() {
+  private async cleanExpiredReservations() {
     const now = new Date();
-    // Verificar memória
+    const expiredUuids: string[] = [];
+
+    // 1. Identificar expirados em memória
     for (const [uuid, reservation] of this.reservations.entries()) {
       if (reservation.expires_at < now) {
-        // Precisamos do company_id para buscar o status "Disponível".
-        // Como não temos aqui, podemos buscar do banco ou assumir um padrão.
-        // O ideal seria ter company_id na reserva em memória.
-        // Vou buscar uma das seats para pegar o company_id através das relações, ou melhor:
-        // Adicionar company_id na interface SeatReservation seria o ideal, mas requer refatoração maior.
-        // Vou fazer uma query para pegar o company_id.
-
-        this.expireReservationWrapper(uuid);
+        expiredUuids.push(uuid);
       }
     }
-  }
 
-  private async expireReservationWrapper(uuid: string) {
-    // Buscar company_id através da reserva
-    const reservation = await this.prisma.session_seat_status.findFirst({
-      where: { reservation_uuid: uuid },
-      include: {
-        showtime_schedule: {
-          include: {
-            cinema_complexes: true,
+    if (expiredUuids.length === 0) return;
+
+    this.logger.log(
+      `Cleaning ${expiredUuids.length} expired reservations...`,
+      'SeatsReservationGateway',
+    );
+
+    try {
+      // 2. Buscar company_ids para notificar corretamente (opcional, mas bom para manter consistência)
+      // Para otimizar, vamos assumir que a limpeza do banco é o principal e a notificação
+      // pode ser feita buscando os dados dos assentos que foram liberados.
+
+      // 3. Limpar no banco em lote
+      // Primeiro buscamos para saber quem notificar
+      const seatsToFree = await this.prisma.session_seat_status.findMany({
+        where: {
+          reservation_uuid: { in: expiredUuids },
+        },
+        select: {
+          showtime_id: true,
+          seat_id: true,
+          reservation_uuid: true,
+          showtime_schedule: {
+            select: {
+              cinema_complexes: {
+                select: {
+                  company_id: true,
+                },
+              },
+            },
           },
         },
-      },
-    });
+      });
 
-    if (
-      reservation &&
-      reservation.showtime_schedule?.cinema_complexes?.company_id
-    ) {
-      await this.expireReservation(
-        uuid,
-        reservation.showtime_schedule.cinema_complexes.company_id,
+      if (seatsToFree.length > 0) {
+        // Agrupar por company para buscar status "Disponível"
+        // Assumindo que status "Disponível" tem o mesmo nome em todas as companies,
+        // mas IDs diferentes. Precisamos buscar o ID do status para cada company.
+        // Isso pode ser complexo em lote.
+        // Simplificação: Vamos iterar por company encontrada.
+
+        const companies = new Set(
+          seatsToFree
+            .map((s) => s.showtime_schedule?.cinema_complexes?.company_id)
+            .filter((id): id is string => !!id),
+        );
+
+        for (const companyId of companies) {
+          const availableStatus =
+            await this.seatStatusRepository.findByNameAndCompany(
+              'Disponível',
+              companyId,
+            );
+
+          if (availableStatus) {
+            const seatsForCompany = seatsToFree.filter(
+              (s) =>
+                s.showtime_schedule?.cinema_complexes?.company_id === companyId,
+            );
+            const uuidsForCompany = seatsForCompany
+              .map((s) => s.reservation_uuid)
+              .filter((uuid): uuid is string => !!uuid);
+
+            if (uuidsForCompany.length > 0) {
+              await this.prisma.session_seat_status.updateMany({
+                where: {
+                  reservation_uuid: { in: uuidsForCompany },
+                },
+                data: {
+                  status: availableStatus.id,
+                  reservation_uuid: null,
+                  reservation_date: null,
+                  expiration_date: null,
+                },
+              });
+            }
+          }
+        }
+
+        // 4. Notificar clientes
+        // Agrupar por showtime
+        const byShowtime = seatsToFree.reduce(
+          (acc, curr) => {
+            if (!acc[curr.showtime_id]) {
+              acc[curr.showtime_id] = [];
+            }
+            acc[curr.showtime_id].push(curr);
+            return acc;
+          },
+          {} as Record<string, typeof seatsToFree>,
+        );
+
+        for (const [showtimeId, seats] of Object.entries(byShowtime)) {
+          const seatIds = seats.map((s) => s.seat_id);
+          // Podemos emitir múltiplos eventos ou um agrupado.
+          // O front espera { seat_ids, reservation_uuid }.
+          // Se mandarmos array de seat_ids e um uuid null ou genérico, o front entende?
+          // O protocolo atual parece ligar seat_ids a um reservation_uuid.
+          // Vamos emitir um evento para cada grupo de UUID original para manter compatibilidade estrita,
+          // ou melhor, emitir um evento genérico de liberação se o front suportar.
+          // Olhando o código original: emit('seats-released', { seat_ids, reservation_uuid })
+          // Vamos agrupar por UUID para notificar corretamente.
+
+          const byUuid = seats.reduce(
+            (acc, curr) => {
+              const uuid = curr.reservation_uuid || 'unknown';
+              if (!acc[uuid]) acc[uuid] = [];
+              acc[uuid].push(curr.seat_id);
+              return acc;
+            },
+            {} as Record<string, string[]>,
+          );
+
+          for (const [uuid, sIds] of Object.entries(byUuid)) {
+            this.server.to(`showtime:${showtimeId}`).emit('seats-released', {
+              seat_ids: sIds,
+              reservation_uuid: uuid,
+            });
+          }
+        }
+      }
+
+      // 5. Remover da memória
+      for (const uuid of expiredUuids) {
+        this.reservations.delete(uuid);
+      }
+
+      this.logger.log(
+        `Cleaned ${expiredUuids.length} expired reservations.`,
+        'SeatsReservationGateway',
       );
-    } else {
-      // Se não achar, remove da memória apenas
-      this.reservations.delete(uuid);
+    } catch (error) {
+      this.logger.error(
+        `Error cleaning expired reservations: ${error}`,
+        '',
+        'SeatsReservationGateway',
+      );
     }
   }
 }

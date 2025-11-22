@@ -38,6 +38,7 @@ import { FederalTaxRatesRepository } from 'src/modules/tax/repositories/federal-
 import { SeatTypesRepository } from 'src/modules/operations/seat-types/repositories/seat-types.repository';
 import { ProjectionTypesRepository } from 'src/modules/operations/projection-types/repositories/projection-types.repository';
 import { AudioTypesRepository } from 'src/modules/operations/audio-types/repositories/audio-types.repository';
+import { CacheService } from 'src/common/cache/cache.service';
 
 export interface ShowtimeDetailsDto {
   id: string;
@@ -142,7 +143,8 @@ export class ShowtimesService {
     private readonly seatTypesRepository: SeatTypesRepository,
     private readonly projectionTypesRepository: ProjectionTypesRepository,
     private readonly audioTypesRepository: AudioTypesRepository,
-  ) {}
+    private readonly cacheService: CacheService,
+  ) { }
 
   async findOne(id: string, user: RequestUser): Promise<ShowtimeDetailsDto> {
     const showtime = await this.showtimesRepository.findById(id);
@@ -210,22 +212,27 @@ export class ShowtimesService {
   ): Promise<ShowtimeFinancialBreakdown> {
     const companyId = user.company_id;
 
-    // Validar filme
-    const movie = await this.moviesRepository.findById(dto.movie_id);
+    // Validar filme e sala em paralelo
+    const [movie, room] = await Promise.all([
+      this.moviesRepository.findById(dto.movie_id),
+      this.roomsRepository.findById(dto.room_id),
+    ]);
+
     if (!movie || movie.company_id !== companyId) {
       throw new NotFoundException('Filme não encontrado.');
     }
 
-    // Validar sala
-    const room = await this.roomsRepository.findById(dto.room_id);
     if (!room) {
       throw new NotFoundException('Sala não encontrada.');
     }
 
-    // Validar complexo
-    const complex = await this.cinemaComplexesRepository.findById(
-      room.cinema_complex_id,
+    // Validar complexo (com cache)
+    const complex = await this.cacheService.wrap(
+      `complex:${room.cinema_complex_id}`,
+      () => this.cinemaComplexesRepository.findById(room.cinema_complex_id),
+      3600000, // 1 hora
     );
+
     if (!complex || complex.company_id !== companyId) {
       throw new ForbiddenException(
         'Acesso negado. Esta sala não pertence à sua empresa.',
@@ -308,9 +315,9 @@ export class ShowtimesService {
     const averageSeatPrice =
       totalSeats > 0
         ? seatPricingDetails.reduce(
-            (sum, seat) => sum + seat.final_price * seat.seat_count,
-            0,
-          ) / totalSeats
+          (sum, seat) => sum + seat.final_price * seat.seat_count,
+          0,
+        ) / totalSeats
         : basePriceWithModifiers;
 
     return {
@@ -411,8 +418,11 @@ export class ShowtimesService {
       return 0;
     }
 
-    const projectionType =
-      await this.projectionTypesRepository.findById(projectionTypeId);
+    const projectionType = await this.cacheService.wrap(
+      `projection_type:${projectionTypeId}`,
+      () => this.projectionTypesRepository.findById(projectionTypeId),
+      3600000,
+    );
 
     if (!projectionType) {
       return 0;
@@ -435,7 +445,11 @@ export class ShowtimesService {
       return 0;
     }
 
-    const audioType = await this.audioTypesRepository.findById(audioTypeId);
+    const audioType = await this.cacheService.wrap(
+      `audio_type:${audioTypeId}`,
+      () => this.audioTypesRepository.findById(audioTypeId),
+      3600000,
+    );
 
     if (!audioType) {
       return 0;
@@ -575,7 +589,13 @@ export class ShowtimesService {
         'Não é possível criar uma sessão para uma data no passado.',
       );
     }
-    const movie = await this.moviesRepository.findById(dto.movie_id);
+
+    // Validar filme e sala em paralelo
+    const [movie, room] = await Promise.all([
+      this.moviesRepository.findById(dto.movie_id),
+      this.roomsRepository.findById(dto.room_id),
+    ]);
+
     if (!movie || movie.company_id !== companyId) {
       throw new NotFoundException('Filme não encontrado.');
     }
@@ -586,7 +606,6 @@ export class ShowtimesService {
       );
     }
 
-    const room = await this.roomsRepository.findById(dto.room_id);
     if (!room) {
       throw new NotFoundException('Sala não encontrada.');
     }
@@ -608,9 +627,13 @@ export class ShowtimesService {
       );
     }
 
-    const complex = await this.cinemaComplexesRepository.findById(
-      room.cinema_complex_id,
+    // Validar complexo (com cache)
+    const complex = await this.cacheService.wrap(
+      `complex:${room.cinema_complex_id}`,
+      () => this.cinemaComplexesRepository.findById(room.cinema_complex_id),
+      3600000,
     );
+
     if (!complex || complex.company_id !== companyId) {
       throw new ForbiddenException(
         'Acesso negado. Esta sala não pertence à sua empresa.',
@@ -649,8 +672,11 @@ export class ShowtimesService {
     );
     const activeSeats = seatPricingContext.activeSeats;
 
-    const availableStatus =
-      await this.seatStatusRepository.findDefaultByCompany(companyId);
+    const availableStatus = await this.cacheService.wrap(
+      `seat_status_default:${companyId}`,
+      () => this.seatStatusRepository.findDefaultByCompany(companyId),
+      3600000,
+    );
 
     if (!availableStatus) {
       throw new NotFoundException(
@@ -662,7 +688,7 @@ export class ShowtimesService {
     const seatStatusData = activeSeats.map((seat) => {
       const additionalValue = seat.seat_type
         ? seatPricingContext.seatTypeMeta.get(seat.seat_type)
-            ?.additionalValue || 0
+          ?.additionalValue || 0
         : 0;
       return {
         id: this.snowflake.generate(),
