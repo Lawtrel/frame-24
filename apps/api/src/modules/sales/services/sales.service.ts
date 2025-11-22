@@ -91,13 +91,45 @@ export class SalesService {
       throw new NotFoundException('Complexo de cinema não encontrado');
     }
 
-    // Validar assentos e reservar
+    // 1. Preparação de Dados em Lote
+    // Coletar IDs para buscas em lote
     const seatIds = dto.tickets
       .map((t) => t.seat_id)
       .filter((id): id is string => Boolean(id));
 
+    const productItemIds =
+      dto.concession_items
+        ?.filter((i) => i.item_type === 'PRODUCT')
+        .map((i) => i.item_id) || [];
+
+    // Buscas paralelas (Promise.all)
+    const [productsMap, productPricesMap] = await Promise.all([
+      // Buscar produtos
+      productItemIds.length > 0
+        ? this.productsRepository
+            .findAllByIds(productItemIds, company_id)
+            .then((items) => new Map(items.map((p) => [p.id, p])))
+        : Promise.resolve(new Map()),
+
+      // Buscar preços de produtos
+      productItemIds.length > 0
+        ? this.productPricesRepository
+            .findActivePricesByProductIds(
+              productItemIds,
+              dto.cinema_complex_id,
+              company_id,
+            )
+            .then((prices) => {
+              // Mapear preço por produto_id
+              const map = new Map();
+              prices.forEach((p) => map.set(p.product_id, p));
+              return map;
+            })
+        : Promise.resolve(new Map()),
+    ]);
+
+    // 2. Validação e Reserva de Assentos
     if (seatIds.length > 0) {
-      // Validar que todos os tickets da mesma sessão usam assentos únicos
       const showtimeSeats = new Map<string, Set<string>>();
       for (const ticket of dto.tickets) {
         if (ticket.seat_id) {
@@ -114,66 +146,79 @@ export class SalesService {
         }
       }
 
-      // Validar e reservar assentos
-      for (const [showtime_id, seats] of showtimeSeats.entries()) {
-        await this.ticketsService.validateAndReserveSeats(
-          showtime_id,
-          Array.from(seats),
-          company_id,
-        );
-      }
+      // Paralelizar reservas por sessão
+      await Promise.all(
+        Array.from(showtimeSeats.entries()).map(([showtime_id, seats]) =>
+          this.ticketsService.validateAndReserveSeats(
+            showtime_id,
+            Array.from(seats),
+            company_id,
+          ),
+        ),
+      );
     }
 
-    // Calcular totais dos tickets
-    let ticketsTotal = 0;
-    const ticketData = [];
-
-    for (const ticketDto of dto.tickets) {
+    // 3. Cálculo de Tickets (Otimizado)
+    const ticketPromises = dto.tickets.map(async (ticketDto) => {
       const pricing = await this.ticketsService.calculateTicketPrice(
         ticketDto.showtime_id,
         ticketDto.seat_id,
         ticketDto.ticket_type,
         company_id,
       );
-
-      ticketsTotal += pricing.total_amount;
-      ticketData.push({
+      return {
         ...ticketDto,
         pricing,
-      });
-    }
+      };
+    });
 
-    // Calcular totais de concessão (se houver)
+    const ticketData = await Promise.all(ticketPromises);
+    const ticketsTotal = ticketData.reduce(
+      (sum, t) => sum + t.pricing.total_amount,
+      0,
+    );
+
+    // 4. Cálculo de Concessão (Otimizado)
     let concessionTotal = 0;
+    const concessionItemsData: any[] = [];
+
     if (dto.concession_items && dto.concession_items.length > 0) {
       for (const item of dto.concession_items) {
         let unitPrice = 0;
 
         if (item.item_type === 'PRODUCT') {
-          // Buscar preço do produto
-          const product = await this.productsRepository.findById(
-            item.item_id,
-            company_id,
-          );
+          const product = productsMap.get(item.item_id);
           if (!product) {
-            throw new NotFoundException(
-              `Produto ${item.item_id} não encontrado`,
+            // Fallback se não veio no lote
+            const found = await this.productsRepository.findById(
+              item.item_id,
+              company_id,
             );
+            if (!found)
+              throw new NotFoundException(
+                `Produto ${item.item_id} não encontrado`,
+              );
           }
 
-          const price = await this.productPricesRepository.findActivePrice(
-            item.item_id,
-            dto.cinema_complex_id,
-            company_id,
-          );
+          const price = productPricesMap.get(item.item_id);
 
           if (!price) {
-            throw new ProductPriceNotFoundException(product.name);
+            // Tentar buscar individualmente
+            const foundPrice =
+              await this.productPricesRepository.findActivePrice(
+                item.item_id,
+                dto.cinema_complex_id,
+                company_id,
+              );
+            if (!foundPrice)
+              throw new ProductPriceNotFoundException(
+                product?.name || item.item_id,
+              );
+            unitPrice = Number(foundPrice.sale_price);
+          } else {
+            unitPrice = Number(price.sale_price);
           }
-
-          unitPrice = Number(price.sale_price);
         } else if (item.item_type === 'COMBO') {
-          // Buscar preço do combo
           unitPrice = await this.combosRepository.getComboPrice(
             item.item_id,
             company_id,
@@ -181,12 +226,19 @@ export class SalesService {
           );
         }
 
-        concessionTotal += unitPrice * item.quantity;
+        const totalPrice = unitPrice * item.quantity;
+        concessionTotal += totalPrice;
+        concessionItemsData.push({
+          ...item,
+          unitPrice,
+          totalPrice,
+        });
       }
     }
 
     const total_amount = ticketsTotal + concessionTotal;
 
+    // 5. Promoções e Descontos
     const manualDiscount = dto.discount_amount || 0;
     let promotionResult: PromotionApplicationResult | null = null;
 
@@ -209,11 +261,10 @@ export class SalesService {
       );
     }
 
-    // Gerar número da venda
+    // 6. Persistência (Transação)
     const sale_number =
       await this.salesRepository.generateSaleNumber(company_id);
 
-    // Criar venda
     const sale = await this.salesRepository.create({
       sale_number,
       sale_date: new Date(),
@@ -231,46 +282,46 @@ export class SalesService {
       ...(user_id && { user_id }),
     });
 
-    // Criar tickets
-    for (const ticketInfo of ticketData) {
-      const ticket_number = this.ticketsRepository.generateTicketNumber();
+    // Criar tickets em paralelo
+    await Promise.all(
+      ticketData.map(async (ticketInfo) => {
+        const ticket_number = this.ticketsRepository.generateTicketNumber();
 
-      // Buscar assento se houver
-      let seatCode: string | null = null;
-      if (ticketInfo.seat_id) {
-        const seat = await this.ticketsService.seatsRepository.findById(
-          ticketInfo.seat_id,
-        );
-        seatCode = seat?.seat_code || null;
-      }
+        let seatCode: string | null = null;
+        if (ticketInfo.seat_id) {
+          const seat = await this.ticketsService.seatsRepository.findById(
+            ticketInfo.seat_id,
+          );
+          seatCode = seat?.seat_code || null;
+        }
 
-      await this.ticketsRepository.create({
-        sales: { connect: { id: sale.id } },
-        ticket_number,
-        showtime_id: ticketInfo.showtime_id,
-        ...(ticketInfo.seat_id && { seat_id: ticketInfo.seat_id }),
-        ...(ticketInfo.ticket_type && {
-          ticket_types: { connect: { id: ticketInfo.ticket_type } },
-        }),
-        face_value: ticketInfo.pricing.face_value,
-        service_fee: ticketInfo.pricing.service_fee,
-        total_amount: ticketInfo.pricing.total_amount,
-        seat: seatCode,
-      });
+        await this.ticketsRepository.create({
+          sales: { connect: { id: sale.id } },
+          ticket_number,
+          showtime_id: ticketInfo.showtime_id,
+          ...(ticketInfo.seat_id && { seat_id: ticketInfo.seat_id }),
+          ...(ticketInfo.ticket_type && {
+            ticket_types: { connect: { id: ticketInfo.ticket_type } },
+          }),
+          face_value: ticketInfo.pricing.face_value,
+          service_fee: ticketInfo.pricing.service_fee,
+          total_amount: ticketInfo.pricing.total_amount,
+          seat: seatCode,
+        });
 
-      // Reservar assento se houver
-      if (ticketInfo.seat_id) {
-        await this.ticketsService.reserveSeats(
-          ticketInfo.showtime_id,
-          [ticketInfo.seat_id],
-          sale.id,
-          company_id,
-        );
-      }
-    }
+        if (ticketInfo.seat_id) {
+          await this.ticketsService.reserveSeats(
+            ticketInfo.showtime_id,
+            [ticketInfo.seat_id],
+            sale.id,
+            company_id,
+          );
+        }
+      }),
+    );
 
-    // Criar venda de concessão (se houver)
-    if (dto.concession_items && dto.concession_items.length > 0) {
+    // Criar concessão
+    if (concessionItemsData.length > 0) {
       const concessionSale = await this.concessionSalesRepository.create({
         sales: { connect: { id: sale.id } },
         sale_date: new Date(),
@@ -279,142 +330,122 @@ export class SalesService {
         net_amount: concessionTotal,
       });
 
-      // Criar itens de concessão
-      for (const item of dto.concession_items) {
-        let unitPrice = 0;
-
-        if (item.item_type === 'PRODUCT') {
-          const price = await this.productPricesRepository.findActivePrice(
-            item.item_id,
-            dto.cinema_complex_id,
-            company_id,
-          );
-
-          if (!price) {
-            const product = await this.productsRepository.findById(
-              item.item_id,
-              company_id,
-            );
-            throw new ProductPriceNotFoundException(
-              product?.name || item.item_id,
-            );
-          }
-
-          unitPrice = Number(price.sale_price);
-        } else if (item.item_type === 'COMBO') {
-          unitPrice = await this.combosRepository.getComboPrice(
-            item.item_id,
-            company_id,
-            new Date(),
-          );
-        }
-
-        const totalPrice = unitPrice * item.quantity;
-
-        await this.concessionSalesRepository.createItem({
-          concession_sales: { connect: { id: concessionSale.id } },
-          item_type: item.item_type,
-          item_id: item.item_id,
-          quantity: item.quantity,
-          unit_price: unitPrice,
-          total_price: totalPrice,
-        });
-      }
+      await Promise.all(
+        concessionItemsData.map((item) =>
+          this.concessionSalesRepository.createItem({
+            concession_sales: { connect: { id: concessionSale.id } },
+            item_type: item.item_type,
+            item_id: item.item_id,
+            quantity: item.quantity,
+            unit_price: item.unitPrice,
+            total_price: item.totalPrice,
+          }),
+        ),
+      );
     }
 
-    // Criar lançamentos fiscais automaticamente
+    // 7. Impostos (Assíncrono/Paralelo)
     const competenceDate = new Date();
     competenceDate.setHours(0, 0, 0, 0);
 
     try {
-      // Tax entry para receita de bilheteria (tickets)
+      const taxPromises = [];
+
       if (ticketsTotal > 0) {
-        const taxCalculation = await this.taxCalculationService.calculateTaxes({
-          gross_amount: ticketsTotal,
-          deductions_amount: discount_amount,
-          cinema_complex_id: dto.cinema_complex_id,
-          company_id,
-          competence_date: competenceDate,
-          revenue_type: 'BOX_OFFICE',
-        });
-
-        await this.taxEntriesRepository.create({
-          cinema_complex_id: dto.cinema_complex_id,
-          source_type: 'SALE',
-          source_id: sale.id,
-          competence_date: competenceDate,
-          gross_amount: taxCalculation.gross_amount,
-          deductions_amount: taxCalculation.deductions_amount,
-          calculation_base: taxCalculation.calculation_base,
-          apply_iss: true,
-          iss_rate: taxCalculation.iss_rate,
-          iss_amount: taxCalculation.iss_amount,
-          ibge_municipality_code: taxCalculation.ibge_municipality_code,
-          ...(taxCalculation.iss_service_code && {
-            iss_service_code: taxCalculation.iss_service_code,
-          }),
-          pis_cofins_regime: taxCalculation.pis_cofins_regime,
-          pis_rate: taxCalculation.pis_rate,
-          pis_debit_amount: taxCalculation.pis_debit_amount,
-          pis_credit_amount: taxCalculation.pis_credit_amount,
-          pis_amount_payable: taxCalculation.pis_amount_payable,
-          cofins_rate: taxCalculation.cofins_rate,
-          cofins_debit_amount: taxCalculation.cofins_debit_amount,
-          cofins_credit_amount: taxCalculation.cofins_credit_amount,
-          cofins_amount_payable: taxCalculation.cofins_amount_payable,
-          processing_user_id: user_id || null,
-          processed: false,
-        });
+        taxPromises.push(
+          this.taxCalculationService
+            .calculateTaxes({
+              gross_amount: ticketsTotal,
+              deductions_amount: discount_amount,
+              cinema_complex_id: dto.cinema_complex_id,
+              company_id,
+              competence_date: competenceDate,
+              revenue_type: 'BOX_OFFICE',
+            })
+            .then((calc) =>
+              this.taxEntriesRepository.create({
+                cinema_complex_id: dto.cinema_complex_id,
+                source_type: 'SALE',
+                source_id: sale.id,
+                competence_date: competenceDate,
+                gross_amount: calc.gross_amount,
+                deductions_amount: calc.deductions_amount,
+                calculation_base: calc.calculation_base,
+                apply_iss: true,
+                iss_rate: calc.iss_rate,
+                iss_amount: calc.iss_amount,
+                ibge_municipality_code: calc.ibge_municipality_code,
+                ...(calc.iss_service_code && {
+                  iss_service_code: calc.iss_service_code,
+                }),
+                pis_cofins_regime: calc.pis_cofins_regime,
+                pis_rate: calc.pis_rate,
+                pis_debit_amount: calc.pis_debit_amount,
+                pis_credit_amount: calc.pis_credit_amount,
+                pis_amount_payable: calc.pis_amount_payable,
+                cofins_rate: calc.cofins_rate,
+                cofins_debit_amount: calc.cofins_debit_amount,
+                cofins_credit_amount: calc.cofins_credit_amount,
+                cofins_amount_payable: calc.cofins_amount_payable,
+                processing_user_id: user_id || null,
+                processed: false,
+              }),
+            ),
+        );
       }
 
-      // Tax entry para receita de concessão
       if (concessionTotal > 0) {
-        const taxCalculation = await this.taxCalculationService.calculateTaxes({
-          gross_amount: concessionTotal,
-          deductions_amount: 0,
-          cinema_complex_id: dto.cinema_complex_id,
-          company_id,
-          competence_date: competenceDate,
-          revenue_type: 'CONCESSION',
-        });
-
-        await this.taxEntriesRepository.create({
-          cinema_complex_id: dto.cinema_complex_id,
-          source_type: 'SALE',
-          source_id: sale.id,
-          competence_date: competenceDate,
-          gross_amount: taxCalculation.gross_amount,
-          deductions_amount: taxCalculation.deductions_amount,
-          calculation_base: taxCalculation.calculation_base,
-          apply_iss: true,
-          iss_rate: taxCalculation.iss_rate,
-          iss_amount: taxCalculation.iss_amount,
-          ibge_municipality_code: taxCalculation.ibge_municipality_code,
-          ...(taxCalculation.iss_service_code && {
-            iss_service_code: taxCalculation.iss_service_code,
-          }),
-          pis_cofins_regime: taxCalculation.pis_cofins_regime,
-          pis_rate: taxCalculation.pis_rate,
-          pis_debit_amount: taxCalculation.pis_debit_amount,
-          pis_credit_amount: taxCalculation.pis_credit_amount,
-          pis_amount_payable: taxCalculation.pis_amount_payable,
-          cofins_rate: taxCalculation.cofins_rate,
-          cofins_debit_amount: taxCalculation.cofins_debit_amount,
-          cofins_credit_amount: taxCalculation.cofins_credit_amount,
-          cofins_amount_payable: taxCalculation.cofins_amount_payable,
-          processing_user_id: user_id || null,
-          processed: false,
-        });
+        taxPromises.push(
+          this.taxCalculationService
+            .calculateTaxes({
+              gross_amount: concessionTotal,
+              deductions_amount: 0,
+              cinema_complex_id: dto.cinema_complex_id,
+              company_id,
+              competence_date: competenceDate,
+              revenue_type: 'CONCESSION',
+            })
+            .then((calc) =>
+              this.taxEntriesRepository.create({
+                cinema_complex_id: dto.cinema_complex_id,
+                source_type: 'SALE',
+                source_id: sale.id,
+                competence_date: competenceDate,
+                gross_amount: calc.gross_amount,
+                deductions_amount: calc.deductions_amount,
+                calculation_base: calc.calculation_base,
+                apply_iss: true,
+                iss_rate: calc.iss_rate,
+                iss_amount: calc.iss_amount,
+                ibge_municipality_code: calc.ibge_municipality_code,
+                ...(calc.iss_service_code && {
+                  iss_service_code: calc.iss_service_code,
+                }),
+                pis_cofins_regime: calc.pis_cofins_regime,
+                pis_rate: calc.pis_rate,
+                pis_debit_amount: calc.pis_debit_amount,
+                pis_credit_amount: calc.pis_credit_amount,
+                pis_amount_payable: calc.pis_amount_payable,
+                cofins_rate: calc.cofins_rate,
+                cofins_debit_amount: calc.cofins_debit_amount,
+                cofins_credit_amount: calc.cofins_credit_amount,
+                cofins_amount_payable: calc.cofins_amount_payable,
+                processing_user_id: user_id || null,
+                processed: false,
+              }),
+            ),
+        );
       }
+
+      await Promise.all(taxPromises);
     } catch (error) {
-      // Log erro mas não falha a venda
       this.logger.error(
         `Erro ao criar lançamento fiscal para venda ${sale.id}: ${error}`,
         SalesService.name,
       );
     }
 
-    // Buscar venda completa
+    // 8. Finalização
     if (promotionResult) {
       await this.campaignsService.recordPromotionUsage(
         sale.id,
