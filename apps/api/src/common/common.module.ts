@@ -8,6 +8,12 @@ import { CacheModule } from './cache/cache.module';
 @Module({
   imports: [RabbitMQModule, CacheModule],
   providers: [LoggerService, SnowflakeService, BrasilApiService],
-  exports: [RabbitMQModule, LoggerService, SnowflakeService, BrasilApiService, CacheModule],
+  exports: [
+    RabbitMQModule,
+    LoggerService,
+    SnowflakeService,
+    BrasilApiService,
+    CacheModule,
+  ],
 })
-export class CommonModule { }
+export class CommonModule {}

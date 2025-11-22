@@ -4,7 +4,7 @@ import { Prisma } from '@repo/db';
 
 @Injectable()
 export class AuditLogRepository {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async findByCompany(
     companyId: string,
@@ -18,11 +18,11 @@ export class AuditLogRepository {
       skip?: number;
       take?: number;
       sortBy?:
-      | 'company_id'
-      | 'event_type'
-      | 'resource_type'
-      | 'action'
-      | 'created_at';
+        | 'company_id'
+        | 'event_type'
+        | 'resource_type'
+        | 'action'
+        | 'created_at';
       sortOrder?: 'asc' | 'desc';
     },
   ) {
@@ -57,7 +57,8 @@ export class AuditLogRepository {
     let orderByField: keyof Prisma.audit_logsOrderByWithRelationInput =
       'created_at';
     if (filters?.sortBy && filters.sortBy !== 'created_at') {
-      orderByField = filters.sortBy as keyof Prisma.audit_logsOrderByWithRelationInput;
+      orderByField =
+        filters.sortBy as keyof Prisma.audit_logsOrderByWithRelationInput;
     }
 
     const orderBy: Prisma.audit_logsOrderByWithRelationInput = {
