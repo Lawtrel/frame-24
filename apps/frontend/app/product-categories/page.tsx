@@ -2,14 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { movieCategoriesService } from '../services/api';
+import { productCategoriesService } from '../services/api';
 import { PageHeader } from '@repo/ui/page-header';
 import { Tag, Plus, Edit, Trash2, Search, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { Pagination } from '../components/Pagination';
 import { usePaginationAndFilter } from '../hooks/usePaginationAndFilter';
 
-export default function MovieCategoriesPage() {
+export default function ProductCategoriesPage() {
     const { token } = useAuth();
     
     const {
@@ -22,13 +22,13 @@ export default function MovieCategoriesPage() {
         setSearchTerm,
         setPage,
         refetch,
-    } = usePaginationAndFilter(movieCategoriesService, token);
+    } = usePaginationAndFilter(productCategoriesService, token);
 
     const handleDelete = async (id: string) => {
         if (!token || !confirm('Tem certeza que deseja excluir esta categoria?')) return;
 
         try {
-            await movieCategoriesService.delete(id, token);
+            await productCategoriesService.delete(id, token);
             refetch();
         } catch (error) {
             console.error('Error deleting category:', error);
@@ -52,10 +52,10 @@ export default function MovieCategoriesPage() {
     return (
         <React.Fragment>
             <PageHeader
-                title="Categorias de Filmes"
+                title="Categorias de Produtos"
                 breadcrumbItems={[
                     { label: 'Dashboard', href: '/dashboard' },
-                    { label: 'Categorias', href: '/movie-categories' }
+                    { label: 'Categorias de Produtos', href: '/product-categories' }
                 ]}
             />
 
@@ -63,15 +63,15 @@ export default function MovieCategoriesPage() {
                 <div className="flex justify-between items-center mb-6">
                     <div>
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                            Categorias de Filmes
+                            Gerenciar Categorias
                         </h2>
                         <p className="text-gray-600 dark:text-gray-400 mt-1">
-                            Gerencie as categorias para classificar seus filmes
+                            Categorias para produtos de bomboniere e outros itens
                         </p>
                     </div>
 
                     <Link
-                        href="/movie-categories/create-edit/create"
+                        href="/product-categories/create-edit/create"
                         className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
                     >
                         <Plus size={20} />
@@ -126,7 +126,7 @@ export default function MovieCategoriesPage() {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <Link
-                                            href={`/movie-categories/create-edit/${category.id}`}
+                                            href={`/product-categories/create-edit/${category.id}`}
                                             className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-4"
                                         >
                                             <Edit className="inline h-4 w-4" />

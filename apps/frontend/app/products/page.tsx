@@ -4,51 +4,49 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { productsService } from '../services/api';
 import { PageHeader } from '@repo/ui/page-header';
-import { Package, Plus, Edit, Trash2, Search } from 'lucide-react';
+import { Package, Plus, Edit, Trash2, Search, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { Pagination } from '../components/Pagination';
+import { usePaginationAndFilter } from '../hooks/usePaginationAndFilter';
 
 export default function ProductsPage() {
     const { token } = useAuth();
-    const [products, setProducts] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState('');
-
-    useEffect(() => {
-        loadProducts();
-    }, []);
-
-    const loadProducts = async () => {
-        if (!token) return;
-        
-        try {
-            const data = await productsService.getAll(token);
-            setProducts(data);
-        } catch (error) {
-            console.error('Error loading products:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    
+    const {
+        data: products,
+        loading,
+        error,
+        currentPage,
+        totalPages,
+        searchTerm,
+        setSearchTerm,
+        setPage,
+        refetch,
+    } = usePaginationAndFilter(productsService, token);
 
     const handleDelete = async (id: string) => {
         if (!token || !confirm('Tem certeza que deseja excluir este produto?')) return;
 
         try {
             await productsService.delete(id, token);
-            loadProducts();
+            refetch();
         } catch (error) {
             console.error('Error deleting product:', error);
             alert('Erro ao excluir produto');
         }
     };
 
-    const filteredProducts = products.filter(product =>
-        product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.description?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
     if (loading) {
-        return <div className="p-6">Carregando...</div>;
+        return (
+            <div className="p-6 flex justify-center items-center h-full">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                <span className="ml-2">Carregando...</span>
+            </div>
+        );
+    }
+
+    if (error) {
+        return <div className="p-6 text-red-500">Erro ao carregar produtos: {error}</div>;
     }
 
     return (
@@ -73,7 +71,7 @@ export default function ProductsPage() {
                     </div>
 
                     <Link
-                        href="/products/create"
+                        href="/products/create-edit/create"
                         className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
                     >
                         <Plus size={20} />
@@ -99,11 +97,15 @@ export default function ProductsPage() {
 
                 {/* Products Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {filteredProducts.map((product) => (
+                    {products.map((product) => (
                         <div key={product.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
                             <div className="p-6">
                                 <div className="flex items-center justify-between mb-4">
-                                    <Package className="h-8 w-8 text-blue-600" />
+                                    {product.image_url ? (
+                                        <img className="h-10 w-10 rounded-full object-cover" src={product.image_url} alt={product.name} />
+                                    ) : (
+                                        <Package className="h-8 w-8 text-blue-600" />
+                                    )}
                                     <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                                         product.is_active 
                                             ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
@@ -123,16 +125,16 @@ export default function ProductsPage() {
 
                                 <div className="flex items-center justify-between mb-4">
                                     <span className="text-2xl font-bold text-blue-600">
-                                        R$ {product.price?.toFixed(2) || '0.00'}
+                                        R$ {product.price?.toFixed(2).replace('.', ',') || '0,00'}
                                     </span>
                                     <span className="text-sm text-gray-500 dark:text-gray-400">
-                                        Estoque: {product.stock || 0}
+                                        Estoque: {product.stock_quantity || 0}
                                     </span>
                                 </div>
 
                                 <div className="flex gap-2">
                                     <Link
-                                        href={`/products/edit/${product.id}`}
+                                        href={`/products/create-edit/${product.id}`}
                                         className="flex-1 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-sm"
                                     >
                                         <Edit size={16} />
@@ -150,7 +152,16 @@ export default function ProductsPage() {
                     ))}
                 </div>
 
-                {filteredProducts.length === 0 && (
+                {/* Pagination */}
+                <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={setPage}
+                    />
+                </div>
+
+                {products.length === 0 && (
                     <div className="text-center py-12">
                         <div className="bg-white dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 p-12">
                             <Package className="mx-auto h-12 w-12 text-gray-400" />
@@ -162,7 +173,7 @@ export default function ProductsPage() {
                             </p>
                             <div className="mt-6">
                                 <Link
-                                    href="/products/create"
+                                    href="/products/create-edit/create"
                                     className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
                                 >
                                     <Plus className="mr-2 h-4 w-4" />

@@ -2,60 +2,62 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { movieCategoriesService } from '../services/api';
+import { rolesService } from '../services/api';
 import { PageHeader } from '@repo/ui/page-header';
-import { Tag, Plus, Edit, Trash2, Search, Loader2 } from 'lucide-react';
+import { Users, Plus, Edit, Trash2, Search, Lock } from 'lucide-react';
 import Link from 'next/link';
-import { Pagination } from '../components/Pagination';
-import { usePaginationAndFilter } from '../hooks/usePaginationAndFilter';
 
-export default function MovieCategoriesPage() {
+export default function RolesPage() {
     const { token } = useAuth();
-    
-    const {
-        data: categories,
-        loading,
-        error,
-        currentPage,
-        totalPages,
-        searchTerm,
-        setSearchTerm,
-        setPage,
-        refetch,
-    } = usePaginationAndFilter(movieCategoriesService, token);
+    const [roles, setRoles] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
 
-    const handleDelete = async (id: string) => {
-        if (!token || !confirm('Tem certeza que deseja excluir esta categoria?')) return;
+    useEffect(() => {
+        loadRoles();
+    }, []);
 
+    const loadRoles = async () => {
+        if (!token) return;
+        
         try {
-            await movieCategoriesService.delete(id, token);
-            refetch();
+            const data = await rolesService.getAll(token);
+            setRoles(data);
         } catch (error) {
-            console.error('Error deleting category:', error);
-            alert('Erro ao excluir categoria');
+            console.error('Error loading roles:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
-    if (loading) {
-        return (
-            <div className="p-6 flex justify-center items-center h-full">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-                <span className="ml-2">Carregando...</span>
-            </div>
-        );
-    }
+    const handleDelete = async (id: string) => {
+        if (!token || !confirm('Tem certeza que deseja excluir esta role?')) return;
 
-    if (error) {
-        return <div className="p-6 text-red-500">Erro ao carregar categorias: {error}</div>;
+        try {
+            await rolesService.delete(id, token);
+            loadRoles();
+        } catch (error) {
+            console.error('Error deleting role:', error);
+            alert('Erro ao excluir role');
+        }
+    };
+
+    const filteredRoles = roles.filter(role =>
+        role.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        role.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    if (loading) {
+        return <div className="p-6">Carregando...</div>;
     }
 
     return (
         <React.Fragment>
             <PageHeader
-                title="Categorias de Filmes"
+                title="Roles e Permissões"
                 breadcrumbItems={[
                     { label: 'Dashboard', href: '/dashboard' },
-                    { label: 'Categorias', href: '/movie-categories' }
+                    { label: 'Roles', href: '/roles' }
                 ]}
             />
 
@@ -63,19 +65,19 @@ export default function MovieCategoriesPage() {
                 <div className="flex justify-between items-center mb-6">
                     <div>
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                            Categorias de Filmes
+                            Gerenciar Roles
                         </h2>
                         <p className="text-gray-600 dark:text-gray-400 mt-1">
-                            Gerencie as categorias para classificar seus filmes
+                            Defina níveis de acesso e permissões no sistema
                         </p>
                     </div>
 
                     <Link
-                        href="/movie-categories/create-edit/create"
+                        href="/roles/create-edit/create"
                         className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
                     >
                         <Plus size={20} />
-                        Nova Categoria
+                        Nova Role
                     </Link>
                 </div>
 
@@ -87,7 +89,7 @@ export default function MovieCategoriesPage() {
                         </div>
                         <input
                             type="text"
-                            placeholder="Buscar categorias..."
+                            placeholder="Buscar roles..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -95,7 +97,7 @@ export default function MovieCategoriesPage() {
                     </div>
                 </div>
 
-                {/* Categories Table */}
+                {/* Roles Table */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
                     <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead className="bg-gray-50 dark:bg-gray-900">
@@ -106,33 +108,41 @@ export default function MovieCategoriesPage() {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Descrição
                                 </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Permissões
+                                </th>
                                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Ações
                                 </th>
                             </tr>
                         </thead>
                         <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                            {categories.map((category) => (
-                                <tr key={category.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                            {filteredRoles.map((role) => (
+                                <tr key={role.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                            {category.name}
+                                            {role.name}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-lg">
-                                            {category.description || 'N/A'}
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                                            {role.description || 'N/A'}
                                         </div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                            {role.permissions?.length || 0} permissões
+                                        </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <Link
-                                            href={`/movie-categories/create-edit/${category.id}`}
+                                            href={`/roles/create-edit/${role.id}`}
                                             className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-4"
                                         >
                                             <Edit className="inline h-4 w-4" />
                                         </Link>
                                         <button
-                                            onClick={() => handleDelete(category.id)}
+                                            onClick={() => handleDelete(role.id)}
                                             className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                                         >
                                             <Trash2 className="inline h-4 w-4" />
@@ -143,23 +153,14 @@ export default function MovieCategoriesPage() {
                         </tbody>
                     </table>
 
-                    {/* Pagination */}
-                    <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-                        <Pagination
-                            currentPage={currentPage}
-                            totalPages={totalPages}
-                            onPageChange={setPage}
-                        />
-                    </div>
-
-                    {categories.length === 0 && (
+                    {filteredRoles.length === 0 && (
                         <div className="text-center py-12">
-                            <Tag className="mx-auto h-12 w-12 text-gray-400" />
+                            <Lock className="mx-auto h-12 w-12 text-gray-400" />
                             <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">
-                                Nenhuma categoria encontrada
+                                Nenhuma role encontrada
                             </h3>
                             <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                                Comece criando uma nova categoria.
+                                Comece criando uma nova role.
                             </p>
                         </div>
                     )}

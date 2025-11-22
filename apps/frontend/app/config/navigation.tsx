@@ -10,7 +10,11 @@ import {
     Building2,
     DoorOpen,
     Calendar,
-    Truck
+    Truck,
+    FileText, // Adicionado para Transações
+    ArrowDown, // Adicionado para Contas a Pagar
+    ArrowUp, // Adicionado para Contas a Receber
+    BarChart3 // Adicionado para Fluxo de Caixa
 } from "lucide-react";
 import { NavSection } from "../types/navigation";
 
@@ -129,15 +133,55 @@ export const PRIMARY_NAVIGATION: NavSection[] = [
             },
             {
                 label: "Vendas",
-                href: "/sales",
+                href: "/sales/pos",
                 icon: <ShoppingCart size={20} />,
                 slug: "sales",
+                submenu: [
+                    {
+                        label: "Ponto de Venda (PDV)",
+                        href: "/sales/pos",
+                        icon: <ShoppingCart size={16} />,
+                        slug: "sales/pos"
+                    },
+                    {
+                        label: "Transações",
+                        href: "/sales/transactions",
+                        icon: <FileText size={16} />,
+                        slug: "sales/transactions"
+                    },
+                ],
             },
             { 
                 label: "Financeiro", 
                 href: "/finance", 
                 icon: <Landmark size={20} />, 
-                slug: "finance" 
+                slug: "finance",
+                submenu: [
+                    {
+                        label: "Visão Geral",
+                        href: "/finance",
+                        icon: <Landmark size={16} />,
+                        slug: "finance"
+                    },
+                    {
+                        label: "Contas a Pagar",
+                        href: "/finance/accounts-payable",
+                        icon: <ArrowDown size={16} />,
+                        slug: "finance/accounts-payable"
+                    },
+                    {
+                        label: "Contas a Receber",
+                        href: "/finance/accounts-receivable",
+                        icon: <ArrowUp size={16} />,
+                        slug: "finance/accounts-receivable"
+                    },
+                    {
+                        label: "Fluxo de Caixa",
+                        href: "/finance/cash-flow",
+                        icon: <BarChart3 size={16} />,
+                        slug: "finance/cash-flow"
+                    },
+                ],
             },
         ],
     },

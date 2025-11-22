@@ -4,37 +4,32 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { roomsService } from '../services/api';
 import { PageHeader } from '@repo/ui/page-header';
-import { DoorOpen, Plus, Edit, Trash2, Users } from 'lucide-react';
+import { DoorOpen, Plus, Edit, Trash2, Users, Search, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { Pagination } from '../components/Pagination';
+import { usePaginationAndFilter } from '../hooks/usePaginationAndFilter';
 
 export default function RoomsPage() {
     const { token } = useAuth();
-    const [rooms, setRooms] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        loadRooms();
-    }, []);
-
-    const loadRooms = async () => {
-        if (!token) return;
-        
-        try {
-            const data = await roomsService.getAll(token);
-            setRooms(data);
-        } catch (error) {
-            console.error('Error loading rooms:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    
+    const {
+        data: rooms,
+        loading,
+        error,
+        currentPage,
+        totalPages,
+        searchTerm,
+        setSearchTerm,
+        setPage,
+        refetch,
+    } = usePaginationAndFilter(roomsService, token);
 
     const handleDelete = async (id: string) => {
         if (!token || !confirm('Tem certeza que deseja excluir esta sala?')) return;
 
         try {
             await roomsService.delete(id, token);
-            loadRooms();
+            refetch();
         } catch (error) {
             console.error('Error deleting room:', error);
             alert('Erro ao excluir sala');
@@ -42,7 +37,16 @@ export default function RoomsPage() {
     };
 
     if (loading) {
-        return <div className="p-6">Carregando...</div>;
+        return (
+            <div className="p-6 flex justify-center items-center h-full">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                <span className="ml-2">Carregando...</span>
+            </div>
+        );
+    }
+
+    if (error) {
+        return <div className="p-6 text-red-500">Erro ao carregar salas: {error}</div>;
     }
 
     return (
@@ -67,12 +71,28 @@ export default function RoomsPage() {
                     </div>
 
                     <Link
-                        href="/rooms/create"
+                        href="/rooms/create-edit/create"
                         className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
                     >
                         <Plus size={20} />
                         Nova Sala
                     </Link>
+                </div>
+
+                {/* Search Bar */}
+                <div className="mb-6">
+                    <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Search className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Buscar salas por nome, número ou complexo..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
                 </div>
 
                 {/* Rooms Grid */}
@@ -114,7 +134,7 @@ export default function RoomsPage() {
 
                                 <div className="flex gap-2 mt-4">
                                     <Link
-                                        href={`/rooms/edit/${room.id}`}
+                                        href={`/rooms/create-edit/${room.id}`}
                                         className="flex-1 bg-purple-600 text-white px-3 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center gap-2 text-sm"
                                     >
                                         <Edit size={16} />
@@ -132,6 +152,15 @@ export default function RoomsPage() {
                     ))}
                 </div>
 
+                {/* Pagination */}
+                <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={setPage}
+                    />
+                </div>
+
                 {rooms.length === 0 && (
                     <div className="text-center py-12">
                         <div className="bg-white dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 p-12">
@@ -144,7 +173,7 @@ export default function RoomsPage() {
                             </p>
                             <div className="mt-6">
                                 <Link
-                                    href="/rooms/create"
+                                    href="/rooms/create-edit/create"
                                     className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
                                 >
                                     <Plus className="mr-2 h-4 w-4" />

@@ -4,51 +4,50 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { usersService } from '../services/api';
 import { PageHeader } from '@repo/ui/page-header';
-import { Users, Plus, Edit, Trash2, Search } from 'lucide-react';
+import { Users, Plus, Edit, Trash2, Search, Loader2 } from 'lucide-react';
+import { Pagination } from '../components/Pagination';
+import { usePaginationAndFilter } from '../hooks/usePaginationAndFilter';
 import Link from 'next/link';
 
 export default function UsersPage() {
     const { token } = useAuth();
-    const [users, setUsers] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState('');
-
-    useEffect(() => {
-        loadUsers();
-    }, []);
-
-    const loadUsers = async () => {
-        if (!token) return;
-        
-        try {
-            const data = await usersService.getAll(token);
-            setUsers(data);
-        } catch (error) {
-            console.error('Error loading users:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    
+    const {
+        data: users,
+        loading,
+        error,
+        currentPage,
+        totalPages,
+        totalItems,
+        searchTerm,
+        setSearchTerm,
+        setPage,
+        refetch,
+    } = usePaginationAndFilter(usersService, token);
 
     const handleDelete = async (id: string) => {
         if (!token || !confirm('Tem certeza que deseja excluir este usuário?')) return;
 
         try {
             await usersService.delete(id, token);
-            loadUsers();
+            refetch();
         } catch (error) {
             console.error('Error deleting user:', error);
             alert('Erro ao excluir usuário');
         }
     };
 
-    const filteredUsers = users.filter(user =>
-        user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
     if (loading) {
-        return <div className="p-6">Carregando...</div>;
+        return (
+            <div className="p-6 flex justify-center items-center h-full">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                <span className="ml-2">Carregando...</span>
+            </div>
+        );
+    }
+
+    if (error) {
+        return <div className="p-6 text-red-500">Erro ao carregar usuários: {error}</div>;
     }
 
     return (
@@ -72,10 +71,10 @@ export default function UsersPage() {
                         </p>
                     </div>
 
-                    <Link
-                        href="/users/create"
-                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-                    >
+                        <Link
+                            href="/users/create-edit/create"
+                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                        >
                         <Plus size={20} />
                         Novo Usuário
                     </Link>
@@ -120,7 +119,7 @@ export default function UsersPage() {
                             </tr>
                         </thead>
                         <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                            {filteredUsers.map((user) => (
+                            {users.map((user) => (
                                 <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm font-medium text-gray-900 dark:text-white">
@@ -147,10 +146,10 @@ export default function UsersPage() {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <Link
-                                            href={`/users/edit/${user.id}`}
-                                            className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-4"
-                                        >
+                                            <Link
+                                                href={`/users/create-edit/${user.id}`}
+                                                className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-4"
+                                            >
                                             <Edit className="inline h-4 w-4" />
                                         </Link>
                                         <button
@@ -165,7 +164,16 @@ export default function UsersPage() {
                         </tbody>
                     </table>
 
-                    {filteredUsers.length === 0 && (
+                    {/* Pagination */}
+                    <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={setPage}
+                        />
+                    </div>
+
+                    {users.length === 0 && (
                         <div className="text-center py-12">
                             <Users className="mx-auto h-12 w-12 text-gray-400" />
                             <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">

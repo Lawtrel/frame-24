@@ -61,7 +61,8 @@ export const authService = {
 
 // ==================== USERS SERVICE ====================
 export const usersService = {
-    getAll: (token: string) => fetchAPI('/v1/users', { token }),
+    getAll: (token: string, page: number = 1, limit: number = 10, search: string = '') => 
+        fetchAPI(`/v1/users?page=${page}&limit=${limit}&search=${search}`, { token }),
     getById: (id: string, token: string) => fetchAPI(`/v1/users/${id}`, { token }),
     create: (data: any, token: string) => fetchAPI('/v1/users', {
         method: 'POST',
@@ -86,7 +87,8 @@ export const usersService = {
 
 // ==================== ROLES SERVICE ====================
 export const rolesService = {
-    getAll: (token: string) => fetchAPI('/v1/roles', { token }),
+    getAll: (token: string, page: number = 1, limit: number = 10, search: string = '') => 
+        fetchAPI(`/v1/roles?page=${page}&limit=${limit}&search=${search}`, { token }),
     getById: (id: string, token: string) => fetchAPI(`/v1/roles/${id}`, { token }),
     create: (data: any, token: string) => fetchAPI('/v1/roles', {
         method: 'POST',
@@ -110,7 +112,8 @@ export const permissionsService = {
 
 // ==================== MOVIES SERVICE ====================
 export const moviesService = {
-    getAll: (token: string) => fetchAPI('/v1/movies', { token }),
+    getAll: (token: string, page: number = 1, limit: number = 10, search: string = '') => 
+        fetchAPI(`/v1/movies?page=${page}&limit=${limit}&search=${search}`, { token }),
     getById: (id: string, token: string) => fetchAPI(`/v1/movies/${id}`, { token }),
     create: (data: any, token: string) => fetchAPI('/v1/movies', {
         method: 'POST',
@@ -133,7 +136,8 @@ export const moviesService = {
 
 // ==================== MOVIE CATEGORIES SERVICE ====================
 export const movieCategoriesService = {
-    getAll: (token: string) => fetchAPI('/v1/movie-categories', { token }),
+    getAll: (token: string, page: number = 1, limit: number = 10, search: string = '') => 
+        fetchAPI(`/v1/movie-categories?page=${page}&limit=${limit}&search=${search}`, { token }),
     getById: (id: string, token: string) => fetchAPI(`/v1/movie-categories/${id}`, { token }),
     create: (data: any, token: string) => fetchAPI('/v1/movie-categories', {
         method: 'POST',
@@ -153,7 +157,8 @@ export const movieCategoriesService = {
 
 // ==================== PRODUCTS SERVICE ====================
 export const productsService = {
-    getAll: (token: string) => fetchAPI('/v1/products', { token }),
+    getAll: (token: string, page: number = 1, limit: number = 10, search: string = '') => 
+        fetchAPI(`/v1/products?page=${page}&limit=${limit}&search=${search}`, { token }),
     getById: (id: string, token: string) => fetchAPI(`/v1/products/${id}`, { token }),
     create: (data: any, token: string) => fetchAPI('/v1/products', {
         method: 'POST',
@@ -173,7 +178,8 @@ export const productsService = {
 
 // ==================== PRODUCT CATEGORIES SERVICE ====================
 export const productCategoriesService = {
-    getAll: (token: string) => fetchAPI('/v1/product-categories', { token }),
+    getAll: (token: string, page: number = 1, limit: number = 10, search: string = '') => 
+        fetchAPI(`/v1/product-categories?page=${page}&limit=${limit}&search=${search}`, { token }),
     getById: (id: string, token: string) => fetchAPI(`/v1/product-categories/${id}`, { token }),
     create: (data: any, token: string) => fetchAPI('/v1/product-categories', {
         method: 'POST',
@@ -193,7 +199,8 @@ export const productCategoriesService = {
 
 // ==================== SUPPLIERS SERVICE ====================
 export const suppliersService = {
-    getAll: (token: string) => fetchAPI('/v1/suppliers', { token }),
+    getAll: (token: string, page: number = 1, limit: number = 10, search: string = '') => 
+        fetchAPI(`/v1/suppliers?page=${page}&limit=${limit}&search=${search}`, { token }),
     getById: (id: string, token: string) => fetchAPI(`/v1/suppliers/${id}`, { token }),
     create: (data: any, token: string) => fetchAPI('/v1/suppliers', {
         method: 'POST',
@@ -213,7 +220,8 @@ export const suppliersService = {
 
 // ==================== CINEMA COMPLEXES SERVICE ====================
 export const cinemaComplexesService = {
-    getAll: (token: string) => fetchAPI('/v1/cinema-complexes', { token }),
+    getAll: (token: string, page: number = 1, limit: number = 10, search: string = '') => 
+        fetchAPI(`/v1/cinema-complexes?page=${page}&limit=${limit}&search=${search}`, { token }),
     getById: (id: string, token: string) => fetchAPI(`/v1/cinema-complexes/${id}`, { token }),
     create: (data: any, token: string) => fetchAPI('/v1/cinema-complexes', {
         method: 'POST',
@@ -233,7 +241,8 @@ export const cinemaComplexesService = {
 
 // ==================== ROOMS SERVICE ====================
 export const roomsService = {
-    getAll: (token: string) => fetchAPI('/v1/rooms', { token }),
+    getAll: (token: string, page: number = 1, limit: number = 10, search: string = '') => 
+        fetchAPI(`/v1/rooms?page=${page}&limit=${limit}&search=${search}`, { token }),
     getById: (id: string, token: string) => fetchAPI(`/v1/rooms/${id}`, { token }),
     create: (data: any, token: string) => fetchAPI('/v1/rooms', {
         method: 'POST',
@@ -253,7 +262,8 @@ export const roomsService = {
 
 // ==================== SEATS SERVICE ====================
 export const seatsService = {
-    getAll: (token: string) => fetchAPI('/v1/seats', { token }),
+    getAll: (token: string, page: number = 1, limit: number = 10, search: string = '') => 
+        fetchAPI(`/v1/seats?page=${page}&limit=${limit}&search=${search}`, { token }),
     getById: (id: string, token: string) => fetchAPI(`/v1/seats/${id}`, { token }),
     create: (data: any, token: string) => fetchAPI('/v1/seats', {
         method: 'POST',
@@ -273,7 +283,8 @@ export const seatsService = {
 
 // ==================== SHOWTIMES SERVICE ====================
 export const showtimesService = {
-    getAll: (token: string) => fetchAPI('/v1/showtimes', { token }),
+    getAll: (token: string, page: number = 1, limit: number = 10, search: string = '') => 
+        fetchAPI(`/v1/showtimes?page=${page}&limit=${limit}&search=${search}`, { token }),
     getById: (id: string, token: string) => fetchAPI(`/v1/showtimes/${id}`, { token }),
     create: (data: any, token: string) => fetchAPI('/v1/showtimes', {
         method: 'POST',
@@ -287,6 +298,57 @@ export const showtimesService = {
     }),
     delete: (id: string, token: string) => fetchAPI(`/v1/showtimes/${id}`, {
         method: 'DELETE',
+        token,
+    }),
+};
+
+// ==================== SALES SERVICE (PDV, TRANSACTIONS) ====================
+export const salesService = {
+    // POS
+    startSale: (token: string) => fetchAPI('/v1/sales/start', { method: 'POST', token }),
+    addItem: (saleId: string, data: any, token: string) => fetchAPI(`/v1/sales/${saleId}/item`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+        token,
+    }),
+    removeItem: (saleId: string, itemId: string, token: string) => fetchAPI(`/v1/sales/${saleId}/item/${itemId}`, {
+        method: 'DELETE',
+        token,
+    }),
+    completeSale: (saleId: string, data: any, token: string) => fetchAPI(`/v1/sales/${saleId}/complete`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+        token,
+    }),
+    cancelSale: (saleId: string, token: string) => fetchAPI(`/v1/sales/${saleId}/cancel`, { method: 'POST', token }),
+    getSale: (saleId: string, token: string) => fetchAPI(`/v1/sales/${saleId}`, { token }),
+
+    // Transactions (for history)
+    getAll: (token: string, page: number = 1, limit: number = 10, search: string = '') => 
+        fetchAPI(`/v1/sales?page=${page}&limit=${limit}&search=${search}`, { token }),
+    getById: (id: string, token: string) => fetchAPI(`/v1/sales/${id}`, { token }),
+};
+
+// ==================== FINANCIAL SERVICE ====================
+export const financialService = {
+    // Accounts Payable/Receivable
+    getAccountsPayable: (token: string, page: number = 1, limit: number = 10, search: string = '') => 
+        fetchAPI(`/v1/financial/accounts-payable?page=${page}&limit=${limit}&search=${search}`, { token }),
+    getAccountsReceivable: (token: string, page: number = 1, limit: number = 10, search: string = '') => 
+        fetchAPI(`/v1/financial/accounts-receivable?page=${page}&limit=${limit}&search=${search}`, { token }),
+    
+    // Cash Flow
+    getCashFlow: (token: string, startDate: string, endDate: string) => 
+        fetchAPI(`/v1/financial/cash-flow?startDate=${startDate}&endDate=${endDate}`, { token }),
+    
+    // Transactions (General)
+    getTransactions: (token: string, page: number = 1, limit: number = 10, search: string = '') => 
+        fetchAPI(`/v1/financial/transactions?page=${page}&limit=${limit}&search=${search}`, { token }),
+    
+    // Create/Update/Delete (Placeholder for full CRUD)
+    createTransaction: (data: any, token: string) => fetchAPI('/v1/financial/transactions', {
+        method: 'POST',
+        body: JSON.stringify(data),
         token,
     }),
 };
