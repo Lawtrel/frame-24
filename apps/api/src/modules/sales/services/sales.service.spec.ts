@@ -39,12 +39,14 @@ describe('SalesService', () => {
               imports: [
                 // Import module with PrismaService
                 {
-                  module: class PrismaModule { },
+                  module: class PrismaModule {},
                   providers: [
                     {
                       provide: PrismaService,
                       useValue: {
-                        $transaction: jest.fn().mockImplementation((cb) => cb()),
+                        $transaction: jest
+                          .fn()
+                          .mockImplementation((cb) => cb()),
                       },
                     },
                   ],

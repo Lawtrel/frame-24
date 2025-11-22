@@ -26,7 +26,7 @@ export class TaxEntriesService {
     private readonly rabbitmq: RabbitMQPublisherService,
     private readonly cashFlowEntriesService: CashFlowEntriesService,
     private readonly bankAccountsRepository: BankAccountsRepository,
-  ) { }
+  ) {}
 
   async findAll(
     user: RequestUser,
@@ -151,11 +151,15 @@ export class TaxEntriesService {
 
     // Lançamento no Fluxo de Caixa (Previsão de Pagamento de Impostos)
     try {
-      const bankAccounts = await this.bankAccountsRepository.findAll(company_id);
+      const bankAccounts =
+        await this.bankAccountsRepository.findAll(company_id);
       const defaultAccount = bankAccounts.find((acc: any) => acc.active);
 
       if (defaultAccount) {
-        const totalTaxes = Number(entry.iss_amount || 0) + Number(entry.pis_amount_payable) + Number(entry.cofins_amount_payable);
+        const totalTaxes =
+          Number(entry.iss_amount || 0) +
+          Number(entry.pis_amount_payable) +
+          Number(entry.cofins_amount_payable);
 
         if (totalTaxes > 0) {
           await this.cashFlowEntriesService.create(company_id, 'SYSTEM', {

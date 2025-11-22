@@ -43,4 +43,4 @@ import { CashFlowModule } from '../finance/cash-flow/cash-flow.module';
     TaxEntriesService,
   ],
 })
-export class TaxModule { }
+export class TaxModule {}

@@ -144,7 +144,7 @@ export class ShowtimesService {
     private readonly projectionTypesRepository: ProjectionTypesRepository,
     private readonly audioTypesRepository: AudioTypesRepository,
     private readonly cacheService: CacheService,
-  ) { }
+  ) {}
 
   async findOne(id: string, user: RequestUser): Promise<ShowtimeDetailsDto> {
     const showtime = await this.showtimesRepository.findById(id);
@@ -315,9 +315,9 @@ export class ShowtimesService {
     const averageSeatPrice =
       totalSeats > 0
         ? seatPricingDetails.reduce(
-          (sum, seat) => sum + seat.final_price * seat.seat_count,
-          0,
-        ) / totalSeats
+            (sum, seat) => sum + seat.final_price * seat.seat_count,
+            0,
+          ) / totalSeats
         : basePriceWithModifiers;
 
     return {
@@ -688,7 +688,7 @@ export class ShowtimesService {
     const seatStatusData = activeSeats.map((seat) => {
       const additionalValue = seat.seat_type
         ? seatPricingContext.seatTypeMeta.get(seat.seat_type)
-          ?.additionalValue || 0
+            ?.additionalValue || 0
         : 0;
       return {
         id: this.snowflake.generate(),

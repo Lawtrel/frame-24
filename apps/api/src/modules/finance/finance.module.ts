@@ -48,4 +48,4 @@ import { AgingAutomationService } from './services/aging-automation.service';
     FinanceReportsService,
   ],
 })
-export class FinanceModule { }
+export class FinanceModule {}

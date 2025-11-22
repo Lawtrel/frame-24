@@ -38,4 +38,4 @@ import { BankReconciliationRepository } from './repositories/bank-reconciliation
     BankAccountsRepository,
   ],
 })
-export class CashFlowModule { }
+export class CashFlowModule {}

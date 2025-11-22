@@ -6,9 +6,9 @@ import { AccountsPayableService } from './services/accounts-payable.service';
 import { AccountsPayableRepository } from './repositories/accounts-payable.repository';
 
 @Module({
-    imports: [PrismaModule, CommonModule],
-    controllers: [AccountsPayableController],
-    providers: [AccountsPayableService, AccountsPayableRepository],
-    exports: [AccountsPayableService, AccountsPayableRepository],
+  imports: [PrismaModule, CommonModule],
+  controllers: [AccountsPayableController],
+  providers: [AccountsPayableService, AccountsPayableRepository],
+  exports: [AccountsPayableService, AccountsPayableRepository],
 })
-export class AccountsPayableModule { }
+export class AccountsPayableModule {}
