@@ -1,26 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { ElasticsearchService } from 'src/common/elasticsearch/elasticsearch.service';
-
-interface ESRangeQuery {
-  gte?: string;
-  lte?: string;
-}
-
-interface ESTermQuery {
-  [key: string]: string;
-}
-
-interface ESBoolQuery {
-  must: Array<{ term: ESTermQuery } | { range: Record<string, ESRangeQuery> }>;
-}
-
-interface ESQuery {
-  bool: ESBoolQuery;
-}
+import { PrismaService } from 'src/prisma/prisma.service';
+import { Prisma } from '@repo/db';
 
 @Injectable()
 export class AuditLogRepository {
-  constructor(private elasticsearch: ElasticsearchService) {}
+  constructor(private prisma: PrismaService) { }
 
   async findByCompany(
     companyId: string,
@@ -34,60 +18,73 @@ export class AuditLogRepository {
       skip?: number;
       take?: number;
       sortBy?:
-        | 'company_id'
-        | 'event_type'
-        | 'resource_type'
-        | 'action'
-        | 'created_at';
+      | 'company_id'
+      | 'event_type'
+      | 'resource_type'
+      | 'action'
+      | 'created_at';
       sortOrder?: 'asc' | 'desc';
     },
   ) {
-    const query: ESQuery = {
-      bool: {
-        must: [{ term: { company_id: companyId } }],
-      },
+    const where: Prisma.audit_logsWhereInput = {
+      company_id: companyId,
     };
 
     if (filters?.eventType) {
-      query.bool.must.push({ term: { event_type: filters.eventType } });
+      where.event_type = filters.eventType;
     }
     if (filters?.resourceType) {
-      query.bool.must.push({ term: { resource_type: filters.resourceType } });
+      where.resource_type = filters.resourceType;
     }
     if (filters?.resourceId) {
-      query.bool.must.push({ term: { resource_id: filters.resourceId } });
+      where.resource_id = filters.resourceId;
     }
     if (filters?.userId) {
-      query.bool.must.push({ term: { user_id: filters.userId } });
+      where.user_id = filters.userId;
     }
 
     if (filters?.startDate || filters?.endDate) {
-      const rangeQuery: ESRangeQuery = {};
-      if (filters?.startDate) rangeQuery.gte = filters.startDate.toISOString();
-      if (filters?.endDate) rangeQuery.lte = filters.endDate.toISOString();
-      query.bool.must.push({ range: { '@timestamp': rangeQuery } });
+      where.created_at = {};
+      if (filters?.startDate) {
+        where.created_at.gte = filters.startDate;
+      }
+      if (filters?.endDate) {
+        where.created_at.lte = filters.endDate;
+      }
     }
 
-    let sortField = '@timestamp';
-    if (filters?.sortBy === 'created_at') {
-      sortField = '@timestamp';
-    } else if (filters?.sortBy) {
-      sortField = filters.sortBy;
+    // Map sortBy field to actual database field
+    let orderByField: keyof Prisma.audit_logsOrderByWithRelationInput =
+      'created_at';
+    if (filters?.sortBy && filters.sortBy !== 'created_at') {
+      orderByField = filters.sortBy as keyof Prisma.audit_logsOrderByWithRelationInput;
     }
 
-    return this.elasticsearch.search({
-      index: 'audit-logs-*',
-      query: query as unknown as Record<string, unknown>,
-      from: filters?.skip || 0,
-      size: filters?.take || 20,
-      sort: [
-        {
-          [sortField]: {
-            order: filters?.sortOrder || 'desc',
-          },
-        },
-      ],
+    const orderBy: Prisma.audit_logsOrderByWithRelationInput = {
+      [orderByField]: filters?.sortOrder || 'desc',
+    };
+
+    const results = await this.prisma.audit_logs.findMany({
+      where,
+      orderBy,
+      skip: filters?.skip || 0,
+      take: filters?.take || 20,
     });
+
+    // Transform to match the expected return format
+    return results.map((log) => ({
+      id: log.id,
+      event_type: log.event_type,
+      resource_type: log.resource_type,
+      resource_id: log.resource_id,
+      action: log.action,
+      company_id: log.company_id,
+      user_id: log.user_id,
+      correlation_id: log.correlation_id,
+      old_values: log.old_values,
+      new_values: log.new_values,
+      '@timestamp': log.created_at.toISOString(),
+    }));
   }
 
   async findByResourceId(
@@ -98,22 +95,32 @@ export class AuditLogRepository {
       take?: number;
     },
   ) {
-    const query: ESQuery = {
-      bool: {
-        must: [
-          { term: { company_id: companyId } },
-          { term: { resource_id: resourceId } },
-        ],
+    const results = await this.prisma.audit_logs.findMany({
+      where: {
+        company_id: companyId,
+        resource_id: resourceId,
       },
-    };
-
-    return this.elasticsearch.search({
-      index: 'audit-logs-*',
-      query: query as unknown as Record<string, unknown>,
-      from: filters?.skip || 0,
-      size: filters?.take || 20,
-      sort: [{ '@timestamp': { order: 'desc' } }],
+      orderBy: {
+        created_at: 'desc',
+      },
+      skip: filters?.skip || 0,
+      take: filters?.take || 20,
     });
+
+    // Transform to match the expected return format
+    return results.map((log) => ({
+      id: log.id,
+      event_type: log.event_type,
+      resource_type: log.resource_type,
+      resource_id: log.resource_id,
+      action: log.action,
+      company_id: log.company_id,
+      user_id: log.user_id,
+      correlation_id: log.correlation_id,
+      old_values: log.old_values,
+      new_values: log.new_values,
+      '@timestamp': log.created_at.toISOString(),
+    }));
   }
 
   async findByResourceType(
@@ -124,21 +131,31 @@ export class AuditLogRepository {
       take?: number;
     },
   ) {
-    const query: ESQuery = {
-      bool: {
-        must: [
-          { term: { company_id: companyId } },
-          { term: { resource_type: resourceType } },
-        ],
+    const results = await this.prisma.audit_logs.findMany({
+      where: {
+        company_id: companyId,
+        resource_type: resourceType,
       },
-    };
-
-    return this.elasticsearch.search({
-      index: 'audit-logs-*',
-      query: query as unknown as Record<string, unknown>,
-      from: filters?.skip || 0,
-      size: filters?.take || 20,
-      sort: [{ '@timestamp': { order: 'desc' } }],
+      orderBy: {
+        created_at: 'desc',
+      },
+      skip: filters?.skip || 0,
+      take: filters?.take || 20,
     });
+
+    // Transform to match the expected return format
+    return results.map((log) => ({
+      id: log.id,
+      event_type: log.event_type,
+      resource_type: log.resource_type,
+      resource_id: log.resource_id,
+      action: log.action,
+      company_id: log.company_id,
+      user_id: log.user_id,
+      correlation_id: log.correlation_id,
+      old_values: log.old_values,
+      new_values: log.new_values,
+      '@timestamp': log.created_at.toISOString(),
+    }));
   }
 }
