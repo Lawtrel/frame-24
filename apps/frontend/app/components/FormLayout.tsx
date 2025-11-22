@@ -57,7 +57,7 @@ export const FormLayout = <T extends FieldValues>({
                             <ArrowLeft size={24} />
                         </Link>
                         <div>
-                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                            <h2 className="text-2xl font-bold text-gray-900 dark:text-text-primary">
                                 {title}
                             </h2>
                             <p className="text-gray-600 dark:text-gray-400 mt-1">
@@ -70,7 +70,7 @@ export const FormLayout = <T extends FieldValues>({
                         <div className="text-center py-12">Carregando dados...</div>
                     ) : (
                         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                            <div className="bg-text-primary dark:bg-gray-800 rounded-lg shadow-md p-6">
                                 {children}
                             </div>
 
@@ -78,7 +78,7 @@ export const FormLayout = <T extends FieldValues>({
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                    className="bg-blue-600 text-text-primary px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                 >
                                     {isSubmitting ? 'Salvando...' : submitButtonText}
                                 </button>

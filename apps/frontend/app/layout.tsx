@@ -2,7 +2,7 @@ import "@repo/ui/styles.css";
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { ThemeProvider } from "./components/theme-provider";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import { AuthProvider } from "./contexts/AuthContext";
 
 import { headers } from 'next/headers'; 
@@ -29,6 +29,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <body className={inter.className}>
                 <ThemeProvider>
                     <AuthProvider>
+                
+                    
                     <div className="relative flex min-h-screen overflow-x-hidden">
                         
                         <SidebarNav currentPath={currentPath} />
@@ -41,6 +43,3 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     </AuthProvider>
                 </ThemeProvider>
             </body>
-        </html>
-    );
-}

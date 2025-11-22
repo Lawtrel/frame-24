@@ -18,7 +18,7 @@ export function MovieCard({ movie, onDelete }: MovieCardProps) {
     };
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
+        <div className="bg-text-primary dark:bg-gray-800 rounded-lg shadow-md overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
             {/* Poster Placeholder */}
             <div className="h-48 bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
                 {movie.poster_url ? (
@@ -29,7 +29,7 @@ export function MovieCard({ movie, onDelete }: MovieCardProps) {
             </div>
 
             <div className="p-4">
-                <h3 className="font-semibold text-lg mb-2 text-gray-900 dark:text-white line-clamp-1">
+                <h3 className="font-semibold text-lg mb-2 text-gray-900 dark:text-text-primary line-clamp-1">
                     {movie.title}
                 </h3>
 
@@ -59,14 +59,14 @@ export function MovieCard({ movie, onDelete }: MovieCardProps) {
                 <div className="mt-4 flex space-x-2">
                     <Link
                         href={`/movies/create-edit/${movie.id}`}
-                        className="flex-1 bg-blue-600 text-white py-2 px-3 rounded text-sm hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
+                        className="flex-1 bg-blue-600 text-text-primary py-2 px-3 rounded text-sm hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
                     >
                         <Edit size={14} />
                         Editar
                     </Link>
                     <button
                         onClick={handleDelete}
-                        className="flex-1 bg-red-600 text-white py-2 px-3 rounded text-sm hover:bg-red-700 transition-colors flex items-center justify-center gap-1"
+                        className="flex-1 bg-red-600 text-text-primary py-2 px-3 rounded text-sm hover:bg-red-700 transition-colors flex items-center justify-center gap-1"
                     >
                         <Trash2 size={14} />
                         Excluir
