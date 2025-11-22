@@ -33,7 +33,7 @@ import {
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 @ApiBearerAuth('access-token')
 export class AuditLogController {
-  constructor(private readonly service: AuditLogService) {}
+  constructor(private readonly service: AuditLogService) { }
 
   @Get()
   @RequirePermission('audit', 'read')
@@ -55,7 +55,7 @@ export class AuditLogController {
     @CurrentUser() user: RequestUser,
     @Query(new ZodValidationPipe()) query: AuditLogQueryDto,
   ) {
-    return this.service.getAuditLogs(user.company_id, user.role, query);
+    return this.service.getAuditLogs(user.company_id, user.role_id, query);
   }
 
   @Get('resource/:resourceType/:resourceId')
