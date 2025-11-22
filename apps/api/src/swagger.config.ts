@@ -85,6 +85,11 @@ export const TAG_GROUPS: TagGroup[] = [
       'Journal Entries',
       'Distributor Settlements',
       'Income Statement',
+      'Cash Flow',
+      'Accounts Receivable',
+      'Accounts Payable',
+      'Transactions',
+      'Finance Reports',
     ],
   },
   {
