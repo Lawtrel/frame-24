@@ -3,7 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class FinanceReportsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   private parseMonth(month: string): {
     start: Date;
@@ -48,9 +48,11 @@ export class FinanceReportsService {
         distributor_payouts: 0,
         taxes: 0,
         operational_result: 0,
+        net_result: 0,
       };
     }
 
+    // 1. Revenue (Sales)
     const salesAggregate = await this.prisma.sales.aggregate({
       _sum: {
         total_amount: true,
@@ -66,6 +68,7 @@ export class FinanceReportsService {
       },
     });
 
+    // 2. Distributor Payouts (Cost of Services)
     const settlementsAggregate =
       await this.prisma.distributor_settlements.aggregate({
         _sum: {
@@ -78,6 +81,7 @@ export class FinanceReportsService {
         },
       });
 
+    // 3. Taxes
     const taxAggregate = await this.prisma.tax_entries.aggregate({
       _sum: {
         iss_amount: true,
@@ -93,25 +97,101 @@ export class FinanceReportsService {
       },
     });
 
+    // 4. Operating Expenses (Accounts Payable)
+    const expensesAggregate = await this.prisma.accounts_payable.groupBy({
+      by: ['expense_type'],
+      _sum: {
+        original_amount: true,
+      },
+      where: {
+        company_id,
+        competence_date: {
+          gte: start,
+          lte: end,
+        },
+        status: { not: 'cancelled' },
+        expense_type: { not: null },
+      },
+    });
+
+    // Map expenses
+    let administrativeExpenses = 0;
+    let sellingExpenses = 0;
+    let financialExpenses = 0;
+    let operationalExpenses = 0; // Other COGS
+
+    for (const expense of expensesAggregate) {
+      const amount = Number(expense._sum.original_amount || 0);
+      switch (expense.expense_type) {
+        case 'administrative':
+          administrativeExpenses += amount;
+          break;
+        case 'selling':
+          sellingExpenses += amount;
+          break;
+        case 'financial':
+          financialExpenses += amount;
+          break;
+        case 'operational':
+          operationalExpenses += amount;
+          break;
+      }
+    }
+
     const grossRevenue = Number(salesAggregate._sum.total_amount || 0);
     const discounts = Number(salesAggregate._sum.discount_amount || 0);
     const netRevenue = Number(salesAggregate._sum.net_amount || 0);
-    const distributorPayouts = Number(
-      settlementsAggregate._sum.net_payment_amount || 0,
-    );
+
+    const distributorPayouts = Number(settlementsAggregate._sum.net_payment_amount || 0);
+
     const taxes =
       Number(taxAggregate._sum.iss_amount || 0) +
       Number(taxAggregate._sum.pis_amount_payable || 0) +
       Number(taxAggregate._sum.cofins_amount_payable || 0);
 
+    // Gross Profit = Net Revenue - Direct Costs (Distributors + Taxes + Operational Expenses)
+    // Note: Taxes are usually deducted from Gross Revenue to get Net Revenue, but here we are listing them explicitly.
+    // Standard DRE: Gross Rev - Deductions (Taxes on Sales) = Net Rev.
+    // Net Rev - COGS (Distributors) = Gross Profit.
+
+    // Let's align with standard DRE structure:
+    // Gross Revenue
+    // (-) Sales Deductions (Discounts, Cancelled) -> We have discounts. Taxes on sales (PIS/COFINS/ISS) are also deductions from Gross Revenue.
+    // = Net Revenue
+
+    // Let's adjust the calculation to be more accounting-correct.
+    const salesTaxes = taxes; // Assuming these are taxes on revenue
+    const realNetRevenue = grossRevenue - discounts - salesTaxes;
+
+    const costOfServices = distributorPayouts + operationalExpenses;
+    const grossProfit = realNetRevenue - costOfServices;
+
+    const operationalResult = grossProfit - administrativeExpenses - sellingExpenses;
+
+    const netResult = operationalResult - financialExpenses;
+
     return {
       period: `${year}-${String(monthNumber).padStart(2, '0')}`,
       gross_revenue: grossRevenue,
-      discounts,
-      net_revenue: netRevenue,
-      distributor_payouts: distributorPayouts,
-      taxes,
-      operational_result: netRevenue - distributorPayouts - taxes,
+      sales_deductions: discounts + salesTaxes,
+      net_revenue: realNetRevenue,
+
+      cost_of_services: costOfServices,
+      gross_profit: grossProfit,
+
+      expenses: {
+        administrative: administrativeExpenses,
+        selling: sellingExpenses,
+        financial: financialExpenses,
+      },
+
+      operational_result: operationalResult,
+      net_result: netResult,
+
+      metrics: {
+        gross_margin: realNetRevenue > 0 ? (grossProfit / realNetRevenue) * 100 : 0,
+        net_margin: realNetRevenue > 0 ? (netResult / realNetRevenue) * 100 : 0,
+      }
     };
   }
 }
