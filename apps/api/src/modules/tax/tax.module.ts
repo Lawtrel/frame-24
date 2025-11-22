@@ -13,9 +13,10 @@ import { TaxEntriesService } from './services/tax-entries.service';
 import { TaxCalculationService } from './services/tax-calculation.service';
 import { TaxEntriesRepository } from './repositories/tax-entries.repository';
 import { CinemaComplexesModule } from 'src/modules/operations/cinema-complexes/cinema-complexes.module';
+import { CashFlowModule } from '../finance/cash-flow/cash-flow.module';
 
 @Module({
-  imports: [CommonModule, PrismaModule, CinemaComplexesModule],
+  imports: [CommonModule, PrismaModule, CinemaComplexesModule, CashFlowModule],
   controllers: [
     MunicipalTaxParametersController,
     FederalTaxRatesController,
@@ -42,4 +43,4 @@ import { CinemaComplexesModule } from 'src/modules/operations/cinema-complexes/c
     TaxEntriesService,
   ],
 })
-export class TaxModule {}
+export class TaxModule { }
