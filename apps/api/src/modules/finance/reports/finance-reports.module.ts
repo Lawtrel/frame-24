@@ -6,8 +6,8 @@ import { AgingReportsService } from './services/aging-reports.service';
 import { PositionReportsService } from './services/position-reports.service';
 
 @Module({
-    imports: [PrismaModule, CommonModule],
-    controllers: [AgingReportsController],
-    providers: [AgingReportsService, PositionReportsService],
+  imports: [PrismaModule, CommonModule],
+  controllers: [AgingReportsController],
+  providers: [AgingReportsService, PositionReportsService],
 })
-export class FinanceReportsModule { }
+export class FinanceReportsModule {}

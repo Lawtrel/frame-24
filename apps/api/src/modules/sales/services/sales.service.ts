@@ -52,7 +52,7 @@ export class SalesService {
     private readonly accountsReceivableService: AccountsReceivableService,
     private readonly transactionsService: TransactionsService,
     private readonly bankAccountsRepository: BankAccountsRepository,
-  ) { }
+  ) {}
 
   async findAll(
     user: RequestUser,
@@ -114,24 +114,24 @@ export class SalesService {
       // Buscar produtos
       productItemIds.length > 0
         ? this.productsRepository
-          .findAllByIds(productItemIds, company_id)
-          .then((items) => new Map(items.map((p) => [p.id, p])))
+            .findAllByIds(productItemIds, company_id)
+            .then((items) => new Map(items.map((p) => [p.id, p])))
         : Promise.resolve(new Map()),
 
       // Buscar preços de produtos
       productItemIds.length > 0
         ? this.productPricesRepository
-          .findActivePricesByProductIds(
-            productItemIds,
-            dto.cinema_complex_id,
-            company_id,
-          )
-          .then((prices) => {
-            // Mapear preço por produto_id
-            const map = new Map();
-            prices.forEach((p) => map.set(p.product_id, p));
-            return map;
-          })
+            .findActivePricesByProductIds(
+              productItemIds,
+              dto.cinema_complex_id,
+              company_id,
+            )
+            .then((prices) => {
+              // Mapear preço por produto_id
+              const map = new Map();
+              prices.forEach((p) => map.set(p.product_id, p));
+              return map;
+            })
         : Promise.resolve(new Map()),
     ]);
 
@@ -491,20 +491,23 @@ export class SalesService {
     // 9. Contas a Receber (Automático)
     try {
       // Criar título a receber
-      const receivable = await this.accountsReceivableService.create(company_id, {
-        cinema_complex_id: dto.cinema_complex_id,
-        customer_id: resolvedCustomerId,
-        sale_id: sale.id,
-        document_number: sale_number,
-        description: `Venda - Pedido ${sale_number}`,
-        issue_date: new Date().toISOString().split('T')[0],
-        due_date: new Date().toISOString().split('T')[0], // Vencimento hoje (ajustar se for crédito)
-        competence_date: new Date().toISOString().split('T')[0],
-        original_amount: net_amount,
-        interest_amount: 0,
-        penalty_amount: 0,
-        discount_amount: 0,
-      });
+      const receivable = await this.accountsReceivableService.create(
+        company_id,
+        {
+          cinema_complex_id: dto.cinema_complex_id,
+          customer_id: resolvedCustomerId,
+          sale_id: sale.id,
+          document_number: sale_number,
+          description: `Venda - Pedido ${sale_number}`,
+          issue_date: new Date().toISOString().split('T')[0],
+          due_date: new Date().toISOString().split('T')[0], // Vencimento hoje (ajustar se for crédito)
+          competence_date: new Date().toISOString().split('T')[0],
+          original_amount: net_amount,
+          interest_amount: 0,
+          penalty_amount: 0,
+          discount_amount: 0,
+        },
+      );
 
       // Se for pagamento imediato (não crédito), baixar o título
       // TODO: Verificar tipo de pagamento real. Assumindo imediato para simplificação por enquanto.
@@ -512,21 +515,26 @@ export class SalesService {
       // Vamos assumir que tudo que entra aqui já foi "pago" no POS, então baixamos para gerar o caixa.
 
       // Buscar conta bancária padrão
-      const bankAccounts = await this.bankAccountsRepository.findAll(company_id);
+      const bankAccounts =
+        await this.bankAccountsRepository.findAll(company_id);
       const defaultAccount = bankAccounts.find((acc: any) => acc.active);
 
       if (defaultAccount) {
-        await this.transactionsService.settleReceivable(company_id, user_id || 'SYSTEM', {
-          account_receivable_id: receivable.id,
-          amount: net_amount,
-          transaction_date: new Date().toISOString().split('T')[0],
-          bank_account_id: defaultAccount.id,
-          payment_method: dto.payment_method || 'CASH', // Fallback
-          notes: `Baixa automática - Venda ${sale_number}`,
-          interest_amount: 0,
-          penalty_amount: 0,
-          discount_amount: 0,
-        });
+        await this.transactionsService.settleReceivable(
+          company_id,
+          user_id || 'SYSTEM',
+          {
+            account_receivable_id: receivable.id,
+            amount: net_amount,
+            transaction_date: new Date().toISOString().split('T')[0],
+            bank_account_id: defaultAccount.id,
+            payment_method: dto.payment_method || 'CASH', // Fallback
+            notes: `Baixa automática - Venda ${sale_number}`,
+            interest_amount: 0,
+            penalty_amount: 0,
+            discount_amount: 0,
+          },
+        );
       } else {
         this.logger.warn(
           `Nenhuma conta bancária ativa encontrada para baixar venda ${sale_number}`,

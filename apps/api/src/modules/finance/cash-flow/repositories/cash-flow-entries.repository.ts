@@ -3,154 +3,159 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@repo/db';
 
 interface CashFlowFilters {
-    bank_account_id?: string;
-    entry_type?: string;
-    category?: string;
-    start_date?: Date;
-    end_date?: Date;
-    status?: string;
-    skip?: number;
-    take?: number;
+  bank_account_id?: string;
+  entry_type?: string;
+  category?: string;
+  start_date?: Date;
+  end_date?: Date;
+  status?: string;
+  skip?: number;
+  take?: number;
 }
 
 @Injectable()
 export class CashFlowEntriesRepository {
-    constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
-    async create(data: Prisma.cash_flow_entriesCreateInput) {
-        return this.prisma.cash_flow_entries.create({ data });
+  async create(data: Prisma.cash_flow_entriesCreateInput) {
+    return this.prisma.cash_flow_entries.create({ data });
+  }
+
+  async findAll(companyId: string, filters: CashFlowFilters) {
+    const where: Prisma.cash_flow_entriesWhereInput = {
+      company_id: companyId,
+    };
+
+    if (filters.bank_account_id) {
+      where.bank_account_id = filters.bank_account_id;
     }
 
-    async findAll(companyId: string, filters: CashFlowFilters) {
-        const where: Prisma.cash_flow_entriesWhereInput = {
-            company_id: companyId,
-        };
-
-        if (filters.bank_account_id) {
-            where.bank_account_id = filters.bank_account_id;
-        }
-
-        if (filters.entry_type) {
-            where.entry_type = filters.entry_type;
-        }
-
-        if (filters.category) {
-            where.category = filters.category;
-        }
-
-        if (filters.status) {
-            where.status = filters.status;
-        }
-
-        if (filters.start_date || filters.end_date) {
-            where.entry_date = {};
-            if (filters.start_date) {
-                where.entry_date.gte = filters.start_date;
-            }
-            if (filters.end_date) {
-                where.entry_date.lte = filters.end_date;
-            }
-        }
-
-        return this.prisma.cash_flow_entries.findMany({
-            where,
-            orderBy: { entry_date: 'desc' },
-            skip: filters.skip || 0,
-            take: filters.take || 20,
-            include: {
-                bank_accounts: {
-                    select: {
-                        id: true,
-                        bank_name: true,
-                        account_number: true,
-                        account_type: true,
-                    },
-                },
-            },
-        });
+    if (filters.entry_type) {
+      where.entry_type = filters.entry_type;
     }
 
-    async findById(id: string, companyId: string) {
-        return this.prisma.cash_flow_entries.findFirst({
-            where: {
-                id,
-                company_id: companyId,
-            },
-            include: {
-                bank_accounts: true,
-            },
-        });
+    if (filters.category) {
+      where.category = filters.category;
     }
 
-    async update(id: string, companyId: string, data: Prisma.cash_flow_entriesUpdateInput) {
-        return this.prisma.cash_flow_entries.updateMany({
-            where: {
-                id,
-                company_id: companyId,
-                reconciled: false, // Only allow updates if not reconciled
-            },
-            data,
-        });
+    if (filters.status) {
+      where.status = filters.status;
     }
 
-    async delete(id: string, companyId: string) {
-        return this.prisma.cash_flow_entries.deleteMany({
-            where: {
-                id,
-                company_id: companyId,
-                reconciled: false, // Only allow deletion if not reconciled
-            },
-        });
+    if (filters.start_date || filters.end_date) {
+      where.entry_date = {};
+      if (filters.start_date) {
+        where.entry_date.gte = filters.start_date;
+      }
+      if (filters.end_date) {
+        where.entry_date.lte = filters.end_date;
+      }
     }
 
-    async reconcile(id: string, companyId: string) {
-        return this.prisma.cash_flow_entries.updateMany({
-            where: {
-                id,
-                company_id: companyId,
-            },
-            data: {
-                reconciled: true,
-                reconciled_at: new Date(),
-                status: 'reconciled',
-            },
-        });
+    return this.prisma.cash_flow_entries.findMany({
+      where,
+      orderBy: { entry_date: 'desc' },
+      skip: filters.skip || 0,
+      take: filters.take || 20,
+      include: {
+        bank_accounts: {
+          select: {
+            id: true,
+            bank_name: true,
+            account_number: true,
+            account_type: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findById(id: string, companyId: string) {
+    return this.prisma.cash_flow_entries.findFirst({
+      where: {
+        id,
+        company_id: companyId,
+      },
+      include: {
+        bank_accounts: true,
+      },
+    });
+  }
+
+  async update(
+    id: string,
+    companyId: string,
+    data: Prisma.cash_flow_entriesUpdateInput,
+  ) {
+    return this.prisma.cash_flow_entries.updateMany({
+      where: {
+        id,
+        company_id: companyId,
+        reconciled: false, // Only allow updates if not reconciled
+      },
+      data,
+    });
+  }
+
+  async delete(id: string, companyId: string) {
+    return this.prisma.cash_flow_entries.deleteMany({
+      where: {
+        id,
+        company_id: companyId,
+        reconciled: false, // Only allow deletion if not reconciled
+      },
+    });
+  }
+
+  async reconcile(id: string, companyId: string) {
+    return this.prisma.cash_flow_entries.updateMany({
+      where: {
+        id,
+        company_id: companyId,
+      },
+      data: {
+        reconciled: true,
+        reconciled_at: new Date(),
+        status: 'reconciled',
+      },
+    });
+  }
+
+  async calculateBalance(bankAccountId: string, upToDate?: Date) {
+    const where: Prisma.cash_flow_entriesWhereInput = {
+      bank_account_id: bankAccountId,
+      reconciled: true,
+    };
+
+    if (upToDate) {
+      where.entry_date = { lte: upToDate };
     }
 
-    async calculateBalance(bankAccountId: string, upToDate?: Date) {
-        const where: Prisma.cash_flow_entriesWhereInput = {
-            bank_account_id: bankAccountId,
-            reconciled: true,
-        };
+    const receipts = await this.prisma.cash_flow_entries.aggregate({
+      where: {
+        ...where,
+        entry_type: 'receipt',
+      },
+      _sum: {
+        amount: true,
+      },
+    });
 
-        if (upToDate) {
-            where.entry_date = { lte: upToDate };
-        }
+    const payments = await this.prisma.cash_flow_entries.aggregate({
+      where: {
+        ...where,
+        entry_type: 'payment',
+      },
+      _sum: {
+        amount: true,
+      },
+    });
 
-        const receipts = await this.prisma.cash_flow_entries.aggregate({
-            where: {
-                ...where,
-                entry_type: 'receipt',
-            },
-            _sum: {
-                amount: true,
-            },
-        });
-
-        const payments = await this.prisma.cash_flow_entries.aggregate({
-            where: {
-                ...where,
-                entry_type: 'payment',
-            },
-            _sum: {
-                amount: true,
-            },
-        });
-
-        return {
-            total_receipts: Number(receipts._sum.amount || 0),
-            total_payments: Number(payments._sum.amount || 0),
-            net_balance: Number(receipts._sum.amount || 0) - Number(payments._sum.amount || 0),
-        };
-    }
+    return {
+      total_receipts: Number(receipts._sum.amount || 0),
+      total_payments: Number(payments._sum.amount || 0),
+      net_balance:
+        Number(receipts._sum.amount || 0) - Number(payments._sum.amount || 0),
+    };
+  }
 }

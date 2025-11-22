@@ -11,4 +11,4 @@ import { RolesModule } from 'src/modules/identity/roles/roles.module';
   providers: [AuditLogService, AuditLogRepository],
   exports: [AuditLogService],
 })
-export class AuditModule { }
+export class AuditModule {}

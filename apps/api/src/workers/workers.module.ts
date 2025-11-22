@@ -9,4 +9,4 @@ import { RabbitMQModule } from 'src/common/rabbitmq/rabbitmq.module';
   providers: [AuditWorkerService],
   exports: [AuditWorkerService],
 })
-export class WorkersModule { }
+export class WorkersModule {}

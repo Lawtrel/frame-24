@@ -6,9 +6,9 @@ import { AccountsReceivableService } from './services/accounts-receivable.servic
 import { AccountsReceivableRepository } from './repositories/accounts-receivable.repository';
 
 @Module({
-    imports: [PrismaModule, CommonModule],
-    controllers: [AccountsReceivableController],
-    providers: [AccountsReceivableService, AccountsReceivableRepository],
-    exports: [AccountsReceivableService, AccountsReceivableRepository],
+  imports: [PrismaModule, CommonModule],
+  controllers: [AccountsReceivableController],
+  providers: [AccountsReceivableService, AccountsReceivableRepository],
+  exports: [AccountsReceivableService, AccountsReceivableRepository],
 })
-export class AccountsReceivableModule { }
+export class AccountsReceivableModule {}

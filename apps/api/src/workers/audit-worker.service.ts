@@ -41,9 +41,9 @@ export class AuditWorkerService implements OnModuleInit {
     private prisma: PrismaService,
     private logger: LoggerService,
     private snowflake: SnowflakeService,
-  ) { }
+  ) {}
 
-  onModuleInit(): void { }
+  onModuleInit(): void {}
 
   async handleAuditEvent(message: AuditEvent): Promise<void> {
     try {

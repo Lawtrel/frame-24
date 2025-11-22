@@ -8,7 +8,7 @@ export class ProductRepository {
   constructor(
     private readonly prisma: PrismaService,
     private readonly snowflake: SnowflakeService,
-  ) { }
+  ) {}
 
   async findById(
     id: string,

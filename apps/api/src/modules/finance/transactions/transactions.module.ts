@@ -8,15 +8,15 @@ import { AccountsPayableModule } from '../accounts-payable/accounts-payable.modu
 import { CashFlowModule } from '../cash-flow/cash-flow.module';
 
 @Module({
-    imports: [
-        PrismaModule,
-        CommonModule,
-        AccountsReceivableModule,
-        AccountsPayableModule,
-        CashFlowModule,
-    ],
-    controllers: [TransactionsController],
-    providers: [TransactionsService],
-    exports: [TransactionsService],
+  imports: [
+    PrismaModule,
+    CommonModule,
+    AccountsReceivableModule,
+    AccountsPayableModule,
+    CashFlowModule,
+  ],
+  controllers: [TransactionsController],
+  providers: [TransactionsService],
+  exports: [TransactionsService],
 })
-export class TransactionsModule { }
+export class TransactionsModule {}

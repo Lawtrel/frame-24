@@ -3,7 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class FinanceReportsService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   private parseMonth(month: string): {
     start: Date;
@@ -142,7 +142,9 @@ export class FinanceReportsService {
     const discounts = Number(salesAggregate._sum.discount_amount || 0);
     const netRevenue = Number(salesAggregate._sum.net_amount || 0);
 
-    const distributorPayouts = Number(settlementsAggregate._sum.net_payment_amount || 0);
+    const distributorPayouts = Number(
+      settlementsAggregate._sum.net_payment_amount || 0,
+    );
 
     const taxes =
       Number(taxAggregate._sum.iss_amount || 0) +
@@ -166,7 +168,8 @@ export class FinanceReportsService {
     const costOfServices = distributorPayouts + operationalExpenses;
     const grossProfit = realNetRevenue - costOfServices;
 
-    const operationalResult = grossProfit - administrativeExpenses - sellingExpenses;
+    const operationalResult =
+      grossProfit - administrativeExpenses - sellingExpenses;
 
     const netResult = operationalResult - financialExpenses;
 
@@ -189,9 +192,10 @@ export class FinanceReportsService {
       net_result: netResult,
 
       metrics: {
-        gross_margin: realNetRevenue > 0 ? (grossProfit / realNetRevenue) * 100 : 0,
+        gross_margin:
+          realNetRevenue > 0 ? (grossProfit / realNetRevenue) * 100 : 0,
         net_margin: realNetRevenue > 0 ? (netResult / realNetRevenue) * 100 : 0,
-      }
+      },
     };
   }
 }

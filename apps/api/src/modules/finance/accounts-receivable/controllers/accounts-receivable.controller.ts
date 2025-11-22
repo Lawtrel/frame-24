@@ -1,12 +1,12 @@
 import {
-    Controller,
-    Get,
-    Post,
-    Body,
-    Patch,
-    Param,
-    Query,
-    UseGuards,
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AccountsReceivableService } from '../services/accounts-receivable.service';
@@ -21,33 +21,39 @@ import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strat
 @Controller('v1/finance/receivables')
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class AccountsReceivableController {
-    constructor(private readonly service: AccountsReceivableService) { }
+  constructor(private readonly service: AccountsReceivableService) {}
 
-    @Post()
-    @RequirePermission('finance_receivables', 'create')
-    create(@CurrentUser() user: RequestUser, @Body() dto: CreateAccountReceivableDto) {
-        return this.service.create(user.company_id, dto);
-    }
+  @Post()
+  @RequirePermission('finance_receivables', 'create')
+  create(
+    @CurrentUser() user: RequestUser,
+    @Body() dto: CreateAccountReceivableDto,
+  ) {
+    return this.service.create(user.company_id, dto);
+  }
 
-    @Get()
-    @RequirePermission('finance_receivables', 'read')
-    findAll(@CurrentUser() user: RequestUser, @Query() query: AccountReceivableQueryDto) {
-        return this.service.findAll(user.company_id, query);
-    }
+  @Get()
+  @RequirePermission('finance_receivables', 'read')
+  findAll(
+    @CurrentUser() user: RequestUser,
+    @Query() query: AccountReceivableQueryDto,
+  ) {
+    return this.service.findAll(user.company_id, query);
+  }
 
-    @Get(':id')
-    @RequirePermission('finance_receivables', 'read')
-    findOne(@CurrentUser() user: RequestUser, @Param('id') id: string) {
-        return this.service.findOne(id, user.company_id);
-    }
+  @Get(':id')
+  @RequirePermission('finance_receivables', 'read')
+  findOne(@CurrentUser() user: RequestUser, @Param('id') id: string) {
+    return this.service.findOne(id, user.company_id);
+  }
 
-    @Patch(':id')
-    @RequirePermission('finance_receivables', 'update')
-    update(
-        @CurrentUser() user: RequestUser,
-        @Param('id') id: string,
-        @Body() dto: UpdateAccountReceivableDto,
-    ) {
-        return this.service.update(id, user.company_id, dto);
-    }
+  @Patch(':id')
+  @RequirePermission('finance_receivables', 'update')
+  update(
+    @CurrentUser() user: RequestUser,
+    @Param('id') id: string,
+    @Body() dto: UpdateAccountReceivableDto,
+  ) {
+    return this.service.update(id, user.company_id, dto);
+  }
 }

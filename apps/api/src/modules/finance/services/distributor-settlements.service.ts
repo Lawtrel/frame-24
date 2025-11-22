@@ -11,7 +11,7 @@ export class DistributorSettlementsService {
     private readonly prisma: PrismaService,
     private readonly snowflake: SnowflakeService,
     private readonly accountsPayableService: AccountsPayableService,
-  ) { }
+  ) {}
 
   private async ensureComplexBelongsToCompany(
     cinema_complex_id: string,
@@ -149,8 +149,12 @@ export class DistributorSettlementsService {
           document_number: `SETT-${settlement.id.substring(0, 8)}`,
           description: `Acerto Distribuidor - Contrato ${dto.contract_id}`,
           issue_date: new Date().toISOString().split('T')[0],
-          due_date: new Date(dto.competence_end_date).toISOString().split('T')[0], // Assuming due date is end of competence
-          competence_date: new Date(dto.competence_start_date).toISOString().split('T')[0],
+          due_date: new Date(dto.competence_end_date)
+            .toISOString()
+            .split('T')[0], // Assuming due date is end of competence
+          competence_date: new Date(dto.competence_start_date)
+            .toISOString()
+            .split('T')[0],
           original_amount: netAmount,
           interest_amount: 0,
           penalty_amount: 0,
