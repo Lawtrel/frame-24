@@ -220,13 +220,20 @@ export class AuthService {
       verificationToken: verification.token,
     });
 
+    // Auto-verify: Publish verified event immediately
+    await this.eventPublisher.publishVerified({
+      identityId: identity.id,
+      email: identity.email,
+      fullName: person.fullName,
+    });
+
     this.logger.log(`Signup concluído: ${identity.email}`, AuthService.name);
 
     return {
       success: true,
       user_id: identity.id,
       email: identity.email,
-      message: 'Conta criada com sucesso! Verifique seu email para ativar.',
+      message: 'Conta criada com sucesso! Bem-vindo ao Frame 24.',
     };
   }
 
@@ -271,13 +278,20 @@ export class AuthService {
       verificationToken: verification.token,
     });
 
+    // Auto-verify: Publish verified event immediately
+    await this.eventPublisher.publishVerified({
+      identityId: identity.id,
+      email: identity.email,
+      fullName: person.fullName,
+    });
+
     this.logger.log(`Register concluído: ${identity.email}`, AuthService.name);
 
     return {
       success: true,
       user_id: identity.id,
       email: identity.email,
-      message: 'Usuário criado com sucesso. Verifique seu email para ativar.',
+      message: 'Usuário criado com sucesso. Acesso liberado.',
     };
   }
 

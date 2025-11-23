@@ -26,7 +26,7 @@ async function bootstrap() {
 
   // Configuração de CORS segura
   const frontendUrls = process.env.FRONTEND_URL
-    ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
+    ? process.env.FRONTEND_URL.split(',').map((url) => url.trim())
     : [];
 
   const allowedOrigins = [
@@ -38,7 +38,10 @@ async function bootstrap() {
   ].filter(Boolean) as string[];
 
   app.enableCors({
-    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
       // Permite requisições sem origin (Postman, mobile apps, server-to-server)
       if (!origin) return callback(null, true);
 
