@@ -96,8 +96,8 @@ RABBITMQ_EXCHANGE="frame24.events"
 SMTP_HOST="smtp.gmail.com"
 SMTP_PORT=587
 SMTP_SECURE=false
-SMTP_USER="your-email@gmail.com"
-SMTP_PASS="your-app-password"
+SMTP_USER=
+SMTP_PASS=
 EMAIL_FROM="Frame24 <noreply@frame24.com>"
 
 # MinIO (Object Storage)
