@@ -24,9 +24,34 @@ async function bootstrap() {
     }),
   );
 
+  // Configuração de CORS segura
+  const frontendUrls = process.env.FRONTEND_URL
+    ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
+    : [];
+
+  const allowedOrigins = [
+    // Desenvolvimento
+    'http://localhost:3000',
+    'http://localhost:3002',
+    'http://localhost:4000',
+    ...frontendUrls,
+  ].filter(Boolean) as string[];
+
   app.enableCors({
-    origin: true,
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      // Permite requisições sem origin (Postman, mobile apps, server-to-server)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.warn(`CORS blocked origin: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
   app.use('/favicon.ico', (req: Request, res: Response) =>
