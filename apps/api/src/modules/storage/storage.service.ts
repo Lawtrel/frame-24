@@ -16,6 +16,7 @@ export class StorageService implements OnModuleInit {
       useSSL: storageConfig.useSSL,
       accessKey: storageConfig.accessKey,
       secretKey: storageConfig.secretKey,
+      region: storageConfig.region,
     });
   }
 
@@ -119,8 +120,21 @@ export class StorageService implements OnModuleInit {
    * Constructs the public URL for an object
    */
   private getPublicUrl(objectName: string): string {
+    if (storageConfig.publicUrl) {
+      // Ensure no trailing slash in publicUrl and no leading slash in objectName
+      const baseUrl = storageConfig.publicUrl.replace(/\/$/, '');
+      const path = objectName.replace(/^\//, '');
+      return `${baseUrl}/${storageConfig.bucket}/${path}`;
+    }
+
     const protocol = storageConfig.useSSL ? 'https' : 'http';
-    return `${protocol}://${storageConfig.endpoint}:${storageConfig.port}/${storageConfig.bucket}/${objectName}`;
+    // If port is standard (80 or 443), don't include it in the URL
+    const isStandardPort =
+      (storageConfig.useSSL && storageConfig.port === 443) ||
+      (!storageConfig.useSSL && storageConfig.port === 80);
+    const portStr = isStandardPort ? '' : `:${storageConfig.port}`;
+
+    return `${protocol}://${storageConfig.endpoint}${portStr}/${storageConfig.bucket}/${objectName}`;
   }
 
   /**
