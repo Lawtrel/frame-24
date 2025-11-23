@@ -1,6 +1,5 @@
-import { redirect } from 'next/navigation';
+import LoginPage from './components/LoginPage';
 
 export default function RootPage() {
-    // Redireciona o usuário para a página de dashboard
-    redirect('/dashboard');
+    return <LoginPage />;
 }

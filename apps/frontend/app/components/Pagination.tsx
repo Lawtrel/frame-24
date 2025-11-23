@@ -61,7 +61,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                 disabled={isActive}
                 className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                     isActive
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-blue-600 text-text-primary'
                         : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                 }`}
             >
@@ -71,19 +71,19 @@ export const Pagination: React.FC<PaginationProps> = ({
     };
 
     return (
-        <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 sm:px-6">
+        <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 bg-text-primary dark:bg-gray-800 px-4 py-3 sm:px-6">
             <div className="flex-1 flex justify-between sm:hidden">
                 <button
                     onClick={() => onPageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-text-primary dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
                 >
                     Anterior
                 </button>
                 <button
                     onClick={() => onPageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-text-primary dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
                 >
                     Próximo
                 </button>
@@ -93,7 +93,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                     <button
                         onClick={() => onPageChange(currentPage - 1)}
                         disabled={currentPage === 1}
-                        className="relative inline-flex items-center px-2 py-2 rounded-l-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600"
+                        className="relative inline-flex items-center px-2 py-2 rounded-l-lg border border-gray-300 dark:border-gray-600 bg-text-primary dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600"
                     >
                         <span className="sr-only">Anterior</span>
                         <ChevronLeft className="h-5 w-5" aria-hidden="true" />
@@ -104,7 +104,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                     <button
                         onClick={() => onPageChange(currentPage + 1)}
                         disabled={currentPage === totalPages}
-                        className="relative inline-flex items-center px-2 py-2 rounded-r-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600"
+                        className="relative inline-flex items-center px-2 py-2 rounded-r-lg border border-gray-300 dark:border-gray-600 bg-text-primary dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600"
                     >
                         <span className="sr-only">Próximo</span>
                         <ChevronRight className="h-5 w-5" aria-hidden="true" />
