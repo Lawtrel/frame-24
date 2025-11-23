@@ -36,7 +36,7 @@ export class StorageService implements OnModuleInit {
   private async ensureBucket(): Promise<void> {
     const exists = await this.minioClient.bucketExists(storageConfig.bucket);
     if (!exists) {
-      await this.minioClient.makeBucket(storageConfig.bucket, 'us-east-1');
+      await this.minioClient.makeBucket(storageConfig.bucket, storageConfig.region);
       this.logger.log(`Bucket ${storageConfig.bucket} created successfully`);
     } else {
       this.logger.log(`Bucket ${storageConfig.bucket} already exists`);
