@@ -25,7 +25,6 @@ import { PublicModule } from 'src/modules/public/public.module';
 import { CrmModule } from 'src/modules/crm/crm.module';
 import { AppController } from './app.controller';
 
-
 @Module({
   imports: [
     // Security: Rate limiting
@@ -71,4 +70,4 @@ import { AppController } from './app.controller';
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}

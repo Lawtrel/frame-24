@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { MailerService } from '@nestjs-modules/mailer';
+import { Inject, Injectable } from '@nestjs/common';
+import { Resend } from 'resend';
 import { LoggerService } from 'src/common/services/logger.service';
 
 @Injectable()
@@ -10,9 +10,11 @@ export class EmailService {
   private readonly brandColor = '#BF0603';
   private readonly successColor = '#28a745';
   private readonly supportEmail = 'suporte@frame24.com';
+  private readonly fromEmail =
+    process.env.EMAIL_FROM || 'noreply@frame24.com.br';
 
   constructor(
-    private mailerService: MailerService,
+    @Inject('RESEND_CLIENT') private resend: Resend,
     private logger: LoggerService,
   ) {}
 
@@ -76,7 +78,8 @@ export class EmailService {
     `;
 
     try {
-      await this.mailerService.sendMail({
+      await this.resend.emails.send({
+        from: this.fromEmail,
         to: email,
         subject: `Confirme seu E-mail - ${this.brandName}`,
         html: this.createStyledEmail(title, preheader, content),
@@ -106,7 +109,8 @@ export class EmailService {
     `;
 
     try {
-      await this.mailerService.sendMail({
+      await this.resend.emails.send({
+        from: this.fromEmail,
         to: email,
         subject: `Bem-vindo(a) ao ${this.brandName}! 🎬`,
         html: this.createStyledEmail(title, preheader, content),
@@ -142,7 +146,8 @@ export class EmailService {
     `;
 
     try {
-      await this.mailerService.sendMail({
+      await this.resend.emails.send({
+        from: this.fromEmail,
         to: email,
         subject: `Redefinir sua Senha - ${this.brandName}`,
         html: this.createStyledEmail(title, preheader, content),
