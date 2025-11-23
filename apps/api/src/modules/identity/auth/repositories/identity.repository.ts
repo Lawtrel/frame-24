@@ -70,7 +70,7 @@ export class IdentityRepository {
         identity_type: 'EMPLOYEE',
         password_hash: data.passwordHash,
         active: true,
-        email_verified: false,
+        email_verified: true,
         email_verification_token: data.verificationToken,
         email_verification_expires_at: data.verificationExpiresAt,
       },
