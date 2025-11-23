@@ -207,15 +207,29 @@ SMTP_FROM_NAME=Frame24
 MAILHOG_WEB_UI=http://localhost:8025
 
 # ===========================================
-# OBJECT STORAGE (MinIO)
+# OBJECT STORAGE (MinIO / Supabase S3)
 # ===========================================
+# Development: Uses local MinIO (Docker)
 MINIO_ENDPOINT=localhost
 MINIO_PORT=9000
 MINIO_ACCESS_KEY=frame24
 MINIO_SECRET_KEY=frame24pass
 MINIO_USE_SSL=false
 MINIO_BUCKET=frame24-uploads
+MINIO_REGION=us-east-1
+STORAGE_PUBLIC_URL=http://localhost:9000
 MINIO_CONSOLE_URL=http://localhost:9001
+
+# Production: Use Supabase S3-compatible storage
+# MINIO_ENDPOINT=[PROJECT_REF].supabase.co
+# MINIO_PORT=443
+# MINIO_ACCESS_KEY=[SUPABASE_ACCESS_KEY_ID]
+# MINIO_SECRET_KEY=[SUPABASE_SECRET_ACCESS_KEY]
+# MINIO_USE_SSL=true
+# MINIO_BUCKET=frame24-uploads
+# MINIO_REGION=us-east-1
+# STORAGE_PUBLIC_URL=https://[PROJECT_REF].supabase.co/storage/v1/object/public
+# Note: Supabase endpoint will automatically use /storage/v1/s3 path
 
 # ===========================================
 # SEARCH ENGINE (Elasticsearch)
