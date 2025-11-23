@@ -12,6 +12,7 @@ import { CreateProductDto } from '../dto/create-product.dto';
 import { UpdateProductDto } from '../dto/update-product.dto';
 import { ProductResponseDto } from '../dto/product-response.dto';
 import { LoggerService } from 'src/common/services/logger.service';
+import { StorageService } from 'src/modules/storage/storage.service';
 
 @Injectable()
 export class ProductsService {
@@ -19,12 +20,14 @@ export class ProductsService {
     private readonly productRepo: ProductRepository,
     private readonly categoryRepo: ProductCategoryRepository,
     private readonly logger: LoggerService,
+    private readonly storageService: StorageService,
   ) {}
 
   @Transactional()
   async create(
     dto: CreateProductDto,
     company_id: string,
+    file?: Express.Multer.File,
   ): Promise<ProductResponseDto> {
     const category = await this.categoryRepo.findById(
       dto.category_id,
@@ -49,13 +52,19 @@ export class ProductsService {
       }
     }
 
+    // Upload image if provided
+    let image_url = dto.image_url;
+    if (file) {
+      image_url = await this.storageService.uploadFile(file, 'products');
+    }
+
     const product = await this.productRepo.create({
       company_id,
       product_categories: { connect: { id: dto.category_id } },
       product_code,
       name: dto.name,
       description: dto.description,
-      image_url: dto.image_url,
+      image_url,
       ncm_code: dto.ncm_code,
       unit: dto.unit,
       minimum_stock: dto.minimum_stock,
@@ -134,6 +143,7 @@ export class ProductsService {
     id: string,
     dto: UpdateProductDto,
     company_id: string,
+    file?: Express.Multer.File,
   ): Promise<ProductResponseDto> {
     const product = await this.productRepo.findById(id, company_id);
 
@@ -171,6 +181,17 @@ export class ProductsService {
       }
     }
 
+    // Handle image upload
+    let image_url = dto.image_url;
+    if (file) {
+      // Delete old image if exists
+      if (product.image_url) {
+        await this.storageService.deleteFile(product.image_url);
+      }
+      // Upload new image
+      image_url = await this.storageService.uploadFile(file, 'products');
+    }
+
     const updated = await this.productRepo.update(id, {
       ...(dto.category_id && {
         product_categories: { connect: { id: dto.category_id } },
@@ -178,7 +199,7 @@ export class ProductsService {
       ...(dto.product_code && { product_code: dto.product_code }),
       ...(dto.name && { name: dto.name }),
       ...(dto.description !== undefined && { description: dto.description }),
-      ...(dto.image_url !== undefined && { image_url: dto.image_url }),
+      ...(image_url !== undefined && { image_url }),
       ...(dto.ncm_code !== undefined && { ncm_code: dto.ncm_code }),
       ...(dto.unit !== undefined && { unit: dto.unit }),
       ...(dto.minimum_stock !== undefined && {

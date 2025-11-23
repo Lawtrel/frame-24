@@ -13,6 +13,7 @@ import {
 } from '../dto/auth-response.dto';
 import { LoggerService } from 'src/common/services/logger.service';
 import { MasterDataSetupService } from 'src/modules/setup/services/master-data-setup.service';
+import { TaxSetupService } from 'src/modules/tax/services/tax-setup.service';
 import { CompanyService } from '../../companies/services/company.service';
 
 import { IdentityRepository } from '../repositories/identity.repository';
@@ -54,6 +55,7 @@ export class AuthService {
     private readonly companyUserLinker: CompanyUserLinkerService,
     private readonly eventPublisher: IdentityEventPublisherService,
     private readonly masterDataSetup: MasterDataSetupService,
+    private readonly taxSetup: TaxSetupService,
     private readonly logger: LoggerService,
   ) {}
 
@@ -202,11 +204,27 @@ export class AuthService {
     await this.companyUserLinker.createAdminUser(identity.id, company.id);
     await this.masterDataSetup.setupCompanyMasterData(company.id);
 
+    // Configurar impostos baseados no regime tributário e município
+    await this.taxSetup.setupCompanyTaxes(
+      company.id,
+      company.tax_regime,
+      dto.company_zip_code,
+      dto.company_city,
+      dto.company_state,
+    );
+
     await this.eventPublisher.publishCreated({
       identityId: identity.id,
       email: identity.email,
       fullName: person.fullName,
       verificationToken: verification.token,
+    });
+
+    // Auto-verify: Publish verified event immediately
+    await this.eventPublisher.publishVerified({
+      identityId: identity.id,
+      email: identity.email,
+      fullName: person.fullName,
     });
 
     this.logger.log(`Signup concluído: ${identity.email}`, AuthService.name);
@@ -215,7 +233,7 @@ export class AuthService {
       success: true,
       user_id: identity.id,
       email: identity.email,
-      message: 'Conta criada com sucesso! Verifique seu email para ativar.',
+      message: 'Conta criada com sucesso! Bem-vindo ao Frame 24.',
     };
   }
 
@@ -260,13 +278,20 @@ export class AuthService {
       verificationToken: verification.token,
     });
 
+    // Auto-verify: Publish verified event immediately
+    await this.eventPublisher.publishVerified({
+      identityId: identity.id,
+      email: identity.email,
+      fullName: person.fullName,
+    });
+
     this.logger.log(`Register concluído: ${identity.email}`, AuthService.name);
 
     return {
       success: true,
       user_id: identity.id,
       email: identity.email,
-      message: 'Usuário criado com sucesso. Verifique seu email para ativar.',
+      message: 'Usuário criado com sucesso. Acesso liberado.',
     };
   }
 

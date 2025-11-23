@@ -25,6 +25,7 @@ import { IdentityEventPublisherService } from './services/identity-event-publish
 import { EmployeeIdGeneratorService } from './services/employee-id-generator';
 
 import { MasterDataSetupService } from 'src/modules/setup/services/master-data-setup.service';
+import { TaxModule } from 'src/modules/tax/tax.module';
 
 import { JwtStrategy } from './strategies/jwt.strategy';
 
@@ -40,6 +41,7 @@ import { AuthController } from './controllers/auth.controller';
     }),
     CommonModule,
     forwardRef(() => CompanyModule),
+    TaxModule,
   ],
   providers: [
     IdentityRepository,

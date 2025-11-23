@@ -4,6 +4,7 @@ packages:
 
 onlyBuiltDependencies:
   - '@nestjs/core'
+  - '@openapitools/openapi-generator-cli'
   - '@parcel/watcher'
   - '@prisma/client'
   - '@prisma/engines'

@@ -5,6 +5,7 @@ node_modules
 .pnp
 .pnp.js
 .idea/
+qodana.yaml
 
 # Local env files
 .env
@@ -37,3 +38,5 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+*.tsbuildinfo
+

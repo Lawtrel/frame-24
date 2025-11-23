@@ -10,6 +10,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  UploadedFile,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
@@ -17,6 +18,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { FileUpload } from 'src/common/decorators/file-upload.decorator';
 
 import { ProductsService } from '../services/products.service';
 import { CreateProductDto } from '../dto/create-product.dto';
@@ -32,14 +34,16 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Post()
+  @FileUpload('image', false)
   @RequirePermission('products', 'create')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Criar produto' })
   async create(
+    @UploadedFile() file: Express.Multer.File,
     @Body() dto: CreateProductDto,
     @CurrentUser() user: RequestUser,
   ): Promise<ProductResponseDto> {
-    return await this.productsService.create(dto, user.company_id);
+    return await this.productsService.create(dto, user.company_id, file);
   }
 
   @Get()
@@ -99,14 +103,16 @@ export class ProductsController {
   }
 
   @Put(':id')
+  @FileUpload('image', false)
   @RequirePermission('products', 'update')
   @ApiOperation({ summary: 'Atualizar produto' })
   async update(
     @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
     @Body() dto: UpdateProductDto,
     @CurrentUser() user: RequestUser,
   ): Promise<ProductResponseDto> {
-    return await this.productsService.update(id, dto, user.company_id);
+    return await this.productsService.update(id, dto, user.company_id, file);
   }
 
   @Delete(':id')

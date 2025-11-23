@@ -10,6 +10,7 @@ import { Transactional } from '@nestjs-cls/transactional';
 import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { RabbitMQPublisherService } from 'src/common/rabbitmq/rabbitmq-publisher.service';
+import { StorageService } from 'src/modules/storage/storage.service';
 
 import { CreateRoomDto } from '../dto/create-room.dto';
 import { RoomsRepository } from '../repositories/rooms.repository';
@@ -31,6 +32,7 @@ export class RoomsService {
     private readonly seatTypesRepository: SeatTypesRepository,
     private readonly snowflake: SnowflakeService,
     private readonly rabbitmq: RabbitMQPublisherService,
+    private readonly storageService: StorageService,
   ) {}
 
   @Transactional()
@@ -38,6 +40,7 @@ export class RoomsService {
     cinemaComplexId: string,
     dto: CreateRoomDto,
     user: RequestUser,
+    file?: Express.Multer.File,
   ): Promise<Room> {
     const companyId = user.company_id;
 
@@ -70,6 +73,12 @@ export class RoomsService {
       );
     }
 
+    // Upload layout image if provided
+    let layout_image = dto.layout_image;
+    if (file) {
+      layout_image = await this.storageService.uploadFile(file, 'cinema-rooms');
+    }
+
     const roomData: Prisma.roomsCreateInput = {
       id: roomId,
       cinema_complexes: {
@@ -92,7 +101,7 @@ export class RoomsService {
       }),
       seat_layout: JSON.stringify(dto.seat_layout),
       room_design: dto.room_design,
-      layout_image: dto.layout_image,
+      layout_image,
       active: dto.active,
     };
 
@@ -101,7 +110,7 @@ export class RoomsService {
       await this.seatsRepository.createMany(seatsToCreate);
     }
 
-    this.rabbitmq.publish({
+    void this.rabbitmq.publish({
       pattern: 'audit.room.created',
       data: {
         id: newRoom.id,
@@ -199,6 +208,7 @@ export class RoomsService {
     id: string,
     dto: UpdateRoomDto,
     user: RequestUser,
+    file?: Express.Multer.File,
   ): Promise<Room> {
     const companyId = user.company_id;
 
@@ -251,12 +261,23 @@ export class RoomsService {
       }
     }
 
+    // Handle layout image upload
+    let layout_image = dto.layout_image;
+    if (file) {
+      // Delete old image if exists
+      if (existingRoom.layout_image) {
+        await this.storageService.deleteFile(existingRoom.layout_image);
+      }
+      // Upload new image
+      layout_image = await this.storageService.uploadFile(file, 'cinema-rooms');
+    }
+
     const updateData: Prisma.roomsUpdateInput = {
       room_number: dto.room_number,
       name: dto.name,
       active: dto.active,
       room_design: dto.room_design,
-      layout_image: dto.layout_image,
+      ...(layout_image !== undefined && { layout_image }),
       ...(dto.seat_layout && {
         seat_layout: JSON.stringify(dto.seat_layout),
         capacity: calculatedCapacity,
@@ -272,7 +293,7 @@ export class RoomsService {
 
     const updatedRoom = await this.roomsRepository.update(id, updateData);
 
-    this.rabbitmq.publish({
+    void this.rabbitmq.publish({
       pattern: 'audit.room.updated',
       data: {
         id: updatedRoom.id,
@@ -292,7 +313,7 @@ export class RoomsService {
 
     await this.roomsRepository.remove(id);
 
-    this.rabbitmq.publish({
+    void this.rabbitmq.publish({
       pattern: 'audit.room.deleted',
       data: { id: existingRoom.id, old_values: existingRoom },
       metadata: { companyId, userId: user.company_user_id },

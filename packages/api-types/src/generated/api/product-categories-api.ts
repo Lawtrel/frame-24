@@ -24,6 +24,8 @@ import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError
 // @ts-ignore
 import type { CreateProductCategoryDto } from '../models';
 // @ts-ignore
+import type { ProductCategoryResponseDto } from '../models';
+// @ts-ignore
 import type { UpdateProductCategoryDto } from '../models';
 /**
  * ProductCategoriesApi - axios parameter creator
@@ -222,7 +224,7 @@ export const ProductCategoriesApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async productCategoriesControllerCreateV1(createProductCategoryDto: CreateProductCategoryDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async productCategoriesControllerCreateV1(createProductCategoryDto: CreateProductCategoryDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProductCategoryResponseDto>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.productCategoriesControllerCreateV1(createProductCategoryDto, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ProductCategoriesApi.productCategoriesControllerCreateV1']?.[localVarOperationServerIndex]?.url;
@@ -247,7 +249,7 @@ export const ProductCategoriesApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async productCategoriesControllerFindAllV1(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async productCategoriesControllerFindAllV1(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<ProductCategoryResponseDto>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.productCategoriesControllerFindAllV1(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ProductCategoriesApi.productCategoriesControllerFindAllV1']?.[localVarOperationServerIndex]?.url;
@@ -260,7 +262,7 @@ export const ProductCategoriesApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async productCategoriesControllerFindOneV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async productCategoriesControllerFindOneV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProductCategoryResponseDto>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.productCategoriesControllerFindOneV1(id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ProductCategoriesApi.productCategoriesControllerFindOneV1']?.[localVarOperationServerIndex]?.url;
@@ -274,7 +276,7 @@ export const ProductCategoriesApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async productCategoriesControllerUpdateV1(id: string, updateProductCategoryDto: UpdateProductCategoryDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async productCategoriesControllerUpdateV1(id: string, updateProductCategoryDto: UpdateProductCategoryDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProductCategoryResponseDto>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.productCategoriesControllerUpdateV1(id, updateProductCategoryDto, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ProductCategoriesApi.productCategoriesControllerUpdateV1']?.[localVarOperationServerIndex]?.url;
@@ -297,7 +299,7 @@ export const ProductCategoriesApiFactory = function (configuration?: Configurati
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        productCategoriesControllerCreateV1(requestParameters: ProductCategoriesApiProductCategoriesControllerCreateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        productCategoriesControllerCreateV1(requestParameters: ProductCategoriesApiProductCategoriesControllerCreateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<ProductCategoryResponseDto> {
             return localVarFp.productCategoriesControllerCreateV1(requestParameters.createProductCategoryDto, options).then((request) => request(axios, basePath));
         },
         /**
@@ -316,7 +318,7 @@ export const ProductCategoriesApiFactory = function (configuration?: Configurati
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        productCategoriesControllerFindAllV1(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        productCategoriesControllerFindAllV1(options?: RawAxiosRequestConfig): AxiosPromise<Array<ProductCategoryResponseDto>> {
             return localVarFp.productCategoriesControllerFindAllV1(options).then((request) => request(axios, basePath));
         },
         /**
@@ -326,7 +328,7 @@ export const ProductCategoriesApiFactory = function (configuration?: Configurati
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        productCategoriesControllerFindOneV1(requestParameters: ProductCategoriesApiProductCategoriesControllerFindOneV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        productCategoriesControllerFindOneV1(requestParameters: ProductCategoriesApiProductCategoriesControllerFindOneV1Request, options?: RawAxiosRequestConfig): AxiosPromise<ProductCategoryResponseDto> {
             return localVarFp.productCategoriesControllerFindOneV1(requestParameters.id, options).then((request) => request(axios, basePath));
         },
         /**
@@ -336,7 +338,7 @@ export const ProductCategoriesApiFactory = function (configuration?: Configurati
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        productCategoriesControllerUpdateV1(requestParameters: ProductCategoriesApiProductCategoriesControllerUpdateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        productCategoriesControllerUpdateV1(requestParameters: ProductCategoriesApiProductCategoriesControllerUpdateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<ProductCategoryResponseDto> {
             return localVarFp.productCategoriesControllerUpdateV1(requestParameters.id, requestParameters.updateProductCategoryDto, options).then((request) => request(axios, basePath));
         },
     };
@@ -356,7 +358,7 @@ export interface ProductCategoriesApiInterface {
      * @throws {RequiredError}
      * @memberof ProductCategoriesApiInterface
      */
-    productCategoriesControllerCreateV1(requestParameters: ProductCategoriesApiProductCategoriesControllerCreateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+    productCategoriesControllerCreateV1(requestParameters: ProductCategoriesApiProductCategoriesControllerCreateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<ProductCategoryResponseDto>;
 
     /**
      * 
@@ -375,7 +377,7 @@ export interface ProductCategoriesApiInterface {
      * @throws {RequiredError}
      * @memberof ProductCategoriesApiInterface
      */
-    productCategoriesControllerFindAllV1(options?: RawAxiosRequestConfig): AxiosPromise<void>;
+    productCategoriesControllerFindAllV1(options?: RawAxiosRequestConfig): AxiosPromise<Array<ProductCategoryResponseDto>>;
 
     /**
      * 
@@ -385,7 +387,7 @@ export interface ProductCategoriesApiInterface {
      * @throws {RequiredError}
      * @memberof ProductCategoriesApiInterface
      */
-    productCategoriesControllerFindOneV1(requestParameters: ProductCategoriesApiProductCategoriesControllerFindOneV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+    productCategoriesControllerFindOneV1(requestParameters: ProductCategoriesApiProductCategoriesControllerFindOneV1Request, options?: RawAxiosRequestConfig): AxiosPromise<ProductCategoryResponseDto>;
 
     /**
      * 
@@ -395,7 +397,7 @@ export interface ProductCategoriesApiInterface {
      * @throws {RequiredError}
      * @memberof ProductCategoriesApiInterface
      */
-    productCategoriesControllerUpdateV1(requestParameters: ProductCategoriesApiProductCategoriesControllerUpdateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+    productCategoriesControllerUpdateV1(requestParameters: ProductCategoriesApiProductCategoriesControllerUpdateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<ProductCategoryResponseDto>;
 
 }
 

@@ -10,6 +10,7 @@ import {
   Prisma,
   session_status,
   showtime_schedule as Showtime,
+  seats as SeatEntity,
 } from '@repo/db';
 
 import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
@@ -28,6 +29,16 @@ import { CinemaComplexesRepository } from 'src/modules/operations/cinema-complex
 import { SeatStatusRepository } from 'src/modules/operations/seat-status/repositories/seat-status.repository';
 import { UpdateShowtimeDto } from 'src/modules/operations/showtime_schedule/dto/update-showtime.dto';
 import { SessionStatusRepository } from 'src/modules/operations/session-status/repositories/session-status.repository';
+import {
+  ExhibitionContractWithRelations,
+  ExhibitionContractsRepository,
+} from 'src/modules/contracts/repositories/exhibition-contracts.repository';
+import { MunicipalTaxParametersRepository } from 'src/modules/tax/repositories/municipal-tax-parameters.repository';
+import { FederalTaxRatesRepository } from 'src/modules/tax/repositories/federal-tax-rates.repository';
+import { SeatTypesRepository } from 'src/modules/operations/seat-types/repositories/seat-types.repository';
+import { ProjectionTypesRepository } from 'src/modules/operations/projection-types/repositories/projection-types.repository';
+import { AudioTypesRepository } from 'src/modules/operations/audio-types/repositories/audio-types.repository';
+import { CacheService } from 'src/common/cache/cache.service';
 
 export interface ShowtimeDetailsDto {
   id: string;
@@ -59,6 +70,60 @@ export interface ShowtimeSeatDto {
   seat_type_id: string | null;
 }
 
+interface SeatPricingDetail {
+  seat_type_id: string | null;
+  seat_type_name: string;
+  seat_count: number;
+  additional_value: number;
+  final_price: number;
+}
+
+export interface ShowtimeTicketPricingBreakdown {
+  requestedBasePrice: number;
+  projectionAdditional: number;
+  audioAdditional: number;
+  basePriceWithModifiers: number;
+  minSeatAdditional: number;
+  maxSeatAdditional: number;
+  minSeatPrice: number;
+  maxSeatPrice: number;
+  averageSeatPrice: number;
+  totalSeats: number;
+  seatTypes: SeatPricingDetail[];
+}
+
+interface SeatTypeMeta {
+  additionalValue: number;
+  name: string;
+}
+
+interface SeatPricingContext {
+  activeSeats: SeatEntity[];
+  seatTypeMeta: Map<string, SeatTypeMeta>;
+}
+
+const WEEK_IN_MS = 7 * 24 * 60 * 60 * 1000;
+const DEFAULT_DISTRIBUTOR_PERCENTAGE = 0;
+const DEFAULT_EXHIBITOR_PERCENTAGE = 100;
+
+export interface ShowtimeFinancialBreakdown {
+  baseTicketPrice: number;
+  distributorShare: number;
+  exhibitorGross: number;
+  issRate: number;
+  issAmount: number;
+  pisRate: number;
+  pisAmount: number;
+  cofinsRate: number;
+  cofinsAmount: number;
+  totalTaxes: number;
+  netRevenue: number;
+  contractUsed: boolean;
+  distributorPercentage: number;
+  exhibitorPercentage: number;
+  ticketPricing?: ShowtimeTicketPricingBreakdown;
+}
+
 @Injectable()
 export class ShowtimesService {
   constructor(
@@ -72,6 +137,13 @@ export class ShowtimesService {
     private readonly snowflake: SnowflakeService,
     private readonly rabbitmq: RabbitMQPublisherService,
     private readonly seatStatusRepository: SeatStatusRepository,
+    private readonly exhibitionContractsRepository: ExhibitionContractsRepository,
+    private readonly municipalTaxParametersRepository: MunicipalTaxParametersRepository,
+    private readonly federalTaxRatesRepository: FederalTaxRatesRepository,
+    private readonly seatTypesRepository: SeatTypesRepository,
+    private readonly projectionTypesRepository: ProjectionTypesRepository,
+    private readonly audioTypesRepository: AudioTypesRepository,
+    private readonly cacheService: CacheService,
   ) {}
 
   async findOne(id: string, user: RequestUser): Promise<ShowtimeDetailsDto> {
@@ -134,6 +206,380 @@ export class ShowtimesService {
     return this.showtimesRepository.findAll(where);
   }
 
+  async preview(
+    dto: CreateShowtimeDto,
+    user: RequestUser,
+  ): Promise<ShowtimeFinancialBreakdown> {
+    const companyId = user.company_id;
+
+    // Validar filme e sala em paralelo
+    const [movie, room] = await Promise.all([
+      this.moviesRepository.findById(dto.movie_id),
+      this.roomsRepository.findById(dto.room_id),
+    ]);
+
+    if (!movie || movie.company_id !== companyId) {
+      throw new NotFoundException('Filme não encontrado.');
+    }
+
+    if (!room) {
+      throw new NotFoundException('Sala não encontrada.');
+    }
+
+    // Validar complexo (com cache)
+    const complex = await this.cacheService.wrap(
+      `complex:${room.cinema_complex_id}`,
+      () => this.cinemaComplexesRepository.findById(room.cinema_complex_id),
+      3600000, // 1 hora
+    );
+
+    if (!complex || complex.company_id !== companyId) {
+      throw new ForbiddenException(
+        'Acesso negado. Esta sala não pertence à sua empresa.',
+      );
+    }
+
+    const seatPricingContext = await this.loadSeatPricingContext(
+      dto.room_id,
+      companyId,
+    );
+
+    const ticketPricing = await this.buildTicketPricingBreakdown(
+      dto,
+      room,
+      companyId,
+      seatPricingContext,
+    );
+
+    const financialBreakdown = await this.calculateShowtimeFinancials(
+      ticketPricing.averageSeatPrice,
+      dto.movie_id,
+      room.cinema_complex_id,
+      dto.start_time,
+      companyId,
+    );
+
+    return {
+      ...financialBreakdown,
+      ticketPricing,
+    };
+  }
+
+  private async buildTicketPricingBreakdown(
+    dto: CreateShowtimeDto,
+    room: any,
+    companyId: string,
+    seatContext?: SeatPricingContext,
+  ): Promise<ShowtimeTicketPricingBreakdown> {
+    const context =
+      seatContext ??
+      (await this.loadSeatPricingContext(dto.room_id, companyId));
+
+    const projectionAdditional = await this.resolveProjectionAdditional(
+      dto.projection_type ?? room.projection_type ?? null,
+      companyId,
+    );
+    const audioAdditional = await this.resolveAudioAdditional(
+      dto.audio_type ?? room.audio_type ?? null,
+      companyId,
+    );
+
+    const basePriceWithModifiers =
+      dto.base_ticket_price + projectionAdditional + audioAdditional;
+
+    const seatPricingDetails = this.buildSeatPricingDetails(
+      context,
+      basePriceWithModifiers,
+      room.capacity,
+    );
+
+    const additionalValues = seatPricingDetails.map(
+      (item) => item.additional_value,
+    );
+    const seatPrices = seatPricingDetails.map((item) => item.final_price);
+
+    const minSeatAdditional =
+      additionalValues.length > 0 ? Math.min(...additionalValues) : 0;
+    const maxSeatAdditional =
+      additionalValues.length > 0 ? Math.max(...additionalValues) : 0;
+    const minSeatPrice =
+      seatPrices.length > 0 ? Math.min(...seatPrices) : basePriceWithModifiers;
+    const maxSeatPrice =
+      seatPrices.length > 0 ? Math.max(...seatPrices) : basePriceWithModifiers;
+
+    const totalSeats = seatPricingDetails.reduce(
+      (sum, seat) => sum + seat.seat_count,
+      0,
+    );
+
+    const averageSeatPrice =
+      totalSeats > 0
+        ? seatPricingDetails.reduce(
+            (sum, seat) => sum + seat.final_price * seat.seat_count,
+            0,
+          ) / totalSeats
+        : basePriceWithModifiers;
+
+    return {
+      requestedBasePrice: dto.base_ticket_price,
+      projectionAdditional,
+      audioAdditional,
+      basePriceWithModifiers,
+      minSeatAdditional,
+      maxSeatAdditional,
+      minSeatPrice,
+      maxSeatPrice,
+      averageSeatPrice,
+      totalSeats,
+      seatTypes: seatPricingDetails,
+    };
+  }
+
+  private buildSeatPricingDetails(
+    context: SeatPricingContext,
+    basePriceWithModifiers: number,
+    roomCapacity?: number,
+  ): SeatPricingDetail[] {
+    const seatsByType = new Map<string | null, number>();
+
+    for (const seat of context.activeSeats) {
+      const isActive = seat.active !== false;
+      if (!isActive) {
+        continue;
+      }
+      const seatType = seat.seat_type ?? null;
+      seatsByType.set(seatType, (seatsByType.get(seatType) ?? 0) + 1);
+    }
+
+    if (seatsByType.size === 0) {
+      const fallbackCount = roomCapacity ?? context.activeSeats.length ?? 0;
+      seatsByType.set(null, fallbackCount);
+    }
+
+    const details: SeatPricingDetail[] = [];
+
+    for (const [seatTypeId, seat_count] of seatsByType.entries()) {
+      const meta = seatTypeId ? context.seatTypeMeta.get(seatTypeId) : null;
+      const additional_value = meta ? meta.additionalValue : 0;
+      const seat_type_name = seatTypeId
+        ? (meta?.name ?? 'Tipo de assento')
+        : 'Padrão';
+
+      details.push({
+        seat_type_id: seatTypeId,
+        seat_type_name,
+        seat_count,
+        additional_value,
+        final_price: basePriceWithModifiers + additional_value,
+      });
+    }
+
+    return details;
+  }
+
+  private async loadSeatPricingContext(
+    roomId: string,
+    companyId: string,
+  ): Promise<SeatPricingContext> {
+    const seats = await this.seatsRepository.findByRoomId(roomId);
+    const activeSeats = seats.filter((seat) => seat.active !== false);
+
+    const seatTypeIds = [
+      ...new Set(
+        activeSeats
+          .map((seat) => seat.seat_type)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ];
+
+    const seatTypes =
+      seatTypeIds.length > 0
+        ? await this.seatTypesRepository.findByIds(seatTypeIds, companyId)
+        : [];
+
+    const seatTypeMeta = new Map<string, SeatTypeMeta>(
+      seatTypes.map((seatType) => [
+        seatType.id,
+        {
+          additionalValue: Number(seatType.additional_value ?? 0),
+          name: seatType.name,
+        },
+      ]),
+    );
+
+    return { activeSeats, seatTypeMeta };
+  }
+
+  private async resolveProjectionAdditional(
+    projectionTypeId: string | null,
+    companyId: string,
+  ): Promise<number> {
+    if (!projectionTypeId) {
+      return 0;
+    }
+
+    const projectionType = await this.cacheService.wrap(
+      `projection_type:${projectionTypeId}`,
+      () => this.projectionTypesRepository.findById(projectionTypeId),
+      3600000,
+    );
+
+    if (!projectionType) {
+      return 0;
+    }
+
+    if (projectionType.company_id !== companyId) {
+      throw new ForbiddenException(
+        'Tipo de projeção não pertence à empresa atual.',
+      );
+    }
+
+    return Number(projectionType.additional_value ?? 0);
+  }
+
+  private async resolveAudioAdditional(
+    audioTypeId: string | null,
+    companyId: string,
+  ): Promise<number> {
+    if (!audioTypeId) {
+      return 0;
+    }
+
+    const audioType = await this.cacheService.wrap(
+      `audio_type:${audioTypeId}`,
+      () => this.audioTypesRepository.findById(audioTypeId),
+      3600000,
+    );
+
+    if (!audioType) {
+      return 0;
+    }
+
+    if (audioType.company_id !== companyId) {
+      throw new ForbiddenException(
+        'Tipo de áudio não pertence à empresa atual.',
+      );
+    }
+
+    return Number(audioType.additional_value ?? 0);
+  }
+
+  private async calculateShowtimeFinancials(
+    baseTicketPrice: number,
+    movieId: string,
+    cinemaComplexId: string,
+    sessionDate: Date,
+    companyId: string,
+  ): Promise<ShowtimeFinancialBreakdown> {
+    // Buscar contrato ativo
+    const contract =
+      await this.exhibitionContractsRepository.findActiveContract(
+        movieId,
+        cinemaComplexId,
+        sessionDate,
+      );
+
+    const {
+      distributor: distributorPercentage,
+      exhibitor: exhibitorPercentage,
+    } = this.resolveContractPercentages(contract, sessionDate);
+
+    // Calcular divisão
+    const distributorShare = (baseTicketPrice * distributorPercentage) / 100;
+    const exhibitorGross = (baseTicketPrice * exhibitorPercentage) / 100;
+
+    // Buscar complexo para obter IBGE code
+    const complex =
+      await this.cinemaComplexesRepository.findById(cinemaComplexId);
+    if (!complex) {
+      throw new NotFoundException('Complexo de cinema não encontrado.');
+    }
+
+    // Buscar impostos municipais
+    const municipalTax =
+      await this.municipalTaxParametersRepository.findActiveByCompanyAndIbge(
+        companyId,
+        complex.ibge_municipality_code,
+        sessionDate,
+      );
+
+    // Buscar impostos federais
+    const federalTax = await this.federalTaxRatesRepository.findActiveByCompany(
+      companyId,
+      sessionDate,
+    );
+
+    // Calcular ISS sobre a parte do exibidor
+    const issRate = municipalTax ? Number(municipalTax.iss_rate) : 0;
+    const issAmount = (exhibitorGross * issRate) / 100;
+
+    // Calcular PIS e COFINS sobre a parte do exibidor
+    const pisRate = federalTax ? Number(federalTax.pis_rate) : 0;
+    const pisAmount = (exhibitorGross * pisRate) / 100;
+
+    const cofinsRate = federalTax ? Number(federalTax.cofins_rate) : 0;
+    const cofinsAmount = (exhibitorGross * cofinsRate) / 100;
+
+    // Calcular totais
+    const totalTaxes = issAmount + pisAmount + cofinsAmount;
+    const netRevenue = exhibitorGross - totalTaxes;
+
+    return {
+      baseTicketPrice,
+      distributorShare,
+      exhibitorGross,
+      issRate,
+      issAmount,
+      pisRate,
+      pisAmount,
+      cofinsRate,
+      cofinsAmount,
+      totalTaxes,
+      netRevenue,
+      contractUsed: !!contract,
+      distributorPercentage,
+      exhibitorPercentage,
+    };
+  }
+
+  private resolveContractPercentages(
+    contract: ExhibitionContractWithRelations | null,
+    sessionDate: Date,
+  ) {
+    if (!contract) {
+      return {
+        distributor: DEFAULT_DISTRIBUTOR_PERCENTAGE,
+        exhibitor: DEFAULT_EXHIBITOR_PERCENTAGE,
+      };
+    }
+
+    if (!contract.sliding_scales || contract.sliding_scales.length === 0) {
+      return {
+        distributor: Number(contract.distributor_percentage),
+        exhibitor: Number(contract.exhibitor_percentage),
+      };
+    }
+
+    const sorted = [...contract.sliding_scales].sort(
+      (a, b) => a.week_number - b.week_number,
+    );
+
+    const weekNumber =
+      Math.floor(
+        (sessionDate.getTime() - contract.start_date.getTime()) / WEEK_IN_MS,
+      ) + 1;
+
+    const matched =
+      sorted.find((entry) => entry.week_number === weekNumber) ??
+      [...sorted].reverse().find((entry) => entry.week_number < weekNumber) ??
+      sorted[0];
+
+    return {
+      distributor: Number(matched.distributor_percentage),
+      exhibitor: Number(matched.exhibitor_percentage),
+    };
+  }
+
   @Transactional()
   async create(dto: CreateShowtimeDto, user: RequestUser): Promise<Showtime> {
     const companyId = user.company_id;
@@ -143,7 +589,13 @@ export class ShowtimesService {
         'Não é possível criar uma sessão para uma data no passado.',
       );
     }
-    const movie = await this.moviesRepository.findById(dto.movie_id);
+
+    // Validar filme e sala em paralelo
+    const [movie, room] = await Promise.all([
+      this.moviesRepository.findById(dto.movie_id),
+      this.roomsRepository.findById(dto.room_id),
+    ]);
+
     if (!movie || movie.company_id !== companyId) {
       throw new NotFoundException('Filme não encontrado.');
     }
@@ -154,7 +606,6 @@ export class ShowtimesService {
       );
     }
 
-    const room = await this.roomsRepository.findById(dto.room_id);
     if (!room) {
       throw new NotFoundException('Sala não encontrada.');
     }
@@ -176,9 +627,13 @@ export class ShowtimesService {
       );
     }
 
-    const complex = await this.cinemaComplexesRepository.findById(
-      room.cinema_complex_id,
+    // Validar complexo (com cache)
+    const complex = await this.cacheService.wrap(
+      `complex:${room.cinema_complex_id}`,
+      () => this.cinemaComplexesRepository.findById(room.cinema_complex_id),
+      3600000,
     );
+
     if (!complex || complex.company_id !== companyId) {
       throw new ForbiddenException(
         'Acesso negado. Esta sala não pertence à sua empresa.',
@@ -211,11 +666,17 @@ export class ShowtimesService {
       }),
     });
 
-    const seats = await this.seatsRepository.findByRoomId(dto.room_id);
-    const activeSeats = seats.filter((seat) => seat.active);
+    const seatPricingContext = await this.loadSeatPricingContext(
+      dto.room_id,
+      companyId,
+    );
+    const activeSeats = seatPricingContext.activeSeats;
 
-    const availableStatus =
-      await this.seatStatusRepository.findDefaultByCompany(companyId);
+    const availableStatus = await this.cacheService.wrap(
+      `seat_status_default:${companyId}`,
+      () => this.seatStatusRepository.findDefaultByCompany(companyId),
+      3600000,
+    );
 
     if (!availableStatus) {
       throw new NotFoundException(
@@ -223,18 +684,48 @@ export class ShowtimesService {
       );
     }
 
-    const seatStatusData = activeSeats.map((seat) => ({
-      id: this.snowflake.generate(),
-      showtime_id: showtimeId,
-      seat_id: seat.id,
-      status: availableStatus.id,
-    }));
+    // Calcular preços dos assentos e criar dados de status
+    const seatStatusData = activeSeats.map((seat) => {
+      const additionalValue = seat.seat_type
+        ? seatPricingContext.seatTypeMeta.get(seat.seat_type)
+            ?.additionalValue || 0
+        : 0;
+      return {
+        id: this.snowflake.generate(),
+        showtime_id: showtimeId,
+        seat_id: seat.id,
+        status: availableStatus.id,
+        // Nota: O schema atual não tem campo de preço em session_seat_status
+        // O preço pode ser calculado dinamicamente quando necessário
+      };
+    });
 
     await this.sessionSeatStatusRepository.createMany(seatStatusData);
 
-    this.rabbitmq.publish({
+    // Calcular breakdown financeiro
+    const ticketPricing = await this.buildTicketPricingBreakdown(
+      dto,
+      room,
+      companyId,
+      seatPricingContext,
+    );
+
+    const financialBreakdown = await this.calculateShowtimeFinancials(
+      ticketPricing.averageSeatPrice,
+      dto.movie_id,
+      room.cinema_complex_id,
+      startTime,
+      companyId,
+    );
+
+    // Publicar dados financeiros no RabbitMQ
+    await this.rabbitmq.publish({
       pattern: 'audit.showtime.created',
-      data: { id: newShowtime.id, values: newShowtime },
+      data: {
+        id: newShowtime.id,
+        values: newShowtime,
+        financialBreakdown,
+      },
       metadata: { companyId, userId: user.company_user_id },
     });
 
@@ -316,7 +807,7 @@ export class ShowtimesService {
       updateData,
     );
 
-    this.rabbitmq.publish({
+    await this.rabbitmq.publish({
       pattern: 'audit.showtime.updated',
       data: {
         id: updatedShowtime.id,
@@ -369,12 +860,57 @@ export class ShowtimesService {
       session_status: { connect: { id: cancelledStatus.id } },
     });
 
-    this.rabbitmq.publish({
+    await this.rabbitmq.publish({
       pattern: 'audit.showtime.cancelled',
       data: { id: showtime.id, old_values: showtime },
       metadata: { companyId, userId: user.company_user_id },
     });
 
     return { message: 'Sessão cancelada com sucesso.' };
+  }
+
+  async updateSeatStatus(
+    showtime_id: string,
+    seat_id: string,
+    status: 'Bloqueado' | 'Disponível',
+    user: RequestUser,
+  ): Promise<void> {
+    const showtime = await this.showtimesRepository.findById(showtime_id);
+
+    if (
+      !showtime ||
+      showtime.cinema_complexes?.company_id !== user.company_id
+    ) {
+      throw new NotFoundException('Sessão não encontrada.');
+    }
+
+    const seatStatus =
+      (await this.seatStatusRepository.findByNameAndCompany(
+        status,
+        user.company_id,
+      )) ||
+      (await this.seatStatusRepository.findDefaultByCompany(user.company_id));
+
+    if (!seatStatus) {
+      throw new NotFoundException(
+        `Status de assento "${status}" não configurado`,
+      );
+    }
+
+    const updateData: Prisma.session_seat_statusUpdateInput = {
+      seat_status: { connect: { id: seatStatus.id } },
+    };
+
+    if (status === 'Disponível') {
+      updateData.reservation_uuid = null;
+      updateData.reservation_date = null;
+      updateData.expiration_date = null;
+    }
+
+    await this.sessionSeatStatusRepository.updateStatus(
+      showtime_id,
+      seat_id,
+      updateData,
+    );
   }
 }

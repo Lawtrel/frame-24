@@ -3,15 +3,33 @@ import { z } from 'zod';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export const CreateProductSchema = z.object({
-  category_id: z.string(),
-  name: z.string().min(3).max(200),
-  description: z.string().max(1000).optional(),
-  image_url: z.string().url().max(500).optional(),
-  ncm_code: z.string().max(10).optional(),
-  unit: z.string().max(10).default('UN'),
-  minimum_stock: z.number().int().min(0).default(0).optional(),
+  category_id: z.string().min(1, 'Categoria é obrigatória'),
+  name: z
+    .string()
+    .min(3, 'Nome deve ter no mínimo 3 caracteres')
+    .max(200, 'Nome deve ter no máximo 200 caracteres'),
+  description: z
+    .string()
+    .max(1000, 'Descrição deve ter no máximo 1000 caracteres')
+    .optional(),
+  image_url: z
+    .string()
+    .url('URL da imagem inválida')
+    .max(500, 'URL da imagem muito longa')
+    .optional(),
+  ncm_code: z.string().max(10, 'Código NCM inválido').optional(),
+  unit: z
+    .string()
+    .max(10, 'Unidade deve ter no máximo 10 caracteres')
+    .default('UN'),
+  minimum_stock: z
+    .number()
+    .int('Estoque deve ser um número inteiro')
+    .min(0, 'Estoque não pode ser negativo')
+    .default(0)
+    .optional(),
   supplier_id: z.string().optional(),
-  barcode: z.string().max(50).optional(),
+  barcode: z.string().max(50, 'Código de barras muito longo').optional(),
   is_available_online: z.boolean().default(false).optional(),
   active: z.boolean().default(true).optional(),
 });

@@ -2,35 +2,57 @@ import { z } from 'zod';
 import { tax_regime_type } from '@repo/db';
 
 export const CreateCompanySchema = z.object({
-  corporate_name: z.string().min(3).max(200),
+  corporate_name: z
+    .string()
+    .min(3, 'Razão social deve ter no mínimo 3 caracteres')
+    .max(200, 'Razão social deve ter no máximo 200 caracteres'),
   cnpj: z
     .string()
     .regex(/^\d{14}$|^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/, 'CNPJ inválido')
     .transform((val) => val.replace(/\D/g, '')),
-  tax_regime: z.nativeEnum(tax_regime_type).optional(),
-  trade_name: z.string().max(200).optional(),
+  tax_regime: z
+    .nativeEnum(tax_regime_type, { message: 'Regime tributário inválido' })
+    .optional(),
+  trade_name: z
+    .string()
+    .max(200, 'Nome fantasia deve ter no máximo 200 caracteres')
+    .optional(),
 
-  zip_code: z.string().max(10).optional(),
-  street_address: z.string().max(300).optional(),
-  address_number: z.string().max(20).optional(),
-  address_complement: z.string().max(100).optional(),
-  neighborhood: z.string().max(100).optional(),
-  city: z.string().max(100).optional(),
-  state: z.string().max(2).optional(),
+  zip_code: z.string().max(10, 'CEP inválido').optional(),
+  street_address: z.string().max(300, 'Endereço muito longo').optional(),
+  address_number: z.string().max(20, 'Número muito longo').optional(),
+  address_complement: z.string().max(100, 'Complemento muito longo').optional(),
+  neighborhood: z.string().max(100, 'Bairro muito longo').optional(),
+  city: z.string().max(100, 'Cidade muito longa').optional(),
+  state: z.string().max(2, 'Estado deve ter 2 letras').optional(),
   country: z
     .string()
-    .length(2)
+    .length(2, 'País deve ter 2 letras')
     .regex(/^[A-Z]{2}$/, 'País deve ser código ISO (ex: BR, US)')
     .default('BR')
     .optional(),
 
-  phone: z.string().max(20).optional(),
-  mobile: z.string().max(20).optional(),
-  email: z.string().email().max(100).optional(),
-  website: z.string().url().max(200).optional(),
+  phone: z.string().max(20, 'Telefone muito longo').optional(),
+  mobile: z.string().max(20, 'Celular muito longo').optional(),
+  email: z
+    .string()
+    .email('Email inválido')
+    .max(100, 'Email muito longo')
+    .optional(),
+  website: z
+    .string()
+    .url('URL inválida')
+    .max(200, 'URL muito longa')
+    .optional(),
 
-  state_registration: z.string().max(20).optional(),
-  municipal_registration: z.string().max(20).optional(),
+  state_registration: z
+    .string()
+    .max(20, 'Inscrição estadual muito longa')
+    .optional(),
+  municipal_registration: z
+    .string()
+    .max(20, 'Inscrição municipal muito longa')
+    .optional(),
   recine_opt_in: z.boolean().optional(),
   recine_join_date: z
     .string()

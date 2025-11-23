@@ -25,6 +25,8 @@ import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError
 import type { CreateShowtimeDto } from '../models';
 // @ts-ignore
 import type { UpdateShowtimeDto } from '../models';
+// @ts-ignore
+import type { UpdateShowtimeSeatStatusDto } from '../models';
 /**
  * ShowtimesApi - axios parameter creator
  * @export
@@ -202,6 +204,42 @@ export const ShowtimesApiAxiosParamCreator = function (configuration?: Configura
             };
         },
         /**
+         * Retorna o breakdown financeiro calculado sem salvar a sessão no banco.
+         * @summary Preview da projeção financeira de uma sessão
+         * @param {CreateShowtimeDto} createShowtimeDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        showtimesControllerPreviewV1: async (createShowtimeDto: CreateShowtimeDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'createShowtimeDto' is not null or undefined
+            assertParamExists('showtimesControllerPreviewV1', 'createShowtimeDto', createShowtimeDto)
+            const localVarPath = `/v1/showtimes/preview`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(createShowtimeDto, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * 
          * @summary Cancelar uma sessão
          * @param {string} id 
@@ -229,6 +267,50 @@ export const ShowtimesApiAxiosParamCreator = function (configuration?: Configura
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Atualizar o status manual de um assento em uma sessão
+         * @param {string} id 
+         * @param {string} seatId 
+         * @param {UpdateShowtimeSeatStatusDto} updateShowtimeSeatStatusDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        showtimesControllerUpdateSeatStatusV1: async (id: string, seatId: string, updateShowtimeSeatStatusDto: UpdateShowtimeSeatStatusDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('showtimesControllerUpdateSeatStatusV1', 'id', id)
+            // verify required parameter 'seatId' is not null or undefined
+            assertParamExists('showtimesControllerUpdateSeatStatusV1', 'seatId', seatId)
+            // verify required parameter 'updateShowtimeSeatStatusDto' is not null or undefined
+            assertParamExists('showtimesControllerUpdateSeatStatusV1', 'updateShowtimeSeatStatusDto', updateShowtimeSeatStatusDto)
+            const localVarPath = `/v1/showtimes/{id}/seats/{seatId}/status`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)))
+                .replace(`{${"seatId"}}`, encodeURIComponent(String(seatId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(updateShowtimeSeatStatusDto, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -310,7 +392,7 @@ export const ShowtimesApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async showtimesControllerFindAllV1(startTime: string, cinemaComplexId?: string, roomId?: string, movieId?: string, status?: string, sessionDate?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async showtimesControllerFindAllV1(startTime: string, cinemaComplexId?: string, roomId?: string, movieId?: string, status?: string, sessionDate?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<object>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.showtimesControllerFindAllV1(startTime, cinemaComplexId, roomId, movieId, status, sessionDate, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ShowtimesApi.showtimesControllerFindAllV1']?.[localVarOperationServerIndex]?.url;
@@ -323,7 +405,7 @@ export const ShowtimesApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async showtimesControllerFindOneV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async showtimesControllerFindOneV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.showtimesControllerFindOneV1(id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ShowtimesApi.showtimesControllerFindOneV1']?.[localVarOperationServerIndex]?.url;
@@ -336,10 +418,23 @@ export const ShowtimesApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async showtimesControllerGetSeatsMapV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async showtimesControllerGetSeatsMapV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<object>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.showtimesControllerGetSeatsMapV1(id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ShowtimesApi.showtimesControllerGetSeatsMapV1']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retorna o breakdown financeiro calculado sem salvar a sessão no banco.
+         * @summary Preview da projeção financeira de uma sessão
+         * @param {CreateShowtimeDto} createShowtimeDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async showtimesControllerPreviewV1(createShowtimeDto: CreateShowtimeDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.showtimesControllerPreviewV1(createShowtimeDto, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ShowtimesApi.showtimesControllerPreviewV1']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -353,6 +448,21 @@ export const ShowtimesApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.showtimesControllerRemoveV1(id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ShowtimesApi.showtimesControllerRemoveV1']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Atualizar o status manual de um assento em uma sessão
+         * @param {string} id 
+         * @param {string} seatId 
+         * @param {UpdateShowtimeSeatStatusDto} updateShowtimeSeatStatusDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async showtimesControllerUpdateSeatStatusV1(id: string, seatId: string, updateShowtimeSeatStatusDto: UpdateShowtimeSeatStatusDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.showtimesControllerUpdateSeatStatusV1(id, seatId, updateShowtimeSeatStatusDto, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ShowtimesApi.showtimesControllerUpdateSeatStatusV1']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -396,7 +506,7 @@ export const ShowtimesApiFactory = function (configuration?: Configuration, base
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        showtimesControllerFindAllV1(requestParameters: ShowtimesApiShowtimesControllerFindAllV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        showtimesControllerFindAllV1(requestParameters: ShowtimesApiShowtimesControllerFindAllV1Request, options?: RawAxiosRequestConfig): AxiosPromise<Array<object>> {
             return localVarFp.showtimesControllerFindAllV1(requestParameters.startTime, requestParameters.cinemaComplexId, requestParameters.roomId, requestParameters.movieId, requestParameters.status, requestParameters.sessionDate, options).then((request) => request(axios, basePath));
         },
         /**
@@ -406,7 +516,7 @@ export const ShowtimesApiFactory = function (configuration?: Configuration, base
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        showtimesControllerFindOneV1(requestParameters: ShowtimesApiShowtimesControllerFindOneV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        showtimesControllerFindOneV1(requestParameters: ShowtimesApiShowtimesControllerFindOneV1Request, options?: RawAxiosRequestConfig): AxiosPromise<object> {
             return localVarFp.showtimesControllerFindOneV1(requestParameters.id, options).then((request) => request(axios, basePath));
         },
         /**
@@ -416,8 +526,18 @@ export const ShowtimesApiFactory = function (configuration?: Configuration, base
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        showtimesControllerGetSeatsMapV1(requestParameters: ShowtimesApiShowtimesControllerGetSeatsMapV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        showtimesControllerGetSeatsMapV1(requestParameters: ShowtimesApiShowtimesControllerGetSeatsMapV1Request, options?: RawAxiosRequestConfig): AxiosPromise<Array<object>> {
             return localVarFp.showtimesControllerGetSeatsMapV1(requestParameters.id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retorna o breakdown financeiro calculado sem salvar a sessão no banco.
+         * @summary Preview da projeção financeira de uma sessão
+         * @param {ShowtimesApiShowtimesControllerPreviewV1Request} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        showtimesControllerPreviewV1(requestParameters: ShowtimesApiShowtimesControllerPreviewV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.showtimesControllerPreviewV1(requestParameters.createShowtimeDto, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -428,6 +548,16 @@ export const ShowtimesApiFactory = function (configuration?: Configuration, base
          */
         showtimesControllerRemoveV1(requestParameters: ShowtimesApiShowtimesControllerRemoveV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.showtimesControllerRemoveV1(requestParameters.id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Atualizar o status manual de um assento em uma sessão
+         * @param {ShowtimesApiShowtimesControllerUpdateSeatStatusV1Request} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        showtimesControllerUpdateSeatStatusV1(requestParameters: ShowtimesApiShowtimesControllerUpdateSeatStatusV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.showtimesControllerUpdateSeatStatusV1(requestParameters.id, requestParameters.seatId, requestParameters.updateShowtimeSeatStatusDto, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -466,7 +596,7 @@ export interface ShowtimesApiInterface {
      * @throws {RequiredError}
      * @memberof ShowtimesApiInterface
      */
-    showtimesControllerFindAllV1(requestParameters: ShowtimesApiShowtimesControllerFindAllV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+    showtimesControllerFindAllV1(requestParameters: ShowtimesApiShowtimesControllerFindAllV1Request, options?: RawAxiosRequestConfig): AxiosPromise<Array<object>>;
 
     /**
      * 
@@ -476,7 +606,7 @@ export interface ShowtimesApiInterface {
      * @throws {RequiredError}
      * @memberof ShowtimesApiInterface
      */
-    showtimesControllerFindOneV1(requestParameters: ShowtimesApiShowtimesControllerFindOneV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+    showtimesControllerFindOneV1(requestParameters: ShowtimesApiShowtimesControllerFindOneV1Request, options?: RawAxiosRequestConfig): AxiosPromise<object>;
 
     /**
      * 
@@ -486,7 +616,17 @@ export interface ShowtimesApiInterface {
      * @throws {RequiredError}
      * @memberof ShowtimesApiInterface
      */
-    showtimesControllerGetSeatsMapV1(requestParameters: ShowtimesApiShowtimesControllerGetSeatsMapV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+    showtimesControllerGetSeatsMapV1(requestParameters: ShowtimesApiShowtimesControllerGetSeatsMapV1Request, options?: RawAxiosRequestConfig): AxiosPromise<Array<object>>;
+
+    /**
+     * Retorna o breakdown financeiro calculado sem salvar a sessão no banco.
+     * @summary Preview da projeção financeira de uma sessão
+     * @param {ShowtimesApiShowtimesControllerPreviewV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ShowtimesApiInterface
+     */
+    showtimesControllerPreviewV1(requestParameters: ShowtimesApiShowtimesControllerPreviewV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
 
     /**
      * 
@@ -497,6 +637,16 @@ export interface ShowtimesApiInterface {
      * @memberof ShowtimesApiInterface
      */
     showtimesControllerRemoveV1(requestParameters: ShowtimesApiShowtimesControllerRemoveV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+
+    /**
+     * 
+     * @summary Atualizar o status manual de um assento em uma sessão
+     * @param {ShowtimesApiShowtimesControllerUpdateSeatStatusV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ShowtimesApiInterface
+     */
+    showtimesControllerUpdateSeatStatusV1(requestParameters: ShowtimesApiShowtimesControllerUpdateSeatStatusV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
 
     /**
      * 
@@ -602,6 +752,20 @@ export interface ShowtimesApiShowtimesControllerGetSeatsMapV1Request {
 }
 
 /**
+ * Request parameters for showtimesControllerPreviewV1 operation in ShowtimesApi.
+ * @export
+ * @interface ShowtimesApiShowtimesControllerPreviewV1Request
+ */
+export interface ShowtimesApiShowtimesControllerPreviewV1Request {
+    /**
+     * 
+     * @type {CreateShowtimeDto}
+     * @memberof ShowtimesApiShowtimesControllerPreviewV1
+     */
+    readonly createShowtimeDto: CreateShowtimeDto
+}
+
+/**
  * Request parameters for showtimesControllerRemoveV1 operation in ShowtimesApi.
  * @export
  * @interface ShowtimesApiShowtimesControllerRemoveV1Request
@@ -613,6 +777,34 @@ export interface ShowtimesApiShowtimesControllerRemoveV1Request {
      * @memberof ShowtimesApiShowtimesControllerRemoveV1
      */
     readonly id: string
+}
+
+/**
+ * Request parameters for showtimesControllerUpdateSeatStatusV1 operation in ShowtimesApi.
+ * @export
+ * @interface ShowtimesApiShowtimesControllerUpdateSeatStatusV1Request
+ */
+export interface ShowtimesApiShowtimesControllerUpdateSeatStatusV1Request {
+    /**
+     * 
+     * @type {string}
+     * @memberof ShowtimesApiShowtimesControllerUpdateSeatStatusV1
+     */
+    readonly id: string
+
+    /**
+     * 
+     * @type {string}
+     * @memberof ShowtimesApiShowtimesControllerUpdateSeatStatusV1
+     */
+    readonly seatId: string
+
+    /**
+     * 
+     * @type {UpdateShowtimeSeatStatusDto}
+     * @memberof ShowtimesApiShowtimesControllerUpdateSeatStatusV1
+     */
+    readonly updateShowtimeSeatStatusDto: UpdateShowtimeSeatStatusDto
 }
 
 /**
@@ -692,6 +884,18 @@ export class ShowtimesApi extends BaseAPI implements ShowtimesApiInterface {
     }
 
     /**
+     * Retorna o breakdown financeiro calculado sem salvar a sessão no banco.
+     * @summary Preview da projeção financeira de uma sessão
+     * @param {ShowtimesApiShowtimesControllerPreviewV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ShowtimesApi
+     */
+    public showtimesControllerPreviewV1(requestParameters: ShowtimesApiShowtimesControllerPreviewV1Request, options?: RawAxiosRequestConfig) {
+        return ShowtimesApiFp(this.configuration).showtimesControllerPreviewV1(requestParameters.createShowtimeDto, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * 
      * @summary Cancelar uma sessão
      * @param {ShowtimesApiShowtimesControllerRemoveV1Request} requestParameters Request parameters.
@@ -701,6 +905,18 @@ export class ShowtimesApi extends BaseAPI implements ShowtimesApiInterface {
      */
     public showtimesControllerRemoveV1(requestParameters: ShowtimesApiShowtimesControllerRemoveV1Request, options?: RawAxiosRequestConfig) {
         return ShowtimesApiFp(this.configuration).showtimesControllerRemoveV1(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Atualizar o status manual de um assento em uma sessão
+     * @param {ShowtimesApiShowtimesControllerUpdateSeatStatusV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ShowtimesApi
+     */
+    public showtimesControllerUpdateSeatStatusV1(requestParameters: ShowtimesApiShowtimesControllerUpdateSeatStatusV1Request, options?: RawAxiosRequestConfig) {
+        return ShowtimesApiFp(this.configuration).showtimesControllerUpdateSeatStatusV1(requestParameters.id, requestParameters.seatId, requestParameters.updateShowtimeSeatStatusDto, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

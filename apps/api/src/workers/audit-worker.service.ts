@@ -1,6 +1,5 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { ElasticsearchService } from 'src/common/elasticsearch/elasticsearch.service';
 import { LoggerService } from 'src/common/services/logger.service';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 
@@ -40,7 +39,6 @@ interface PatternParts {
 export class AuditWorkerService implements OnModuleInit {
   constructor(
     private prisma: PrismaService,
-    private elasticsearch: ElasticsearchService,
     private logger: LoggerService,
     private snowflake: SnowflakeService,
   ) {}
@@ -57,14 +55,6 @@ export class AuditWorkerService implements OnModuleInit {
       const newValues = this.extractNewValues(message.data);
 
       await this.saveToDatabase(
-        message,
-        parts,
-        resourceId,
-        oldValues,
-        newValues,
-      );
-
-      await this.saveToElasticsearch(
         message,
         parts,
         resourceId,
@@ -170,36 +160,6 @@ export class AuditWorkerService implements OnModuleInit {
         old_values: oldValues,
         new_values: newValues,
       },
-    });
-  }
-
-  private async saveToElasticsearch(
-    message: AuditEvent,
-    parts: PatternParts,
-    resourceId: string,
-    oldValues: JsonValue | undefined,
-    newValues: JsonValue | undefined,
-  ): Promise<void> {
-    const now = new Date();
-    const indexName = `audit-logs-${now.getFullYear()}-${String(
-      now.getMonth() + 1,
-    ).padStart(2, '0')}`;
-
-    await this.elasticsearch.index({
-      index: indexName,
-      body: {
-        event_type: message.pattern,
-        resource_type: parts.resource,
-        resource_id: resourceId,
-        action: parts.action,
-        company_id: message.metadata?.companyId,
-        user_id: message.metadata?.userId,
-        correlation_id: message.metadata?.correlationId,
-        old_values: oldValues,
-        new_values: newValues,
-        '@timestamp': now.toISOString(),
-      },
-      id: `${message.metadata?.correlationId || 'no-id'}-${now.getTime()}`,
     });
   }
 }

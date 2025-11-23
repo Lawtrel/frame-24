@@ -201,6 +201,36 @@ export const SuppliersApiAxiosParamCreator = function (configuration?: Configura
             };
         },
         /**
+         * Retorna todos os tipos de fornecedores disponíveis para a empresa logada.
+         * @summary Listagem de tipos de fornecedores
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        suppliersControllerFindTypesV1: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/v1/suppliers/types`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Atualiza parcialmente os dados de um fornecedor já cadastrado.
          * @summary Atualização de fornecedor
          * @param {string} id Identificador do fornecedor a ser atualizado
@@ -315,6 +345,18 @@ export const SuppliersApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Retorna todos os tipos de fornecedores disponíveis para a empresa logada.
+         * @summary Listagem de tipos de fornecedores
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async suppliersControllerFindTypesV1(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.suppliersControllerFindTypesV1(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['SuppliersApi.suppliersControllerFindTypesV1']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Atualiza parcialmente os dados de um fornecedor já cadastrado.
          * @summary Atualização de fornecedor
          * @param {string} id Identificador do fornecedor a ser atualizado
@@ -388,6 +430,15 @@ export const SuppliersApiFactory = function (configuration?: Configuration, base
             return localVarFp.suppliersControllerFindOneV1(requestParameters.id, options).then((request) => request(axios, basePath));
         },
         /**
+         * Retorna todos os tipos de fornecedores disponíveis para a empresa logada.
+         * @summary Listagem de tipos de fornecedores
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        suppliersControllerFindTypesV1(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.suppliersControllerFindTypesV1(options).then((request) => request(axios, basePath));
+        },
+        /**
          * Atualiza parcialmente os dados de um fornecedor já cadastrado.
          * @summary Atualização de fornecedor
          * @param {SuppliersApiSuppliersControllerUpdateV1Request} requestParameters Request parameters.
@@ -454,6 +505,15 @@ export interface SuppliersApiInterface {
      * @memberof SuppliersApiInterface
      */
     suppliersControllerFindOneV1(requestParameters: SuppliersApiSuppliersControllerFindOneV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+
+    /**
+     * Retorna todos os tipos de fornecedores disponíveis para a empresa logada.
+     * @summary Listagem de tipos de fornecedores
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof SuppliersApiInterface
+     */
+    suppliersControllerFindTypesV1(options?: RawAxiosRequestConfig): AxiosPromise<void>;
 
     /**
      * Atualiza parcialmente os dados de um fornecedor já cadastrado.
@@ -608,6 +668,17 @@ export class SuppliersApi extends BaseAPI implements SuppliersApiInterface {
      */
     public suppliersControllerFindOneV1(requestParameters: SuppliersApiSuppliersControllerFindOneV1Request, options?: RawAxiosRequestConfig) {
         return SuppliersApiFp(this.configuration).suppliersControllerFindOneV1(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retorna todos os tipos de fornecedores disponíveis para a empresa logada.
+     * @summary Listagem de tipos de fornecedores
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof SuppliersApi
+     */
+    public suppliersControllerFindTypesV1(options?: RawAxiosRequestConfig) {
+        return SuppliersApiFp(this.configuration).suppliersControllerFindTypesV1(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

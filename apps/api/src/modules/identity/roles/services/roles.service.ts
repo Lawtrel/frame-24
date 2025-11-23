@@ -225,7 +225,18 @@ export class RolesService {
     action: 'create' | 'read' | 'update' | 'delete' | 'audit',
   ): Promise<boolean> {
     try {
-      // ✅ Busca direto pela role
+      // ✅ Check if the role is a super admin or admin (hierarchy_level 0-10)
+      const role = await this.prisma.custom_roles.findUnique({
+        where: { id: roleId },
+        select: { hierarchy_level: true },
+      });
+
+      // If super admin or admin, grant access to everything
+      if (role && role.hierarchy_level !== null && role.hierarchy_level <= 10) {
+        return true;
+      }
+
+      // ✅ Otherwise, check specific permission
       const hasPermission = await this.prisma.role_permissions.findFirst({
         where: {
           role_id: roleId,

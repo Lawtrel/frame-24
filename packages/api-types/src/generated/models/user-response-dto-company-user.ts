@@ -15,7 +15,7 @@
 
 
 /**
- * Vínculo com a empresa
+ * 
  * @export
  * @interface UserResponseDtoCompanyUser
  */

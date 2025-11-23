@@ -45,7 +45,18 @@ export class IdentityEmailConsumer implements OnModuleInit, OnModuleDestroy {
 
   private async connect(): Promise<void> {
     try {
-      const url = `amqp://${process.env.RABBITMQ_USER || 'frame24'}:${process.env.RABBITMQ_PASSWORD || 'frame24pass'}@${process.env.RABBITMQ_HOST || 'localhost'}:${process.env.RABBITMQ_PORT || 5672}`;
+      const uri = process.env.RABBITMQ_URI;
+      let url: string;
+
+      if (uri) {
+        url = uri;
+      } else {
+        const user = process.env.RABBITMQ_USER || 'frame24';
+        const password = process.env.RABBITMQ_PASSWORD || 'frame24pass';
+        const host = process.env.RABBITMQ_HOST || 'localhost';
+        const port = process.env.RABBITMQ_PORT || 5672;
+        url = `amqp://${user}:${password}@${host}:${port}`;
+      }
 
       this.connection = await connect(url);
       this.channel = await this.connection.createChannel();
@@ -174,13 +185,16 @@ export class IdentityEmailConsumer implements OnModuleInit, OnModuleDestroy {
   ): Promise<void> {
     this.logger.log(`Processando identity.created: ${data.email}`);
 
-    await this.emailService.sendVerificationEmail(
-      data.email,
-      data.full_name,
-      data.verification_token,
-    );
+    // DISABLED: Auto-verification enabled, skipping email.
+    // await this.emailService.sendVerificationEmail(
+    //   data.email,
+    //   data.full_name,
+    //   data.verification_token,
+    // );
 
-    this.logger.log(`Email de verificação enviado para: ${data.email}`);
+    this.logger.log(
+      `Email de verificação PULADO (Auto-verificação): ${data.email}`,
+    );
   }
 
   private async handleIdentityVerified(
@@ -188,9 +202,10 @@ export class IdentityEmailConsumer implements OnModuleInit, OnModuleDestroy {
   ): Promise<void> {
     this.logger.log(`Processando identity.verified: ${data.email}`);
 
-    await this.emailService.sendWelcomeEmail(data.email, data.full_name);
+    // DISABLED: User requested no emails.
+    // await this.emailService.sendWelcomeEmail(data.email, data.full_name);
 
-    this.logger.log(`Email de boas-vindas enviado para: ${data.email}`);
+    this.logger.log(`Email de boas-vindas PULADO (Desativado): ${data.email}`);
   }
 
   private async handlePasswordReset(

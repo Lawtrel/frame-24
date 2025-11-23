@@ -10,6 +10,7 @@ import {
   Param,
   Patch,
   Delete,
+  Put,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import {
@@ -30,6 +31,7 @@ import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strat
 
 import { CreateShowtimeDto } from '../dto/create-showtime.dto';
 import { UpdateShowtimeDto } from '../dto/update-showtime.dto';
+import { UpdateShowtimeSeatStatusDto } from '../dto/update-showtime-seat-status.dto';
 import { ShowtimesService } from 'src/modules/operations/showtime_schedule/services/shotimes.service';
 
 @ApiTags('Showtimes')
@@ -38,6 +40,29 @@ import { ShowtimesService } from 'src/modules/operations/showtime_schedule/servi
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class ShowtimesController {
   constructor(private readonly service: ShowtimesService) {}
+
+  @Post('preview')
+  @RequirePermission('showtimes', 'create')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Preview da projeção financeira de uma sessão',
+    description:
+      'Retorna o breakdown financeiro calculado sem salvar a sessão no banco.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Projeção financeira calculada com sucesso.',
+  })
+  @ApiNotFoundResponse({ description: 'Filme ou sala não encontrado.' })
+  @ApiForbiddenResponse({
+    description: 'Acesso negado. A sala não pertence à sua empresa.',
+  })
+  async preview(
+    @Body() dto: CreateShowtimeDto,
+    @CurrentUser() user: RequestUser,
+  ) {
+    return this.service.preview(dto, user);
+  }
 
   @Post()
   @RequirePermission('showtimes', 'create')
@@ -132,5 +157,20 @@ export class ShowtimesController {
   @ApiForbiddenResponse({ description: 'Acesso negado a esta sessão.' })
   async remove(@Param('id') id: string, @CurrentUser() user: RequestUser) {
     return this.service.remove(id, user);
+  }
+
+  @Put(':id/seats/:seatId/status')
+  @RequirePermission('showtimes', 'update')
+  @ApiOperation({
+    summary: 'Atualizar o status manual de um assento em uma sessão',
+  })
+  async updateSeatStatus(
+    @Param('id') id: string,
+    @Param('seatId') seatId: string,
+    @Body() dto: UpdateShowtimeSeatStatusDto,
+    @CurrentUser() user: RequestUser,
+  ) {
+    await this.service.updateSeatStatus(id, seatId, dto.status, user);
+    return { success: true };
   }
 }

@@ -39,6 +39,10 @@ export class MasterDataSetupService {
       // FINANCE
       await this.setupAccountTypes(company_id);
       await this.setupAccountNatures(company_id);
+      await this.setupSettlementBases(company_id);
+      await this.setupDistributorSettlementStatus(company_id);
+      await this.setupJournalEntryStatus(company_id);
+      await this.setupJournalEntryTypes(company_id);
 
       // CATALOG
       await this.setupAgeRatings(company_id);
@@ -230,6 +234,76 @@ export class MasterDataSetupService {
     this.logger.log('Naturezas de Conta', MasterDataSetupService.name);
   }
 
+  private async setupSettlementBases(company_id: string): Promise<void> {
+    for (const base of MASTER_DATA.finance.settlement_bases) {
+      await this.prisma.settlement_bases.create({
+        data: {
+          id: this.snowflake.generate(),
+          company_id,
+          name: base.name,
+          description: base.description,
+        },
+      });
+    }
+    this.logger.log('Bases de Settlement', MasterDataSetupService.name);
+  }
+
+  private async setupDistributorSettlementStatus(
+    company_id: string,
+  ): Promise<void> {
+    for (const status of MASTER_DATA.finance.distributor_settlement_status) {
+      await this.prisma.distributor_settlement_status.create({
+        data: {
+          id: this.snowflake.generate(),
+          company_id,
+          name: status.name,
+          description: status.description,
+          allows_modification: status.allows_modification,
+        },
+      });
+    }
+    this.logger.log(
+      'Status de Settlement de Distribuidor',
+      MasterDataSetupService.name,
+    );
+  }
+
+  private async setupJournalEntryStatus(company_id: string): Promise<void> {
+    for (const status of MASTER_DATA.finance.journal_entry_status) {
+      await this.prisma.journal_entry_status.create({
+        data: {
+          id: this.snowflake.generate(),
+          company_id,
+          name: status.name,
+          description: status.description,
+          allows_modification: status.allows_modification,
+        },
+      });
+    }
+    this.logger.log(
+      'Status de Lançamento Contábil',
+      MasterDataSetupService.name,
+    );
+  }
+
+  private async setupJournalEntryTypes(company_id: string): Promise<void> {
+    for (const type of MASTER_DATA.finance.journal_entry_types) {
+      await this.prisma.journal_entry_types.create({
+        data: {
+          id: this.snowflake.generate(),
+          company_id,
+          name: type.name,
+          description: type.description,
+          nature: type.nature,
+        },
+      });
+    }
+    this.logger.log(
+      'Tipos de Lançamento Contábil',
+      MasterDataSetupService.name,
+    );
+  }
+
   // ============ CATALOG ============
 
   private async setupAgeRatings(company_id: string): Promise<void> {
@@ -362,34 +436,17 @@ export class MasterDataSetupService {
   }
 
   private async setupSupplierTypes(company_id: string): Promise<void> {
-    const types = [
-      {
-        name: 'Distribuidora de Filmes',
-        description: 'Fornecedor de conteúdo cinematográfico',
-      },
-      {
-        name: 'Fornecedor de Alimentos',
-        description: 'Pipoca, doces, refrigerantes',
-      },
-      {
-        name: 'Fornecedor de Equipamentos',
-        description: 'Projetores, sistemas de som',
-      },
-      { name: 'Serviços Gerais', description: 'Limpeza, manutenção' },
-    ];
+    await this.prisma.supplier_types.createMany({
+      data: MASTER_DATA.inventory.supplier_types.map((type) => ({
+        id: this.snowflake.generate(),
+        company_id,
+        name: type.name,
+        description: type.description,
+      })),
+      skipDuplicates: true,
+    });
 
-    for (const type of types) {
-      await this.prisma.supplier_types.create({
-        data: {
-          id: this.snowflake.generate(),
-          company_id,
-          name: type.name,
-          description: type.description,
-        },
-      });
-    }
-
-    this.logger.log('  ✓ Tipos de Fornecedor (4)', MasterDataSetupService.name);
+    this.logger.log('Tipos de Fornecedor', MasterDataSetupService.name);
   }
 
   // ============ TAX ============

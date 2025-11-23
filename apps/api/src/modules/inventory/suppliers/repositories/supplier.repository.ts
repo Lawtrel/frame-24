@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { suppliers, Prisma } from '@repo/db';
+import { suppliers, supplier_types, Prisma } from '@repo/db';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 
 @Injectable()
@@ -54,6 +54,15 @@ export class SupplierRepository {
 
   async findDistributors(company_id: string): Promise<suppliers[]> {
     return this.findByCompany(company_id, true);
+  }
+
+  async findTypes(company_id: string): Promise<supplier_types[]> {
+    return this.prisma.supplier_types.findMany({
+      where: { company_id },
+      orderBy: {
+        name: 'asc',
+      },
+    });
   }
 
   async create(data: Prisma.suppliersCreateInput): Promise<suppliers> {

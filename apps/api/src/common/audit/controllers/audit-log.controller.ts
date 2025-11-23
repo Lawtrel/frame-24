@@ -55,7 +55,7 @@ export class AuditLogController {
     @CurrentUser() user: RequestUser,
     @Query(new ZodValidationPipe()) query: AuditLogQueryDto,
   ) {
-    return this.service.getAuditLogs(user.company_id, user.role, query);
+    return this.service.getAuditLogs(user.company_id, user.role_id, query);
   }
 
   @Get('resource/:resourceType/:resourceId')

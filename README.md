@@ -95,8 +95,6 @@ Este projeto utiliza uma **arquitetura monorepo moderna** organizada de forma mo
 |------------|--------|-----------|
 | **PostgreSQL** | 18.0-alpine | Banco de dados relacional |
 | **RabbitMQ** | 4.2-management-alpine | Message broker |
-| **Elasticsearch** | 9.2.0 | Motor de busca e analytics |
-| **Kibana** | 9.2.0 | Visualização de dados Elasticsearch |
 | **MinIO** | latest | Armazenamento S3-compatible |
 | **MailHog** | latest | Servidor SMTP para testes |
 
@@ -207,26 +205,29 @@ SMTP_FROM_NAME=Frame24
 MAILHOG_WEB_UI=http://localhost:8025
 
 # ===========================================
-# OBJECT STORAGE (MinIO)
+# OBJECT STORAGE (MinIO / Supabase S3)
 # ===========================================
+# Development: Uses local MinIO (Docker)
 MINIO_ENDPOINT=localhost
 MINIO_PORT=9000
 MINIO_ACCESS_KEY=frame24
 MINIO_SECRET_KEY=frame24pass
 MINIO_USE_SSL=false
 MINIO_BUCKET=frame24-uploads
+MINIO_REGION=us-east-1
+STORAGE_PUBLIC_URL=http://localhost:9000
 MINIO_CONSOLE_URL=http://localhost:9001
 
-# ===========================================
-# SEARCH ENGINE (Elasticsearch)
-# ===========================================
-ELASTICSEARCH_NODE=http://localhost:9200
-ELASTICSEARCH_INDEX_PREFIX=frame24
-
-# ===========================================
-# ANALYTICS (Kibana)
-# ===========================================
-KIBANA_URL=http://localhost:5601
+# Production: Use Supabase S3-compatible storage
+# MINIO_ENDPOINT=[PROJECT_REF].supabase.co
+# MINIO_PORT=443
+# MINIO_ACCESS_KEY=[SUPABASE_ACCESS_KEY_ID]
+# MINIO_SECRET_KEY=[SUPABASE_SECRET_ACCESS_KEY]
+# MINIO_USE_SSL=true
+# MINIO_BUCKET=frame24-uploads
+# MINIO_REGION=us-east-1
+# STORAGE_PUBLIC_URL=https://[PROJECT_REF].supabase.co/storage/v1/object/public
+# Note: Supabase endpoint will automatically use /storage/v1/s3 path
 
 # ===========================================
 # JWT & SECURITY
@@ -246,6 +247,7 @@ Crie o arquivo `packages/db/.env`:
 
 ```env
 DATABASE_URL="postgresql://frame24:frame24pass@localhost:5432/frame24?schema=public&connection_limit=30"
+DIRECT_URL="postgresql://frame24:frame24pass@localhost:5432/frame24?schema=public&connection_limit=30"
 ```
 
 ### 4️⃣ Instale as dependências
@@ -266,7 +268,7 @@ pnpm db:generate
 # Execute as migrations
 pnpm db:migrate:dev
 
-# Compile o TypeScript do package
+# Compile o TypeScript do package (configurado com comandos em linux, remova o rm -rf caso está no windows)
 pnpm build
 
 # Volte para a raiz
@@ -287,6 +289,7 @@ pnpm dev:api
 
 **Opção 3: Iniciar apenas o Frontend**
 ```bash
+# build o @repo/ui pra pegar o sidebar antes de rodar o frontend
 pnpm dev:web
 ```
 
@@ -302,8 +305,6 @@ Após a instalação, você pode acessar os seguintes serviços:
 | **Landing Page** | http://localhost:3003 | - |
 | **RabbitMQ Management** | http://localhost:15672 | `frame24` / `frame24pass` |
 | **MailHog (Email UI)** | http://localhost:8025 | - |
-| **MinIO Console** | http://localhost:9001 | `frame24` / `frame24pass` |
-| **Kibana** | http://localhost:5601 | - |
 | **Prisma Studio** | Execute `pnpm db:studio` em `packages/db` | - |
 
 ## 📊 Database Schemas
@@ -331,7 +332,6 @@ O projeto utiliza **13 schemas PostgreSQL separados** para organização modular
 A API utiliza **JWT (JSON Web Tokens)** para autenticação. Para acessar endpoints protegidos, siga estes passos:
 
 1. **Faça signup** em `POST /v1/auth/signup`
-2. **Verifique seu email** no MailHog (http://localhost:8025)
 3. **Faça login** em `POST /v1/auth/login`
 4. **Use o token retornado** nos headers das requisições:
 
@@ -431,6 +431,11 @@ O sistema é **multi-tenant**, ou seja, uma única instância serve múltiplas e
 - 🔒 Todas as queries são automaticamente filtradas pelo `company_id` do usuário logado
 - 👥 Permissões granulares baseadas em roles customizáveis por empresa
 - 🛡️ Isolamento completo de dados entre tenants
+
+## 📚 Documentação de Domínio
+
+- [`docs/marketing-campaigns.md`](docs/marketing-campaigns.md) — fluxo completo de campanhas promocionais, endpoints, validações e integração com vendas.
+- [`docs/finance-distributor-settlements.md`](docs/finance-distributor-settlements.md) — processo de cálculo e conciliação de repasses para distribuidoras.
 
 ## 🚀 Funcionalidades Principais
 

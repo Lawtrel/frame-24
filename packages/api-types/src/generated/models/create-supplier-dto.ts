@@ -73,13 +73,13 @@ export interface CreateSupplierDto {
      * @type {number}
      * @memberof CreateSupplierDto
      */
-    'delivery_days'?: number;
+    'delivery_days': number;
     /**
      * Indica se o fornecedor atua como distribuidor de filmes
      * @type {boolean}
      * @memberof CreateSupplierDto
      */
-    'is_film_distributor'?: boolean;
+    'is_film_distributor': boolean;
     /**
      * Identificador do tipo de fornecedor (chave estrangeira)
      * @type {string}
@@ -91,6 +91,6 @@ export interface CreateSupplierDto {
      * @type {boolean}
      * @memberof CreateSupplierDto
      */
-    'active'?: boolean;
+    'active': boolean;
 }
 
