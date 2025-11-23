@@ -185,13 +185,16 @@ export class IdentityEmailConsumer implements OnModuleInit, OnModuleDestroy {
   ): Promise<void> {
     this.logger.log(`Processando identity.created: ${data.email}`);
 
-    await this.emailService.sendVerificationEmail(
-      data.email,
-      data.full_name,
-      data.verification_token,
-    );
+    // DISABLED: Auto-verification enabled, skipping email.
+    // await this.emailService.sendVerificationEmail(
+    //   data.email,
+    //   data.full_name,
+    //   data.verification_token,
+    // );
 
-    this.logger.log(`Email de verificação enviado para: ${data.email}`);
+    this.logger.log(
+      `Email de verificação PULADO (Auto-verificação): ${data.email}`,
+    );
   }
 
   private async handleIdentityVerified(
@@ -199,9 +202,10 @@ export class IdentityEmailConsumer implements OnModuleInit, OnModuleDestroy {
   ): Promise<void> {
     this.logger.log(`Processando identity.verified: ${data.email}`);
 
-    await this.emailService.sendWelcomeEmail(data.email, data.full_name);
+    // DISABLED: User requested no emails.
+    // await this.emailService.sendWelcomeEmail(data.email, data.full_name);
 
-    this.logger.log(`Email de boas-vindas enviado para: ${data.email}`);
+    this.logger.log(`Email de boas-vindas PULADO (Desativado): ${data.email}`);
   }
 
   private async handlePasswordReset(

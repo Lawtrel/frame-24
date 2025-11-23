@@ -1,20 +1,19 @@
 'use client';
 
-import {useFormStatus} from 'react-dom';
-import {registerCompany} from '@/app/actions/register';
+import { useFormStatus } from 'react-dom';
+import { registerCompany } from '@/app/actions/register';
 import Input from '@/components/Input';
-import {ChangeEvent, useActionState, useState} from 'react';
+import { ChangeEvent, useActionState, useState } from 'react';
 import axios from 'axios';
 
 function SubmitButton() {
-    const {pending} = useFormStatus();
+    const { pending } = useFormStatus();
     return (
         <button
             type="submit"
             disabled={pending}
-            className={`w-full px-6 py-3 rounded-lg font-bold transition-all ${
-                pending ? 'bg-red-800 opacity-70 cursor-not-allowed' : 'bg-red-700 hover:bg-red-600 text-white'
-            }`}
+            className={`w-full px-6 py-3 rounded-lg font-bold transition-all ${pending ? 'bg-red-800 opacity-70 cursor-not-allowed' : 'bg-red-700 hover:bg-red-600 text-white'
+                }`}
         >
             {pending ? 'Cadastrando...' : 'Criar Conta'}
         </button>
@@ -51,8 +50,8 @@ export default function RegisterForm() {
     });
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const {name, value} = e.target;
-        setFormData(prev => ({...prev, [name]: value}));
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleCNPJChange = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -129,9 +128,9 @@ export default function RegisterForm() {
                 <div className="text-center py-8">
                     <div className="text-6xl mb-4">✅</div>
                     <p className="text-gray-300 text-lg mb-2 font-semibold">Cadastro realizado!</p>
-                    <p className="text-gray-400 mb-6">Verifique seu email para confirmar.</p>
-                    <a href="/" className="inline-block px-6 py-3 bg-red-700 hover:bg-red-600 text-white rounded-lg font-semibold transition">
-                        Voltar para Home
+                    <p className="text-gray-400 mb-6">Sua conta foi criada com sucesso! Você já pode fazer login.</p>
+                    <a href="https://frame-24-front.vercel.app/login" className="inline-block px-6 py-3 bg-red-700 hover:bg-red-600 text-white rounded-lg font-semibold transition">
+                        Fazer Login
                     </a>
                 </div>
             </div>
@@ -166,23 +165,23 @@ export default function RegisterForm() {
                         </div>
 
                         <Input label="Razão Social *" name="corporate_name" value={formData.corporate_name} required
-                               error={getError('corporate_name')} onChange={handleInputChange}/>
+                            error={getError('corporate_name')} onChange={handleInputChange} />
                         <Input label="Nome Fantasia" name="trade_name" value={formData.trade_name}
-                               error={getError('trade_name')} onChange={handleInputChange}/>
+                            error={getError('trade_name')} onChange={handleInputChange} />
                     </div>
 
                     <div className="space-y-4 border-t border-gray-700 pt-6 lg:border-t-0 lg:pt-0">
                         <h2 className="text-lg font-semibold text-gray-200">👤 Administrador</h2>
                         <Input label="Nome Completo *" name="full_name" value={formData.full_name} required
-                               error={getError('full_name')} onChange={handleInputChange}/>
+                            error={getError('full_name')} onChange={handleInputChange} />
                         <div className="grid grid-cols-2 gap-4">
                             <Input label="Email *" name="email" value={formData.email} type="email" required
-                                   error={getError('email')} onChange={handleInputChange}/>
+                                error={getError('email')} onChange={handleInputChange} />
                             <Input label="Celular *" name="mobile" value={formData.mobile} maxLength={15} required
-                                   error={getError('mobile')} onChange={handleInputChange}/>
+                                error={getError('mobile')} onChange={handleInputChange} />
                         </div>
                         <Input label="Senha *" name="password" value={formData.password} type="password" required
-                               error={getError('password')} onChange={handleInputChange}/>
+                            error={getError('password')} onChange={handleInputChange} />
                         <p className="text-xs text-gray-400">💡 Senha deve conter maiúscula, minúscula e número</p>
                     </div>
                 </div>
@@ -208,35 +207,35 @@ export default function RegisterForm() {
                             )}
                         </div>
                         <Input label="Estado *" name="company_state" value={formData.company_state} maxLength={2}
-                               placeholder="SP" required error={getError('company_state')}
-                               onChange={handleInputChange}/>
+                            placeholder="SP" required error={getError('company_state')}
+                            onChange={handleInputChange} />
                     </div>
 
                     <Input label="Cidade *" name="company_city" value={formData.company_city} required
-                           error={getError('company_city')} onChange={handleInputChange}/>
+                        error={getError('company_city')} onChange={handleInputChange} />
                     <Input label="Bairro *" name="company_neighborhood" value={formData.company_neighborhood} required
-                           error={getError('company_neighborhood')} onChange={handleInputChange}/>
+                        error={getError('company_neighborhood')} onChange={handleInputChange} />
 
                     <div className="grid grid-cols-3 gap-4">
                         <div className="col-span-2">
                             <Input label="Logradouro *" name="company_street_address"
-                                   value={formData.company_street_address} required
-                                   error={getError('company_street_address')} onChange={handleInputChange}/>
+                                value={formData.company_street_address} required
+                                error={getError('company_street_address')} onChange={handleInputChange} />
                         </div>
                         <Input label="Número *" name="company_address_number" value={formData.company_address_number}
-                               required error={getError('company_address_number')} onChange={handleInputChange}/>
+                            required error={getError('company_address_number')} onChange={handleInputChange} />
                     </div>
 
                     <Input label="Complemento" name="company_address_complement"
-                           value={formData.company_address_complement} error={getError('company_address_complement')}
-                           onChange={handleInputChange}/>
+                        value={formData.company_address_complement} error={getError('company_address_complement')}
+                        onChange={handleInputChange} />
 
                     <div className="grid grid-cols-2 gap-4">
                         <Input label="Telefone" name="company_phone" value={formData.company_phone}
-                               placeholder="(11) 3333-4444" error={getError('company_phone')}
-                               onChange={handleInputChange}/>
+                            placeholder="(11) 3333-4444" error={getError('company_phone')}
+                            onChange={handleInputChange} />
                         <Input label="Email" name="company_email" value={formData.company_email} type="email"
-                               error={getError('company_email')} onChange={handleInputChange}/>
+                            error={getError('company_email')} onChange={handleInputChange} />
                     </div>
                 </div>
 
@@ -245,7 +244,7 @@ export default function RegisterForm() {
                         {state.message}
                     </div>
                 )}
-                <SubmitButton/>
+                <SubmitButton />
             </form>
         </div>
     );
