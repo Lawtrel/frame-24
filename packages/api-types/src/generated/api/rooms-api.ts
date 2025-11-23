@@ -21,10 +21,6 @@ import globalAxios from 'axios';
 import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from '../common';
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
-// @ts-ignore
-import type { CreateRoomDto } from '../models';
-// @ts-ignore
-import type { UpdateRoomDto } from '../models';
 /**
  * RoomsApi - axios parameter creator
  * @export
@@ -35,15 +31,13 @@ export const RoomsApiAxiosParamCreator = function (configuration?: Configuration
          * 
          * @summary Criar uma nova sala em um complexo
          * @param {string} cinemaComplexId 
-         * @param {CreateRoomDto} createRoomDto 
+         * @param {File} [layoutImage] Image file to upload
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        roomsControllerCreateV1: async (cinemaComplexId: string, createRoomDto: CreateRoomDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        roomsControllerCreateV1: async (cinemaComplexId: string, layoutImage?: File, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'cinemaComplexId' is not null or undefined
             assertParamExists('roomsControllerCreateV1', 'cinemaComplexId', cinemaComplexId)
-            // verify required parameter 'createRoomDto' is not null or undefined
-            assertParamExists('roomsControllerCreateV1', 'createRoomDto', createRoomDto)
             const localVarPath = `/v1/cinema-complexes/{cinemaComplexId}/rooms`
                 .replace(`{${"cinemaComplexId"}}`, encodeURIComponent(String(cinemaComplexId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -56,15 +50,20 @@ export const RoomsApiAxiosParamCreator = function (configuration?: Configuration
             const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
+            const localVarFormParams = new ((configuration && configuration.formDataCtor) || FormData)();
 
 
+            if (layoutImage !== undefined) { 
+                localVarFormParams.append('layout_image', layoutImage as any);
+            }
     
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
+    
+            localVarHeaderParameter['Content-Type'] = 'multipart/form-data';
+    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(createRoomDto, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = localVarFormParams;
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -177,15 +176,13 @@ export const RoomsApiAxiosParamCreator = function (configuration?: Configuration
          * 
          * @summary Atualizar uma sala
          * @param {string} id 
-         * @param {UpdateRoomDto} updateRoomDto 
+         * @param {File} [layoutImage] Image file to upload
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        roomsControllerUpdateV1: async (id: string, updateRoomDto: UpdateRoomDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        roomsControllerUpdateV1: async (id: string, layoutImage?: File, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'id' is not null or undefined
             assertParamExists('roomsControllerUpdateV1', 'id', id)
-            // verify required parameter 'updateRoomDto' is not null or undefined
-            assertParamExists('roomsControllerUpdateV1', 'updateRoomDto', updateRoomDto)
             const localVarPath = `/v1/cinema-complexes/{cinemaComplexId}/rooms/{id}`
                 .replace(`{${"id"}}`, encodeURIComponent(String(id)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -198,15 +195,20 @@ export const RoomsApiAxiosParamCreator = function (configuration?: Configuration
             const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
+            const localVarFormParams = new ((configuration && configuration.formDataCtor) || FormData)();
 
 
+            if (layoutImage !== undefined) { 
+                localVarFormParams.append('layout_image', layoutImage as any);
+            }
     
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
+    
+            localVarHeaderParameter['Content-Type'] = 'multipart/form-data';
+    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(updateRoomDto, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = localVarFormParams;
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -227,12 +229,12 @@ export const RoomsApiFp = function(configuration?: Configuration) {
          * 
          * @summary Criar uma nova sala em um complexo
          * @param {string} cinemaComplexId 
-         * @param {CreateRoomDto} createRoomDto 
+         * @param {File} [layoutImage] Image file to upload
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async roomsControllerCreateV1(cinemaComplexId: string, createRoomDto: CreateRoomDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.roomsControllerCreateV1(cinemaComplexId, createRoomDto, options);
+        async roomsControllerCreateV1(cinemaComplexId: string, layoutImage?: File, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.roomsControllerCreateV1(cinemaComplexId, layoutImage, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['RoomsApi.roomsControllerCreateV1']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -280,12 +282,12 @@ export const RoomsApiFp = function(configuration?: Configuration) {
          * 
          * @summary Atualizar uma sala
          * @param {string} id 
-         * @param {UpdateRoomDto} updateRoomDto 
+         * @param {File} [layoutImage] Image file to upload
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async roomsControllerUpdateV1(id: string, updateRoomDto: UpdateRoomDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.roomsControllerUpdateV1(id, updateRoomDto, options);
+        async roomsControllerUpdateV1(id: string, layoutImage?: File, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.roomsControllerUpdateV1(id, layoutImage, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['RoomsApi.roomsControllerUpdateV1']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -308,7 +310,7 @@ export const RoomsApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         roomsControllerCreateV1(requestParameters: RoomsApiRoomsControllerCreateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.roomsControllerCreateV1(requestParameters.cinemaComplexId, requestParameters.createRoomDto, options).then((request) => request(axios, basePath));
+            return localVarFp.roomsControllerCreateV1(requestParameters.cinemaComplexId, requestParameters.layoutImage, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -348,7 +350,7 @@ export const RoomsApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         roomsControllerUpdateV1(requestParameters: RoomsApiRoomsControllerUpdateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.roomsControllerUpdateV1(requestParameters.id, requestParameters.updateRoomDto, options).then((request) => request(axios, basePath));
+            return localVarFp.roomsControllerUpdateV1(requestParameters.id, requestParameters.layoutImage, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -425,11 +427,11 @@ export interface RoomsApiRoomsControllerCreateV1Request {
     readonly cinemaComplexId: string
 
     /**
-     * 
-     * @type {CreateRoomDto}
+     * Image file to upload
+     * @type {File}
      * @memberof RoomsApiRoomsControllerCreateV1
      */
-    readonly createRoomDto: CreateRoomDto
+    readonly layoutImage?: File
 }
 
 /**
@@ -488,11 +490,11 @@ export interface RoomsApiRoomsControllerUpdateV1Request {
     readonly id: string
 
     /**
-     * 
-     * @type {UpdateRoomDto}
+     * Image file to upload
+     * @type {File}
      * @memberof RoomsApiRoomsControllerUpdateV1
      */
-    readonly updateRoomDto: UpdateRoomDto
+    readonly layoutImage?: File
 }
 
 /**
@@ -511,7 +513,7 @@ export class RoomsApi extends BaseAPI implements RoomsApiInterface {
      * @memberof RoomsApi
      */
     public roomsControllerCreateV1(requestParameters: RoomsApiRoomsControllerCreateV1Request, options?: RawAxiosRequestConfig) {
-        return RoomsApiFp(this.configuration).roomsControllerCreateV1(requestParameters.cinemaComplexId, requestParameters.createRoomDto, options).then((request) => request(this.axios, this.basePath));
+        return RoomsApiFp(this.configuration).roomsControllerCreateV1(requestParameters.cinemaComplexId, requestParameters.layoutImage, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -559,7 +561,7 @@ export class RoomsApi extends BaseAPI implements RoomsApiInterface {
      * @memberof RoomsApi
      */
     public roomsControllerUpdateV1(requestParameters: RoomsApiRoomsControllerUpdateV1Request, options?: RawAxiosRequestConfig) {
-        return RoomsApiFp(this.configuration).roomsControllerUpdateV1(requestParameters.id, requestParameters.updateRoomDto, options).then((request) => request(this.axios, this.basePath));
+        return RoomsApiFp(this.configuration).roomsControllerUpdateV1(requestParameters.id, requestParameters.layoutImage, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

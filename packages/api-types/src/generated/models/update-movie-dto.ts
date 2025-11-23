@@ -13,12 +13,6 @@
  */
 
 
-// May contain unused imports in some cases
-// @ts-ignore
-import type { CreateMovieDtoCastInner } from './create-movie-dto-cast-inner';
-// May contain unused imports in some cases
-// @ts-ignore
-import type { CreateMovieDtoMediaInner } from './create-movie-dto-media-inner';
 
 /**
  * 
@@ -136,15 +130,15 @@ export interface UpdateMovieDto {
     'active'?: boolean;
     /**
      * Elenco completo para substituição. Se enviado, apaga o elenco anterior e recria conforme itens.
-     * @type {Array<CreateMovieDtoCastInner>}
+     * @type {Array<string>}
      * @memberof UpdateMovieDto
      */
-    'cast'?: Array<CreateMovieDtoCastInner>;
+    'cast'?: Array<string>;
     /**
      * Mídias completas para substituição. Se enviado, apaga as mídias anteriores e recria conforme itens.
-     * @type {Array<CreateMovieDtoMediaInner>}
+     * @type {Array<string>}
      * @memberof UpdateMovieDto
      */
-    'media'?: Array<CreateMovieDtoMediaInner>;
+    'media'?: Array<string>;
 }
 

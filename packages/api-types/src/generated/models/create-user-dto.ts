@@ -103,7 +103,7 @@ export interface CreateUserDto {
      * @type {string}
      * @memberof CreateUserDto
      */
-    'country'?: string;
+    'country': string;
     /**
      * Senha (mín. 8 caracteres, maiúscula, minúscula e número)
      * @type {string}
@@ -163,6 +163,6 @@ export interface CreateUserDto {
      * @type {boolean}
      * @memberof CreateUserDto
      */
-    'active'?: boolean;
+    'active': boolean;
 }
 
