@@ -47,17 +47,27 @@ async function bootstrap() {
       'contato@frame24.com.br',
     )
     .addServer('http://localhost:4000', 'Desenvolvimento')
-    .addServer('https://api.frame24.com.br', 'Produção')
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        name: 'Authorization',
-        description: 'Token JWT obtido no endpoint /auth/login',
-      },
-      'access-token',
-    );
+    .addServer('https://api.frame24.com.br', 'Produção');
+
+  // Adicionar servidor atual dinamicamente se não for localhost ou produção
+  if (
+    process.env.API_URL &&
+    process.env.API_URL !== 'http://localhost:4000' &&
+    process.env.API_URL !== 'https://api.frame24.com.br'
+  ) {
+    configBuilder.addServer(process.env.API_URL, 'Ambiente Atual');
+  }
+
+  configBuilder.addBearerAuth(
+    {
+      type: 'http',
+      scheme: 'bearer',
+      bearerFormat: 'JWT',
+      name: 'Authorization',
+      description: 'Token JWT obtido no endpoint /auth/login',
+    },
+    'access-token',
+  );
   app.enableVersioning({
     type: VersioningType.URI,
   });
