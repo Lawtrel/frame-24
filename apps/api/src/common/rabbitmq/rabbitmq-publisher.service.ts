@@ -35,14 +35,25 @@ export class RabbitMQPublisherService implements OnModuleInit, OnModuleDestroy {
     this.isConnecting = true;
 
     try {
-      const user = process.env.RABBITMQ_USER || 'frame24';
-      const password = process.env.RABBITMQ_PASSWORD || 'frame24pass';
-      const host = process.env.RABBITMQ_HOST || 'localhost';
-      const port = process.env.RABBITMQ_PORT || 5672;
-      const url = `amqp://${user}:${password}@${host}:${port}`;
+      const uri = process.env.RABBITMQ_URI;
+      let url: string;
+      let logInfo: string;
+
+      if (uri) {
+        url = uri;
+        // Mask password in logs
+        logInfo = uri.replace(/:([^:@]+)@/, ':***@');
+      } else {
+        const user = process.env.RABBITMQ_USER || 'frame24';
+        const password = process.env.RABBITMQ_PASSWORD || 'frame24pass';
+        const host = process.env.RABBITMQ_HOST || 'localhost';
+        const port = process.env.RABBITMQ_PORT || 5672;
+        url = `amqp://${user}:${password}@${host}:${port}`;
+        logInfo = `${host}:${port}`;
+      }
 
       this.loggerService.log(
-        `Connecting to RabbitMQ at ${host}:${port}...`,
+        `Connecting to RabbitMQ at ${logInfo}...`,
         this.logger,
       );
 
