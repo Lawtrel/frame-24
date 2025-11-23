@@ -8,12 +8,13 @@
       "env": ["DATABASE_URL", "PORT", "NODE_ENV"]
     },
     "build": {
-      "dependsOn": ["^db:generate","^build"],
+      "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
       "env": ["DATABASE_URL", "PORT", "NODE_ENV"]
     },
     "db:generate": {
-      "cache": false
+      "cache": false,
+      "env": ["DATABASE_URL"]
     },
     "db:migrate": {
       "cache": false,
