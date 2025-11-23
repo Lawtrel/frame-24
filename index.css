@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Estilos globais para o tema */
+body {
+  transition: background-color 0.3s, color 0.3s;
+  /* Resetando estilos padrão do Vite/React */
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+/* Tema Claro */
+.light {
+  background-color: text-primary; /* Branco */
+  color: background; /* Preto */
+}
+
+/* Tema Escuro */
+.dark {
+  background-color: background; /* Cinza Escuro */
+  color: text-primary; /* Branco */
+}
