@@ -24,6 +24,8 @@ import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError
 // @ts-ignore
 import type { CreateRoleDto } from '../models';
 // @ts-ignore
+import type { RoleResponseDto } from '../models';
+// @ts-ignore
 import type { UpdateRoleDto } from '../models';
 /**
  * RolesApi - axios parameter creator
@@ -222,7 +224,7 @@ export const RolesApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async rolesControllerCreateRoleV1(createRoleDto: CreateRoleDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async rolesControllerCreateRoleV1(createRoleDto: CreateRoleDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RoleResponseDto>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.rolesControllerCreateRoleV1(createRoleDto, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['RolesApi.rolesControllerCreateRoleV1']?.[localVarOperationServerIndex]?.url;
@@ -248,7 +250,7 @@ export const RolesApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async rolesControllerGetRoleV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async rolesControllerGetRoleV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RoleResponseDto>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.rolesControllerGetRoleV1(id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['RolesApi.rolesControllerGetRoleV1']?.[localVarOperationServerIndex]?.url;
@@ -260,7 +262,7 @@ export const RolesApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async rolesControllerListRolesV1(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async rolesControllerListRolesV1(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<RoleResponseDto>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.rolesControllerListRolesV1(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['RolesApi.rolesControllerListRolesV1']?.[localVarOperationServerIndex]?.url;
@@ -274,7 +276,7 @@ export const RolesApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async rolesControllerUpdateRoleV1(id: string, updateRoleDto: UpdateRoleDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async rolesControllerUpdateRoleV1(id: string, updateRoleDto: UpdateRoleDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RoleResponseDto>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.rolesControllerUpdateRoleV1(id, updateRoleDto, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['RolesApi.rolesControllerUpdateRoleV1']?.[localVarOperationServerIndex]?.url;
@@ -297,7 +299,7 @@ export const RolesApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        rolesControllerCreateRoleV1(requestParameters: RolesApiRolesControllerCreateRoleV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        rolesControllerCreateRoleV1(requestParameters: RolesApiRolesControllerCreateRoleV1Request, options?: RawAxiosRequestConfig): AxiosPromise<RoleResponseDto> {
             return localVarFp.rolesControllerCreateRoleV1(requestParameters.createRoleDto, options).then((request) => request(axios, basePath));
         },
         /**
@@ -317,7 +319,7 @@ export const RolesApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        rolesControllerGetRoleV1(requestParameters: RolesApiRolesControllerGetRoleV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        rolesControllerGetRoleV1(requestParameters: RolesApiRolesControllerGetRoleV1Request, options?: RawAxiosRequestConfig): AxiosPromise<RoleResponseDto> {
             return localVarFp.rolesControllerGetRoleV1(requestParameters.id, options).then((request) => request(axios, basePath));
         },
         /**
@@ -326,7 +328,7 @@ export const RolesApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        rolesControllerListRolesV1(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        rolesControllerListRolesV1(options?: RawAxiosRequestConfig): AxiosPromise<Array<RoleResponseDto>> {
             return localVarFp.rolesControllerListRolesV1(options).then((request) => request(axios, basePath));
         },
         /**
@@ -336,7 +338,7 @@ export const RolesApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        rolesControllerUpdateRoleV1(requestParameters: RolesApiRolesControllerUpdateRoleV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        rolesControllerUpdateRoleV1(requestParameters: RolesApiRolesControllerUpdateRoleV1Request, options?: RawAxiosRequestConfig): AxiosPromise<RoleResponseDto> {
             return localVarFp.rolesControllerUpdateRoleV1(requestParameters.id, requestParameters.updateRoleDto, options).then((request) => request(axios, basePath));
         },
     };
@@ -356,7 +358,7 @@ export interface RolesApiInterface {
      * @throws {RequiredError}
      * @memberof RolesApiInterface
      */
-    rolesControllerCreateRoleV1(requestParameters: RolesApiRolesControllerCreateRoleV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+    rolesControllerCreateRoleV1(requestParameters: RolesApiRolesControllerCreateRoleV1Request, options?: RawAxiosRequestConfig): AxiosPromise<RoleResponseDto>;
 
     /**
      * Deleta uma role customizada permanentemente. Roles do sistema ou que estão sendo usadas por usuários não podem ser deletadas.
@@ -376,7 +378,7 @@ export interface RolesApiInterface {
      * @throws {RequiredError}
      * @memberof RolesApiInterface
      */
-    rolesControllerGetRoleV1(requestParameters: RolesApiRolesControllerGetRoleV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+    rolesControllerGetRoleV1(requestParameters: RolesApiRolesControllerGetRoleV1Request, options?: RawAxiosRequestConfig): AxiosPromise<RoleResponseDto>;
 
     /**
      * Retorna todas as roles (customizadas e do sistema) da empresa, ordenadas por nível hierárquico.
@@ -385,7 +387,7 @@ export interface RolesApiInterface {
      * @throws {RequiredError}
      * @memberof RolesApiInterface
      */
-    rolesControllerListRolesV1(options?: RawAxiosRequestConfig): AxiosPromise<void>;
+    rolesControllerListRolesV1(options?: RawAxiosRequestConfig): AxiosPromise<Array<RoleResponseDto>>;
 
     /**
      * Atualiza uma role customizada. Roles do sistema não podem ser editadas. Ao atualizar permissões, a lista completa substitui as anteriores.
@@ -395,7 +397,7 @@ export interface RolesApiInterface {
      * @throws {RequiredError}
      * @memberof RolesApiInterface
      */
-    rolesControllerUpdateRoleV1(requestParameters: RolesApiRolesControllerUpdateRoleV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+    rolesControllerUpdateRoleV1(requestParameters: RolesApiRolesControllerUpdateRoleV1Request, options?: RawAxiosRequestConfig): AxiosPromise<RoleResponseDto>;
 
 }
 

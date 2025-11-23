@@ -33,11 +33,11 @@ export interface UpdateRoleDto {
      */
     'description'?: string;
     /**
-     * List of permission codes
+     * 
      * @type {Array<Array<string>>}
      * @memberof UpdateRoleDto
      */
-    'permissions'?: Array<Array<string>>;
+    'permissions': Array<Array<string>>;
     /**
      * Hierarchy level
      * @type {number}

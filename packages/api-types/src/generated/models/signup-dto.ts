@@ -121,7 +121,7 @@ export interface SignupDto {
      * @type {string}
      * @memberof SignupDto
      */
-    'plan_type'?: SignupDtoPlanTypeEnum;
+    'plan_type': SignupDtoPlanTypeEnum;
 }
 
 export const SignupDtoPlanTypeEnum = {
