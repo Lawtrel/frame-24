@@ -33,7 +33,7 @@ export interface CreateRoleDto {
      */
     'description'?: string;
     /**
-     * List of permission codes (use GET /admin/permissions to list available)
+     * 
      * @type {Array<Array<string>>}
      * @memberof CreateRoleDto
      */

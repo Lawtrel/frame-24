@@ -103,7 +103,7 @@ export const PermissionsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async permissionsControllerListPermissionsV1(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async permissionsControllerListPermissionsV1(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.permissionsControllerListPermissionsV1(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['PermissionsApi.permissionsControllerListPermissionsV1']?.[localVarOperationServerIndex]?.url;
@@ -137,7 +137,7 @@ export const PermissionsApiFactory = function (configuration?: Configuration, ba
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        permissionsControllerListPermissionsV1(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        permissionsControllerListPermissionsV1(options?: RawAxiosRequestConfig): AxiosPromise<object> {
             return localVarFp.permissionsControllerListPermissionsV1(options).then((request) => request(axios, basePath));
         },
         /**
@@ -165,7 +165,7 @@ export interface PermissionsApiInterface {
      * @throws {RequiredError}
      * @memberof PermissionsApiInterface
      */
-    permissionsControllerListPermissionsV1(options?: RawAxiosRequestConfig): AxiosPromise<void>;
+    permissionsControllerListPermissionsV1(options?: RawAxiosRequestConfig): AxiosPromise<object>;
 
     /**
      * Força sincronização das permissões do código para o banco de dados. Útil após adicionar novos controllers.

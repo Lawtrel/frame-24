@@ -13,12 +13,6 @@
  */
 
 
-// May contain unused imports in some cases
-// @ts-ignore
-import type { CreateMovieDtoCastInner } from './create-movie-dto-cast-inner';
-// May contain unused imports in some cases
-// @ts-ignore
-import type { CreateMovieDtoMediaInner } from './create-movie-dto-media-inner';
 
 /**
  * 
@@ -67,7 +61,7 @@ export interface CreateMovieDto {
      * @type {boolean}
      * @memberof CreateMovieDto
      */
-    'national'?: boolean;
+    'national': boolean;
     /**
      * Sinopse completa do filme
      * @type {string}
@@ -112,15 +106,15 @@ export interface CreateMovieDto {
     'worldwide_release_date'?: string;
     /**
      * Elenco inicial (opcional). Se enviado, cria os registros de elenco para o filme.
-     * @type {Array<CreateMovieDtoCastInner>}
+     * @type {Array<string>}
      * @memberof CreateMovieDto
      */
-    'cast'?: Array<CreateMovieDtoCastInner>;
+    'cast'?: Array<string>;
     /**
      * Mídias iniciais (opcional). Se enviado, cria os registros de mídia do filme.
-     * @type {Array<CreateMovieDtoMediaInner>}
+     * @type {Array<string>}
      * @memberof CreateMovieDto
      */
-    'media'?: Array<CreateMovieDtoMediaInner>;
+    'media'?: Array<string>;
 }
 
