@@ -15,7 +15,7 @@
 
 
 /**
- * Dados do usuário autenticado
+ * 
  * @export
  * @interface LoginResponseDtoUser
  */

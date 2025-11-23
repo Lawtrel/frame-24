@@ -250,7 +250,7 @@ export const UserManagementApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async userManagementControllerGetUserV1(employeeId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async userManagementControllerGetUserV1(employeeId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserResponseDto>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.userManagementControllerGetUserV1(employeeId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['UserManagementApi.userManagementControllerGetUserV1']?.[localVarOperationServerIndex]?.url;
@@ -276,7 +276,7 @@ export const UserManagementApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async userManagementControllerUpdateUserV1(employeeId: string, updateUserDto: UpdateUserDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async userManagementControllerUpdateUserV1(employeeId: string, updateUserDto: UpdateUserDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserResponseDto>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.userManagementControllerUpdateUserV1(employeeId, updateUserDto, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['UserManagementApi.userManagementControllerUpdateUserV1']?.[localVarOperationServerIndex]?.url;
@@ -319,7 +319,7 @@ export const UserManagementApiFactory = function (configuration?: Configuration,
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        userManagementControllerGetUserV1(requestParameters: UserManagementApiUserManagementControllerGetUserV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        userManagementControllerGetUserV1(requestParameters: UserManagementApiUserManagementControllerGetUserV1Request, options?: RawAxiosRequestConfig): AxiosPromise<UserResponseDto> {
             return localVarFp.userManagementControllerGetUserV1(requestParameters.employeeId, options).then((request) => request(axios, basePath));
         },
         /**
@@ -338,7 +338,7 @@ export const UserManagementApiFactory = function (configuration?: Configuration,
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        userManagementControllerUpdateUserV1(requestParameters: UserManagementApiUserManagementControllerUpdateUserV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        userManagementControllerUpdateUserV1(requestParameters: UserManagementApiUserManagementControllerUpdateUserV1Request, options?: RawAxiosRequestConfig): AxiosPromise<UserResponseDto> {
             return localVarFp.userManagementControllerUpdateUserV1(requestParameters.employeeId, requestParameters.updateUserDto, options).then((request) => request(axios, basePath));
         },
     };
@@ -378,7 +378,7 @@ export interface UserManagementApiInterface {
      * @throws {RequiredError}
      * @memberof UserManagementApiInterface
      */
-    userManagementControllerGetUserV1(requestParameters: UserManagementApiUserManagementControllerGetUserV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+    userManagementControllerGetUserV1(requestParameters: UserManagementApiUserManagementControllerGetUserV1Request, options?: RawAxiosRequestConfig): AxiosPromise<UserResponseDto>;
 
     /**
      * Lista todos os usuários da empresa do usuário autenticado.
@@ -397,7 +397,7 @@ export interface UserManagementApiInterface {
      * @throws {RequiredError}
      * @memberof UserManagementApiInterface
      */
-    userManagementControllerUpdateUserV1(requestParameters: UserManagementApiUserManagementControllerUpdateUserV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+    userManagementControllerUpdateUserV1(requestParameters: UserManagementApiUserManagementControllerUpdateUserV1Request, options?: RawAxiosRequestConfig): AxiosPromise<UserResponseDto>;
 
 }
 
