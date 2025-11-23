@@ -45,7 +45,18 @@ export class IdentityEmailConsumer implements OnModuleInit, OnModuleDestroy {
 
   private async connect(): Promise<void> {
     try {
-      const url = `amqp://${process.env.RABBITMQ_USER || 'frame24'}:${process.env.RABBITMQ_PASSWORD || 'frame24pass'}@${process.env.RABBITMQ_HOST || 'localhost'}:${process.env.RABBITMQ_PORT || 5672}`;
+      const uri = process.env.RABBITMQ_URI;
+      let url: string;
+
+      if (uri) {
+        url = uri;
+      } else {
+        const user = process.env.RABBITMQ_USER || 'frame24';
+        const password = process.env.RABBITMQ_PASSWORD || 'frame24pass';
+        const host = process.env.RABBITMQ_HOST || 'localhost';
+        const port = process.env.RABBITMQ_PORT || 5672;
+        url = `amqp://${user}:${password}@${host}:${port}`;
+      }
 
       this.connection = await connect(url);
       this.channel = await this.connection.createChannel();
