@@ -23,6 +23,8 @@ import { SalesModule } from 'src/modules/sales/sales.module';
 import { StockModule } from 'src/modules/stock/stock.module';
 import { PublicModule } from 'src/modules/public/public.module';
 import { CrmModule } from 'src/modules/crm/crm.module';
+import { AppController } from './app.controller';
+
 
 @Module({
   imports: [
@@ -61,6 +63,7 @@ import { CrmModule } from 'src/modules/crm/crm.module';
     PublicModule,
     CrmModule,
   ],
+  controllers: [AppController],
   providers: [
     {
       provide: APP_FILTER,
@@ -68,4 +71,4 @@ import { CrmModule } from 'src/modules/crm/crm.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }
