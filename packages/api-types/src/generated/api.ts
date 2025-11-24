@@ -42,6 +42,7 @@ export * from './api/products-api';
 export * from './api/projection-types-api';
 export * from './api/promotion-types-api';
 export * from './api/public-api';
+export * from './api/public-sales-api';
 export * from './api/roles-api';
 export * from './api/rooms-api';
 export * from './api/sales-api';

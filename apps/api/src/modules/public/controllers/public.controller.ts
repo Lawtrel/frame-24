@@ -5,10 +5,13 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  Req,
+  NotFoundException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorator';
 import { PublicService } from '../services/public.service';
+import { CustomerSalesResponseDto } from '../dto/customer-sales-response.dto';
 
 @ApiTags('Public')
 @Controller({ path: 'public', version: '1' })
@@ -25,7 +28,9 @@ export class PublicController {
   })
   @ApiResponse({
     status: 200,
-    description: 'Lista de empresas retornada com sucesso',
+    description: 'Histórico de compras retornado com sucesso',
+    type: CustomerSalesResponseDto,
+    isArray: true,
   })
   async getCompanies() {
     return this.publicService.getCompanies();
@@ -161,5 +166,105 @@ export class PublicController {
   ) {
     const company = await this.publicService.getCompanyBySlug(tenant_slug);
     return this.publicService.getProductsByCompany(company.id, complex_id);
+  }
+
+  @Get('companies/:tenant_slug/ticket-types')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Listar tipos de ingresso',
+    description: 'Retorna os tipos de ingresso disponíveis para uma empresa',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de tipos de ingresso retornada com sucesso',
+  })
+  async getTicketTypes(@Param('tenant_slug') tenant_slug: string) {
+    const company = await this.publicService.getCompanyBySlug(tenant_slug);
+    return this.publicService.getTicketTypes(company.id);
+  }
+
+  @Get('companies/:tenant_slug/payment-methods')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Listar métodos de pagamento',
+    description: 'Retorna os métodos de pagamento ativos para uma empresa',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de métodos de pagamento retornada com sucesso',
+  })
+  async getPaymentMethods(@Param('tenant_slug') tenant_slug: string) {
+    const company = await this.publicService.getCompanyBySlug(tenant_slug);
+    return this.publicService.getPaymentMethods(company.id);
+  }
+
+  @Get('sales/:id')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Obter detalhes da venda',
+    description:
+      'Retorna os detalhes completos de uma venda (ingressos, produtos, sessão)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Detalhes da venda retornados com sucesso',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Venda não encontrada',
+  })
+  async getSaleDetails(@Param('id') id: string) {
+    return this.publicService.getSaleDetails(id);
+  }
+
+  @Get('movies/:id')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Obter detalhes do filme',
+    description: 'Retorna os detalhes completos de um filme',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Detalhes do filme retornados com sucesso',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Filme não encontrado',
+  })
+  async getMovie(@Param('id') id: string) {
+    return this.publicService.getMovie(id);
+  }
+
+  @Get('customers/me/sales')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Obter histórico de compras do cliente autenticado',
+    description:
+      'Retorna todas as vendas do cliente logado, incluindo ingressos e produtos',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Histórico de compras retornado com sucesso',
+    type: CustomerSalesResponseDto,
+    isArray: true,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Cliente não autenticado',
+  })
+  async getCustomerSales(@Req() req: any) {
+    // Extract customer ID from the custom header or token
+    const customerId = req.headers['x-customer-id'] || req.user?.id;
+
+    if (!customerId) {
+      throw new NotFoundException('Cliente não autenticado');
+    }
+
+    return this.publicService.getCustomerSales(customerId);
   }
 }

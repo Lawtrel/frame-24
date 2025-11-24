@@ -1507,6 +1507,11 @@ model session_seat_status {
   @@index([status])
   @@index([sale_id])
   @@index([expiration_date])
+  @@index([showtime_id, sale_id, reservation_uuid, expiration_date], name: "idx_seat_availability")
+  @@index([reservation_uuid, expiration_date, sale_id], name: "idx_active_reservations")
+  @@index([expiration_date, reservation_uuid], name: "idx_expiration_cleanup")
+  @@index([reservation_uuid, showtime_id], name: "idx_reservation_lookup")
+  @@index([showtime_id, status, sale_id, reservation_uuid], name: "idx_showtime_status")
   @@schema("operations")
 }
 

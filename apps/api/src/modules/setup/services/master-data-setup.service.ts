@@ -183,6 +183,7 @@ export class MasterDataSetupService {
           name: status.name,
           description: status.description,
           allows_modification: status.allows_modification,
+          is_default: status.is_default,
         },
       });
     }

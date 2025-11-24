@@ -20,6 +20,8 @@ interface SeatReservation {
   expires_at: Date;
   socket_id: string;
   reservation_uuid: string;
+  user_id?: string;
+  company_id: string;
 }
 
 @WebSocketGateway({
@@ -70,6 +72,13 @@ export class SeatsReservationGateway
             expiration_date: { gt: now },
             sale_id: null,
           },
+          include: {
+            showtime_schedule: {
+              include: {
+                cinema_complexes: true,
+              },
+            },
+          },
         },
       );
 
@@ -84,6 +93,9 @@ export class SeatsReservationGateway
               expires_at: curr.expiration_date!,
               reservation_uuid: curr.reservation_uuid,
               socket_id: '', // Não temos o socket ID após restart, mas a reserva persiste
+              // user_id: undefined // Não temos user_id no banco ainda
+              company_id:
+                curr.showtime_schedule?.cinema_complexes?.company_id || '',
             };
           }
           acc[curr.reservation_uuid].seat_ids.push(curr.seat_id);
@@ -128,15 +140,50 @@ export class SeatsReservationGateway
   @SubscribeMessage('join-showtime')
   handleJoinShowtime(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { showtime_id: string },
+    @MessageBody() payload: { showtime_id: string; user_id?: string },
   ) {
-    const { showtime_id } = payload;
+    const { showtime_id, user_id } = payload;
     client.join(`showtime:${showtime_id}`);
     this.logger.debug(
-      `Client ${client.id} joined showtime ${showtime_id}`,
+      `Client ${client.id} joined showtime ${showtime_id} (User: ${user_id || 'Guest'})`,
       'SeatsReservationGateway',
     );
     client.emit('joined-showtime', { showtime_id });
+
+    // Tentar restaurar reserva se tiver user_id
+    if (user_id) {
+      this.restoreUserReservation(client, user_id, showtime_id);
+    }
+  }
+
+  private restoreUserReservation(
+    client: Socket,
+    userId: string,
+    showtimeId: string,
+  ) {
+    // Procurar reserva ativa para este usuário nesta sessão
+    for (const reservation of this.reservations.values()) {
+      if (
+        reservation.user_id === userId &&
+        reservation.showtime_id === showtimeId
+      ) {
+        // Atualizar socket_id
+        reservation.socket_id = client.id;
+
+        this.logger.log(
+          `Restoring reservation ${reservation.reservation_uuid} for user ${userId}`,
+          'SeatsReservationGateway',
+        );
+
+        // Enviar dados da reserva para o cliente
+        client.emit('reservation-restored', {
+          reservation_uuid: reservation.reservation_uuid,
+          expires_at: reservation.expires_at.toISOString(),
+          seat_ids: reservation.seat_ids,
+        });
+        return; // Assumindo apenas uma reserva ativa por vez por usuário/sessão
+      }
+    }
   }
 
   @SubscribeMessage('reserve-seats')
@@ -147,9 +194,10 @@ export class SeatsReservationGateway
       showtime_id: string;
       seat_ids: string[];
       company_id: string;
+      user_id?: string;
     },
   ) {
-    const { showtime_id, seat_ids, company_id } = payload;
+    const { showtime_id, seat_ids, company_id, user_id } = payload;
 
     try {
       // Buscar status "Reservado"
@@ -211,8 +259,12 @@ export class SeatsReservationGateway
           where: {
             showtime_id,
             seat_id: { in: seat_ids },
-            OR: [{ reservation_uuid: null }, { expiration_date: { lte: now } }],
             sale_id: null,
+            OR: [
+              { reservation_uuid: null },
+              { expiration_date: null },
+              { expiration_date: { lte: now } },
+            ],
           },
           data: {
             status: reservedStatus.id,
@@ -238,6 +290,8 @@ export class SeatsReservationGateway
         expires_at: expiresAt,
         socket_id: client.id,
         reservation_uuid: reservationUuid,
+        user_id,
+        company_id,
       });
 
       // Notificar outros clientes na mesma sessão
@@ -338,29 +392,113 @@ export class SeatsReservationGateway
     }
   }
 
-  private async expireReservation(reservationUuid: string, company_id: string) {
+  private async expireReservation(
+    reservationUuid: string,
+    company_id?: string,
+  ) {
     const reservation = this.reservations.get(reservationUuid);
 
-    // Mesmo se não estiver em memória (restart), tentamos limpar do banco pelo UUID
+    // Se company_id não foi passado, tentar pegar da reserva em memória
+    let targetCompanyId = company_id;
+    if (!targetCompanyId && reservation) {
+      targetCompanyId = reservation.company_id;
+    }
 
+    // Mesmo se não estiver em memória (restart), tentamos limpar do banco pelo UUID
     try {
+      // Se ainda não temos company_id, precisamos descobrir
+      if (!targetCompanyId) {
+        const seatsToFree = await this.prisma.session_seat_status.findMany({
+          where: { reservation_uuid: reservationUuid },
+          select: {
+            showtime_schedule: {
+              select: {
+                cinema_complexes: {
+                  select: { company_id: true },
+                },
+              },
+            },
+          },
+          take: 1,
+        });
+
+        if (
+          seatsToFree.length > 0 &&
+          seatsToFree[0].showtime_schedule?.cinema_complexes?.company_id
+        ) {
+          targetCompanyId =
+            seatsToFree[0].showtime_schedule.cinema_complexes.company_id;
+        }
+      }
+
+      // Se ainda não temos company_id, não podemos continuar
+      if (!targetCompanyId) {
+        this.logger.warn(
+          `Could not determine company_id for reservation ${reservationUuid}, skipping expiration.`,
+          'SeatsReservationGateway',
+        );
+        return;
+      }
+
       // Buscar status "Disponível"
       const availableStatus =
         await this.seatStatusRepository.findByNameAndCompany(
           'Disponível',
-          company_id,
+          targetCompanyId,
         );
 
-      if (availableStatus) {
-        // Liberar assentos no banco
-        // Se tivermos a reserva em memória, usamos os IDs, senão usamos o UUID
+      if (!availableStatus) {
+        this.logger.warn(
+          `Available status not found for company ${targetCompanyId}`,
+          'SeatsReservationGateway',
+        );
+        return;
+      }
 
-        if (reservation) {
+      // Liberar assentos no banco
+      // Se tivermos a reserva em memória, usamos os IDs, senão usamos o UUID
+      // IMPORTANTE: Só liberar se NÃO foi vendido (sale_id null)
+
+      if (reservation) {
+        await this.prisma.session_seat_status.updateMany({
+          where: {
+            showtime_id: reservation.showtime_id,
+            seat_id: { in: reservation.seat_ids },
+            reservation_uuid: reservationUuid,
+            sale_id: null, // IMPORTANTE: Só liberar se não foi vendido
+          },
+          data: {
+            status: availableStatus.id,
+            reservation_uuid: null,
+            reservation_date: null,
+            expiration_date: null,
+          },
+        });
+
+        // Notificar outros clientes
+        this.server
+          .to(`showtime:${reservation.showtime_id}`)
+          .emit('seats-released', {
+            seat_ids: reservation.seat_ids,
+            reservation_uuid: reservationUuid,
+          });
+
+        this.reservations.delete(reservationUuid);
+      } else {
+        // Fallback: limpar pelo UUID diretamente (pode ser necessário buscar showtime_id antes para notificar)
+        const seatsToFree = await this.prisma.session_seat_status.findMany({
+          where: { reservation_uuid: reservationUuid },
+          select: { showtime_id: true, seat_id: true },
+        });
+
+        if (seatsToFree.length > 0) {
+          const showtimeId = seatsToFree[0].showtime_id;
+          const seatIds = seatsToFree.map((s) => s.seat_id);
+
           await this.prisma.session_seat_status.updateMany({
             where: {
-              showtime_id: reservation.showtime_id,
-              seat_id: { in: reservation.seat_ids },
               reservation_uuid: reservationUuid,
+              sale_id: null, // IMPORTANTE: Só liberar se não foi vendido
             },
             data: {
               status: availableStatus.id,
@@ -370,41 +508,10 @@ export class SeatsReservationGateway
             },
           });
 
-          // Notificar outros clientes
-          this.server
-            .to(`showtime:${reservation.showtime_id}`)
-            .emit('seats-released', {
-              seat_ids: reservation.seat_ids,
-              reservation_uuid: reservationUuid,
-            });
-
-          this.reservations.delete(reservationUuid);
-        } else {
-          // Fallback: limpar pelo UUID diretamente (pode ser necessário buscar showtime_id antes para notificar)
-          const seatsToFree = await this.prisma.session_seat_status.findMany({
-            where: { reservation_uuid: reservationUuid },
-            select: { showtime_id: true, seat_id: true },
+          this.server.to(`showtime:${showtimeId}`).emit('seats-released', {
+            seat_ids: seatIds,
+            reservation_uuid: reservationUuid,
           });
-
-          if (seatsToFree.length > 0) {
-            const showtimeId = seatsToFree[0].showtime_id;
-            const seatIds = seatsToFree.map((s) => s.seat_id);
-
-            await this.prisma.session_seat_status.updateMany({
-              where: { reservation_uuid: reservationUuid },
-              data: {
-                status: availableStatus.id,
-                reservation_uuid: null,
-                reservation_date: null,
-                expiration_date: null,
-              },
-            });
-
-            this.server.to(`showtime:${showtimeId}`).emit('seats-released', {
-              seat_ids: seatIds,
-              reservation_uuid: reservationUuid,
-            });
-          }
         }
       }
 

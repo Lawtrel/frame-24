@@ -19,6 +19,12 @@ class SeatLayoutRowDto {
 }
 
 export class CreateRoomDto extends createZodDto(CreateRoomSchema) {
+  @ApiProperty({
+    description: 'ID do complexo de cinema',
+    example: '251127589321654335',
+  })
+  complex_id!: string;
+
   @ApiProperty({ description: 'Número/identificador da sala', example: '1' })
   room_number!: string;
 
@@ -44,8 +50,18 @@ export class CreateRoomDto extends createZodDto(CreateRoomSchema) {
   active?: boolean;
 
   @ApiProperty({
-    description: 'Array com as fileiras e assentos da sala',
+    description:
+      'Array com as fileiras e assentos da sala. Em multipart/form-data, envie como JSON string.',
     type: [SeatLayoutRowDto],
+    example: [
+      {
+        row_code: 'A',
+        seats: [
+          { column_number: 1, accessible: false },
+          { column_number: 2, accessible: false },
+        ],
+      },
+    ],
   })
   seat_layout!: SeatLayoutRowDto[];
 

@@ -22,10 +22,10 @@
 export interface SeatLayoutItemDto {
     /**
      * 
-     * @type {object}
+     * @type {string}
      * @memberof SeatLayoutItemDto
      */
-    'seat_type_id'?: object;
+    'seat_type_id'?: string | null;
     /**
      * 
      * @type {number}

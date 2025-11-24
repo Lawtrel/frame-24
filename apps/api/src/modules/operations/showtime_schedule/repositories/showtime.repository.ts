@@ -99,6 +99,10 @@ export class ShowtimesRepository {
       room_id,
       start_time: { lt: end_time },
       end_time: { gt: start_time },
+      // Ignorar sessões canceladas
+      session_status: {
+        name: { not: 'Cancelada' },
+      },
     };
 
     if (showtimeToExcludeId) {

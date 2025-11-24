@@ -4,7 +4,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class FederalTaxRatesRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async findActiveByCompany(
     companyId: string,
@@ -17,9 +17,29 @@ export class FederalTaxRatesRepository {
       active: true,
       validity_start: { lte: date },
       OR: [{ validity_end: { gte: date } }, { validity_end: null }],
-      ...(revenue_type && { revenue_type }),
-      ...(pis_cofins_regime && { pis_cofins_regime }),
     };
+
+    // Build AND conditions array
+    const andConditions: Prisma.federal_tax_ratesWhereInput[] = [];
+
+    // Handle revenue_type: match exact value OR null
+    if (revenue_type) {
+      andConditions.push({
+        OR: [{ revenue_type }, { revenue_type: null }],
+      });
+    }
+
+    // Handle pis_cofins_regime: match exact value OR null
+    if (pis_cofins_regime) {
+      andConditions.push({
+        OR: [{ pis_cofins_regime }, { pis_cofins_regime: null }],
+      });
+    }
+
+    // Add AND conditions if any exist
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
+    }
 
     return this.prisma.federal_tax_rates.findFirst({
       where,

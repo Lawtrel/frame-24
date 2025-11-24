@@ -4,7 +4,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export const RegisterCustomerSchema = z.object({
   company_id: z.string().min(1, 'ID da empresa é obrigatório'),
-  cpf: z.string().regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, 'CPF inválido'),
+  cpf: z.string().regex(/^\d{11}$/, 'CPF deve conter 11 dígitos numéricos'),
   full_name: z
     .string()
     .min(3, 'Nome deve ter no mínimo 3 caracteres')

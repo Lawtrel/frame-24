@@ -20,6 +20,8 @@ import {
   ApiNotFoundResponse,
   ApiBearerAuth,
   ApiConflictResponse,
+  ApiConsumes,
+  ApiBody,
 } from '@nestjs/swagger';
 
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
@@ -44,6 +46,11 @@ export class RoomsController {
   @RequirePermission('rooms', 'create')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Criar uma nova sala em um complexo' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Dados da sala e layout de assentos',
+    type: CreateRoomDto,
+  })
   @ApiResponse({
     status: 201,
     description: 'Sala e assentos criados com sucesso.',
@@ -87,6 +94,11 @@ export class RoomsController {
   @FileUpload('layout_image', false)
   @RequirePermission('rooms', 'update')
   @ApiOperation({ summary: 'Atualizar uma sala' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Dados para atualização da sala',
+    type: UpdateRoomDto,
+  })
   @ApiResponse({ status: 200, description: 'Sala atualizada com sucesso.' })
   @ApiNotFoundResponse({ description: 'Sala não encontrada.' })
   async update(

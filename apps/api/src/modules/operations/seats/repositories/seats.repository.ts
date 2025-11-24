@@ -23,6 +23,9 @@ export class SeatsRepository {
   async findByRoomId(room_id: string) {
     return this.prisma.seats.findMany({
       where: { room_id },
+      include: {
+        seat_types: true,
+      },
       orderBy: [{ row_code: 'asc' }, { column_number: 'asc' }],
     });
   }

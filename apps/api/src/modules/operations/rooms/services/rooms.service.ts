@@ -67,9 +67,12 @@ export class RoomsService {
       }
     }
 
-    if (dto.capacity !== calculatedCapacity) {
+    // Garantir que capacity é número (caso venha como string do multipart)
+    const capacity = Number(dto.capacity);
+
+    if (capacity !== calculatedCapacity) {
       throw new BadRequestException(
-        `A capacidade informada (${dto.capacity}) não corresponde ao número de assentos no layout (${calculatedCapacity}).`,
+        `A capacidade informada (${capacity}) não corresponde ao número de assentos no layout (${calculatedCapacity}).`,
       );
     }
 
