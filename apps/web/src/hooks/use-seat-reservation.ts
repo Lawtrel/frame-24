@@ -150,7 +150,7 @@ export const useSeatReservation = ({
                     if (socket && reservation.reservationUuid) {
                         socket.emit('release-seats', {
                             reservation_uuid: reservation.reservationUuid,
-                            company_id: (company as any)?.id, // Precisamos do company_id
+                            company_id: companyId,
                         });
                     }
 
