@@ -25,12 +25,12 @@ import {
   UpdateChartAccountDto,
 } from '../dto/create-chart-account.dto';
 
-@ApiTags('Finance')
+@ApiTags('Plano de Contas')
 @ApiBearerAuth()
 @Controller({ path: 'finance/chart-of-accounts', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class ChartOfAccountsController {
-  constructor(private readonly chartService: ChartOfAccountsService) {}
+  constructor(private readonly chartService: ChartOfAccountsService) { }
 
   @Post()
   @RequirePermission('finance_accounts', 'create')

@@ -16,12 +16,12 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 
-@ApiTags('Transactions')
+@ApiTags('Transações')
 @ApiBearerAuth()
 @Controller('finance/transactions')
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class TransactionsController {
-  constructor(private readonly service: TransactionsService) {}
+  constructor(private readonly service: TransactionsService) { }
 
   @Post('receivables/settle')
   @RequirePermission('finance_receivables', 'update')
