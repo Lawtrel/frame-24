@@ -21,7 +21,7 @@ export class RolesService {
     private readonly roleRepo: CustomRoleRepository,
     private readonly logger: LoggerService,
     private readonly snowflake: SnowflakeService,
-  ) {}
+  ) { }
 
   @Transactional()
   async create(
@@ -49,7 +49,7 @@ export class RolesService {
 
     await this.prisma.role_permissions.createMany({
       data: permissionIds.map((permId) => ({
-        id: this.snowflake.generate().toString(),
+        id: this.snowflake.generate(),
         role_id: role.id,
         permission_id: permId,
         granted_at: new Date(),
@@ -134,7 +134,7 @@ export class RolesService {
       // ✅ Usar Snowflake aqui também
       await this.prisma.role_permissions.createMany({
         data: permissionIds.map((permId) => ({
-          id: this.snowflake.generate().toString(),
+          id: this.snowflake.generate(),
           role_id: id,
           permission_id: permId,
           granted_at: new Date(),

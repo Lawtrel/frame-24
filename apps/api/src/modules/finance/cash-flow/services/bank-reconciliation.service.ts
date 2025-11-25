@@ -17,7 +17,7 @@ export class BankReconciliationService {
     private readonly repository: BankReconciliationRepository,
     private readonly bankAccountsRepository: BankAccountsRepository,
     private readonly snowflake: SnowflakeService,
-  ) {}
+  ) { }
 
   async create(
     companyId: string,
@@ -71,7 +71,7 @@ export class BankReconciliationService {
 
     const difference = dto.bank_statement_balance - reconciledBalance;
 
-    const id = this.snowflake.generate().toString();
+    const id = this.snowflake.generate();
 
     return this.repository.create({
       id,

@@ -1,43 +1,29 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Snowflake } from '@sapphire/snowflake';
 import { SNOWFLAKE_CONFIG } from '../config/snowflake.config';
-import { LoggerService } from './logger.service';
 
+/**
+ * Serviço para geração de IDs únicos usando Snowflake
+ * 
+ * Baseado em @sapphire/snowflake, retorna strings para compatibilidade
+ * com Prisma (String IDs) e APIs REST (JSON não suporta bigint nativamente).
+ */
 @Injectable()
-export class SnowflakeService implements OnModuleInit {
+export class SnowflakeService {
   private readonly snowflake: Snowflake;
 
-  constructor(private readonly logger: LoggerService) {
+  constructor() {
     this.snowflake = new Snowflake(SNOWFLAKE_CONFIG.epoch);
-  }
-
-  onModuleInit(): void {
-    this.logger.log(
-      'Snowflake ID Generator inicializado',
-      SnowflakeService.name,
-      {
-        workerId: SNOWFLAKE_CONFIG.workerId.toString(),
-        epoch: new Date(SNOWFLAKE_CONFIG.epoch).toISOString(),
-      },
-    );
+    // Configura o workerId da instância
+    this.snowflake.workerId = SNOWFLAKE_CONFIG.workerId;
   }
 
   /**
-   * Gera um Snowflake ID único
+   * Gera um Snowflake ID único como string
    * @returns String ID (ex: "7234567890123456789")
    */
   generate(): string {
-    try {
-      const id = this.snowflake.generate();
-      return id.toString();
-    } catch (error) {
-      this.logger.error(
-        'Erro ao gerar Snowflake ID',
-        error instanceof Error ? error.stack : String(error),
-        SnowflakeService.name,
-      );
-      throw new Error('Falha ao gerar ID único');
-    }
+    return this.snowflake.generate().toString();
   }
 
   /**
@@ -50,65 +36,22 @@ export class SnowflakeService implements OnModuleInit {
   }
 
   /**
-   * Extrai o timestamp de um Snowflake ‘ID’
-   * @param id Snowflake ‘ID’
-   * @returns Data de criação do ‘ID’
+   * Deconstruct de um Snowflake ID
+   * @param id Snowflake ID (string ou bigint)
+   * @returns Objeto desestruturado
    */
-  getTimestamp(id: string | bigint): Date | null {
-    try {
-      const bigIntId = typeof id === 'string' ? BigInt(id) : id;
-      const deconstructed = this.snowflake.deconstruct(bigIntId);
-      return new Date(Number(deconstructed.timestamp));
-    } catch (error) {
-      this.logger.error(
-        'Erro ao extrair timestamp do Snowflake ID',
-        error instanceof Error ? error.stack : String(error),
-        SnowflakeService.name,
-      );
-      return null;
-    }
+  deconstruct(id: string | bigint) {
+    const bigIntId = typeof id === 'string' ? BigInt(id) : id;
+    return this.snowflake.deconstruct(bigIntId);
   }
 
   /**
-   * Valida se um ‘ID’ é um Snowflake válido
-   * @param id ID para validar
-   * @returns Boolean
+   * Extrai apenas o timestamp de um Snowflake ID
+   * @param id Snowflake ID (string ou bigint)
+   * @returns Timestamp em milissegundos
    */
-  isValid(id: string | bigint): boolean {
-    try {
-      if (!id) return false;
-      const bigIntId = typeof id === 'string' ? BigInt(id) : id;
-      return bigIntId > 0n;
-    } catch {
-      return false;
-    }
-  }
-
-  /**
-   * Deconstruct completo do Snowflake ID
-   * @param id Snowflake ID
-   * @returns Objeto com timestamp, workerId, increment
-   */
-  deconstruct(id: string | bigint): {
-    timestamp: Date;
-    workerId: bigint;
-    increment: bigint;
-  } | null {
-    try {
-      const bigIntId = typeof id === 'string' ? BigInt(id) : id;
-      const deconstructed = this.snowflake.deconstruct(bigIntId);
-      return {
-        timestamp: new Date(Number(deconstructed.timestamp)),
-        workerId: deconstructed.workerId,
-        increment: deconstructed.increment,
-      };
-    } catch (error) {
-      this.logger.error(
-        'Erro ao desconstruir Snowflake ID',
-        error instanceof Error ? error.stack : String(error),
-        SnowflakeService.name,
-      );
-      return null;
-    }
+  timestampFrom(id: string | bigint): number {
+    const bigIntId = typeof id === 'string' ? BigInt(id) : id;
+    return this.snowflake.timestampFrom(bigIntId);
   }
 }
