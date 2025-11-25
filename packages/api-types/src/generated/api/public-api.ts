@@ -128,7 +128,7 @@ export const PublicApiAxiosParamCreator = function (configuration?: Configuratio
             };
         },
         /**
-         * Retorna todas as vendas do cliente logado, incluindo ingressos e produtos
+         * Retorna todas as vendas do cliente logado, incluindo ingressos e produtos. Requer autenticação de cliente.
          * @summary Obter histórico de compras do cliente autenticado
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -498,7 +498,7 @@ export const PublicApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Retorna todas as vendas do cliente logado, incluindo ingressos e produtos
+         * Retorna todas as vendas do cliente logado, incluindo ingressos e produtos. Requer autenticação de cliente.
          * @summary Obter histórico de compras do cliente autenticado
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -657,7 +657,7 @@ export const PublicApiFactory = function (configuration?: Configuration, basePat
             return localVarFp.publicControllerGetComplexesV1(requestParameters.tenantSlug, options).then((request) => request(axios, basePath));
         },
         /**
-         * Retorna todas as vendas do cliente logado, incluindo ingressos e produtos
+         * Retorna todas as vendas do cliente logado, incluindo ingressos e produtos. Requer autenticação de cliente.
          * @summary Obter histórico de compras do cliente autenticado
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -784,7 +784,7 @@ export interface PublicApiInterface {
     publicControllerGetComplexesV1(requestParameters: PublicApiPublicControllerGetComplexesV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
 
     /**
-     * Retorna todas as vendas do cliente logado, incluindo ingressos e produtos
+     * Retorna todas as vendas do cliente logado, incluindo ingressos e produtos. Requer autenticação de cliente.
      * @summary Obter histórico de compras do cliente autenticado
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1085,7 +1085,7 @@ export class PublicApi extends BaseAPI implements PublicApiInterface {
     }
 
     /**
-     * Retorna todas as vendas do cliente logado, incluindo ingressos e produtos
+     * Retorna todas as vendas do cliente logado, incluindo ingressos e produtos. Requer autenticação de cliente.
      * @summary Obter histórico de compras do cliente autenticado
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}

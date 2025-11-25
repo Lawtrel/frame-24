@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
+import { AuthApi } from '@repo/api-types';
 
 interface User {
     id: string;
@@ -38,7 +39,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const router = useRouter();
 
     useEffect(() => {
-        // Restaurar sessão ao carregar
         const storedToken = localStorage.getItem('auth_token');
         const storedUser = localStorage.getItem('auth_user');
 
@@ -61,12 +61,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('auth_user', JSON.stringify(newUser));
     };
 
-    const logout = () => {
-        setToken(null);
-        setUser(null);
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('auth_user');
-        router.push('/'); // Redirecionar para home ou login
+    const logout = async () => {
+        try {
+            if (token) {
+                const authApi = new AuthApi(undefined, undefined, api);
+                await authApi.authControllerLogoutV1();
+            }
+        } catch (error) {
+            console.error('Erro ao fazer logout no servidor:', error);
+        } finally {
+            setToken(null);
+            setUser(null);
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('auth_user');
+            router.push('/');
+        }
     };
 
     return (
