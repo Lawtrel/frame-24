@@ -28,7 +28,7 @@ import { RoleResponseDto } from '../dto/role-response.dto';
 @Controller({ path: 'roles', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class RolesController {
-  constructor(private readonly rolesService: RolesService) {}
+  constructor(private readonly rolesService: RolesService) { }
 
   @Post()
   @RequirePermission('roles', 'create')
@@ -46,6 +46,7 @@ export class RolesController {
       dto,
       user.company_id,
       user.identity_id,
+      user.role_hierarchy,
     );
   }
 
@@ -93,6 +94,7 @@ export class RolesController {
       dto,
       user.company_id,
       user.identity_id,
+      user.role_hierarchy,
     );
   }
 

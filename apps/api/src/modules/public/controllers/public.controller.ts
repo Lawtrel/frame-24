@@ -5,18 +5,27 @@ import {
   Query,
   HttpCode,
   HttpStatus,
-  Req,
-  NotFoundException,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiQuery,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
 import { Public } from 'src/common/decorators/public.decorator';
+import { CustomerGuard } from 'src/common/guards/customer.guard';
+import { CurrentCustomer } from 'src/common/decorators/current-customer.decorator';
+import type { CustomerUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import { PublicService } from '../services/public.service';
 import { CustomerSalesResponseDto } from '../dto/customer-sales-response.dto';
 
 @ApiTags('Public')
 @Controller({ path: 'public', version: '1' })
 export class PublicController {
-  constructor(private readonly publicService: PublicService) {}
+  constructor(private readonly publicService: PublicService) { }
 
   @Get('companies')
   @Public()
@@ -240,12 +249,13 @@ export class PublicController {
   }
 
   @Get('customers/me/sales')
-  @Public()
+  @UseGuards(AuthGuard('jwt'), CustomerGuard)
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Obter histórico de compras do cliente autenticado',
     description:
-      'Retorna todas as vendas do cliente logado, incluindo ingressos e produtos',
+      'Retorna todas as vendas do cliente logado, incluindo ingressos e produtos. Requer autenticação de cliente.',
   })
   @ApiResponse({
     status: 200,
@@ -257,14 +267,11 @@ export class PublicController {
     status: 401,
     description: 'Cliente não autenticado',
   })
-  async getCustomerSales(@Req() req: any) {
-    // Extract customer ID from the custom header or token
-    const customerId = req.headers['x-customer-id'] || req.user?.id;
-
-    if (!customerId) {
-      throw new NotFoundException('Cliente não autenticado');
-    }
-
-    return this.publicService.getCustomerSales(customerId);
+  @ApiResponse({
+    status: 403,
+    description: 'Acesso permitido apenas para clientes',
+  })
+  async getCustomerSales(@CurrentCustomer() customer: CustomerUser) {
+    return this.publicService.getCustomerSales(customer.customer_id);
   }
 }

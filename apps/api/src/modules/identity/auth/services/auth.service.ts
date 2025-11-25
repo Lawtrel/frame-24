@@ -57,7 +57,7 @@ export class AuthService {
     private readonly masterDataSetup: MasterDataSetupService,
     private readonly taxSetup: TaxSetupService,
     private readonly logger: LoggerService,
-  ) {}
+  ) { }
 
   async login(email: string, password: string): Promise<LoginResponseDto> {
     this.logger.log(`Login: ${email}`, AuthService.name);
@@ -87,7 +87,7 @@ export class AuthService {
           this.loginTracker.track(identity.id, companyUser.id),
         ]);
 
-        const token = this.tokenGenerator.generate(identity, companyUser);
+        const token = await this.tokenGenerator.generate(identity, companyUser);
 
         this.logger.log(`Login bem-sucedido: ${email}`, AuthService.name);
 
@@ -157,7 +157,7 @@ export class AuthService {
 
     this.logger.log(`Empresa selecionada: ${companyId}`, AuthService.name);
 
-    return this.tokenGenerator.generate(identity, companyUser);
+    return await this.tokenGenerator.generate(identity, companyUser);
   }
 
   @Transactional()
@@ -332,8 +332,37 @@ export class AuthService {
     token: string,
     newPassword: string,
   ): Promise<{ message: string }> {
-    await this.passwordReset.resetPassword(token, newPassword);
+    const identity = await this.passwordReset.resetPassword(token, newPassword);
+
+    await this.revokeAllUserSessions(identity.id);
+
     return { message: 'Sua senha foi redefinida com sucesso!' };
+  }
+
+
+  @Transactional()
+  async logout(identityId: string, companyId?: string): Promise<void> {
+    await this.identityRepository.revokeUserSessions(identityId, companyId);
+    this.logger.log(`Logout: ${identityId}`, AuthService.name);
+  }
+
+  @Transactional()
+  async revokeAllUserSessions(identityId: string): Promise<void> {
+    await this.identityRepository.revokeUserSessions(identityId);
+    this.logger.warn(
+      `SECURITY: All sessions revoked for user ${identityId}`,
+      AuthService.name,
+    );
+  }
+
+
+  @Transactional()
+  async revokeSession(sessionId: string): Promise<void> {
+    await this.identityRepository.revokeSessionById(sessionId);
+    this.logger.warn(
+      `SECURITY: Session ${sessionId} revoked by admin`,
+      AuthService.name,
+    );
   }
 
   private async getCompanyList(

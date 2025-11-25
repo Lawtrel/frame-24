@@ -6,14 +6,17 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { LoggerService } from '../services/logger.service';
-import { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
+import {
+  RequestUser,
+  CustomerUser,
+} from 'src/modules/identity/auth/strategies/jwt.strategy';
 
 @Injectable()
 export class AuthorizationGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
     private logger: LoggerService,
-  ) {}
+  ) { }
 
   canActivate(context: ExecutionContext): boolean {
     const requiredPermission = this.reflector.get<string>(
@@ -25,26 +28,41 @@ export class AuthorizationGuard implements CanActivate {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest<{ user: RequestUser }>();
+    const request = context
+      .switchToHttp()
+      .getRequest<{ user: RequestUser | CustomerUser }>();
     const user = request.user;
 
     if (!user) {
       throw new ForbiddenException('Usuário não autenticado');
     }
 
-    if (this.isAdmin(user)) {
+    // Session context validation: only EMPLOYEE can access permission-protected endpoints
+    if (user.session_context !== 'EMPLOYEE') {
+      this.logger.warn(
+        `Acesso negado: ${user.email} (context: ${user.session_context}) tentou acessar endpoint restrito a funcionários`,
+        AuthorizationGuard.name,
+      );
+      throw new ForbiddenException(
+        'Acesso permitido apenas para funcionários',
+      );
+    }
+
+    const employeeUser = user as RequestUser;
+
+    if (this.isAdmin(employeeUser)) {
       this.logger.debug(
-        `Admin bypass: ${user.email} | ${requiredPermission}`,
+        `Admin bypass: ${employeeUser.email} (hierarchy: ${employeeUser.role_hierarchy}) | ${requiredPermission}`,
         AuthorizationGuard.name,
       );
       return true;
     }
 
-    const hasPermission = user.permissions.includes(requiredPermission);
+    const hasPermission = employeeUser.permissions.includes(requiredPermission);
 
     if (!hasPermission) {
       this.logger.warn(
-        `Acesso negado: ${user.email} tentou ${requiredPermission}`,
+        `Acesso negado: ${employeeUser.email} (role: ${employeeUser.role}, hierarchy: ${employeeUser.role_hierarchy}) tentou ${requiredPermission}`,
         AuthorizationGuard.name,
       );
       throw new ForbiddenException(`Sem permissão: ${requiredPermission}`);
@@ -54,7 +72,17 @@ export class AuthorizationGuard implements CanActivate {
   }
 
   private isAdmin(user: RequestUser): boolean {
-    const adminRoles = ['Super Admin', 'Admin'];
-    return adminRoles.includes(user.role);
+    if (
+      user.role_hierarchy === null ||
+      user.role_hierarchy === undefined ||
+      typeof user.role_hierarchy !== 'number'
+    ) {
+      this.logger.error(
+        `SECURITY ALERT: User ${user.email} tem hierarchy inválido: ${user.role_hierarchy}`,
+        AuthorizationGuard.name,
+      );
+      return false;
+    }
+    return user.role_hierarchy <= 1;
   }
 }

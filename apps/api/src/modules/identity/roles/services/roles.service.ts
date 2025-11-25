@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { Transactional } from '@nestjs-cls/transactional';
 import { Prisma, custom_roles } from '@repo/db';
@@ -28,10 +29,31 @@ export class RolesService {
     dto: CreateRoleDto,
     company_id: string,
     granted_by?: string,
+    currentUserHierarchy?: number,
   ): Promise<RoleResponseDto> {
     const existing = await this.roleRepo.findByName(company_id, dto.name);
     if (existing) {
       throw new ConflictException('Role with this name already exists');
+    }
+
+    const hierarchyLevel = dto.hierarchy_level ?? 50;
+
+    if (hierarchyLevel < 0 || hierarchyLevel > 99) {
+      throw new BadRequestException(
+        'Hierarchy level deve estar entre 0 e 99',
+      );
+    }
+
+    if (hierarchyLevel <= 1) {
+      if (!currentUserHierarchy || currentUserHierarchy > 0) {
+        this.logger.warn(
+          `SECURITY ALERT: User (hierarchy: ${currentUserHierarchy}) tentou criar role administrativo: ${dto.name} (hierarchy: ${hierarchyLevel})`,
+          RolesService.name,
+        );
+        throw new ForbiddenException(
+          'Apenas Super Admins podem criar roles administrativos (hierarchy <= 1)',
+        );
+      }
     }
 
     const permissionIds = await this.getPermissionIds(
@@ -44,7 +66,7 @@ export class RolesService {
       name: dto.name,
       description: dto.description,
       is_system_role: false,
-      hierarchy_level: dto.hierarchy_level || 50,
+      hierarchy_level: hierarchyLevel,
     } as Prisma.custom_rolesCreateInput);
 
     await this.prisma.role_permissions.createMany({
@@ -58,7 +80,7 @@ export class RolesService {
     });
 
     this.logger.log(
-      `Role created: ${role.name} with ${permissionIds.length} permissions`,
+      `Role created: ${role.name} (hierarchy: ${hierarchyLevel}) with ${permissionIds.length} permissions by user (hierarchy: ${currentUserHierarchy})`,
       RolesService.name,
     );
 
@@ -95,6 +117,7 @@ export class RolesService {
     dto: UpdateRoleDto,
     company_id: string,
     granted_by?: string,
+    currentUserHierarchy?: number,
   ): Promise<RoleResponseDto> {
     const role = await this.roleRepo.findByIdAndCompany(id, company_id);
 
@@ -110,6 +133,40 @@ export class RolesService {
       const existing = await this.roleRepo.findByName(company_id, dto.name);
       if (existing) {
         throw new ConflictException('Role with this name already exists');
+      }
+    }
+
+    // Security: Validate hierarchy changes
+    if (dto.hierarchy_level !== undefined) {
+      const newHierarchy = dto.hierarchy_level;
+      const oldHierarchy = role.hierarchy_level ?? 50;
+
+      // Validate range
+      if (newHierarchy < 0 || newHierarchy > 99) {
+        throw new BadRequestException(
+          'Hierarchy level deve estar entre 0 e 99',
+        );
+      }
+
+      // Security: Only Super Admins can set hierarchy <= 1
+      if (newHierarchy <= 1) {
+        if (!currentUserHierarchy || currentUserHierarchy > 0) {
+          this.logger.warn(
+            `SECURITY ALERT: User (hierarchy: ${currentUserHierarchy}) tentou alterar role ${role.name} para hierarchy ${newHierarchy}`,
+            RolesService.name,
+          );
+          throw new ForbiddenException(
+            'Apenas Super Admins podem definir hierarchy <= 1',
+          );
+        }
+      }
+
+      // Audit log for hierarchy changes
+      if (newHierarchy !== oldHierarchy) {
+        this.logger.warn(
+          `AUDIT: Role ${role.name} hierarchy alterado de ${oldHierarchy} para ${newHierarchy} por user (hierarchy: ${currentUserHierarchy})`,
+          RolesService.name,
+        );
       }
     }
 
