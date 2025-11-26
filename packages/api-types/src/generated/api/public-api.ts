@@ -21,8 +21,6 @@ import globalAxios from 'axios';
 import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from '../common';
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
-// @ts-ignore
-import type { CustomerSalesResponseDto } from '../models';
 /**
  * PublicApi - axios parameter creator
  * @export
@@ -105,36 +103,6 @@ export const PublicApiAxiosParamCreator = function (configuration?: Configuratio
             assertParamExists('publicControllerGetComplexesV1', 'tenantSlug', tenantSlug)
             const localVarPath = `/v1/public/companies/{tenant_slug}/complexes`
                 .replace(`{${"tenant_slug"}}`, encodeURIComponent(String(tenantSlug)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Retorna todas as vendas do cliente logado, incluindo ingressos e produtos. Requer autenticação de cliente.
-         * @summary Obter histórico de compras do cliente autenticado
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        publicControllerGetCustomerSalesV1: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/v1/public/customers/me/sales`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -465,7 +433,7 @@ export const PublicApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async publicControllerGetCompaniesV1(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CustomerSalesResponseDto>>> {
+        async publicControllerGetCompaniesV1(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.publicControllerGetCompaniesV1(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['PublicApi.publicControllerGetCompaniesV1']?.[localVarOperationServerIndex]?.url;
@@ -495,18 +463,6 @@ export const PublicApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.publicControllerGetComplexesV1(tenantSlug, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['PublicApi.publicControllerGetComplexesV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Retorna todas as vendas do cliente logado, incluindo ingressos e produtos. Requer autenticação de cliente.
-         * @summary Obter histórico de compras do cliente autenticado
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async publicControllerGetCustomerSalesV1(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<CustomerSalesResponseDto>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.publicControllerGetCustomerSalesV1(options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['PublicApi.publicControllerGetCustomerSalesV1']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -633,7 +589,7 @@ export const PublicApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        publicControllerGetCompaniesV1(options?: RawAxiosRequestConfig): AxiosPromise<Array<CustomerSalesResponseDto>> {
+        publicControllerGetCompaniesV1(options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.publicControllerGetCompaniesV1(options).then((request) => request(axios, basePath));
         },
         /**
@@ -655,15 +611,6 @@ export const PublicApiFactory = function (configuration?: Configuration, basePat
          */
         publicControllerGetComplexesV1(requestParameters: PublicApiPublicControllerGetComplexesV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.publicControllerGetComplexesV1(requestParameters.tenantSlug, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Retorna todas as vendas do cliente logado, incluindo ingressos e produtos. Requer autenticação de cliente.
-         * @summary Obter histórico de compras do cliente autenticado
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        publicControllerGetCustomerSalesV1(options?: RawAxiosRequestConfig): AxiosPromise<Array<CustomerSalesResponseDto>> {
-            return localVarFp.publicControllerGetCustomerSalesV1(options).then((request) => request(axios, basePath));
         },
         /**
          * Retorna os detalhes completos de um filme
@@ -761,7 +708,7 @@ export interface PublicApiInterface {
      * @throws {RequiredError}
      * @memberof PublicApiInterface
      */
-    publicControllerGetCompaniesV1(options?: RawAxiosRequestConfig): AxiosPromise<Array<CustomerSalesResponseDto>>;
+    publicControllerGetCompaniesV1(options?: RawAxiosRequestConfig): AxiosPromise<void>;
 
     /**
      * Retorna informações públicas de uma empresa específica
@@ -782,15 +729,6 @@ export interface PublicApiInterface {
      * @memberof PublicApiInterface
      */
     publicControllerGetComplexesV1(requestParameters: PublicApiPublicControllerGetComplexesV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
-
-    /**
-     * Retorna todas as vendas do cliente logado, incluindo ingressos e produtos. Requer autenticação de cliente.
-     * @summary Obter histórico de compras do cliente autenticado
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PublicApiInterface
-     */
-    publicControllerGetCustomerSalesV1(options?: RawAxiosRequestConfig): AxiosPromise<Array<CustomerSalesResponseDto>>;
 
     /**
      * Retorna os detalhes completos de um filme
@@ -1082,17 +1020,6 @@ export class PublicApi extends BaseAPI implements PublicApiInterface {
      */
     public publicControllerGetComplexesV1(requestParameters: PublicApiPublicControllerGetComplexesV1Request, options?: RawAxiosRequestConfig) {
         return PublicApiFp(this.configuration).publicControllerGetComplexesV1(requestParameters.tenantSlug, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Retorna todas as vendas do cliente logado, incluindo ingressos e produtos. Requer autenticação de cliente.
-     * @summary Obter histórico de compras do cliente autenticado
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PublicApi
-     */
-    public publicControllerGetCustomerSalesV1(options?: RawAxiosRequestConfig) {
-        return PublicApiFp(this.configuration).publicControllerGetCustomerSalesV1(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

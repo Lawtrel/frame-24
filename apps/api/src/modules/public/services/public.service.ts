@@ -17,7 +17,7 @@ export class PublicService {
     private readonly productsRepository: ProductRepository,
     private readonly seatsRepository: SeatsRepository,
     private readonly sessionSeatStatusRepository: SessionSeatStatusRepository,
-  ) {}
+  ) { }
 
   async getCompanies() {
     return this.prisma.companies.findMany({
@@ -111,139 +111,7 @@ export class PublicService {
     return this.moviesRepository.findByIds(movieIds);
   }
 
-  async getCustomerSales(customerId: string) {
-    const sales = await this.prisma.sales.findMany({
-      where: {
-        customer_id: customerId,
-      },
-      include: {
-        tickets: {
-          include: {
-            ticket_types: true,
-          },
-        },
-        concession_sales: {
-          include: {
-            concession_sale_items: true,
-          },
-        },
-      },
-      orderBy: {
-        sale_date: 'desc',
-      },
-    });
 
-    // Collect all unique IDs for batch fetching
-    const showtimeIds = [
-      ...new Set(
-        sales.flatMap((sale) =>
-          sale.tickets.map((ticket: any) => ticket.showtime_id),
-        ),
-      ),
-    ];
-    const seatIds = [
-      ...new Set(
-        sales.flatMap((sale) =>
-          sale.tickets.map((ticket: any) => ticket.seat_id).filter(Boolean),
-        ),
-      ),
-    ];
-    const productIds = [
-      ...new Set(
-        sales.flatMap((sale) =>
-          sale.concession_sales.flatMap((concession: any) =>
-            concession.concession_sale_items
-              .filter((item: any) => item.item_type === 'product')
-              .map((item: any) => item.item_id),
-          ),
-        ),
-      ),
-    ];
-
-    // Batch fetch all related data
-    const [showtimes, seats, products] = await Promise.all([
-      this.prisma.showtime_schedule.findMany({
-        where: { id: { in: showtimeIds as string[] } },
-        include: {
-          cinema_complexes: true,
-          rooms: true,
-          projection_types: true,
-          audio_types: true,
-          session_languages: true,
-        },
-      }),
-      this.prisma.seats.findMany({
-        where: { id: { in: seatIds as string[] } },
-      }),
-      this.prisma.products.findMany({
-        where: { id: { in: productIds as string[] } },
-      }),
-    ]);
-
-    // Create lookup maps
-    const showtimeMap = new Map(showtimes.map((s) => [s.id, s]));
-    const seatMap = new Map(seats.map((s) => [s.id, s]));
-    const productMap = new Map(products.map((p) => [p.id, p]));
-
-    // Get unique movie IDs from showtimes
-    const movieIds = [
-      ...new Set(showtimes.map((s: any) => s.movie_id).filter(Boolean)),
-    ];
-    const movies = await this.moviesRepository.findByIds(movieIds as string[]);
-    const movieMap = new Map(
-      movies.map((m: any) => [
-        m.id,
-        {
-          id: m.id,
-          title: m.brazil_title || m.original_title,
-          poster_url: m.movie_media?.[0]?.media_url || null,
-          duration_minutes: m.duration_minutes,
-          age_rating: m.age_rating?.code || null,
-        },
-      ]),
-    );
-
-    // Enrich sales with fetched data
-    return sales.map((sale: any) => {
-      const firstTicket = sale.tickets[0];
-      const showtimeDetails = firstTicket
-        ? showtimeMap.get(firstTicket.showtime_id)
-        : null;
-      const movieDetails = showtimeDetails
-        ? movieMap.get((showtimeDetails as any).movie_id)
-        : null;
-
-      const ticketsWithSeats = sale.tickets.map((ticket: any) => ({
-        ...ticket,
-        seats: ticket.seat_id ? seatMap.get(ticket.seat_id) : null,
-      }));
-
-      const concessionsWithProducts = sale.concession_sales.map(
-        (concession: any) => ({
-          ...concession,
-          concession_sale_items: concession.concession_sale_items.map(
-            (item: any) => ({
-              ...item,
-              products:
-                item.item_type === 'product'
-                  ? productMap.get(item.item_id)
-                  : null,
-              quantity: item.quantity,
-              price: item.unit_price,
-            }),
-          ),
-        }),
-      );
-
-      return {
-        ...sale,
-        tickets: ticketsWithSeats,
-        concession_sales: concessionsWithProducts,
-        showtime_schedule: showtimeDetails,
-        movie: movieDetails,
-      };
-    });
-  }
 
   async getShowtimesByCompany(
     company_id: string,
@@ -378,12 +246,12 @@ export class PublicService {
         ...showtime,
         movie: movie
           ? {
-              id: movie.id,
-              title: movie.brazil_title || movie.original_title,
-              poster_url: movie.movie_media[0]?.media_url || null,
-              duration_minutes: movie.duration_minutes,
-              age_rating: movie.age_rating?.code || null,
-            }
+            id: movie.id,
+            title: movie.brazil_title || movie.original_title,
+            poster_url: movie.movie_media[0]?.media_url || null,
+            duration_minutes: movie.duration_minutes,
+            age_rating: movie.age_rating?.code || null,
+          }
           : null,
       };
     });
@@ -463,20 +331,20 @@ export class PublicService {
       seats: seatsMap,
       movie: movieDetails
         ? {
-            title: movieDetails.brazil_title || movieDetails.original_title,
-            poster_url: movieDetails.movie_media[0]?.media_url,
-          }
+          title: movieDetails.brazil_title || movieDetails.original_title,
+          poster_url: movieDetails.movie_media[0]?.media_url,
+        }
         : null,
       cinema: showtimeDetails?.cinema_complexes
         ? {
-            id: showtimeDetails.cinema_complexes.id,
-            name: showtimeDetails.cinema_complexes.name,
-          }
+          id: showtimeDetails.cinema_complexes.id,
+          name: showtimeDetails.cinema_complexes.name,
+        }
         : null,
       room: showtimeDetails?.rooms
         ? {
-            name: showtimeDetails.rooms.name,
-          }
+          name: showtimeDetails.rooms.name,
+        }
         : null,
       start_time: showtimeDetails?.start_time,
     };

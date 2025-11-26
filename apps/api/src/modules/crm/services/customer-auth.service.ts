@@ -27,7 +27,7 @@ export class CustomerAuthService {
     private readonly prisma: PrismaService,
     private readonly snowflake: SnowflakeService,
     private readonly logger: LoggerService,
-  ) {}
+  ) { }
 
   @Transactional()
   async register(dto: RegisterCustomerDto): Promise<CustomerAuthResponseDto> {
@@ -108,6 +108,22 @@ export class CustomerAuthService {
     };
 
     const access_token = this.jwtService.sign(payload);
+
+    // Criar sessão do usuário
+    const sessionId = this.snowflake.generate();
+    await this.prisma.user_sessions.create({
+      data: {
+        id: this.snowflake.generate(),
+        identity_id: identity.id,
+        company_id: dto.company_id,
+        session_context: 'CUSTOMER',
+        session_id: sessionId,
+        access_token_hash: access_token.substring(0, 50), // Hash simplificado para demo
+        active: true,
+        revoked: false,
+        expires_at: new Date(Date.now() + 8 * 60 * 60 * 1000), // 8 horas
+      },
+    });
 
     this.logger.log(
       `Customer registered: ${dto.email} for company ${dto.company_id}`,
@@ -193,6 +209,22 @@ export class CustomerAuthService {
     };
 
     const access_token = this.jwtService.sign(payload);
+
+    // Criar sessão do usuário
+    const sessionId = this.snowflake.generate();
+    await this.prisma.user_sessions.create({
+      data: {
+        id: this.snowflake.generate(),
+        identity_id: identity.id,
+        company_id: dto.company_id,
+        session_context: 'CUSTOMER',
+        session_id: sessionId,
+        access_token_hash: access_token.substring(0, 50), // Hash simplificado para demo
+        active: true,
+        revoked: false,
+        expires_at: new Date(Date.now() + 8 * 60 * 60 * 1000), // 8 horas
+      },
+    });
 
     this.logger.log(
       `Customer logged in: ${dto.email} for company ${dto.company_id}`,

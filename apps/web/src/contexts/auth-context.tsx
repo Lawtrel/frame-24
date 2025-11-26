@@ -8,8 +8,7 @@ import {
     ReactNode,
 } from 'react';
 import { useRouter } from 'next/navigation';
-import { api } from '@/lib/api';
-import { AuthApi } from '@repo/api-types';
+import { authApi } from '@/lib/api-client';
 
 interface User {
     id: string;
@@ -64,7 +63,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const logout = async () => {
         try {
             if (token) {
-                const authApi = new AuthApi(undefined, undefined, api);
                 await authApi.authControllerLogoutV1();
             }
         } catch (error) {

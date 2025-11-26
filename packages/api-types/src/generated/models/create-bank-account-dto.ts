@@ -21,55 +21,55 @@
  */
 export interface CreateBankAccountDto {
     /**
-     * 
+     * Nome do banco
      * @type {string}
      * @memberof CreateBankAccountDto
      */
     'bank_name': string;
     /**
-     * 
+     * Código do banco
      * @type {string}
      * @memberof CreateBankAccountDto
      */
     'bank_code'?: string;
     /**
-     * 
+     * Número da agência
      * @type {string}
      * @memberof CreateBankAccountDto
      */
     'agency': string;
     /**
-     * 
+     * Dígito da agência
      * @type {string}
      * @memberof CreateBankAccountDto
      */
     'agency_digit'?: string;
     /**
-     * 
+     * Número da conta
      * @type {string}
      * @memberof CreateBankAccountDto
      */
     'account_number': string;
     /**
-     * 
+     * Dígito da conta
      * @type {string}
      * @memberof CreateBankAccountDto
      */
     'account_digit'?: string;
     /**
-     * 
+     * Tipo de conta
      * @type {string}
      * @memberof CreateBankAccountDto
      */
     'account_type': CreateBankAccountDtoAccountTypeEnum;
     /**
-     * 
+     * Saldo inicial
      * @type {number}
      * @memberof CreateBankAccountDto
      */
     'initial_balance'?: number;
     /**
-     * 
+     * Descrição da conta
      * @type {string}
      * @memberof CreateBankAccountDto
      */

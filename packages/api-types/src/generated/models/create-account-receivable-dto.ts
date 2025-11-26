@@ -21,73 +21,73 @@
  */
 export interface CreateAccountReceivableDto {
     /**
-     * 
+     * ID do complexo de cinema
      * @type {string}
      * @memberof CreateAccountReceivableDto
      */
     'cinema_complex_id'?: string;
     /**
-     * 
+     * ID do cliente
      * @type {string}
      * @memberof CreateAccountReceivableDto
      */
     'customer_id'?: string;
     /**
-     * 
+     * ID de referência da venda
      * @type {string}
      * @memberof CreateAccountReceivableDto
      */
     'sale_id'?: string;
     /**
-     * 
+     * Número do documento (nota fiscal, recibo, etc)
      * @type {string}
      * @memberof CreateAccountReceivableDto
      */
     'document_number': string;
     /**
-     * 
+     * Descrição da conta a receber
      * @type {string}
      * @memberof CreateAccountReceivableDto
      */
     'description': string;
     /**
-     * 
+     * Data de emissão
      * @type {string}
      * @memberof CreateAccountReceivableDto
      */
     'issue_date': string;
     /**
-     * 
+     * Data de vencimento
      * @type {string}
      * @memberof CreateAccountReceivableDto
      */
     'due_date': string;
     /**
-     * 
+     * Data de competência (período contábil)
      * @type {string}
      * @memberof CreateAccountReceivableDto
      */
     'competence_date': string;
     /**
-     * 
+     * Valor original
      * @type {number}
      * @memberof CreateAccountReceivableDto
      */
     'original_amount': number;
     /**
-     * 
+     * Valor de juros
      * @type {number}
      * @memberof CreateAccountReceivableDto
      */
     'interest_amount'?: number;
     /**
-     * 
+     * Valor de multa
      * @type {number}
      * @memberof CreateAccountReceivableDto
      */
     'penalty_amount'?: number;
     /**
-     * 
+     * Valor de desconto
      * @type {number}
      * @memberof CreateAccountReceivableDto
      */

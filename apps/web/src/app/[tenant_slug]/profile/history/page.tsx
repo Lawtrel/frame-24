@@ -3,8 +3,8 @@
 import { use, useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'next/navigation';
-import { publicApi } from '@/lib/api-client';
-import { CustomerSalesResponseDto } from '@repo/api-types';
+import { customerApi } from '@/lib/api-client';
+import { SaleResponseDto } from '@repo/api-types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ArrowLeft, Calendar, MapPin, Clock, Film, ShoppingBag } from 'lucide-react';
@@ -17,7 +17,7 @@ export default function PurchaseHistoryPage({
     const { tenant_slug } = use(params);
     const { user, isAuthenticated, token, isLoading: authLoading } = useAuth();
     const router = useRouter();
-    const [sales, setSales] = useState<CustomerSalesResponseDto[]>([]);
+    const [sales, setSales] = useState<SaleResponseDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -31,15 +31,11 @@ export default function PurchaseHistoryPage({
 
         const fetchSales = async () => {
             try {
-                const response = await publicApi.publicControllerGetCustomerSalesV1({
-                    headers: {
-                        'x-customer-id': user.id,
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
+                const response = await customerApi.customerPurchasesControllerFindAllV1();
                 setSales(response.data);
                 setError(null);
             } catch (error: any) {
+                console.error('Erro ao carregar histórico:', error);
                 setError('Erro ao carregar histórico de compras. Tente novamente.');
             } finally {
                 setLoading(false);
@@ -132,22 +128,22 @@ export default function PurchaseHistoryPage({
                                             <h2 className="text-2xl font-bold mb-2">
                                                 {sale.movie?.title || 'Filme'}
                                             </h2>
-                                            {sale.showtime_schedule && (
+                                            {sale.showtime && (
                                                 <div className="flex flex-wrap gap-4 text-sm text-zinc-400">
-                                                    {sale.showtime_schedule.start_time && (
+                                                    {sale.showtime.start_time && (
                                                         <span className="flex items-center gap-2">
                                                             <Calendar className="w-4 h-4" />
-                                                            {format(new Date(sale.showtime_schedule.start_time), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+                                                            {format(new Date(sale.showtime.start_time), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
                                                         </span>
                                                     )}
-                                                    {sale.showtime_schedule.cinema_complexes?.name && (
+                                                    {sale.showtime.cinema && (
                                                         <span className="flex items-center gap-2">
                                                             <MapPin className="w-4 h-4" />
-                                                            {sale.showtime_schedule.cinema_complexes.name}
+                                                            {sale.showtime.cinema}
                                                         </span>
                                                     )}
-                                                    {sale.showtime_schedule.rooms?.name && (
-                                                        <span>Sala {sale.showtime_schedule.rooms.name}</span>
+                                                    {sale.showtime.room && (
+                                                        <span>Sala {sale.showtime.room}</span>
                                                     )}
                                                 </div>
                                             )}
@@ -160,58 +156,41 @@ export default function PurchaseHistoryPage({
                                                     Ingressos ({sale.tickets.length})
                                                 </h3>
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                                    {sale.tickets.map((ticket: any) => (
-                                                        <div
-                                                            key={ticket.id}
-                                                            className="bg-zinc-950 rounded-lg p-4 border border-zinc-800 flex items-center gap-4"
-                                                        >
-                                                            <img
-                                                                src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${ticket.ticket_number}`}
-                                                                alt="QR Code"
-                                                                className="w-16 h-16 bg-white p-1 rounded"
-                                                            />
-                                                            <div>
-                                                                <div className="text-sm font-bold">
-                                                                    Assento {ticket.seats?.row || ''}{ticket.seats?.column || ticket.seat || 'N/A'}
-                                                                </div>
-                                                                <div className="text-xs text-zinc-500">
-                                                                    {ticket.ticket_types?.name || 'Ingresso'}
-                                                                </div>
-                                                                <div className="text-xs text-zinc-600 font-mono">
-                                                                    {ticket.ticket_number}
+                                                    {sale.tickets.map((ticket: any) => {
+                                                        // Determinar o código do assento
+                                                        let seatCode = 'N/A';
+                                                        if (ticket.seat) {
+                                                            if (typeof ticket.seat === 'object') {
+                                                                seatCode = ticket.seat.seat_code || `${ticket.seat.row_code}${ticket.seat.column_number}` || 'N/A';
+                                                            } else {
+                                                                seatCode = ticket.seat;
+                                                            }
+                                                        }
+
+                                                        return (
+                                                            <div
+                                                                key={ticket.id}
+                                                                className="bg-zinc-950 rounded-lg p-4 border border-zinc-800 flex items-center gap-4"
+                                                            >
+                                                                <img
+                                                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${ticket.ticket_number}`}
+                                                                    alt="QR Code"
+                                                                    className="w-16 h-16 bg-white p-1 rounded"
+                                                                />
+                                                                <div>
+                                                                    <div className="text-sm font-bold">
+                                                                        Assento {seatCode}
+                                                                    </div>
+                                                                    <div className="text-xs text-zinc-500">
+                                                                        {ticket.ticket_type || 'Ingresso'}
+                                                                    </div>
+                                                                    <div className="text-xs text-zinc-600 font-mono">
+                                                                        {ticket.ticket_number}
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Products */}
-                                        {sale.concession_sales && sale.concession_sales.length > 0 && (
-                                            <div className="mb-4">
-                                                <h3 className="font-semibold mb-3 text-sm text-zinc-400 uppercase tracking-wider flex items-center gap-2">
-                                                    <ShoppingBag className="w-4 h-4" />
-                                                    Produtos
-                                                </h3>
-                                                <div className="space-y-2">
-                                                    {sale.concession_sales.map((concession: any) =>
-                                                        concession.concession_sale_items?.map((item: any) => (
-                                                            item.products && (
-                                                                <div
-                                                                    key={item.id}
-                                                                    className="flex justify-between items-center text-sm bg-zinc-950 rounded p-2"
-                                                                >
-                                                                    <span>
-                                                                        {item.quantity}x {item.products.name}
-                                                                    </span>
-                                                                    <span className="text-zinc-400">
-                                                                        R$ {(Number(item.price) * item.quantity).toFixed(2)}
-                                                                    </span>
-                                                                </div>
-                                                            )
-                                                        ))
-                                                    )}
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
                                         )}

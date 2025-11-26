@@ -5,22 +5,15 @@ import {
   Query,
   HttpCode,
   HttpStatus,
-  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiQuery,
-  ApiBearerAuth,
 } from '@nestjs/swagger';
-import { AuthGuard } from '@nestjs/passport';
 import { Public } from 'src/common/decorators/public.decorator';
-import { CustomerGuard } from 'src/common/guards/customer.guard';
-import { CurrentCustomer } from 'src/common/decorators/current-customer.decorator';
-import type { CustomerUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import { PublicService } from '../services/public.service';
-import { CustomerSalesResponseDto } from '../dto/customer-sales-response.dto';
 
 @ApiTags('Public')
 @Controller({ path: 'public', version: '1' })
@@ -38,8 +31,6 @@ export class PublicController {
   @ApiResponse({
     status: 200,
     description: 'Histórico de compras retornado com sucesso',
-    type: CustomerSalesResponseDto,
-    isArray: true,
   })
   async getCompanies() {
     return this.publicService.getCompanies();
@@ -248,30 +239,5 @@ export class PublicController {
     return this.publicService.getMovie(id);
   }
 
-  @Get('customers/me/sales')
-  @UseGuards(AuthGuard('jwt'), CustomerGuard)
-  @ApiBearerAuth()
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Obter histórico de compras do cliente autenticado',
-    description:
-      'Retorna todas as vendas do cliente logado, incluindo ingressos e produtos. Requer autenticação de cliente.',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Histórico de compras retornado com sucesso',
-    type: CustomerSalesResponseDto,
-    isArray: true,
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'Cliente não autenticado',
-  })
-  @ApiResponse({
-    status: 403,
-    description: 'Acesso permitido apenas para clientes',
-  })
-  async getCustomerSales(@CurrentCustomer() customer: CustomerUser) {
-    return this.publicService.getCustomerSales(customer.customer_id);
-  }
+
 }
