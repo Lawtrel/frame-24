@@ -4,6 +4,7 @@ import { use, useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'next/navigation';
 import { customerApi } from '@/lib/api-client';
+import { extractErrorMessage } from '@/lib/error-utils';
 import { SaleResponseDto } from '@repo/api-types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -36,7 +37,8 @@ export default function PurchaseHistoryPage({
                 setError(null);
             } catch (error: any) {
                 console.error('Erro ao carregar histórico:', error);
-                setError('Erro ao carregar histórico de compras. Tente novamente.');
+                const errorMessage = extractErrorMessage(error, 'Erro ao carregar histórico de compras. Tente novamente.');
+                setError(errorMessage);
             } finally {
                 setLoading(false);
             }

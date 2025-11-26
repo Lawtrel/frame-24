@@ -9,6 +9,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useCompany } from '@/hooks/use-company';
 import { api } from '@/lib/api';
+import { extractErrorMessage } from '@/lib/error-utils';
 
 interface TicketType {
     id: string;
@@ -184,9 +185,10 @@ export default function CheckoutPage({
             } else {
                 alert(`Erro na compra: Tente novamente`);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Erro no checkout:', error);
-            alert('Erro ao processar compra. Verifique sua conexão.');
+            const errorMessage = extractErrorMessage(error, 'Erro ao processar compra. Verifique sua conexão.');
+            alert(errorMessage);
         } finally {
             setProcessing(false);
         }

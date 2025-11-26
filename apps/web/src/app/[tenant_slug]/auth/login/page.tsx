@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
 import { customerAuthApi } from '@/lib/api-client';
 import { useCompany } from '@/hooks/use-company';
+import { extractErrorMessage } from '@/lib/error-utils';
 
 export default function LoginPage({
     params,
@@ -64,9 +65,8 @@ export default function LoginPage({
             login(access_token, customer);
             router.push(returnUrl);
         } catch (err: any) {
-            setError(
-                err.response?.data?.message || 'Erro ao realizar login. Verifique suas credenciais.'
-            );
+            const errorMessage = extractErrorMessage(err, 'Erro ao realizar login. Verifique suas credenciais.');
+            setError(errorMessage);
         } finally {
             setIsLoading(false);
         }

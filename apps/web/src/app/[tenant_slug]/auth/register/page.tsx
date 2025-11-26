@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
 import { customerAuthApi } from '@/lib/api-client';
 import { useCompany } from '@/hooks/use-company';
+import { extractErrorMessage } from '@/lib/error-utils';
 
 export default function RegisterPage({
     params,
@@ -84,23 +85,7 @@ export default function RegisterPage({
             login(access_token, customer);
             router.push(`/${tenant_slug}`);
         } catch (err: any) {
-            let errorMessage = 'Erro ao realizar cadastro. Tente novamente.';
-
-            if (err.response?.data) {
-                const { message, errors } = err.response.data;
-
-                if (typeof message === 'string') {
-                    errorMessage = message;
-                } else if (Array.isArray(message)) {
-                    errorMessage = message.join(', ');
-                }
-
-                // Se for erro de validação do Zod
-                if (errors && Array.isArray(errors)) {
-                    errorMessage = errors.map((e: any) => e.message).join(', ');
-                }
-            }
-
+            const errorMessage = extractErrorMessage(err, 'Erro ao realizar cadastro. Tente novamente.');
             setError(errorMessage);
         } finally {
             setIsLoading(false);
