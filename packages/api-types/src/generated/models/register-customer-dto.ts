@@ -57,7 +57,7 @@ export interface RegisterCustomerDto {
      */
     'birth_date'?: string;
     /**
-     * Senha
+     * Senha (mín. 8 caracteres, maiúscula, minúscula e número)
      * @type {string}
      * @memberof RegisterCustomerDto
      */

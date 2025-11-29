@@ -16,7 +16,7 @@ export class CashFlowEntriesService {
     private readonly repository: CashFlowEntriesRepository,
     private readonly bankAccountsRepository: BankAccountsRepository,
     private readonly snowflake: SnowflakeService,
-  ) {}
+  ) { }
 
   @Transactional()
   async create(
@@ -38,7 +38,7 @@ export class CashFlowEntriesService {
       throw new BadRequestException('Bank account is inactive');
     }
 
-    const id = this.snowflake.generate().toString();
+    const id = this.snowflake.generate();
 
     const entry = await this.repository.create({
       id,

@@ -12,7 +12,7 @@ export class IdentityRepository {
   constructor(
     private readonly prisma: PrismaService,
     private readonly snowflake: SnowflakeService,
-  ) {}
+  ) { }
 
   async findByEmail(email: string): Promise<Identity | null> {
     const raw = await this.prisma.identities.findFirst({ where: { email } });
@@ -216,5 +216,34 @@ export class IdentityRepository {
 
   async delete(id: string): Promise<void> {
     await this.prisma.identities.delete({ where: { id } });
+  }
+
+  async revokeUserSessions(
+    identityId: string,
+    companyId?: string,
+  ): Promise<void> {
+    await this.prisma.user_sessions.updateMany({
+      where: {
+        identity_id: identityId,
+        ...(companyId && { company_id: companyId }),
+        active: true,
+      },
+      data: {
+        revoked: true,
+        revoked_at: new Date(),
+        active: false,
+      },
+    });
+  }
+
+  async revokeSessionById(sessionId: string): Promise<void> {
+    await this.prisma.user_sessions.update({
+      where: { id: sessionId },
+      data: {
+        revoked: true,
+        revoked_at: new Date(),
+        active: false,
+      },
+    });
   }
 }

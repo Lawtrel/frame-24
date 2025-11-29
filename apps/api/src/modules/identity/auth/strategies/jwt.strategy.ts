@@ -62,15 +62,38 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       JwtStrategy.name,
     );
 
+    const session = await this.prisma.user_sessions.findFirst({
+      where: {
+        identity_id: payload.identity_id,
+        company_id: payload.company_id || undefined,
+        session_context: payload.session_context || 'EMPLOYEE',
+        active: true,
+        revoked: false,
+        expires_at: {
+          gt: new Date(),
+        },
+      },
+    });
+
+    if (!session) {
+      this.logger.warn(
+        `SECURITY: Token revogado ou expirado para ${payload.identity_id}`,
+        JwtStrategy.name,
+      );
+      throw new UnauthorizedException(
+        'Sessão inválida, revogada ou expirada. Faça login novamente.',
+      );
+    }
+
     const identity = await this.prisma.identities.findUnique({
       where: { id: payload.identity_id },
       include: {
         company_users: {
           where: payload.company_id
             ? {
-                company_id: payload.company_id,
-                active: true,
-              }
+              company_id: payload.company_id,
+              active: true,
+            }
             : { active: true },
           include: {
             companies: true,

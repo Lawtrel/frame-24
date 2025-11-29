@@ -33,6 +33,7 @@ async function bootstrap() {
     // Desenvolvimento
     'http://localhost:3000',
     'http://localhost:3002',
+    'http://localhost:3004',
     'http://localhost:4000',
     ...frontendUrls,
   ].filter(Boolean) as string[];
@@ -54,7 +55,12 @@ async function bootstrap() {
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: [
+      'Content-Type',
+      'User-Agent',
+      'Authorization',
+      'x-customer-id',
+    ],
   });
 
   app.use('/favicon.ico', (req: Request, res: Response) =>

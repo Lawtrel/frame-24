@@ -10,6 +10,7 @@ onlyBuiltDependencies:
   - '@prisma/engines'
   - '@scarf/scarf'
   - bcrypt
+  - core-js
   - prisma
   - sharp
   - unrs-resolver

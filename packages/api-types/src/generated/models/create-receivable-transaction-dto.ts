@@ -21,55 +21,55 @@
  */
 export interface CreateReceivableTransactionDto {
     /**
-     * 
+     * ID da conta a receber para liquidar
      * @type {string}
      * @memberof CreateReceivableTransactionDto
      */
     'account_receivable_id': string;
     /**
-     * 
+     * Valor do recebimento
      * @type {number}
      * @memberof CreateReceivableTransactionDto
      */
     'amount': number;
     /**
-     * 
+     * Data da transação
      * @type {string}
      * @memberof CreateReceivableTransactionDto
      */
     'transaction_date': string;
     /**
-     * 
+     * ID da conta bancária para a transação
      * @type {string}
      * @memberof CreateReceivableTransactionDto
      */
     'bank_account_id': string;
     /**
-     * 
+     * Método de pagamento utilizado
      * @type {string}
      * @memberof CreateReceivableTransactionDto
      */
     'payment_method'?: string;
     /**
-     * 
+     * Observações adicionais
      * @type {string}
      * @memberof CreateReceivableTransactionDto
      */
     'notes'?: string;
     /**
-     * 
+     * Valor de juros aplicado na liquidação
      * @type {number}
      * @memberof CreateReceivableTransactionDto
      */
     'interest_amount'?: number;
     /**
-     * 
+     * Valor de multa aplicado na liquidação
      * @type {number}
      * @memberof CreateReceivableTransactionDto
      */
     'penalty_amount'?: number;
     /**
-     * 
+     * Valor de desconto aplicado na liquidação
      * @type {number}
      * @memberof CreateReceivableTransactionDto
      */

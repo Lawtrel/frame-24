@@ -240,7 +240,7 @@ describe('AuthService', () => {
       companyUserRepository.findAllByIdentity.mockResolvedValue([
         mockCompanyUser,
       ]);
-      tokenGenerator.generate.mockReturnValue(mockToken);
+      tokenGenerator.generate.mockResolvedValue(mockToken);
     });
 
     it('deve fazer login com sucesso para usuário com uma empresa', async () => {
@@ -367,7 +367,7 @@ describe('AuthService', () => {
         mockCompanyUser,
       );
       identityRepository.findById.mockResolvedValue(mockIdentity);
-      tokenGenerator.generate.mockReturnValue(mockToken);
+      tokenGenerator.generate.mockResolvedValue(mockToken);
     });
 
     it('deve selecionar empresa com sucesso', async () => {

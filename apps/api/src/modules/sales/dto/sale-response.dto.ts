@@ -8,7 +8,7 @@ export class TicketResponseDto {
   ticket_number!: string;
 
   @ApiPropertyOptional()
-  seat?: string;
+  seat?: string | object;
 
   @ApiProperty()
   face_value!: string;
@@ -24,6 +24,9 @@ export class TicketResponseDto {
 
   @ApiPropertyOptional()
   usage_date?: string;
+
+  @ApiPropertyOptional()
+  ticket_type?: string;
 }
 
 export class SaleResponseDto {
@@ -75,4 +78,26 @@ export class SaleResponseDto {
 
   @ApiProperty()
   created_at!: string;
+
+  @ApiPropertyOptional({
+    description: 'Informações da sessão (quando disponível)',
+  })
+  showtime?: {
+    id: string;
+    start_time: string;
+    cinema: string;
+    room: string | null;
+  };
+
+  @ApiPropertyOptional({
+    description: 'Informações do filme (quando disponível)',
+  })
+  movie?: {
+    id: string;
+    title: string;
+    poster_url: string | null;
+    duration_minutes: number;
+    age_rating: string | null;
+  } | null;
 }
+

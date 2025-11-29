@@ -112,16 +112,24 @@ export class TicketsService {
       );
     }
 
-    // Atualizar status dos assentos
+    // Atualizar status dos assentos diretamente no banco
     for (const seat_id of seat_ids) {
-      await this.sessionSeatStatusRepository.updateStatus(
-        showtime_id,
-        seat_id,
-        {
-          seat_status: { connect: { id: soldStatus.id } },
-          sale_id,
+      await this.sessionSeatStatusRepository[
+        'prisma'
+      ].session_seat_status.updateMany({
+        where: {
+          showtime_id,
+          seat_id,
         },
-      );
+        data: {
+          status: soldStatus.id,
+          sale_id,
+          // IMPORTANTE: Limpar campos de reserva ao vender
+          reservation_uuid: null,
+          reservation_date: null,
+          expiration_date: null,
+        },
+      });
     }
 
     // Atualizar contadores da sessão
@@ -152,26 +160,36 @@ export class TicketsService {
       throw new NotFoundException('Sessão não encontrada');
     }
 
-    const basePrice = Number(showtime.base_ticket_price);
+    let basePrice = Number(showtime.base_ticket_price);
 
     // Adicionar valor adicional do tipo de assento (se houver)
     if (seat_id) {
-      const seat = await this.seatsRepository.findById(seat_id);
-      if (seat?.seat_type) {
-        // Buscar tipo de assento para pegar additional_value
-        // Por enquanto, vamos usar o preço base
-        // TODO: Integrar com SeatTypesRepository para pegar additional_value
+      const seat = await this.seatsRepository['prisma'].seats.findUnique({
+        where: { id: seat_id },
+        include: { seat_types: true },
+      });
+
+      if (seat?.seat_types?.additional_value) {
+        const additionalValue = Number(seat.seat_types.additional_value);
+        basePrice += additionalValue;
       }
     }
 
     // Aplicar desconto do tipo de ingresso (se houver)
-    const discount = 0;
+    let multiplier = 1;
     if (ticket_type_id) {
-      // TODO: Buscar ticket_type e aplicar discount_percentage
-      // Por enquanto, vamos usar o preço base
+      const ticketType = await this.ticketsRepository[
+        'prisma'
+      ].ticket_types.findUnique({
+        where: { id: ticket_type_id },
+      });
+
+      if (ticketType?.discount_percentage) {
+        multiplier = 1 - Number(ticketType.discount_percentage) / 100;
+      }
     }
 
-    const face_value = basePrice - discount;
+    const face_value = basePrice * multiplier;
     const service_fee = 0; // TODO: Calcular taxa de serviço se houver
     const total_amount = face_value + service_fee;
 

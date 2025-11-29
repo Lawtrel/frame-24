@@ -116,6 +116,36 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
+         * Revoga a sessão atual do usuário, invalidando o token JWT.
+         * @summary Logout
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authControllerLogoutV1: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/v1/auth/logout`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Adiciona um novo usuário a uma empresa já cadastrada. Use para funcionários convidados.
          * @summary Registro de usuário em empresa existente
          * @param {RegisterDto} registerDto 
@@ -296,6 +326,18 @@ export const AuthApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Revoga a sessão atual do usuário, invalidando o token JWT.
+         * @summary Logout
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async authControllerLogoutV1(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.authControllerLogoutV1(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.authControllerLogoutV1']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Adiciona um novo usuário a uma empresa já cadastrada. Use para funcionários convidados.
          * @summary Registro de usuário em empresa existente
          * @param {RegisterDto} registerDto 
@@ -378,6 +420,15 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.authControllerLoginV1(requestParameters.loginDto, options).then((request) => request(axios, basePath));
         },
         /**
+         * Revoga a sessão atual do usuário, invalidando o token JWT.
+         * @summary Logout
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authControllerLogoutV1(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.authControllerLogoutV1(options).then((request) => request(axios, basePath));
+        },
+        /**
          * Adiciona um novo usuário a uma empresa já cadastrada. Use para funcionários convidados.
          * @summary Registro de usuário em empresa existente
          * @param {AuthApiAuthControllerRegisterV1Request} requestParameters Request parameters.
@@ -445,6 +496,15 @@ export interface AuthApiInterface {
      * @memberof AuthApiInterface
      */
     authControllerLoginV1(requestParameters: AuthApiAuthControllerLoginV1Request, options?: RawAxiosRequestConfig): AxiosPromise<LoginResponseDto>;
+
+    /**
+     * Revoga a sessão atual do usuário, invalidando o token JWT.
+     * @summary Logout
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AuthApiInterface
+     */
+    authControllerLogoutV1(options?: RawAxiosRequestConfig): AxiosPromise<void>;
 
     /**
      * Adiciona um novo usuário a uma empresa já cadastrada. Use para funcionários convidados.
@@ -601,6 +661,17 @@ export class AuthApi extends BaseAPI implements AuthApiInterface {
      */
     public authControllerLoginV1(requestParameters: AuthApiAuthControllerLoginV1Request, options?: RawAxiosRequestConfig) {
         return AuthApiFp(this.configuration).authControllerLoginV1(requestParameters.loginDto, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Revoga a sessão atual do usuário, invalidando o token JWT.
+     * @summary Logout
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AuthApi
+     */
+    public authControllerLogoutV1(options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).authControllerLogoutV1(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

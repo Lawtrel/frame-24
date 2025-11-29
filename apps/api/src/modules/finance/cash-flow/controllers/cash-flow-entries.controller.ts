@@ -26,12 +26,12 @@ import { CashFlowEntriesService } from '../services/cash-flow-entries.service';
 import { CreateCashFlowEntryDto } from '../dto/create-cash-flow-entry.dto';
 import { CashFlowQueryDto } from '../dto/cash-flow-query.dto';
 
-@ApiTags('Cash Flow - Entries')
+@ApiTags('Fluxo de Caixa - Lançamentos')
 @ApiBearerAuth()
 @Controller({ path: 'finance/cash-flow', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class CashFlowEntriesController {
-  constructor(private readonly service: CashFlowEntriesService) {}
+  constructor(private readonly service: CashFlowEntriesService) { }
 
   @Post()
   @RequirePermission('cash_flow', 'create')

@@ -13,12 +13,12 @@ import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strat
 import { JournalEntriesService } from '../services/journal-entries.service';
 import { CreateJournalEntryDto } from '../dto/create-journal-entry.dto';
 
-@ApiTags('Finance')
+@ApiTags('Lançamentos Contábeis')
 @ApiBearerAuth()
 @Controller({ path: 'finance/journal-entries', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class JournalEntriesController {
-  constructor(private readonly journalEntries: JournalEntriesService) {}
+  constructor(private readonly journalEntries: JournalEntriesService) { }
 
   @Post()
   @RequirePermission('finance_entries', 'create')

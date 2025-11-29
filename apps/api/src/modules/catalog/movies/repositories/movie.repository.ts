@@ -27,6 +27,27 @@ export class MovieRepository {
       where: {
         id: { in: ids },
       },
+      include: {
+        age_rating: true,
+        category_links: { include: { category: true } },
+        movie_media: {
+          where: {
+            active: true,
+            media_types: {
+              name: 'Poster',
+            },
+          },
+          orderBy: { created_at: 'desc' },
+          take: 1,
+        },
+        movie_cast: {
+          include: {
+            cast_types: true,
+          },
+          orderBy: { credit_order: 'asc' },
+        },
+      },
+      orderBy: { created_at: 'desc' },
     });
   }
 
@@ -36,6 +57,16 @@ export class MovieRepository {
       include: {
         age_rating: true,
         category_links: { include: { category: true } },
+        movie_media: {
+          where: {
+            active: true,
+            media_types: {
+              name: 'Poster',
+            },
+          },
+          orderBy: { created_at: 'desc' },
+          take: 1,
+        },
       },
       orderBy: { created_at: 'desc' },
     });

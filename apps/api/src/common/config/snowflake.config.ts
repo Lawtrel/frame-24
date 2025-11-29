@@ -1,10 +1,11 @@
 /**
  * Configuração do Snowflake ID Generator
  *
- * Estrutura do Snowflake (64 bits):
+ * Estrutura do Snowflake (64 bits) conforme @sapphire/snowflake:
  * - 41 bits: timestamp (milissegundos desde epoch customizada)
- * - 10 bits: worker/machine ID (0-1023)
- * - 12 bits: sequence number (0-4095 por milissegundo)
+ * - 5 bits: worker ID (0-31)
+ * - 5 bits: process ID (0-31)
+ * - 12 bits: increment/sequence (0-4095 por milissegundo)
  */
 
 function getWorkerId(): bigint {
@@ -14,11 +15,14 @@ function getWorkerId(): bigint {
   }
 
   // Produção: pega de variável de ambiente
-  // Cada instância/pod deve ter um WORKER_ID único (0-1023)
+  // Cada instância/pod deve ter um WORKER_ID único (0-31)
   const workerId =
     process.env.WORKER_ID || process.env.HOSTNAME?.slice(-3) || '1';
 
-  return BigInt(parseInt(workerId, 10));
+  const id = BigInt(parseInt(workerId, 10));
+
+  // Garante que está no range válido (0-31)
+  return id & 0b11111n;
 }
 
 export const SNOWFLAKE_CONFIG = {
@@ -26,6 +30,6 @@ export const SNOWFLAKE_CONFIG = {
   // Isso dá ~69 anos de IDs únicos a partir dessa data
   epoch: new Date('2024-01-01T00:00:00Z').getTime(),
 
-  // Worker ID baseado no ambiente
+  // Worker ID baseado no ambiente (0-31)
   workerId: getWorkerId(),
 };

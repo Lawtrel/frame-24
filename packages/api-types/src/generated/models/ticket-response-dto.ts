@@ -34,10 +34,10 @@ export interface TicketResponseDto {
     'ticket_number': string;
     /**
      * 
-     * @type {string}
+     * @type {object}
      * @memberof TicketResponseDto
      */
-    'seat'?: string;
+    'seat'?: object;
     /**
      * 
      * @type {string}
@@ -68,5 +68,11 @@ export interface TicketResponseDto {
      * @memberof TicketResponseDto
      */
     'usage_date'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof TicketResponseDto
+     */
+    'ticket_type'?: string;
 }
 

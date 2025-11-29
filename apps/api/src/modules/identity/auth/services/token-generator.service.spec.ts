@@ -42,6 +42,20 @@ describe('TokenGeneratorService', () => {
             sign: jest.fn().mockReturnValue('mock.jwt.token'),
           },
         },
+        {
+          provide: 'PrismaService',
+          useValue: {
+            user_sessions: {
+              create: jest.fn().mockResolvedValue({}),
+            },
+          },
+        },
+        {
+          provide: 'SnowflakeService',
+          useValue: {
+            generate: jest.fn().mockReturnValue('session-123'),
+          },
+        },
       ],
     }).compile();
 
@@ -58,16 +72,16 @@ describe('TokenGeneratorService', () => {
   });
 
   describe('generate', () => {
-    it('deve gerar um token JWT com sucesso', () => {
-      const result = service.generate(mockIdentity, mockCompanyUser);
+    it('deve gerar um token JWT com sucesso', async () => {
+      const result = await service.generate(mockIdentity, mockCompanyUser);
 
       expect(result).toBeDefined();
       expect(result.access_token).toBe('mock.jwt.token');
       expect(jwtService.sign).toHaveBeenCalled();
     });
 
-    it('deve criar payload JWT com todas as informações necessárias', () => {
-      service.generate(mockIdentity, mockCompanyUser);
+    it('deve criar payload JWT com todas as informações necessárias', async () => {
+      await service.generate(mockIdentity, mockCompanyUser);
 
       expect(jwtService.sign).toHaveBeenCalledWith({
         sub: 'identity-123',
@@ -141,8 +155,8 @@ describe('TokenGeneratorService', () => {
       );
     });
 
-    it('deve retornar LoginResponseDto com estrutura correta', () => {
-      const result = service.generate(mockIdentity, mockCompanyUser);
+    it('deve retornar LoginResponseDto com estrutura correta', async () => {
+      const result = await service.generate(mockIdentity, mockCompanyUser);
 
       expect(result).toEqual({
         access_token: 'mock.jwt.token',
@@ -156,8 +170,8 @@ describe('TokenGeneratorService', () => {
       });
     });
 
-    it('deve incluir dados do usuário na resposta', () => {
-      const result = service.generate(mockIdentity, mockCompanyUser);
+    it('deve incluir dados do usuário na resposta', async () => {
+      const result = await service.generate(mockIdentity, mockCompanyUser);
 
       expect(result.user).toBeDefined();
       expect(result.user.id).toBe('identity-123');
@@ -167,14 +181,14 @@ describe('TokenGeneratorService', () => {
       expect(result.user.employee_id).toBe('EMP001');
     });
 
-    it('deve incluir employee_id na resposta', () => {
-      const result = service.generate(mockIdentity, mockCompanyUser);
+    it('deve incluir employee_id na resposta', async () => {
+      const result = await service.generate(mockIdentity, mockCompanyUser);
 
       expect(result.user.employee_id).toBe(mockCompanyUser.employeeId);
     });
 
-    it('deve retornar tipo LoginResponseDto', () => {
-      const result = service.generate(mockIdentity, mockCompanyUser);
+    it('deve retornar tipo LoginResponseDto', async () => {
+      const result = await service.generate(mockIdentity, mockCompanyUser);
 
       expect(result).toHaveProperty('access_token');
       expect(result).toHaveProperty('user');
@@ -188,7 +202,7 @@ describe('TokenGeneratorService', () => {
       expect(jwtService.sign).toHaveBeenCalledTimes(1);
     });
 
-    it('deve gerar tokens diferentes para identidades diferentes', () => {
+    it('deve gerar tokens diferentes para identidades diferentes', async () => {
       jwtService.sign
         .mockReturnValueOnce('token.user1')
         .mockReturnValueOnce('token.user2');
@@ -199,8 +213,8 @@ describe('TokenGeneratorService', () => {
         email: 'outro@example.com',
       };
 
-      const result1 = service.generate(mockIdentity, mockCompanyUser);
-      const result2 = service.generate(
+      const result1 = await service.generate(mockIdentity, mockCompanyUser);
+      const result2 = await service.generate(
         mockIdentity2 as Identity,
         mockCompanyUser,
       );

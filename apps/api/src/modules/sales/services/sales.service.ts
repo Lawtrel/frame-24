@@ -351,19 +351,20 @@ export class SalesService {
       );
     }
 
-    // 7. Impostos (Assíncrono/Paralelo)
+    // 7. Lançamentos Fiscais (Não bloquear a venda se falhar)
+    // Envolver cada cálculo em try-catch individual para não causar rollback
     const competenceDate = new Date();
     competenceDate.setHours(0, 0, 0, 0);
 
     try {
-      const taxPromises = [];
+      const taxPromises: Promise<any>[] = [];
 
       if (ticketsTotal > 0) {
         taxPromises.push(
           this.taxCalculationService
             .calculateTaxes({
               gross_amount: ticketsTotal,
-              deductions_amount: discount_amount,
+              deductions_amount: 0,
               cinema_complex_id: dto.cinema_complex_id,
               company_id,
               competence_date: competenceDate,
@@ -397,7 +398,14 @@ export class SalesService {
                 processing_user_id: user_id || null,
                 processed: false,
               }),
-            ),
+            )
+            .catch((error) => {
+              this.logger.error(
+                `Erro ao criar lançamento fiscal de bilheteria para venda ${sale.id}: ${error.message}`,
+                SalesService.name,
+              );
+              // Não propaga o erro para não causar rollback
+            }),
         );
       }
 
@@ -440,14 +448,22 @@ export class SalesService {
                 processing_user_id: user_id || null,
                 processed: false,
               }),
-            ),
+            )
+            .catch((error) => {
+              this.logger.error(
+                `Erro ao criar lançamento fiscal de concessão para venda ${sale.id}: ${error.message}`,
+                SalesService.name,
+              );
+              // Não propaga o erro para não causar rollback
+            }),
         );
       }
 
       await Promise.all(taxPromises);
     } catch (error) {
+      // Este catch não deve ser atingido pois cada Promise tem seu próprio catch
       this.logger.error(
-        `Erro ao criar lançamento fiscal para venda ${sale.id}: ${error}`,
+        `Erro inesperado no processamento fiscal da venda ${sale.id}: ${error}`,
         SalesService.name,
       );
     }

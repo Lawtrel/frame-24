@@ -17,7 +17,7 @@ export class PublicService {
     private readonly productsRepository: ProductRepository,
     private readonly seatsRepository: SeatsRepository,
     private readonly sessionSeatStatusRepository: SessionSeatStatusRepository,
-  ) {}
+  ) { }
 
   async getCompanies() {
     return this.prisma.companies.findMany({
@@ -80,9 +80,38 @@ export class PublicService {
     return complexes.filter((c) => c.active === true);
   }
 
-  async getMoviesByCompany(company_id: string) {
-    return this.moviesRepository.findByCompany(company_id);
+  async getMovie(id: string) {
+    return this.moviesRepository.findById(id);
   }
+
+  async getMoviesByCompany(company_id: string) {
+    // 1. Buscar complexos da empresa
+    const complexes =
+      await this.cinemaComplexesRepository.findAllByCompany(company_id);
+    const complexIds = complexes.map((c) => c.id);
+
+    // 2. Buscar sessões ativas (futuras, com assentos, status aberta)
+    const activeShowtimes = await this.showtimesRepository.findAll({
+      cinema_complex_id: { in: complexIds },
+      start_time: { gt: new Date() },
+      available_seats: { gt: 0 },
+      session_status: {
+        name: 'Aberta para Vendas',
+      },
+    });
+
+    // 3. Extrair IDs únicos de filmes
+    const movieIds = [...new Set(activeShowtimes.map((s) => s.movie_id))];
+
+    if (movieIds.length === 0) {
+      return [];
+    }
+
+    // 4. Buscar filmes
+    return this.moviesRepository.findByIds(movieIds);
+  }
+
+
 
   async getShowtimesByCompany(
     company_id: string,
@@ -105,6 +134,10 @@ export class PublicService {
     // Buscar sessões
     const where: any = {
       cinema_complex_id: { in: targetComplexIds },
+      // Apenas sessões abertas para vendas
+      session_status: {
+        name: 'Aberta para Vendas',
+      },
       ...(filters?.movie_id && { movie_id: filters.movie_id }),
     };
 
@@ -213,12 +246,12 @@ export class PublicService {
         ...showtime,
         movie: movie
           ? {
-              id: movie.id,
-              title: movie.brazil_title || movie.original_title,
-              poster_url: movie.movie_media[0]?.media_url || null,
-              duration_minutes: movie.duration_minutes,
-              age_rating: movie.age_rating?.code || null,
-            }
+            id: movie.id,
+            title: movie.brazil_title || movie.original_title,
+            poster_url: movie.movie_media[0]?.media_url || null,
+            duration_minutes: movie.duration_minutes,
+            age_rating: movie.age_rating?.code || null,
+          }
           : null,
       };
     });
@@ -240,8 +273,9 @@ export class PublicService {
     // Mapear status dos assentos
     const seatMap = new Map<string, any>();
     seatStatuses.forEach((ss) => {
+      const statusName = ss.seat_status?.name || 'available';
       seatMap.set(ss.seat_id, {
-        status: ss.status,
+        status: statusName,
         sale_id: ss.sale_id,
         reservation_uuid: ss.reservation_uuid,
         expiration_date: ss.expiration_date,
@@ -250,25 +284,69 @@ export class PublicService {
 
     // Montar mapa de assentos
     const seatsMap = seats.map((seat) => {
-      const status = seatMap.get(seat.id);
+      const statusData = seatMap.get(seat.id);
       return {
         id: seat.id,
         seat_code: seat.seat_code,
         row_code: seat.row_code,
         column_number: seat.column_number,
         accessible: seat.accessible,
-        status: status?.status || 'available',
-        reserved: !!status?.reservation_uuid,
-        reserved_until: status?.expiration_date || null,
+        status: statusData?.status || 'available',
+        reserved: !!statusData?.reservation_uuid,
+        reserved_until: statusData?.expiration_date || null,
+        seat_type_name: seat.seat_types?.name || 'Padrão',
+        additional_value: seat.seat_types?.additional_value || 0,
       };
     });
+
+    // Buscar detalhes da sessão (cinema e sala)
+    const showtimeDetails = await this.prisma.showtime_schedule.findUnique({
+      where: { id: showtime_id },
+      include: {
+        cinema_complexes: true,
+        rooms: true,
+      },
+    });
+
+    // Buscar detalhes do filme separadamente (já que não tem relação direta no schema)
+    let movieDetails = null;
+    if (showtimeDetails?.movie_id) {
+      movieDetails = await this.prisma.movies.findUnique({
+        where: { id: showtimeDetails.movie_id },
+        include: {
+          movie_media: {
+            where: { media_type: 'POSTER', active: true },
+            take: 1,
+          },
+        },
+      });
+    }
 
     return {
       showtime_id,
       room_id: showtime.room_id,
       available_seats: showtime.available_seats || 0,
       sold_seats: showtime.sold_seats || 0,
+      base_ticket_price: showtime.base_ticket_price,
       seats: seatsMap,
+      movie: movieDetails
+        ? {
+          title: movieDetails.brazil_title || movieDetails.original_title,
+          poster_url: movieDetails.movie_media[0]?.media_url,
+        }
+        : null,
+      cinema: showtimeDetails?.cinema_complexes
+        ? {
+          id: showtimeDetails.cinema_complexes.id,
+          name: showtimeDetails.cinema_complexes.name,
+        }
+        : null,
+      room: showtimeDetails?.rooms
+        ? {
+          name: showtimeDetails.rooms.name,
+        }
+        : null,
+      start_time: showtimeDetails?.start_time,
     };
   }
 
@@ -301,5 +379,109 @@ export class PublicService {
     }
 
     return products;
+  }
+
+  async getTicketTypes(company_id: string) {
+    const types = await this.prisma.ticket_types.findMany({
+      where: {
+        company_id,
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        discount_percentage: true,
+      },
+      orderBy: {
+        discount_percentage: 'desc',
+      },
+    });
+
+    return types.map((t) => ({
+      ...t,
+      price_modifier: t.discount_percentage
+        ? 1 - Number(t.discount_percentage) / 100
+        : 1,
+    }));
+  }
+
+  async getPaymentMethods(company_id: string) {
+    return this.prisma.payment_methods.findMany({
+      where: {
+        company_id,
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+      },
+    });
+  }
+
+  async getSaleDetails(sale_id: string) {
+    const sale = await this.prisma.sales.findUnique({
+      where: { id: sale_id },
+      include: {
+        tickets: {
+          include: {
+            ticket_types: true,
+          },
+        },
+        concession_sales: {
+          include: {
+            concession_sale_items: true,
+          },
+        },
+      },
+    });
+
+    if (!sale) {
+      throw new NotFoundException('Venda não encontrada');
+    }
+
+    // Buscar detalhes da sessão
+    let showtimeDetails = null;
+    let movieDetails = null;
+
+    if (sale.tickets.length > 0) {
+      const showtimeId = sale.tickets[0].showtime_id;
+      showtimeDetails = await this.prisma.showtime_schedule.findUnique({
+        where: { id: showtimeId },
+        include: {
+          rooms: true,
+          cinema_complexes: true,
+        },
+      });
+
+      if (showtimeDetails && showtimeDetails.movie_id) {
+        movieDetails = await this.prisma.movies.findUnique({
+          where: { id: showtimeDetails.movie_id },
+        });
+      }
+    }
+
+    // Buscar detalhes dos produtos
+    const productIds: string[] = [];
+    sale.concession_sales.forEach((cs) => {
+      cs.concession_sale_items.forEach((item) => {
+        if (item.item_type === 'PRODUCT') {
+          productIds.push(item.item_id);
+        }
+      });
+    });
+
+    let productsDetails: any[] = [];
+    if (productIds.length > 0) {
+      productsDetails = await this.prisma.products.findMany({
+        where: { id: { in: productIds } },
+      });
+    }
+
+    return {
+      ...sale,
+      showtime_details: showtimeDetails,
+      movie_details: movieDetails,
+      products_details: productsDetails,
+    };
   }
 }

@@ -48,13 +48,13 @@ export interface CreateJournalEntryDto {
      */
     'items': Array<CreateJournalEntryDtoItemsInner>;
     /**
-     * 
+     * Tipo de origem (ex: venda, pagamento)
      * @type {string}
      * @memberof CreateJournalEntryDto
      */
     'origin_type'?: string;
     /**
-     * 
+     * ID de referência da origem
      * @type {string}
      * @memberof CreateJournalEntryDto
      */

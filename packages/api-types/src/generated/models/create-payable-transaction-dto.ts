@@ -21,55 +21,55 @@
  */
 export interface CreatePayableTransactionDto {
     /**
-     * 
+     * ID da conta a pagar para liquidar
      * @type {string}
      * @memberof CreatePayableTransactionDto
      */
     'account_payable_id': string;
     /**
-     * 
+     * Valor do pagamento
      * @type {number}
      * @memberof CreatePayableTransactionDto
      */
     'amount': number;
     /**
-     * 
+     * Data da transação
      * @type {string}
      * @memberof CreatePayableTransactionDto
      */
     'transaction_date': string;
     /**
-     * 
+     * ID da conta bancária para o pagamento
      * @type {string}
      * @memberof CreatePayableTransactionDto
      */
     'bank_account_id': string;
     /**
-     * 
+     * Método de pagamento utilizado
      * @type {string}
      * @memberof CreatePayableTransactionDto
      */
     'payment_method'?: string;
     /**
-     * 
+     * Observações adicionais
      * @type {string}
      * @memberof CreatePayableTransactionDto
      */
     'notes'?: string;
     /**
-     * 
+     * Valor de juros aplicado na liquidação
      * @type {number}
      * @memberof CreatePayableTransactionDto
      */
     'interest_amount'?: number;
     /**
-     * 
+     * Valor de multa aplicado na liquidação
      * @type {number}
      * @memberof CreatePayableTransactionDto
      */
     'penalty_amount'?: number;
     /**
-     * 
+     * Valor de desconto aplicado na liquidação
      * @type {number}
      * @memberof CreatePayableTransactionDto
      */

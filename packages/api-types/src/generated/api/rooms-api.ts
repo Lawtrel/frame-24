@@ -21,6 +21,10 @@ import globalAxios from 'axios';
 import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from '../common';
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
+// @ts-ignore
+import type { SeatLayoutRowDto } from '../models';
+// @ts-ignore
+import type { UpdateRoomDtoSeatLayoutInner } from '../models';
 /**
  * RoomsApi - axios parameter creator
  * @export
@@ -31,13 +35,30 @@ export const RoomsApiAxiosParamCreator = function (configuration?: Configuration
          * 
          * @summary Criar uma nova sala em um complexo
          * @param {string} cinemaComplexId 
-         * @param {File} [layoutImage] Image file to upload
+         * @param {string} complexId ID do complexo de cinema
+         * @param {string} roomNumber Número/identificador da sala
+         * @param {number} capacity Capacidade total de assentos da sala
+         * @param {Array<SeatLayoutRowDto>} seatLayout Array com as fileiras e assentos da sala. Em multipart/form-data, envie como JSON string.
+         * @param {string | null} [name] 
+         * @param {string | null} [projectionTypeId] 
+         * @param {string | null} [audioTypeId] 
+         * @param {boolean} [active] 
+         * @param {string | null} [roomDesign] 
+         * @param {string | null} [layoutImage] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        roomsControllerCreateV1: async (cinemaComplexId: string, layoutImage?: File, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        roomsControllerCreateV1: async (cinemaComplexId: string, complexId: string, roomNumber: string, capacity: number, seatLayout: Array<SeatLayoutRowDto>, name?: string | null, projectionTypeId?: string | null, audioTypeId?: string | null, active?: boolean, roomDesign?: string | null, layoutImage?: string | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'cinemaComplexId' is not null or undefined
             assertParamExists('roomsControllerCreateV1', 'cinemaComplexId', cinemaComplexId)
+            // verify required parameter 'complexId' is not null or undefined
+            assertParamExists('roomsControllerCreateV1', 'complexId', complexId)
+            // verify required parameter 'roomNumber' is not null or undefined
+            assertParamExists('roomsControllerCreateV1', 'roomNumber', roomNumber)
+            // verify required parameter 'capacity' is not null or undefined
+            assertParamExists('roomsControllerCreateV1', 'capacity', capacity)
+            // verify required parameter 'seatLayout' is not null or undefined
+            assertParamExists('roomsControllerCreateV1', 'seatLayout', seatLayout)
             const localVarPath = `/v1/cinema-complexes/{cinemaComplexId}/rooms`
                 .replace(`{${"cinemaComplexId"}}`, encodeURIComponent(String(cinemaComplexId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -53,6 +74,42 @@ export const RoomsApiAxiosParamCreator = function (configuration?: Configuration
             const localVarFormParams = new ((configuration && configuration.formDataCtor) || FormData)();
 
 
+            if (complexId !== undefined) { 
+                localVarFormParams.append('complex_id', complexId as any);
+            }
+    
+            if (roomNumber !== undefined) { 
+                localVarFormParams.append('room_number', roomNumber as any);
+            }
+    
+            if (name !== undefined) { 
+                localVarFormParams.append('name', name as any);
+            }
+    
+            if (capacity !== undefined) { 
+                localVarFormParams.append('capacity', capacity as any);
+            }
+    
+            if (projectionTypeId !== undefined) { 
+                localVarFormParams.append('projection_type_id', projectionTypeId as any);
+            }
+    
+            if (audioTypeId !== undefined) { 
+                localVarFormParams.append('audio_type_id', audioTypeId as any);
+            }
+    
+            if (active !== undefined) { 
+                localVarFormParams.append('active', String(active) as any);
+            }
+                if (seatLayout) {
+                localVarFormParams.append('seat_layout', seatLayout.join(COLLECTION_FORMATS.csv));
+            }
+
+    
+            if (roomDesign !== undefined) { 
+                localVarFormParams.append('room_design', roomDesign as any);
+            }
+    
             if (layoutImage !== undefined) { 
                 localVarFormParams.append('layout_image', layoutImage as any);
             }
@@ -176,11 +233,20 @@ export const RoomsApiAxiosParamCreator = function (configuration?: Configuration
          * 
          * @summary Atualizar uma sala
          * @param {string} id 
-         * @param {File} [layoutImage] Image file to upload
+         * @param {string} [complexId] 
+         * @param {string} [roomNumber] 
+         * @param {string | null} [name] 
+         * @param {number} [capacity] 
+         * @param {string | null} [projectionTypeId] 
+         * @param {string | null} [audioTypeId] 
+         * @param {boolean} [active] 
+         * @param {Array<UpdateRoomDtoSeatLayoutInner>} [seatLayout] 
+         * @param {string | null} [roomDesign] 
+         * @param {string | null} [layoutImage] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        roomsControllerUpdateV1: async (id: string, layoutImage?: File, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        roomsControllerUpdateV1: async (id: string, complexId?: string, roomNumber?: string, name?: string | null, capacity?: number, projectionTypeId?: string | null, audioTypeId?: string | null, active?: boolean, seatLayout?: Array<UpdateRoomDtoSeatLayoutInner>, roomDesign?: string | null, layoutImage?: string | null, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'id' is not null or undefined
             assertParamExists('roomsControllerUpdateV1', 'id', id)
             const localVarPath = `/v1/cinema-complexes/{cinemaComplexId}/rooms/{id}`
@@ -198,6 +264,42 @@ export const RoomsApiAxiosParamCreator = function (configuration?: Configuration
             const localVarFormParams = new ((configuration && configuration.formDataCtor) || FormData)();
 
 
+            if (complexId !== undefined) { 
+                localVarFormParams.append('complex_id', complexId as any);
+            }
+    
+            if (roomNumber !== undefined) { 
+                localVarFormParams.append('room_number', roomNumber as any);
+            }
+    
+            if (name !== undefined) { 
+                localVarFormParams.append('name', name as any);
+            }
+    
+            if (capacity !== undefined) { 
+                localVarFormParams.append('capacity', capacity as any);
+            }
+    
+            if (projectionTypeId !== undefined) { 
+                localVarFormParams.append('projection_type_id', projectionTypeId as any);
+            }
+    
+            if (audioTypeId !== undefined) { 
+                localVarFormParams.append('audio_type_id', audioTypeId as any);
+            }
+    
+            if (active !== undefined) { 
+                localVarFormParams.append('active', String(active) as any);
+            }
+                if (seatLayout) {
+                localVarFormParams.append('seat_layout', seatLayout.join(COLLECTION_FORMATS.csv));
+            }
+
+    
+            if (roomDesign !== undefined) { 
+                localVarFormParams.append('room_design', roomDesign as any);
+            }
+    
             if (layoutImage !== undefined) { 
                 localVarFormParams.append('layout_image', layoutImage as any);
             }
@@ -229,12 +331,21 @@ export const RoomsApiFp = function(configuration?: Configuration) {
          * 
          * @summary Criar uma nova sala em um complexo
          * @param {string} cinemaComplexId 
-         * @param {File} [layoutImage] Image file to upload
+         * @param {string} complexId ID do complexo de cinema
+         * @param {string} roomNumber Número/identificador da sala
+         * @param {number} capacity Capacidade total de assentos da sala
+         * @param {Array<SeatLayoutRowDto>} seatLayout Array com as fileiras e assentos da sala. Em multipart/form-data, envie como JSON string.
+         * @param {string | null} [name] 
+         * @param {string | null} [projectionTypeId] 
+         * @param {string | null} [audioTypeId] 
+         * @param {boolean} [active] 
+         * @param {string | null} [roomDesign] 
+         * @param {string | null} [layoutImage] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async roomsControllerCreateV1(cinemaComplexId: string, layoutImage?: File, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.roomsControllerCreateV1(cinemaComplexId, layoutImage, options);
+        async roomsControllerCreateV1(cinemaComplexId: string, complexId: string, roomNumber: string, capacity: number, seatLayout: Array<SeatLayoutRowDto>, name?: string | null, projectionTypeId?: string | null, audioTypeId?: string | null, active?: boolean, roomDesign?: string | null, layoutImage?: string | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.roomsControllerCreateV1(cinemaComplexId, complexId, roomNumber, capacity, seatLayout, name, projectionTypeId, audioTypeId, active, roomDesign, layoutImage, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['RoomsApi.roomsControllerCreateV1']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -282,12 +393,21 @@ export const RoomsApiFp = function(configuration?: Configuration) {
          * 
          * @summary Atualizar uma sala
          * @param {string} id 
-         * @param {File} [layoutImage] Image file to upload
+         * @param {string} [complexId] 
+         * @param {string} [roomNumber] 
+         * @param {string | null} [name] 
+         * @param {number} [capacity] 
+         * @param {string | null} [projectionTypeId] 
+         * @param {string | null} [audioTypeId] 
+         * @param {boolean} [active] 
+         * @param {Array<UpdateRoomDtoSeatLayoutInner>} [seatLayout] 
+         * @param {string | null} [roomDesign] 
+         * @param {string | null} [layoutImage] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async roomsControllerUpdateV1(id: string, layoutImage?: File, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.roomsControllerUpdateV1(id, layoutImage, options);
+        async roomsControllerUpdateV1(id: string, complexId?: string, roomNumber?: string, name?: string | null, capacity?: number, projectionTypeId?: string | null, audioTypeId?: string | null, active?: boolean, seatLayout?: Array<UpdateRoomDtoSeatLayoutInner>, roomDesign?: string | null, layoutImage?: string | null, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.roomsControllerUpdateV1(id, complexId, roomNumber, name, capacity, projectionTypeId, audioTypeId, active, seatLayout, roomDesign, layoutImage, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['RoomsApi.roomsControllerUpdateV1']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -310,7 +430,7 @@ export const RoomsApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         roomsControllerCreateV1(requestParameters: RoomsApiRoomsControllerCreateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.roomsControllerCreateV1(requestParameters.cinemaComplexId, requestParameters.layoutImage, options).then((request) => request(axios, basePath));
+            return localVarFp.roomsControllerCreateV1(requestParameters.cinemaComplexId, requestParameters.complexId, requestParameters.roomNumber, requestParameters.capacity, requestParameters.seatLayout, requestParameters.name, requestParameters.projectionTypeId, requestParameters.audioTypeId, requestParameters.active, requestParameters.roomDesign, requestParameters.layoutImage, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -350,7 +470,7 @@ export const RoomsApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         roomsControllerUpdateV1(requestParameters: RoomsApiRoomsControllerUpdateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.roomsControllerUpdateV1(requestParameters.id, requestParameters.layoutImage, options).then((request) => request(axios, basePath));
+            return localVarFp.roomsControllerUpdateV1(requestParameters.id, requestParameters.complexId, requestParameters.roomNumber, requestParameters.name, requestParameters.capacity, requestParameters.projectionTypeId, requestParameters.audioTypeId, requestParameters.active, requestParameters.seatLayout, requestParameters.roomDesign, requestParameters.layoutImage, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -427,11 +547,74 @@ export interface RoomsApiRoomsControllerCreateV1Request {
     readonly cinemaComplexId: string
 
     /**
-     * Image file to upload
-     * @type {File}
+     * ID do complexo de cinema
+     * @type {string}
      * @memberof RoomsApiRoomsControllerCreateV1
      */
-    readonly layoutImage?: File
+    readonly complexId: string
+
+    /**
+     * Número/identificador da sala
+     * @type {string}
+     * @memberof RoomsApiRoomsControllerCreateV1
+     */
+    readonly roomNumber: string
+
+    /**
+     * Capacidade total de assentos da sala
+     * @type {number}
+     * @memberof RoomsApiRoomsControllerCreateV1
+     */
+    readonly capacity: number
+
+    /**
+     * Array com as fileiras e assentos da sala. Em multipart/form-data, envie como JSON string.
+     * @type {Array<SeatLayoutRowDto>}
+     * @memberof RoomsApiRoomsControllerCreateV1
+     */
+    readonly seatLayout: Array<SeatLayoutRowDto>
+
+    /**
+     * 
+     * @type {string}
+     * @memberof RoomsApiRoomsControllerCreateV1
+     */
+    readonly name?: string | null
+
+    /**
+     * 
+     * @type {string}
+     * @memberof RoomsApiRoomsControllerCreateV1
+     */
+    readonly projectionTypeId?: string | null
+
+    /**
+     * 
+     * @type {string}
+     * @memberof RoomsApiRoomsControllerCreateV1
+     */
+    readonly audioTypeId?: string | null
+
+    /**
+     * 
+     * @type {boolean}
+     * @memberof RoomsApiRoomsControllerCreateV1
+     */
+    readonly active?: boolean
+
+    /**
+     * 
+     * @type {string}
+     * @memberof RoomsApiRoomsControllerCreateV1
+     */
+    readonly roomDesign?: string | null
+
+    /**
+     * 
+     * @type {string}
+     * @memberof RoomsApiRoomsControllerCreateV1
+     */
+    readonly layoutImage?: string | null
 }
 
 /**
@@ -490,11 +673,74 @@ export interface RoomsApiRoomsControllerUpdateV1Request {
     readonly id: string
 
     /**
-     * Image file to upload
-     * @type {File}
+     * 
+     * @type {string}
      * @memberof RoomsApiRoomsControllerUpdateV1
      */
-    readonly layoutImage?: File
+    readonly complexId?: string
+
+    /**
+     * 
+     * @type {string}
+     * @memberof RoomsApiRoomsControllerUpdateV1
+     */
+    readonly roomNumber?: string
+
+    /**
+     * 
+     * @type {string}
+     * @memberof RoomsApiRoomsControllerUpdateV1
+     */
+    readonly name?: string | null
+
+    /**
+     * 
+     * @type {number}
+     * @memberof RoomsApiRoomsControllerUpdateV1
+     */
+    readonly capacity?: number
+
+    /**
+     * 
+     * @type {string}
+     * @memberof RoomsApiRoomsControllerUpdateV1
+     */
+    readonly projectionTypeId?: string | null
+
+    /**
+     * 
+     * @type {string}
+     * @memberof RoomsApiRoomsControllerUpdateV1
+     */
+    readonly audioTypeId?: string | null
+
+    /**
+     * 
+     * @type {boolean}
+     * @memberof RoomsApiRoomsControllerUpdateV1
+     */
+    readonly active?: boolean
+
+    /**
+     * 
+     * @type {Array<UpdateRoomDtoSeatLayoutInner>}
+     * @memberof RoomsApiRoomsControllerUpdateV1
+     */
+    readonly seatLayout?: Array<UpdateRoomDtoSeatLayoutInner>
+
+    /**
+     * 
+     * @type {string}
+     * @memberof RoomsApiRoomsControllerUpdateV1
+     */
+    readonly roomDesign?: string | null
+
+    /**
+     * 
+     * @type {string}
+     * @memberof RoomsApiRoomsControllerUpdateV1
+     */
+    readonly layoutImage?: string | null
 }
 
 /**
@@ -513,7 +759,7 @@ export class RoomsApi extends BaseAPI implements RoomsApiInterface {
      * @memberof RoomsApi
      */
     public roomsControllerCreateV1(requestParameters: RoomsApiRoomsControllerCreateV1Request, options?: RawAxiosRequestConfig) {
-        return RoomsApiFp(this.configuration).roomsControllerCreateV1(requestParameters.cinemaComplexId, requestParameters.layoutImage, options).then((request) => request(this.axios, this.basePath));
+        return RoomsApiFp(this.configuration).roomsControllerCreateV1(requestParameters.cinemaComplexId, requestParameters.complexId, requestParameters.roomNumber, requestParameters.capacity, requestParameters.seatLayout, requestParameters.name, requestParameters.projectionTypeId, requestParameters.audioTypeId, requestParameters.active, requestParameters.roomDesign, requestParameters.layoutImage, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -561,7 +807,7 @@ export class RoomsApi extends BaseAPI implements RoomsApiInterface {
      * @memberof RoomsApi
      */
     public roomsControllerUpdateV1(requestParameters: RoomsApiRoomsControllerUpdateV1Request, options?: RawAxiosRequestConfig) {
-        return RoomsApiFp(this.configuration).roomsControllerUpdateV1(requestParameters.id, requestParameters.layoutImage, options).then((request) => request(this.axios, this.basePath));
+        return RoomsApiFp(this.configuration).roomsControllerUpdateV1(requestParameters.id, requestParameters.complexId, requestParameters.roomNumber, requestParameters.name, requestParameters.capacity, requestParameters.projectionTypeId, requestParameters.audioTypeId, requestParameters.active, requestParameters.seatLayout, requestParameters.roomDesign, requestParameters.layoutImage, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

@@ -28,12 +28,12 @@ import {
   UpdateBankReconciliationDto,
 } from '../dto/bank-reconciliation.dto';
 
-@ApiTags('Cash Flow - Reconciliation')
+@ApiTags('Fluxo de Caixa - Conciliação Bancária')
 @ApiBearerAuth()
 @Controller({ path: 'finance/bank-reconciliation', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class BankReconciliationController {
-  constructor(private readonly service: BankReconciliationService) {}
+  constructor(private readonly service: BankReconciliationService) { }
 
   @Post()
   @RequirePermission('cash_flow', 'reconcile')

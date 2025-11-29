@@ -21,79 +21,79 @@
  */
 export interface CreateAccountPayableDto {
     /**
-     * 
+     * ID do complexo de cinema
      * @type {string}
      * @memberof CreateAccountPayableDto
      */
     'cinema_complex_id'?: string;
     /**
-     * 
+     * ID do fornecedor
      * @type {string}
      * @memberof CreateAccountPayableDto
      */
     'supplier_id'?: string;
     /**
-     * 
+     * Tipo de origem da conta a pagar
      * @type {string}
      * @memberof CreateAccountPayableDto
      */
     'source_type'?: CreateAccountPayableDtoSourceTypeEnum;
     /**
-     * 
+     * ID de referência da origem
      * @type {string}
      * @memberof CreateAccountPayableDto
      */
     'source_id'?: string;
     /**
-     * 
+     * Número do documento (nota fiscal, boleto, etc)
      * @type {string}
      * @memberof CreateAccountPayableDto
      */
     'document_number': string;
     /**
-     * 
+     * Descrição da conta a pagar
      * @type {string}
      * @memberof CreateAccountPayableDto
      */
     'description': string;
     /**
-     * 
+     * Data de emissão
      * @type {string}
      * @memberof CreateAccountPayableDto
      */
     'issue_date': string;
     /**
-     * 
+     * Data de vencimento
      * @type {string}
      * @memberof CreateAccountPayableDto
      */
     'due_date': string;
     /**
-     * 
+     * Data de competência (período contábil)
      * @type {string}
      * @memberof CreateAccountPayableDto
      */
     'competence_date': string;
     /**
-     * 
+     * Valor original
      * @type {number}
      * @memberof CreateAccountPayableDto
      */
     'original_amount': number;
     /**
-     * 
+     * Valor de juros
      * @type {number}
      * @memberof CreateAccountPayableDto
      */
     'interest_amount'?: number;
     /**
-     * 
+     * Valor de multa
      * @type {number}
      * @memberof CreateAccountPayableDto
      */
     'penalty_amount'?: number;
     /**
-     * 
+     * Valor de desconto
      * @type {number}
      * @memberof CreateAccountPayableDto
      */

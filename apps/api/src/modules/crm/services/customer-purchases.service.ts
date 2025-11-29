@@ -24,7 +24,7 @@ export class CustomerPurchasesService {
     private readonly companyCustomersRepository: CompanyCustomersRepository,
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
-  ) {}
+  ) { }
 
   async purchase(
     dto: CreatePurchaseDto,
@@ -87,11 +87,178 @@ export class CustomerPurchasesService {
 
   async findAll(customer: CustomerUser): Promise<SaleResponseDto[]> {
     // Buscar todas as vendas do cliente
-    const sales = await this.salesRepository.findAll(customer.company_id, {
-      customer_id: customer.customer_id,
+    const sales = await this.prisma.sales.findMany({
+      where: {
+        customer_id: customer.customer_id,
+      },
+      include: {
+        tickets: {
+          include: {
+            ticket_types: true,
+          },
+        },
+        concession_sales: {
+          include: {
+            concession_sale_items: true,
+          },
+        },
+        sale_types: true,
+        payment_methods: true,
+        sale_status: true,
+      },
+      orderBy: {
+        sale_date: 'desc',
+      },
     });
 
-    return sales.map((sale) => this.mapToDto(sale));
+    // Collect all unique IDs for batch fetching
+    const showtimeIds = [
+      ...new Set(
+        sales.flatMap((sale) =>
+          sale.tickets.map((ticket: any) => ticket.showtime_id),
+        ),
+      ),
+    ];
+    const seatIds = [
+      ...new Set(
+        sales.flatMap((sale) =>
+          sale.tickets.map((ticket: any) => ticket.seat_id).filter(Boolean),
+        ),
+      ),
+    ];
+    const productIds = [
+      ...new Set(
+        sales.flatMap((sale) =>
+          sale.concession_sales.flatMap((concession: any) =>
+            concession.concession_sale_items
+              .filter((item: any) => item.item_type === 'PRODUCT')
+              .map((item: any) => item.item_id),
+          ),
+        ),
+      ),
+    ];
+
+    // Batch fetch all related data
+    const [showtimes, seats, products] = await Promise.all([
+      this.prisma.showtime_schedule.findMany({
+        where: { id: { in: showtimeIds as string[] } },
+        include: {
+          cinema_complexes: true,
+          rooms: true,
+          projection_types: true,
+          audio_types: true,
+          session_languages: true,
+        },
+      }),
+      this.prisma.seats.findMany({
+        where: { id: { in: seatIds as string[] } },
+        include: {
+          seat_types: true,
+        },
+      }),
+      this.prisma.products.findMany({
+        where: { id: { in: productIds as string[] } },
+      }),
+    ]);
+
+    // Create lookup maps
+    const showtimeMap = new Map(showtimes.map((s) => [s.id, s]));
+    const seatMap = new Map(seats.map((s) => [s.id, s]));
+    const productMap = new Map(products.map((p) => [p.id, p]));
+
+    // Get unique movie IDs from showtimes
+    const movieIds = [
+      ...new Set(showtimes.map((s: any) => s.movie_id).filter(Boolean)),
+    ];
+    const movies = await this.prisma.movies.findMany({
+      where: { id: { in: movieIds as string[] } },
+      include: {
+        age_rating: true,
+        movie_media: {
+          where: {
+            active: true,
+            media_types: {
+              name: 'Poster'
+            }
+          },
+          include: {
+            media_types: true,
+          },
+          take: 1,
+        },
+      },
+    });
+    const movieMap = new Map(
+      movies.map((m: any) => [
+        m.id,
+        {
+          id: m.id,
+          title: m.brazil_title || m.original_title,
+          poster_url: m.movie_media?.[0]?.media_url || null,
+          duration_minutes: m.duration_minutes,
+          age_rating: m.age_rating?.code || null,
+        },
+      ]),
+    );
+
+    // Enrich sales with fetched data and map to DTO
+    return sales.map((sale: any) => {
+      const firstTicket = sale.tickets[0];
+      const showtimeDetails = firstTicket
+        ? showtimeMap.get(firstTicket.showtime_id)
+        : null;
+      const movieDetails = showtimeDetails
+        ? movieMap.get((showtimeDetails as any).movie_id)
+        : null;
+
+      const ticketsWithSeats = sale.tickets.map((ticket: any) => {
+        const seat = ticket.seat_id ? seatMap.get(ticket.seat_id) : null;
+        return {
+          id: ticket.id,
+          ticket_number: ticket.ticket_number,
+          seat: seat
+            ? {
+              id: seat.id,
+              seat_code: seat.seat_code,
+              row_code: seat.row_code,
+              column_number: seat.column_number,
+              seat_type: seat.seat_types?.name || 'Padrão',
+            }
+            : undefined,
+          face_value: ticket.face_value.toString(),
+          service_fee: (ticket.service_fee || 0).toString(),
+          total_amount: ticket.total_amount.toString(),
+          used: ticket.used || false,
+          usage_date: ticket.usage_date?.toISOString(),
+          ticket_type: ticket.ticket_types?.name,
+        };
+      });
+
+      return {
+        id: sale.id,
+        sale_number: sale.sale_number,
+        cinema_complex_id: sale.cinema_complex_id,
+        customer_id: sale.customer_id ?? undefined,
+        sale_date: sale.sale_date.toISOString(),
+        total_amount: sale.total_amount.toString(),
+        discount_amount: (sale.discount_amount || 0).toString(),
+        net_amount: sale.net_amount.toString(),
+        sale_type: sale.sale_types?.name,
+        payment_method: sale.payment_methods?.name,
+        status: sale.sale_status?.name,
+        tickets: ticketsWithSeats,
+        showtime: showtimeDetails
+          ? {
+            id: showtimeDetails.id,
+            start_time: showtimeDetails.start_time.toISOString(),
+            cinema: showtimeDetails.cinema_complexes?.name,
+            room: showtimeDetails.rooms?.name,
+          }
+          : undefined,
+        movie: movieDetails || undefined,
+        created_at: sale.created_at?.toISOString() || new Date().toISOString(),
+      } as SaleResponseDto;
+    });
   }
 
   async findOne(id: string, customer: CustomerUser): Promise<SaleResponseDto> {

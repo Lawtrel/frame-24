@@ -4,7 +4,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export const RegisterCustomerSchema = z.object({
   company_id: z.string().min(1, 'ID da empresa é obrigatório'),
-  cpf: z.string().regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, 'CPF inválido'),
+  cpf: z.string().regex(/^\d{11}$/, 'CPF deve conter 11 dígitos numéricos'),
   full_name: z
     .string()
     .min(3, 'Nome deve ter no mínimo 3 caracteres')
@@ -12,7 +12,13 @@ export const RegisterCustomerSchema = z.object({
   email: z.string().email('Email inválido'),
   phone: z.string().optional(),
   birth_date: z.string().optional(),
-  password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
+  password: z
+    .string()
+    .min(8, 'Senha deve ter no mínimo 8 caracteres')
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+      'Senha deve conter maiúscula, minúscula e número',
+    ),
   accepts_marketing: z.boolean().default(false).optional(),
   accepts_email: z.boolean().default(true).optional(),
   accepts_sms: z.boolean().default(false).optional(),
@@ -56,9 +62,9 @@ export class RegisterCustomerDto extends createZodDto(RegisterCustomerSchema) {
   birth_date?: string;
 
   @ApiProperty({
-    description: 'Senha',
-    example: 'senha123',
-    minLength: 6,
+    description: 'Senha (mín. 8 caracteres, maiúscula, minúscula e número)',
+    example: 'SenhaSegura123',
+    minLength: 8,
   })
   password!: string;
 

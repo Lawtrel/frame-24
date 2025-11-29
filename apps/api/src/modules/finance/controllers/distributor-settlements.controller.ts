@@ -13,14 +13,14 @@ import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strat
 import { DistributorSettlementsService } from '../services/distributor-settlements.service';
 import { CreateDistributorSettlementDto } from '../dto/create-distributor-settlement.dto';
 
-@ApiTags('Finance')
+@ApiTags('Conciliações com Distribuidoras')
 @ApiBearerAuth()
 @Controller({ path: 'finance/distributor-settlements', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class DistributorSettlementsController {
   constructor(
     private readonly settlementsService: DistributorSettlementsService,
-  ) {}
+  ) { }
 
   @Get()
   @RequirePermission('finance_settlements', 'read')

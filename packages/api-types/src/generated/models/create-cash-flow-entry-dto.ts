@@ -21,85 +21,85 @@
  */
 export interface CreateCashFlowEntryDto {
     /**
-     * 
+     * ID da conta bancária
      * @type {string}
      * @memberof CreateCashFlowEntryDto
      */
     'bank_account_id': string;
     /**
-     * 
+     * ID do complexo de cinema
      * @type {string}
      * @memberof CreateCashFlowEntryDto
      */
     'cinema_complex_id'?: string;
     /**
-     * 
+     * Tipo de lançamento
      * @type {string}
      * @memberof CreateCashFlowEntryDto
      */
     'entry_type': CreateCashFlowEntryDtoEntryTypeEnum;
     /**
-     * 
+     * Categoria
      * @type {string}
      * @memberof CreateCashFlowEntryDto
      */
     'category': string;
     /**
-     * 
+     * Valor
      * @type {number}
      * @memberof CreateCashFlowEntryDto
      */
     'amount': number;
     /**
-     * 
+     * Data do lançamento (YYYY-MM-DD)
      * @type {string}
      * @memberof CreateCashFlowEntryDto
      */
     'entry_date': string;
     /**
-     * 
+     * Data de competência (YYYY-MM-DD)
      * @type {string}
      * @memberof CreateCashFlowEntryDto
      */
     'competence_date'?: string;
     /**
-     * 
+     * Descrição
      * @type {string}
      * @memberof CreateCashFlowEntryDto
      */
     'description': string;
     /**
-     * 
+     * Número do documento
      * @type {string}
      * @memberof CreateCashFlowEntryDto
      */
     'document_number'?: string;
     /**
-     * 
+     * Tipo de origem
      * @type {string}
      * @memberof CreateCashFlowEntryDto
      */
     'source_type'?: string;
     /**
-     * 
+     * ID da origem
      * @type {string}
      * @memberof CreateCashFlowEntryDto
      */
     'source_id'?: string;
     /**
-     * 
+     * Tipo de contraparte
      * @type {string}
      * @memberof CreateCashFlowEntryDto
      */
     'counterpart_type'?: string;
     /**
-     * 
+     * ID da contraparte
      * @type {string}
      * @memberof CreateCashFlowEntryDto
      */
     'counterpart_id'?: string;
     /**
-     * 
+     * Status do lançamento
      * @type {string}
      * @memberof CreateCashFlowEntryDto
      */

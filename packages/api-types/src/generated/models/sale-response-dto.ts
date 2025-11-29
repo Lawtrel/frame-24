@@ -15,6 +15,12 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
+import type { SaleResponseDtoMovie } from './sale-response-dto-movie';
+// May contain unused imports in some cases
+// @ts-ignore
+import type { SaleResponseDtoShowtime } from './sale-response-dto-showtime';
+// May contain unused imports in some cases
+// @ts-ignore
 import type { TicketResponseDto } from './ticket-response-dto';
 
 /**
@@ -113,5 +119,17 @@ export interface SaleResponseDto {
      * @memberof SaleResponseDto
      */
     'created_at': string;
+    /**
+     * 
+     * @type {SaleResponseDtoShowtime}
+     * @memberof SaleResponseDto
+     */
+    'showtime'?: SaleResponseDtoShowtime;
+    /**
+     * 
+     * @type {SaleResponseDtoMovie}
+     * @memberof SaleResponseDto
+     */
+    'movie'?: SaleResponseDtoMovie;
 }
 

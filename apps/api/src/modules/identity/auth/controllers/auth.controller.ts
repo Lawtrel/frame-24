@@ -1,4 +1,11 @@
-import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -6,7 +13,9 @@ import {
   ApiBadRequestResponse,
   ApiConflictResponse,
   ApiUnauthorizedResponse,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
 
 import { AuthService } from '../services/auth.service';
 import { LoginDto } from '../dto/login.dto';
@@ -21,12 +30,18 @@ import {
   ForgotPasswordDto,
   ResetPasswordDto,
 } from '../dto/forgot-password.dto';
+import { Public } from 'src/common/decorators/public.decorator';
+import { AuthThrottle } from 'src/common/decorators/auth-throttle.decorator';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import type { RequestUser } from '../strategies/jwt.strategy';
 
 @ApiTags('Auth')
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
+  @Public()
+  @AuthThrottle()
   @Post('signup')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
@@ -49,6 +64,8 @@ export class AuthController {
     return this.authService.signup(dto);
   }
 
+  @Public()
+  @AuthThrottle()
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -68,6 +85,8 @@ export class AuthController {
     return this.authService.login(dto.email, dto.password);
   }
 
+  @Public()
+  @AuthThrottle()
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
@@ -87,6 +106,7 @@ export class AuthController {
     return this.authService.register(dto);
   }
 
+  @Public()
   @Post('verify-email')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -110,6 +130,7 @@ export class AuthController {
     return this.authService.verifyEmail(dto.token);
   }
 
+  @Public()
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -137,6 +158,7 @@ export class AuthController {
     };
   }
 
+  @Public()
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -160,5 +182,25 @@ export class AuthController {
     @Body() dto: ResetPasswordDto,
   ): Promise<{ message: string }> {
     return this.authService.resetPassword(dto.token, dto.password);
+  }
+
+  @Post('logout')
+  @UseGuards(AuthGuard('jwt'))
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Logout',
+    description:
+      'Revoga a sessão atual do usuário, invalidando o token JWT.',
+  })
+  @ApiResponse({
+    status: 204,
+    description: 'Logout realizado com sucesso',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Token inválido ou expirado',
+  })
+  async logout(@CurrentUser() user: RequestUser): Promise<void> {
+    await this.authService.logout(user.identity_id, user.company_id);
   }
 }

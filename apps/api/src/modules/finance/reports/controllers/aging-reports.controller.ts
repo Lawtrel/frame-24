@@ -21,7 +21,7 @@ import {
 } from '@nestjs/swagger';
 import { FinanceReportsService } from '../../services/finance-reports.service';
 
-@ApiTags('Finance Reports')
+@ApiTags('Relatórios Financeiros')
 @ApiBearerAuth()
 @Controller('finance/reports')
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
@@ -30,7 +30,7 @@ export class AgingReportsController {
     private readonly agingService: AgingReportsService,
     private readonly positionService: PositionReportsService,
     private readonly financeService: FinanceReportsService,
-  ) {}
+  ) { }
 
   @Get('aging/receivables')
   @RequirePermission('finance_reports', 'read')

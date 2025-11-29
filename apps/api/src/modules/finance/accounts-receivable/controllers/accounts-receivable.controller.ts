@@ -25,12 +25,12 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 
-@ApiTags('Accounts Receivable')
+@ApiTags('Contas a Receber')
 @ApiBearerAuth()
 @Controller('finance/receivables')
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class AccountsReceivableController {
-  constructor(private readonly service: AccountsReceivableService) {}
+  constructor(private readonly service: AccountsReceivableService) { }
 
   @Post()
   @RequirePermission('finance_receivables', 'create')

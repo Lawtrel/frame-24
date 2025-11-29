@@ -21,25 +21,25 @@
  */
 export interface CreateJournalEntryDtoItemsInner {
     /**
-     * 
+     * ID da conta
      * @type {string}
      * @memberof CreateJournalEntryDtoItemsInner
      */
     'account_id'?: string;
     /**
-     * 
+     * Tipo de movimento
      * @type {string}
      * @memberof CreateJournalEntryDtoItemsInner
      */
     'movement_type'?: CreateJournalEntryDtoItemsInnerMovementTypeEnum;
     /**
-     * 
+     * Valor
      * @type {number}
      * @memberof CreateJournalEntryDtoItemsInner
      */
     'amount'?: number;
     /**
-     * 
+     * Descrição do item
      * @type {string}
      * @memberof CreateJournalEntryDtoItemsInner
      */

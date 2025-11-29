@@ -21,12 +21,12 @@ import { ZodValidationPipe } from 'nestjs-zod';
 import { CashFlowReportsService } from '../services/cash-flow-reports.service';
 import { CashFlowReportQueryDto } from '../dto/cash-flow-report.dto';
 
-@ApiTags('Cash Flow - Reports')
+@ApiTags('Fluxo de Caixa - Relatórios')
 @ApiBearerAuth()
 @Controller({ path: 'finance/cash-flow/reports', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class CashFlowReportsController {
-  constructor(private readonly service: CashFlowReportsService) {}
+  constructor(private readonly service: CashFlowReportsService) { }
 
   @Get('daily')
   @RequirePermission('cash_flow', 'read')

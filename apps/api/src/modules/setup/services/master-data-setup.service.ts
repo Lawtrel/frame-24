@@ -10,7 +10,7 @@ export class MasterDataSetupService {
     private readonly prisma: PrismaService,
     private readonly snowflake: SnowflakeService,
     private readonly logger: LoggerService,
-  ) {}
+  ) { }
 
   /**
    * Popula TODOS os dados mestres para uma empresa
@@ -82,7 +82,7 @@ export class MasterDataSetupService {
         where: { company_id_name: { company_id, name: role.name } },
         update: {},
         create: {
-          id: this.snowflake.generate().toString(),
+          id: this.snowflake.generate(),
           company_id,
           name: role.name,
           description: role.description,
@@ -183,6 +183,7 @@ export class MasterDataSetupService {
           name: status.name,
           description: status.description,
           allows_modification: status.allows_modification,
+          is_default: status.is_default,
         },
       });
     }
@@ -333,7 +334,7 @@ export class MasterDataSetupService {
         },
         update: {},
         create: {
-          id: this.snowflake.generate().toString(),
+          id: this.snowflake.generate(),
           company_id,
           name: category.name,
           description: category.description,

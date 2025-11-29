@@ -1,6 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 const JournalEntryItemSchema = z.object({
   account_id: z.string().min(1, 'Conta contábil é obrigatória'),
@@ -27,6 +27,7 @@ export class CreateJournalEntryDto extends createZodDto(
 ) {
   @ApiProperty({
     description: 'ID do complexo de cinema',
+    example: '23425326464646652',
   })
   cinema_complex_id!: string;
 
@@ -48,15 +49,45 @@ export class CreateJournalEntryDto extends createZodDto(
     items: {
       type: 'object',
       properties: {
-        account_id: { type: 'string' },
-        movement_type: { type: 'string', enum: ['DEBIT', 'CREDIT'] },
-        amount: { type: 'number' },
-        item_description: { type: 'string' },
+        account_id: { type: 'string', description: 'ID da conta' },
+        movement_type: {
+          type: 'string',
+          enum: ['DEBIT', 'CREDIT'],
+          description: 'Tipo de movimento',
+        },
+        amount: { type: 'number', description: 'Valor' },
+        item_description: {
+          type: 'string',
+          description: 'Descrição do item',
+        },
       },
     },
+    example: [
+      {
+        account_id: '1.1.1.01',
+        movement_type: 'DEBIT',
+        amount: 1000.0,
+        item_description: 'Recebimento em dinheiro',
+      },
+      {
+        account_id: '3.1.1.01',
+        movement_type: 'CREDIT',
+        amount: 1000.0,
+        item_description: 'Reconhecimento de receita',
+      },
+    ],
   })
   items!: Array<z.infer<typeof JournalEntryItemSchema>>;
 
+  @ApiPropertyOptional({
+    description: 'Tipo de origem (ex: venda, pagamento)',
+    example: 'sale',
+  })
   origin_type?: string;
+
+  @ApiPropertyOptional({
+    description: 'ID de referência da origem',
+    example: '23425326464646652',
+  })
   origin_id?: string;
 }

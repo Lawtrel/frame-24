@@ -14,7 +14,7 @@ export class PasswordResetService {
     private readonly identityRepository: IdentityRepository,
     private readonly personRepository: PersonRepository,
     private readonly logger: LoggerService,
-  ) {}
+  ) { }
 
   @Transactional()
   async requestReset(
@@ -57,7 +57,10 @@ export class PasswordResetService {
   }
 
   @Transactional()
-  async resetPassword(token: string, newPlainPassword: string): Promise<void> {
+  async resetPassword(
+    token: string,
+    newPlainPassword: string,
+  ): Promise<Identity> {
     const identity =
       await this.identityRepository.findByPasswordResetToken(token);
 
@@ -73,14 +76,17 @@ export class PasswordResetService {
 
     const password = await Password.create(newPlainPassword);
 
-    await this.identityRepository.completePasswordReset(identity.id, {
-      passwordHash: password.hash,
-      passwordChangedAt: new Date(),
-    });
+    const updatedIdentity =
+      await this.identityRepository.completePasswordReset(identity.id, {
+        passwordHash: password.hash,
+        passwordChangedAt: new Date(),
+      });
 
     this.logger.log(
       `Senha redefinida com sucesso: ${identity.id}`,
       PasswordResetService.name,
     );
+
+    return updatedIdentity;
   }
 }
