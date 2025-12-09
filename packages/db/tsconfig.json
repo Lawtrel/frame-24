@@ -8,7 +8,8 @@
     "composite": true,
     "emitDeclarationOnly": false,
     "module": "CommonJS",
-    "target": "ES2020"
+    "target": "ES2020",
+    "ignoreDeprecations": "6.0"
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]
