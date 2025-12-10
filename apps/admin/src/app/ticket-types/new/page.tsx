@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { SalesService } from "@/services/sales-service"; // Ajuste o import se necessário
+import { SalesService } from "@/services/sales-services"; // Ajuste o import se necessário
 import { apiConfig } from "@/services/api-config"; // Importe apiConfig
-import { TicketTypesApi } from "@repo/api-types"; // Import direto para garantir tipagem
+import { TicketsApi } from "@repo/api-types"; // Import direto para garantir tipagem
 
 export default function NewTicketTypePage() {
   const router = useRouter();

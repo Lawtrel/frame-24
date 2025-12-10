@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SalesService } from "@/services/sales-service";
+import { SalesService } from "@/services/sales-services";
 import { Plus, Trash2, Ticket } from "lucide-react";
 import Link from "next/link";
 

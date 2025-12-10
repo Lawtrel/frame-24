@@ -1,14 +1,14 @@
 import { apiConfig } from "./api-config";
-import { TicketTypesApi, ProductsApi, ProductCategoriesApi } from "@repo/api-types";
+import { TicketsApi, ProductsApi, ProductCategoriesApi } from "@repo/api-types";
 
-const ticketTypesApi = new TicketTypesApi(apiConfig);
+const ticketTypesApi = new TicketsApi(apiConfig);
 const productsApi = new ProductsApi(apiConfig);
 const categoriesApi = new ProductCategoriesApi(apiConfig);
 
 export const SalesService = {
   // --- Tipos de Ingresso ---
   async getTicketTypes() {
-    const response = await ticketTypesApi.ticketTypesControllerFindAllV1();
+    const response = await ticketTypesApi.ticketsControllerFindOneV1({ id: 'someId' }); // Replace 'someId' with the actual ID you want to use
     return response.data;
   },
 
