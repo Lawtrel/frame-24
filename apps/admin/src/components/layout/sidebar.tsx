@@ -9,12 +9,14 @@ import {
   DollarSign, 
   Settings, 
   Package,
-  LogOut 
+  LogOut,
+  CalendarClock 
 } from "lucide-react";
 import { AuthService } from "@/services/auth-service";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/" },
+  { icon: CalendarClock, label: "Programação", href: "/schedule" },
   { icon: Users, label: "Usuários & Identidade", href: "/identity" },
   { icon: Film, label: "Catálogo de Filmes", href: "/catalog" },
   { icon: DollarSign, label: "Financeiro", href: "/finance" },

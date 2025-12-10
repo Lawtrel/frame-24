@@ -62,9 +62,12 @@ export default function ShowtimePage({
 
     const rows = Object.keys(seatsByRow).sort();
 
-    const handleSeatClick = (seat: Seat) => {
-        // Não pode selecionar se já está reservado ou vendido
-        if (seat.reserved || seat.status !== 'Disponível') return;
+const handleSeatClick = (seat: Seat) => {
+        // Verifica se o status é um dos permitidos (Livre, Disponível ou available)
+        const isAvailable = ['Livre', 'Disponível', 'available'].includes(seat.status);
+
+        // Não pode selecionar se já está reservado ou não está livre
+        if (seat.reserved || !isAvailable) return;
 
         // Se já tem reserva, não pode selecionar mais assentos
         if (reservation.reservationUuid && !reservation.reservedSeatIds.includes(seat.id)) {
@@ -95,7 +98,7 @@ export default function ShowtimePage({
         releaseSeats();
     };
 
-    const getSeatStatus = (seat: Seat) => {
+const getSeatStatus = (seat: Seat) => {
         // Meus assentos reservados
         if (reservation.reservedSeatIds.includes(seat.id)) {
             return 'my-reserved';
@@ -104,7 +107,7 @@ export default function ShowtimePage({
         if (selectedSeats.includes(seat.id)) {
             return 'selected';
         }
-        // Reservado por outros (via campo reserved ou status "Reservado")
+        // Reservado por outros
         if (seat.reserved || seat.status === 'Reservado') {
             return 'reserved';
         }
@@ -114,13 +117,13 @@ export default function ShowtimePage({
         }
         // Bloqueado
         if (seat.status === 'Bloqueado') {
-            return 'sold'; // Também fica preto como vendido
+            return 'sold'; 
         }
-        // Disponível (português ou inglês para compatibilidade)
-        if (seat.status === 'Disponível' || seat.status === 'available') {
+        // Disponível (Adicionado 'Livre' aqui)
+        if (seat.status === 'Disponível' || seat.status === 'available' || seat.status === 'Livre') {
             return 'available';
         }
-        // Fallback: se não é nenhum dos anteriores, trata como vendido
+        // Fallback
         return 'sold';
     };
 
