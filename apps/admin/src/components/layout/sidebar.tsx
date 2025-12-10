@@ -10,15 +10,21 @@ import {
   Settings, 
   Package,
   LogOut,
-  CalendarClock 
+  CalendarClock,
+  Ticket,
+  Popcorn,
+  Truck
 } from "lucide-react";
 import { AuthService } from "@/services/auth-service";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/" },
   { icon: CalendarClock, label: "Programação", href: "/schedule" },
-  { icon: Users, label: "Usuários & Identidade", href: "/identity" },
   { icon: Film, label: "Catálogo de Filmes", href: "/catalog" },
+  { icon: Popcorn, label: "Produtos & Combos", href: "/products" },
+  { icon: Ticket, label: "Tipos de Ingresso", href: "/ticket-types" },
+  { icon: Truck, label: "Fornecedores", href: "/suppliers" },
+  { icon: Users, label: "Usuários & Identidade", href: "/identity" },
   { icon: DollarSign, label: "Financeiro", href: "/finance" },
   { icon: Package, label: "Estoque", href: "/stock" },
   { icon: Settings, label: "Configurações", href: "/settings" },

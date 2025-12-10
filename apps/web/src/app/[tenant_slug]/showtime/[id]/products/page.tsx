@@ -5,8 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useSeatReservation } from '@/hooks/use-seat-reservation';
 import { useShowtimeDetails } from '@/hooks/use-showtime-details';
 import { useCompany } from '@/hooks/use-company';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { api } from '@/lib/api';
 
 interface Product {
@@ -16,11 +14,6 @@ interface Product {
     price: number;
     image_url?: string;
     category_id: string;
-}
-
-interface CartItem {
-    product: Product;
-    quantity: number;
 }
 
 export default function ProductSelectionPage({
@@ -43,7 +36,9 @@ export default function ProductSelectionPage({
     const [products, setProducts] = useState<Product[]>([]);
     const [cart, setCart] = useState<Record<string, number>>({});
     const [loading, setLoading] = useState(true);
-    const [ticketTotal, setTicketTotal] = useState(0);
+    
+    // Novo estado para o valor dos ingressos
+    const [ticketsTotalValue, setTicketsTotalValue] = useState(0);
 
     // Redirecionar se não houver reserva
     useEffect(() => {
@@ -52,55 +47,70 @@ export default function ProductSelectionPage({
         }
     }, [isInitialized, reservation, router, tenant_slug, id]);
 
-    // Carregar total dos ingressos do localStorage
+    // 1. Carregar valor dos ingressos e Produtos
     useEffect(() => {
-        const savedTickets = localStorage.getItem(`selected-tickets-${id}`);
-        if (savedTickets && showtime) {
-            // Aqui idealmente recalcularíamos o total com base nos tipos salvos
-            // Por simplificação, vamos assumir um valor base ou recuperar o total se tivesse sido salvo
-            // Vamos recalcular rapidinho se tivermos os tipos (but we don't have them here easily)
-            // Para MVP, vamos assumir que o usuário selecionou e seguir
-        }
-    }, [id, showtime]);
-
-    // Buscar produtos
-    useEffect(() => {
-        async function fetchProducts() {
+        async function loadData() {
             try {
-                // Buscar produtos com preços específicos do complexo
-                const complexId = showtime?.cinema?.name ? showtime.cinema.name : undefined; // Ajustar conforme estrutura real se tiver ID
-                // Nota: O hook useShowtimeDetails agora retorna cinema.name, mas precisamos do ID para preços
-                // Vamos tentar pegar do showtime se tiver, ou usar sem filtro por enquanto
+                // A. Carregar Seleção de Ingressos do LocalStorage
+                const savedTicketsJson = localStorage.getItem(`selected-tickets-${id}`);
+                const selectedTickets = savedTicketsJson ? JSON.parse(savedTicketsJson) : {};
+                
+                // B. Carregar Cart do LocalStorage
+                const savedCart = localStorage.getItem(`cart-${id}`);
+                if (savedCart) setCart(JSON.parse(savedCart));
 
-                const url = `/public/companies/${tenant_slug}/products`;
-                const params: any = {};
-                // Se tivermos o ID do complexo no futuro, adicionamos aqui
-                // params.complex_id = complexId;
+                // C. Buscar Tipos de Ingresso (Para calcular o total)
+                const ticketsRes = await api.get(`/public/companies/${tenant_slug}/ticket-types`);
+                const ticketTypes = ticketsRes.data;
 
-                const response = await api.get(url, { params });
-                setProducts(response.data);
+                // D. Buscar Produtos
+                const complexId = (showtime as any)?.cinema?.id;
+                const productsRes = await api.get(`/public/companies/${tenant_slug}/products`, {
+                    params: { complex_id: complexId }
+                });
+                setProducts(productsRes.data);
+
+                // E. Calcular Total dos Ingressos (Lógica idêntica ao Checkout)
+                if (showtime && reservation.reservedSeatIds.length > 0) {
+                    const total = reservation.reservedSeatIds.reduce((acc: number, seatId: string) => {
+                        const typeId = selectedTickets[seatId];
+                        const type = ticketTypes.find((t: any) => t.id === typeId);
+                        
+                        // Detalhes do assento (preço extra)
+                        const seat = (showtime as any).seats.find((s: any) => s.id === seatId);
+                        const extra = Number(seat?.additional_value || 0);
+                        const base = Number((showtime as any).base_ticket_price);
+                        
+                        let multiplier = 1;
+                        if (type?.price_modifier !== undefined) multiplier = Number(type.price_modifier);
+                        else if (type?.discount_percentage) multiplier = 1 - (Number(type.discount_percentage) / 100);
+
+                        return acc + ((base + extra) * multiplier);
+                    }, 0);
+                    
+                    setTicketsTotalValue(total);
+                }
+
             } catch (error) {
-                console.error('Erro ao buscar produtos:', error);
+                console.error('Erro ao carregar dados:', error);
             } finally {
                 setLoading(false);
             }
         }
 
-        if (showtime) {
-            fetchProducts();
+        if (showtime && reservation.reservedSeatIds.length > 0) {
+            loadData();
         }
-    }, [tenant_slug, showtime]);
+    }, [tenant_slug, showtime, id, reservation.reservedSeatIds]);
 
     const updateQuantity = (productId: string, delta: number) => {
         setCart(prev => {
             const currentQty = prev[productId] || 0;
             const newQty = Math.max(0, currentQty + delta);
-
             if (newQty === 0) {
                 const { [productId]: _, ...rest } = prev;
                 return rest;
             }
-
             return { ...prev, [productId]: newQty };
         });
     };
@@ -112,8 +122,10 @@ export default function ProductSelectionPage({
         }, 0);
     };
 
+    // Total Geral = Ingressos + Produtos
+    const grandTotal = ticketsTotalValue + calculateProductTotal();
+
     const handleContinue = () => {
-        // Salvar carrinho no localStorage
         localStorage.setItem(`cart-${id}`, JSON.stringify(cart));
         router.push(`/${tenant_slug}/showtime/${id}/checkout`);
     };
@@ -128,7 +140,6 @@ export default function ProductSelectionPage({
 
     return (
         <div className="min-h-screen bg-zinc-950 text-white pb-24">
-            {/* Header */}
             <header className="bg-zinc-900 border-b border-zinc-800 p-4 sticky top-0 z-10">
                 <div className="max-w-4xl mx-auto flex items-center justify-between">
                     <div>
@@ -152,46 +163,28 @@ export default function ProductSelectionPage({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {products.map(product => {
                         const quantity = cart[product.id] || 0;
-
                         return (
                             <div key={product.id} className="bg-zinc-900 rounded-lg p-4 border border-zinc-800 flex gap-4">
-                                {/* Imagem Placeholder */}
                                 <div className="w-24 h-24 bg-zinc-800 rounded-md flex-shrink-0 flex items-center justify-center text-zinc-600">
                                     {product.image_url ? (
                                         <img src={product.image_url} alt={product.name} className="w-full h-full object-cover rounded-md" />
                                     ) : (
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
+                                        <span className="text-xs">Sem foto</span>
                                     )}
                                 </div>
-
                                 <div className="flex-1 flex flex-col justify-between">
                                     <div>
                                         <h3 className="font-bold">{product.name}</h3>
                                         <p className="text-sm text-zinc-400 line-clamp-2">{product.description}</p>
                                     </div>
-
                                     <div className="flex items-center justify-between mt-2">
                                         <div className="font-bold text-lg">
                                             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.price)}
                                         </div>
-
                                         <div className="flex items-center gap-3 bg-zinc-800 rounded-lg p-1">
-                                            <button
-                                                onClick={() => updateQuantity(product.id, -1)}
-                                                className="w-8 h-8 flex items-center justify-center hover:bg-zinc-700 rounded transition-colors disabled:opacity-50"
-                                                disabled={quantity === 0}
-                                            >
-                                                -
-                                            </button>
+                                            <button onClick={() => updateQuantity(product.id, -1)} className="w-8 h-8 flex items-center justify-center hover:bg-zinc-700 rounded transition-colors disabled:opacity-50" disabled={quantity === 0}>-</button>
                                             <span className="w-4 text-center font-bold">{quantity}</span>
-                                            <button
-                                                onClick={() => updateQuantity(product.id, 1)}
-                                                className="w-8 h-8 flex items-center justify-center hover:bg-zinc-700 rounded transition-colors"
-                                            >
-                                                +
-                                            </button>
+                                            <button onClick={() => updateQuantity(product.id, 1)} className="w-8 h-8 flex items-center justify-center hover:bg-zinc-700 rounded transition-colors">+</button>
                                         </div>
                                     </div>
                                 </div>
@@ -201,13 +194,18 @@ export default function ProductSelectionPage({
                 </div>
             </main>
 
-            {/* Footer com Total e Ação */}
+            {/* Footer com Total ACUMULADO */}
             <footer className="fixed bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-800 p-4">
                 <div className="max-w-4xl mx-auto flex items-center justify-between">
                     <div>
-                        <div className="text-sm text-zinc-400">Total Produtos</div>
+                        <div className="text-sm text-zinc-400 flex gap-2">
+                            Total Geral
+                            <span className="text-xs bg-zinc-800 px-2 rounded-full flex items-center">
+                                Ingressos: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(ticketsTotalValue)}
+                            </span>
+                        </div>
                         <div className="text-2xl font-bold text-white">
-                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(calculateProductTotal())}
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(grandTotal)}
                         </div>
                     </div>
                     <button
