@@ -48,7 +48,7 @@ export function Sidebar() {
       {/* Cabeçalho da Sidebar */}
       <div className="px-6 mb-8">
         <h1 className="text-xl font-bold text-foreground">
-          Lawtrel <span className="text-accent-red">Admin</span>
+          Frame24 <span className="text-accent-red">Admin</span>
         </h1>
       </div>
       

@@ -13,17 +13,22 @@ export const CatalogService = {
   },
 
   getMovieById: async (id: string) => {
-    const response = await moviesApi.moviesControllerFindOneV1(id);
+    if (!id) throw new Error("ID é obrigatório para getMovieById");
+    const response = await moviesApi.moviesControllerFindOneV1({ id });
     return response.data;
   },
 
   createMovie: async (data: any) => {
-    // Envolve o objeto no DTO esperado pela API
+    // CORREÇÃO FINAL: Envolver no objeto { createMovieDto: data }
     return moviesApi.moviesControllerCreateV1({ createMovieDto: data });
   },
 
   updateMovie: async (id: string, data: any) => {
-    return moviesApi.moviesControllerUpdateV1(id, { updateMovieDto: data });
+    return moviesApi.moviesControllerUpdateV1({ id, updateMovieDto: data });
+  },
+
+  deleteMovie: async (id: string) => {
+    return moviesApi.moviesControllerDeleteV1({ id });
   },
 
   // --- DADOS AUXILIARES ---
@@ -37,6 +42,11 @@ export const CatalogService = {
     return response.data;
   },
 
+  getMediaTypes: async () => {
+    const response = await moviesApi.moviesControllerGetMediaTypesV1();
+    return response.data;
+  },
+
   getCategories: async () => {
     const response = await categoriesApi.movieCategoriesControllerFindAllV1();
     return response.data;
@@ -44,7 +54,7 @@ export const CatalogService = {
 
   // --- PRODUTOS ---
   getProducts: async (active = 'true') => {
-    const response = await productsApi.productsControllerFindAllV1(active);
+    const response = await productsApi.productsControllerFindAllV1({ active });
     return response.data;
   }
 };

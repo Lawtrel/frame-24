@@ -16,7 +16,7 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <header>
         <h2 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h2>
-        <p className="text-zinc-400">Visão geral do sistema Lawtrel.</p>
+        <p className="text-zinc-400">Visão geral do sistema Frame24.</p>
       </header>
 
       {/* Grid de Cards */}

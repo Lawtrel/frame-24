@@ -3,13 +3,16 @@
 import { useEffect, useState } from "react";
 import { CatalogService } from "@/services/catalog-service";
 import { Movie } from "@/types/catalog";
-import { Plus, Search, Edit2, Trash2, Film, Loader2 } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, Film, Loader2, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function CatalogPage() {
+  const router = useRouter();
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchMovies();
@@ -19,8 +22,6 @@ export default function CatalogPage() {
     try {
       setLoading(true);
       const data = await CatalogService.getMovies();
-      // O Axios retorna os dados, mas precisamos garantir a tipagem.
-      // Dependendo de como o DTO foi gerado, pode ser necessário ajustar o map.
       setMovies(data as any); 
     } catch (error) {
       console.error("Erro ao buscar filmes:", error);
@@ -29,7 +30,40 @@ export default function CatalogPage() {
     }
   };
 
-  // Filtragem simples no frontend
+  const handleDelete = async (id: string, title: string) => {
+    if (!confirm(`Tem certeza que deseja excluir o filme "${title}"?`)) return;
+    
+    try {
+      await CatalogService.deleteMovie(id);
+      setMovies(prev => prev.filter(m => m.id !== id));
+    } catch (error) {
+      console.error("Erro ao excluir", error);
+      alert("Não foi possível excluir o filme.");
+    }
+  };
+
+  // --- NOVA FUNÇÃO: Alternar Status ---
+  const handleToggleStatus = async (movie: Movie) => {
+    try {
+      setTogglingId(movie.id);
+      const newStatus = !movie.active;
+      
+      // Atualização Otimista (Muda na tela antes de confirmar no servidor)
+      setMovies(prev => prev.map(m => m.id === movie.id ? { ...m, active: newStatus } : m));
+
+      // Chamada API
+      await CatalogService.updateMovie(movie.id, { active: newStatus });
+
+    } catch (error) {
+      console.error("Erro ao alterar status", error);
+      // Reverte em caso de erro
+      setMovies(prev => prev.map(m => m.id === movie.id ? { ...m, active: !movie.active } : m));
+      alert("Erro ao atualizar status do filme.");
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
   const filteredMovies = movies.filter((movie) =>
     movie.original_title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (movie.brazil_title && movie.brazil_title.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -37,7 +71,6 @@ export default function CatalogPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header da Página */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Catálogo de Filmes</h1>
@@ -52,7 +85,6 @@ export default function CatalogPage() {
         </Link>
       </div>
 
-      {/* Barra de Filtros */}
       <div className="flex items-center gap-2 bg-zinc-900/50 p-2 rounded-lg border border-border">
         <Search className="w-5 h-5 text-zinc-500 ml-2" />
         <input
@@ -64,7 +96,6 @@ export default function CatalogPage() {
         />
       </div>
 
-      {/* Tabela de Listagem */}
       <div className="rounded-lg border border-border bg-zinc-900/50 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -73,7 +104,7 @@ export default function CatalogPage() {
                 <th className="px-6 py-4 font-medium">Título</th>
                 <th className="px-6 py-4 font-medium">Duração</th>
                 <th className="px-6 py-4 font-medium">Origem</th>
-                <th className="px-6 py-4 font-medium">Status</th>
+                <th className="px-6 py-4 font-medium">Status (Publicado)</th>
                 <th className="px-6 py-4 font-medium text-right">Ações</th>
               </tr>
             </thead>
@@ -121,21 +152,40 @@ export default function CatalogPage() {
                         {movie.national ? "Nacional" : "Internacional"}
                       </span>
                     </td>
+                    
+                    {/* COLUNA STATUS INTERATIVA */}
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${movie.active ? "bg-green-500" : "bg-red-500"}`} />
-                        <span className="text-zinc-400">{movie.active ? "Ativo" : "Inativo"}</span>
-                      </div>
+                      <button
+                        onClick={() => handleToggleStatus(movie)}
+                        disabled={togglingId === movie.id}
+                        className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium border transition-all ${
+                          movie.active 
+                            ? "bg-green-500/10 border-green-500/20 text-green-500 hover:bg-green-500/20" 
+                            : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700"
+                        }`}
+                      >
+                        {togglingId === movie.id ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : movie.active ? (
+                          <Eye className="w-3 h-3" />
+                        ) : (
+                          <EyeOff className="w-3 h-3" />
+                        )}
+                        {movie.active ? "Publicado" : "Oculto"}
+                      </button>
                     </td>
+
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
-                        <button 
+                        <Link 
+                          href={`/catalog/${movie.id}`} 
                           className="p-2 hover:bg-zinc-800 rounded-md text-zinc-400 hover:text-white transition-colors"
                           title="Editar"
                         >
                           <Edit2 className="w-4 h-4" />
-                        </button>
+                        </Link>
                         <button 
+                          onClick={() => handleDelete(movie.id, movie.brazil_title || movie.original_title)}
                           className="p-2 hover:bg-red-950/50 rounded-md text-zinc-400 hover:text-red-400 transition-colors"
                           title="Excluir"
                         >
