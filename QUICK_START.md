@@ -3,11 +3,13 @@
 ## ⚡ Início Rápido (5 minutos)
 
 ### 1. Pré-requisitos
+
 - Node.js >= 18
 - pnpm 10.20.0
 - Docker Desktop
 
 ### 2. Clonar e Instalar
+
 ```bash
 # Já clonado, apenas instalar dependências
 cd frame-24
@@ -15,15 +17,22 @@ pnpm install
 ```
 
 ### 3. Configurar Ambiente
-```bash
-# Copiar exemplo de .env
-cp apps/frontend/.env.example apps/frontend/.env.local
 
-# Editar se necessário (padrão já funciona)
-# NEXT_PUBLIC_API_URL=http://localhost:4000
+```bash
+# Copiar exemplos por app/package (recomendado no Turborepo)
+cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env
+cp apps/admin/.env.example apps/admin/.env
+cp apps/landing-page/.env.example apps/landing-page/.env
+cp packages/db/.env.example packages/db/.env
+
+# Opcional: overrides locais (não versionado)
+touch apps/web/.env.local
+touch apps/admin/.env.local
 ```
 
 ### 4. Iniciar Infraestrutura
+
 ```bash
 # Iniciar Docker (PostgreSQL, RabbitMQ, etc.)
 docker-compose up -d
@@ -33,6 +42,7 @@ docker-compose ps
 ```
 
 ### 5. Configurar Banco de Dados
+
 ```bash
 cd packages/db
 pnpm db:generate
@@ -44,36 +54,39 @@ cd ../..
 ### 6. Iniciar Aplicação
 
 **Terminal 1 - Backend:**
+
 ```bash
 pnpm dev:api
 # API rodando em http://localhost:4000
 ```
 
 **Terminal 2 - Frontend:**
+
 ```bash
 pnpm dev:web
 # Frontend rodando em http://localhost:3000
 ```
 
 ### 7. Acessar Sistema
+
 - **Frontend:** http://localhost:3000
 - **API Docs:** http://localhost:4000/api/docs
 - **Dashboard:** http://localhost:3000/dashboard
 
 ## 📱 Módulos Disponíveis
 
-| Módulo | URL | Descrição |
-|--------|-----|-----------|
-| 🏠 Dashboard | `/dashboard` | Métricas e ações rápidas |
-| 🔐 Login | `/login` | Autenticação JWT |
-| 👥 Usuários | `/users` | Gestão de usuários |
-| 🎬 Filmes | `/movies` | Catálogo de filmes |
-| 📦 Produtos | `/products` | Gestão de produtos |
-| 🏢 Complexos | `/cinema-complexes` | Complexos de cinema |
-| 🚪 Salas | `/rooms` | Salas de cinema |
-| 📅 Sessões | `/showtimes` | Programação |
-| 🚚 Fornecedores | `/suppliers` | Gestão de fornecedores |
-| 🏷️ Categorias | `/movie-categories` | Categorias de filmes |
+| Módulo          | URL                 | Descrição                |
+| --------------- | ------------------- | ------------------------ |
+| 🏠 Dashboard    | `/dashboard`        | Métricas e ações rápidas |
+| 🔐 Login        | `/login`            | Autenticação JWT         |
+| 👥 Usuários     | `/users`            | Gestão de usuários       |
+| 🎬 Filmes       | `/movies`           | Catálogo de filmes       |
+| 📦 Produtos     | `/products`         | Gestão de produtos       |
+| 🏢 Complexos    | `/cinema-complexes` | Complexos de cinema      |
+| 🚪 Salas        | `/rooms`            | Salas de cinema          |
+| 📅 Sessões      | `/showtimes`        | Programação              |
+| 🚚 Fornecedores | `/suppliers`        | Gestão de fornecedores   |
+| 🏷️ Categorias   | `/movie-categories` | Categorias de filmes     |
 
 ## 🔑 Credenciais de Teste
 
@@ -96,6 +109,7 @@ Ou acesse: http://localhost:3003 (Landing Page) para registro.
 ## 🐛 Problemas Comuns
 
 ### Erro: "Cannot connect to API"
+
 ```bash
 # Verificar se backend está rodando
 curl http://localhost:4000/api/docs
@@ -105,6 +119,7 @@ pnpm dev:api
 ```
 
 ### Erro: "Database connection failed"
+
 ```bash
 # Verificar Docker
 docker-compose ps
@@ -114,6 +129,7 @@ docker-compose restart postgres
 ```
 
 ### Erro: "Port 3000 already in use"
+
 ```bash
 # Matar processo na porta 3000
 lsof -ti:3000 | xargs kill -9
@@ -147,6 +163,7 @@ PORT=3001 pnpm dev:web
 ## 🆘 Suporte
 
 Se encontrar problemas:
+
 1. Verifique a documentação completa
 2. Consulte os logs do backend e frontend
 3. Verifique se todos os serviços Docker estão rodando

@@ -32,6 +32,7 @@ Este projeto utiliza uma **arquitetura monorepo moderna** organizada de forma mo
 ### 📱 Applications
 
 #### 🔧 **`api`** - Backend REST API
+
 > **Porta:** `4000` | **Framework:** [NestJS](https://nestjs.com/)
 
 - ✅ RESTful API versionada (`/v1/`) com documentação Swagger/Scalar
@@ -42,6 +43,7 @@ Este projeto utiliza uma **arquitetura monorepo moderna** organizada de forma mo
 - 🗄️ Multi-schema database (13 schemas PostgreSQL separados)
 
 #### 🎨 **`frontend`** - Dashboard Administrativo
+
 > **Porta:** `3002` | **Framework:** [Next.js 16](https://nextjs.org/)
 
 - ⚛️ React 19 com Server Components
@@ -50,6 +52,7 @@ Este projeto utiliza uma **arquitetura monorepo moderna** organizada de forma mo
 - 🧩 UI components compartilhados e reutilizáveis
 
 #### 🌐 **`landing-page`** - Página Institucional
+
 > **Porta:** `3003` | **Framework:** [Next.js 16](https://nextjs.org/)
 
 - ⚛️ React 19
@@ -58,56 +61,60 @@ Este projeto utiliza uma **arquitetura monorepo moderna** organizada de forma mo
 
 ### 📦 Packages
 
-| Package | Descrição |
-|---------|-----------|
-| **`@repo/db`** | Camada de dados com Prisma - Schema multi-tenant com 13 schemas PostgreSQL |
-| **`@repo/ui`** | Biblioteca de componentes UI compartilhados |
-| **`@repo/eslint-config`** | Configurações ESLint padronizadas |
-| **`@repo/tailwind-config`** | Configuração Tailwind CSS compartilhada |
-| **`@repo/typescript-config`** | Configurações TypeScript base |
+| Package                       | Descrição                                                                  |
+| ----------------------------- | -------------------------------------------------------------------------- |
+| **`@repo/db`**                | Camada de dados com Prisma - Schema multi-tenant com 13 schemas PostgreSQL |
+| **`@repo/ui`**                | Biblioteca de componentes UI compartilhados                                |
+| **`@repo/eslint-config`**     | Configurações ESLint padronizadas                                          |
+| **`@repo/tailwind-config`**   | Configuração Tailwind CSS compartilhada                                    |
+| **`@repo/typescript-config`** | Configurações TypeScript base                                              |
 
 ## 🚀 Stack Tecnológica
 
 ### 🔧 Core
-| Tecnologia | Versão | Descrição |
-|------------|--------|-----------|
-| **Node.js** | >= 18 | Runtime JavaScript |
-| **TypeScript** | 5.9.3 | Linguagem de programação |
-| **pnpm** | 10.20.0 | Gerenciador de pacotes |
-| **Turborepo** | 2.5.8 | Build system para monorepos |
+
+| Tecnologia     | Versão  | Descrição                   |
+| -------------- | ------- | --------------------------- |
+| **Node.js**    | >= 18   | Runtime JavaScript          |
+| **TypeScript** | 5.9.3   | Linguagem de programação    |
+| **pnpm**       | 10.20.0 | Gerenciador de pacotes      |
+| **Turborepo**  | 2.5.8   | Build system para monorepos |
 
 ### ⚙️ Backend
-| Tecnologia | Versão | Uso |
-|------------|--------|-----|
-| **NestJS** | 11.0.1 | Framework Node.js |
+
+| Tecnologia | Versão | Uso                          |
+| ---------- | ------ | ---------------------------- |
+| **NestJS** | 11.0.1 | Framework Node.js            |
 | **Prisma** | 6.18.0 | ORM e gerenciamento de banco |
-| **JWT** | - | Autenticação e autorização |
+| **JWT**    | -      | Autenticação e autorização   |
 
 ### 🎨 Frontend
-| Tecnologia | Versão | Uso |
-|------------|--------|-----|
-| **Next.js** | 16.0.1 | Framework React |
-| **React** | 19.2.0 | Biblioteca UI |
-| **Tailwind CSS** | 4 | Framework CSS utility-first |
+
+| Tecnologia       | Versão | Uso                         |
+| ---------------- | ------ | --------------------------- |
+| **Next.js**      | 16.0.1 | Framework React             |
+| **React**        | 19.2.0 | Biblioteca UI               |
+| **Tailwind CSS** | 4      | Framework CSS utility-first |
 
 ### 🏗️ Infraestrutura
-| Serviço | Versão | Descrição |
-|------------|--------|-----------|
-| **PostgreSQL** | 18.0-alpine | Banco de dados relacional |
-| **RabbitMQ** | 4.2-management-alpine | Message broker |
-| **MinIO** | latest | Armazenamento S3-compatible |
-| **MailHog** | latest | Servidor SMTP para testes |
+
+| Serviço        | Versão                | Descrição                   |
+| -------------- | --------------------- | --------------------------- |
+| **PostgreSQL** | 18.0-alpine           | Banco de dados relacional   |
+| **RabbitMQ**   | 4.2-management-alpine | Message broker              |
+| **MinIO**      | latest                | Armazenamento S3-compatible |
+| **MailHog**    | latest                | Servidor SMTP para testes   |
 
 ## 📋 Pré-requisitos
 
 Antes de começar, certifique-se de ter instalado as seguintes ferramentas:
 
-| Ferramenta | Versão Mínima | Link |
-|------------|---------------|------|
-| **Node.js** | >= 18 | [Download](https://nodejs.org/) |
-| **pnpm** | 10.20.0 | [Instalação](https://pnpm.io/installation) |
-| **Docker Desktop** | latest | [Download](https://www.docker.com/products/docker-desktop) |
-| **Git** | latest | [Download](https://git-scm.com/) |
+| Ferramenta         | Versão Mínima | Link                                                       |
+| ------------------ | ------------- | ---------------------------------------------------------- |
+| **Node.js**        | >= 18         | [Download](https://nodejs.org/)                            |
+| **pnpm**           | 10.20.0       | [Instalação](https://pnpm.io/installation)                 |
+| **Docker Desktop** | latest        | [Download](https://www.docker.com/products/docker-desktop) |
+| **Git**            | latest        | [Download](https://git-scm.com/)                           |
 
 ### 📦 Instalando pnpm
 
@@ -119,6 +126,7 @@ Escolha o método de instalação de acordo com seu sistema:
 ```bash
 npm install -g pnpm@10.20.0
 ```
+
 </details>
 
 <details>
@@ -127,6 +135,7 @@ npm install -g pnpm@10.20.0
 ```bash
 brew install pnpm
 ```
+
 </details>
 
 <details>
@@ -135,9 +144,11 @@ brew install pnpm
 ```bash
 choco install pnpm
 ```
+
 </details>
 
 **Verificar instalação:**
+
 ```bash
 pnpm --version
 ```
@@ -165,90 +176,24 @@ docker-compose ps
 
 ### 3️⃣ Configure as variáveis de ambiente
 
-#### 📝 3.1. Criar `.env` na raiz do projeto
+#### 📝 3.1. Criar `.env` por app/package (padrão recomendado do Turborepo)
 
-Crie o arquivo `.env` na raiz com o seguinte conteúdo:
-
-```env
-# ===========================================
-# APPLICATION
-# ===========================================
-NODE_ENV=development
-PORT=4000
-FRONTEND_URL=http://localhost:3000
-
-# ===========================================
-# DATABASE (PostgreSQL)
-# ===========================================
-DATABASE_URL="postgresql://frame24:frame24pass@localhost:5432/frame24?schema=public&connection_limit=30"
-
-# ===========================================
-# MESSAGE QUEUE (RabbitMQ)
-# ===========================================
-RABBITMQ_URL=amqp://frame24:frame24pass@localhost:5672
-RABBITMQ_HOST=localhost
-RABBITMQ_PORT=5672
-RABBITMQ_USER=frame24
-RABBITMQ_PASSWORD=frame24pass
-RABBITMQ_MANAGEMENT_URL=http://localhost:15672
-
-# ===========================================
-# EMAIL (MailHog)
-# ===========================================
-SMTP_HOST=localhost
-SMTP_PORT=1025
-SMTP_SECURE=false
-SMTP_USER=
-SMTP_PASSWORD=
-SMTP_FROM_EMAIL=noreply@frame24.com
-SMTP_FROM_NAME=Frame24
-MAILHOG_WEB_UI=http://localhost:8025
-
-# ===========================================
-# OBJECT STORAGE (MinIO / Supabase S3)
-# ===========================================
-# Development: Uses local MinIO (Docker)
-MINIO_ENDPOINT=localhost
-MINIO_PORT=9000
-MINIO_ACCESS_KEY=frame24
-MINIO_SECRET_KEY=frame24pass
-MINIO_USE_SSL=false
-MINIO_BUCKET=frame24-uploads
-MINIO_REGION=us-east-1
-STORAGE_PUBLIC_URL=http://localhost:9000
-MINIO_CONSOLE_URL=http://localhost:9001
-
-# Production: Use Supabase S3-compatible storage
-# MINIO_ENDPOINT=[PROJECT_REF].supabase.co
-# MINIO_PORT=443
-# MINIO_ACCESS_KEY=[SUPABASE_ACCESS_KEY_ID]
-# MINIO_SECRET_KEY=[SUPABASE_SECRET_ACCESS_KEY]
-# MINIO_USE_SSL=true
-# MINIO_BUCKET=frame24-uploads
-# MINIO_REGION=us-east-1
-# STORAGE_PUBLIC_URL=https://[PROJECT_REF].supabase.co/storage/v1/object/public
-# Note: Supabase endpoint will automatically use /storage/v1/s3 path
-
-# ===========================================
-# JWT & SECURITY
-# ===========================================
-JWT_SECRET=frame24-super-secret-jwt-key-2024
-JWT_EXPIRATION=7d
-
-# ===========================================
-# WORKER
-# ===========================================
-WORKER_ID=1
+```bash
+cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env
+cp apps/admin/.env.example apps/admin/.env
+cp apps/landing-page/.env.example apps/landing-page/.env
+cp packages/db/.env.example packages/db/.env
 ```
 
-#### 📝 3.2. Criar `.env` no package de banco de dados
+Se quiser sobrescrever algo localmente sem versionar, use `.env.local` dentro do app:
 
-Crie o arquivo `packages/db/.env`:
-
-```env
-DATABASE_URL="postgresql://frame24:frame24pass@localhost:5432/frame24?schema=public&connection_limit=30"
-DIRECT_URL="postgresql://frame24:frame24pass@localhost:5432/frame24?schema=public&connection_limit=30"
+```bash
+touch apps/web/.env.local
+touch apps/admin/.env.local
 ```
+
+> O Turborepo usa `env/globalEnv` no `turbo.json` para hashing de cache, e os arquivos `.env*` estão em `globalDependencies`.
 
 ### 4️⃣ Instale as dependências
 
@@ -278,62 +223,64 @@ cd ../..
 ### 6️⃣ Inicie o projeto
 
 **Opção 1: Iniciar todos os serviços** (API + Frontend + Landing Page)
+
 ```bash
 pnpm dev
 ```
 
 **Opção 2: Iniciar apenas a API**
+
 ```bash
 pnpm dev:api
 ```
 
 **Opção 3: Iniciar apenas o Frontend**
+
 ```bash
 # build o @repo/ui pra pegar o sidebar antes de rodar o frontend
 pnpm dev:web
 ```
 
-
 ## 🌐 Acessando os Serviços
 
 Após a instalação, você pode acessar os seguintes serviços:
 
-| 🎯 Serviço | 🔗 URL | 🔐 Credenciais |
-|------------|--------|----------------|
-| **API (Swagger)** | http://localhost:4000/api/docs | - |
-| **Frontend** | http://localhost:3000 | - |
-| **Landing Page** | http://localhost:3003 | - |
-| **RabbitMQ Management** | http://localhost:15672 | `frame24` / `frame24pass` |
-| **MailHog (Email UI)** | http://localhost:8025 | - |
-| **Prisma Studio** | Execute `pnpm db:studio` em `packages/db` | - |
+| 🎯 Serviço              | 🔗 URL                                    | 🔐 Credenciais            |
+| ----------------------- | ----------------------------------------- | ------------------------- |
+| **API (Swagger)**       | <http://localhost:4000/api/docs>            | -                         |
+| **Frontend**            | <http://localhost:3000>                     | -                         |
+| **Landing Page**        | <http://localhost:3003>                     | -                         |
+| **RabbitMQ Management** | <http://localhost:15672>                    | `frame24` / `frame24pass` |
+| **MailHog (Email UI)**  | <http://localhost:8025>                     | -                         |
+| **Prisma Studio**       | Execute `pnpm db:studio` em `packages/db` | -                         |
 
 ## 📊 Database Schemas
 
 O projeto utiliza **13 schemas PostgreSQL separados** para organização modular e isolamento de dados:
 
-| 🗄️ Schema | 📝 Descrição |
-|-----------|-------------|
-| **`identity`** | Usuários, empresas, autenticação, permissões, roles |
-| **`hr`** | Recursos humanos, funcionários, departamentos |
-| **`finance`** | Contabilidade, lançamentos, apurações |
-| **`crm`** | Clientes, preferências, pontos de fidelidade |
-| **`sales`** | Vendas, ingressos, concessão, transações |
-| **`inventory`** | Fornecedores, produtos, estoque |
-| **`marketing`** | Campanhas promocionais, cupons, descontos |
-| **`operations`** | Complexos, salas, sessões, assentos |
-| **`projects`** | Projetos RECINE (regime especial de cinema) |
-| **`stock`** | Movimentação de estoque |
-| **`tax`** | Tributos, apurações fiscais (ISS, ICMS, PIS, COFINS) |
-| **`catalog`** | Filmes, produtos, combos |
-| **`contracts`** | Contratos de exibição com distribuidoras |
+| 🗄️ Schema        | 📝 Descrição                                         |
+| ---------------- | ---------------------------------------------------- |
+| **`identity`**   | Usuários, empresas, autenticação, permissões, roles  |
+| **`hr`**         | Recursos humanos, funcionários, departamentos        |
+| **`finance`**    | Contabilidade, lançamentos, apurações                |
+| **`crm`**        | Clientes, preferências, pontos de fidelidade         |
+| **`sales`**      | Vendas, ingressos, concessão, transações             |
+| **`inventory`**  | Fornecedores, produtos, estoque                      |
+| **`marketing`**  | Campanhas promocionais, cupons, descontos            |
+| **`operations`** | Complexos, salas, sessões, assentos                  |
+| **`projects`**   | Projetos RECINE (regime especial de cinema)          |
+| **`stock`**      | Movimentação de estoque                              |
+| **`tax`**        | Tributos, apurações fiscais (ISS, ICMS, PIS, COFINS) |
+| **`catalog`**    | Filmes, produtos, combos                             |
+| **`contracts`**  | Contratos de exibição com distribuidoras             |
 
 ## 🔐 Autenticação
 
 A API utiliza **JWT (JSON Web Tokens)** para autenticação. Para acessar endpoints protegidos, siga estes passos:
 
 1. **Faça signup** em `POST /v1/auth/signup`
-3. **Faça login** em `POST /v1/auth/login`
-4. **Use o token retornado** nos headers das requisições:
+2. **Faça login** em `POST /v1/auth/login`
+3. **Use o token retornado** nos headers das requisições:
 
 ```http
 Authorization: Bearer <seu-token-jwt>
@@ -344,21 +291,25 @@ Authorization: Bearer <seu-token-jwt>
 ### 💻 Desenvolvimento
 
 **Linting:**
+
 ```bash
 pnpm lint
 ```
 
 **Type checking:**
+
 ```bash
 pnpm check-types
 ```
 
 **Formatação de código:**
+
 ```bash
 pnpm format
 ```
 
 **Iniciar serviços específicos com Turbo:**
+
 ```bash
 turbo dev --filter=api
 turbo dev --filter=frontend
@@ -368,17 +319,20 @@ turbo dev --filter=landing-page
 ### 🗄️ Database
 
 **Prisma Studio** (interface visual do banco):
+
 ```bash
 cd packages/db
 pnpm db:studio
 ```
 
 **Criar uma nova migration:**
+
 ```bash
 pnpm db:migrate:dev --name nome-da-migration
 ```
 
 **Reset completo do banco de dados:**
+
 ```bash
 pnpm db:reset
 ```
@@ -386,11 +340,13 @@ pnpm db:reset
 ### 🏗️ Build
 
 **Build de todos os apps:**
+
 ```bash
 pnpm build
 ```
 
 **Build específico:**
+
 ```bash
 turbo build --filter=api
 turbo build --filter=frontend
@@ -400,26 +356,29 @@ turbo build --filter=landing-page
 ### 🐳 Docker
 
 **Parar todos os serviços:**
+
 ```bash
 docker-compose down
 ```
 
 **Parar e remover volumes** ⚠️ (CUIDADO: apaga dados):
+
 ```bash
 docker-compose down -v
 ```
 
 **Ver logs de um serviço específico:**
+
 ```bash
 docker-compose logs -f postgres
 docker-compose logs -f rabbitmq
 ```
 
 **Reiniciar um serviço específico:**
+
 ```bash
 docker-compose restart postgres
 ```
-
 
 ## 🏢 Multi-Tenancy
 
@@ -440,26 +399,31 @@ O sistema é **multi-tenant**, ou seja, uma única instância serve múltiplas e
 ## 🚀 Funcionalidades Principais
 
 ### 🎬 Gerenciamento de Cinemas
+
 - ✅ Cadastro de complexos e salas
 - 🪑 Tipos de assento (VIP, namoradeira, standard)
 - 🎥 Tipos de projeção (2D, 3D, IMAX) e áudio (Dolby Atmos, DTS)
 
 ### 📅 Programação de Sessões
+
 - 📊 Grade de horários inteligente
 - ⚠️ Validação automática de conflitos
 - ⏰ Cálculo de horário de término baseado na duração do filme
 
 ### 💰 Sistema de Vendas
+
 - 🎫 Venda de ingressos com seleção de assentos
 - 🍿 Combos e produtos de concessão
 - 💳 Integração com gateway de pagamento
 
 ### 📊 Fiscal e Tributário
+
 - 🧮 Cálculo automático de impostos (ISS, ICMS, PIS, COFINS, IRPF/IRPJ)
 - 🔍 Determinação automática de regime tributário via BrasilAPI
 - 📈 Apurações fiscais mensais
 
 ### 👥 CRM e Fidelidade
+
 - 📝 Cadastro de clientes
 - ⭐ Programa de pontos
 - 📜 Histórico de compras
@@ -469,21 +433,25 @@ O sistema é **multi-tenant**, ou seja, uma única instância serve múltiplas e
 Contribuições são sempre bem-vindas! Para contribuir com o projeto:
 
 1. **Clone o repositório**
+
    ```bash
    git clone <url-do-repositorio>
    ```
 
 2. **Crie uma branch para sua feature**
+
    ```bash
    git checkout -b feature/nova-feature
    ```
 
 3. **Commit suas mudanças**
+
    ```bash
    git commit -m 'feat: adiciona nova feature'
    ```
 
 4. **Push para a branch**
+
    ```bash
    git push origin feature/nova-feature
    ```
@@ -502,11 +470,13 @@ Se alguma porta estiver em uso, você pode:
 ### 🗄️ Erro de conexão com o banco
 
 **Verifique se o PostgreSQL está rodando:**
+
 ```bash
 docker-compose ps postgres
 ```
 
 **Se estiver com problemas, reinicie:**
+
 ```bash
 docker-compose restart postgres
 ```
@@ -514,6 +484,7 @@ docker-compose restart postgres
 ### 📨 RabbitMQ não conecta
 
 Aguarde o healthcheck do RabbitMQ ficar verde:
+
 ```bash
 docker-compose ps rabbitmq
 ```
@@ -521,6 +492,7 @@ docker-compose ps rabbitmq
 ### 🔄 Prisma Client out of sync
 
 Se você alterou o schema:
+
 ```bash
 cd packages/db
 pnpm db:generate

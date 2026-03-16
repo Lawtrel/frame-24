@@ -7,81 +7,97 @@ O frontend completo do Frame-24 foi desenvolvido com **Next.js 16**, **React 19*
 ## 🎯 Módulos Implementados
 
 ### 1. **Autenticação e Segurança**
+
 - ✅ Sistema de login com JWT
 - ✅ Context API para gerenciamento de estado de autenticação
 - ✅ Proteção de rotas
 - ✅ Armazenamento seguro de tokens
 
 **Arquivos:**
+
 - `app/login/page.tsx` - Página de login
 - `app/contexts/AuthContext.tsx` - Context de autenticação
 - `app/services/api.ts` - Serviços de API com autenticação
 
 ### 2. **Gestão de Usuários**
+
 - ✅ Listagem de usuários com busca
 - ✅ Criação, edição e exclusão de usuários
 - ✅ Gerenciamento de roles e permissões
 - ✅ Alteração de senha
 
 **Arquivos:**
+
 - `app/users/page.tsx` - Listagem de usuários
 
 ### 3. **Catálogo de Filmes**
+
 - ✅ Listagem de filmes com cards visuais
 - ✅ Cadastro e edição de filmes
 - ✅ Gerenciamento de categorias de filmes
 - ✅ Integração com tipos de mídia e classificação indicativa
 
 **Arquivos:**
+
 - `app/movies/page.tsx` - Listagem de filmes (já existente, mantido)
 - `app/movies/cadastrar/page.tsx` - Cadastro de filmes (já existente, mantido)
 - `app/movie-categories/page.tsx` - Gerenciamento de categorias
 
 ### 4. **Catálogo de Produtos**
+
 - ✅ Listagem de produtos em grid
 - ✅ Cadastro e edição de produtos
 - ✅ Gerenciamento de categorias de produtos
 - ✅ Controle de estoque e preços
 
 **Arquivos:**
+
 - `app/products/page.tsx` - Listagem de produtos
 - `app/product-categories/page.tsx` - Categorias de produtos (a ser criado)
 
 ### 5. **Operações de Cinema**
+
 - ✅ Gerenciamento de complexos de cinema
 - ✅ Gerenciamento de salas
 - ✅ Programação de sessões (showtimes)
 - ✅ Visualização de horários e disponibilidade
 
 **Arquivos:**
+
 - `app/cinema-complexes/page.tsx` - Complexos de cinema
 - `app/rooms/page.tsx` - Salas de cinema
 - `app/showtimes/page.tsx` - Programação de sessões
 
 ### 6. **Inventário**
+
 - ✅ Gerenciamento de fornecedores
 - ✅ Informações de contato e endereço
 - ✅ Status de ativação
 
 **Arquivos:**
+
 - `app/suppliers/page.tsx` - Fornecedores
 
 ### 7. **Dashboard**
+
 - ✅ Métricas principais (filmes, produtos, sessões, usuários)
 - ✅ Ações rápidas
 - ✅ Visualização de receita e público
 - ✅ Boas-vindas personalizadas
 
 **Arquivos:**
+
 - `app/dashboard/page.tsx` - Dashboard principal
 
 ### 8. **Navegação e Layout**
+
 - ✅ Sidebar com navegação hierárquica
 - ✅ Suporte a dark mode
 - ✅ Breadcrumbs
 - ✅ Menu responsivo
 
 **Arquivos:**
+
 - `app/config/navigation.tsx` - Configuração de navegação
 - `app/layout.tsx` - Layout principal (atualizado)
 
@@ -92,18 +108,21 @@ O frontend completo do Frame-24 foi desenvolvido com **Next.js 16**, **React 19*
 Todos os serviços foram criados no arquivo `app/services/api.ts`:
 
 #### Autenticação
+
 - `POST /v1/auth/login`
 - `POST /v1/auth/register`
 - `POST /v1/auth/verify-email`
 - `POST /v1/auth/forgot-password`
 
 #### Usuários
+
 - `GET /v1/users`
 - `POST /v1/users`
 - `PUT /v1/users/:id`
 - `DELETE /v1/users/:id`
 
 #### Filmes
+
 - `GET /v1/movies`
 - `POST /v1/movies`
 - `PUT /v1/movies/:id`
@@ -113,48 +132,56 @@ Todos os serviços foram criados no arquivo `app/services/api.ts`:
 - `GET /v1/movies/age-ratings`
 
 #### Categorias de Filmes
+
 - `GET /v1/movie-categories`
 - `POST /v1/movie-categories`
 - `PUT /v1/movie-categories/:id`
 - `DELETE /v1/movie-categories/:id`
 
 #### Produtos
+
 - `GET /v1/products`
 - `POST /v1/products`
 - `PUT /v1/products/:id`
 - `DELETE /v1/products/:id`
 
 #### Categorias de Produtos
+
 - `GET /v1/product-categories`
 - `POST /v1/product-categories`
 - `PUT /v1/product-categories/:id`
 - `DELETE /v1/product-categories/:id`
 
 #### Fornecedores
+
 - `GET /v1/suppliers`
 - `POST /v1/suppliers`
 - `PUT /v1/suppliers/:id`
 - `DELETE /v1/suppliers/:id`
 
 #### Complexos de Cinema
+
 - `GET /v1/cinema-complexes`
 - `POST /v1/cinema-complexes`
 - `PUT /v1/cinema-complexes/:id`
 - `DELETE /v1/cinema-complexes/:id`
 
 #### Salas
+
 - `GET /v1/rooms`
 - `POST /v1/rooms`
 - `PUT /v1/rooms/:id`
 - `DELETE /v1/rooms/:id`
 
 #### Sessões
+
 - `GET /v1/showtimes`
 - `POST /v1/showtimes`
 - `PUT /v1/showtimes/:id`
 - `DELETE /v1/showtimes/:id`
 
 #### Tipos Auxiliares
+
 - `GET /v1/audio-types`
 - `GET /v1/projection-types`
 - `GET /v1/session-languages`
@@ -166,13 +193,15 @@ Todos os serviços foram criados no arquivo `app/services/api.ts`:
 
 ### 1. Configurar Variáveis de Ambiente
 
-Crie um arquivo `.env.local` no diretório `apps/frontend`:
+Crie os arquivos `.env` de cada app:
 
 ```bash
-cp apps/frontend/.env.example apps/frontend/.env.local
+cp apps/web/.env.example apps/web/.env
+cp apps/admin/.env.example apps/admin/.env
+cp apps/landing-page/.env.example apps/landing-page/.env
 ```
 
-Edite o arquivo `.env.local`:
+Edite os arquivos caso precise:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:4000
@@ -211,7 +240,7 @@ Em outro terminal:
 pnpm dev:web
 ```
 
-O frontend estará disponível em: **http://localhost:3000**
+O frontend estará disponível em: **<http://localhost:3000>**
 
 ## 📁 Estrutura de Arquivos
 
@@ -257,12 +286,13 @@ apps/frontend/
 │   ├── layout.tsx
 │   └── page.tsx
 ├── public/
-├── .env.example
 ├── next.config.ts
 ├── package.json
 ├── tailwind.config.ts
 └── tsconfig.json
 ```
+
+> Variáveis de ambiente ficam por app/package (`apps/*/.env` e `packages/*/.env`), no padrão recomendado do Turborepo.
 
 ## 🎨 Tecnologias Utilizadas
 
@@ -317,7 +347,7 @@ Se encontrar erros de CORS, verifique se o backend está configurado para aceita
 ```typescript
 // No backend (apps/api/src/main.ts)
 app.enableCors({
-  origin: 'http://localhost:3000',
+  origin: "http://localhost:3000",
   credentials: true,
 });
 ```
@@ -329,6 +359,7 @@ Se o token expirar, o usuário será redirecionado automaticamente para a págin
 ### Erro de Conexão com API
 
 Verifique se:
+
 1. O backend está rodando na porta 4000
 2. A variável `NEXT_PUBLIC_API_URL` está configurada corretamente
 3. O Docker Compose está rodando (banco de dados, etc.)

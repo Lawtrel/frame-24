@@ -1,27 +1,45 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": ["**/.env*"],
+  "globalEnv": [
+    "NODE_ENV",
+    "PORT",
+    "DATABASE_URL",
+    "DIRECT_URL",
+    "FRONTEND_URL",
+    "API_URL",
+    "JWT_SECRET",
+    "WORKER_ID",
+    "RABBITMQ_*",
+    "MINIO_*",
+    "STORAGE_PUBLIC_URL",
+    "RESEND_API_KEY",
+    "EMAIL_FROM"
+  ],
   "tasks": {
     "dev": {
       "dependsOn": ["^db:generate"],
       "cache": false,
       "persistent": true,
-      "env": ["DATABASE_URL", "PORT", "NODE_ENV"]
+      "env": ["NEXT_PUBLIC_*"]
     },
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
-      "env": ["DATABASE_URL", "PORT", "NODE_ENV"]
+      "env": ["NEXT_PUBLIC_*"]
     },
     "db:generate": {
       "cache": false,
-      "env": ["DATABASE_URL"]
+      "env": ["DATABASE_URL", "DIRECT_URL"]
     },
     "db:migrate": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "env": ["DATABASE_URL", "DIRECT_URL"]
     },
     "db:deploy": {
-      "cache": false
+      "cache": false,
+      "env": ["DATABASE_URL", "DIRECT_URL"]
     },
     "lint": {
       "dependsOn": ["^lint"]

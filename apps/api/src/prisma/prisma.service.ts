@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit, INestApplication } from '@nestjs/common';
-import { PrismaClient } from '@repo/db';
+import { PrismaClient, getPrismaClientOptions } from '@repo/db';
 import { ClsService } from 'nestjs-cls';
 import { tenancyExtension } from './prisma-tenancy.extension';
 
@@ -8,7 +8,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
   private _extendedClient: any;
 
   constructor(private readonly cls: ClsService) {
-    super();
+    super(getPrismaClientOptions());
     return new Proxy(this, {
       get: (target, prop, receiver) => {
         if (this._extendedClient && prop in this._extendedClient) {

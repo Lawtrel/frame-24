@@ -3,32 +3,38 @@
 ## ✅ Arquivos Criados
 
 ### Autenticação e Contextos
+
 1. `apps/frontend/app/contexts/AuthContext.tsx` - Context de autenticação com JWT
 2. `apps/frontend/app/login/page.tsx` - Página de login
 
 ### Serviços de API
-3. `apps/frontend/app/services/api.ts` - Serviços completos de integração com backend (REESCRITO)
+
+1. `apps/frontend/app/services/api.ts` - Serviços completos de integração com backend (REESCRITO)
 
 ### Páginas de Gestão
-4. `apps/frontend/app/users/page.tsx` - Listagem de usuários
-5. `apps/frontend/app/products/page.tsx` - Listagem de produtos
-6. `apps/frontend/app/movie-categories/page.tsx` - Gerenciamento de categorias de filmes
-7. `apps/frontend/app/cinema-complexes/page.tsx` - Gerenciamento de complexos
-8. `apps/frontend/app/rooms/page.tsx` - Gerenciamento de salas
-9. `apps/frontend/app/showtimes/page.tsx` - Programação de sessões
-10. `apps/frontend/app/suppliers/page.tsx` - Gerenciamento de fornecedores
+
+1. `apps/frontend/app/users/page.tsx` - Listagem de usuários
+2. `apps/frontend/app/products/page.tsx` - Listagem de produtos
+3. `apps/frontend/app/movie-categories/page.tsx` - Gerenciamento de categorias de filmes
+4. `apps/frontend/app/cinema-complexes/page.tsx` - Gerenciamento de complexos
+5. `apps/frontend/app/rooms/page.tsx` - Gerenciamento de salas
+6. `apps/frontend/app/showtimes/page.tsx` - Programação de sessões
+7. `apps/frontend/app/suppliers/page.tsx` - Gerenciamento de fornecedores
 
 ### Dashboard e Configuração
-11. `apps/frontend/app/dashboard/page.tsx` - Dashboard com métricas (REESCRITO)
-12. `apps/frontend/app/config/navigation.tsx` - Navegação completa (REESCRITO)
+
+1. `apps/frontend/app/dashboard/page.tsx` - Dashboard com métricas (REESCRITO)
+2. `apps/frontend/app/config/navigation.tsx` - Navegação completa (REESCRITO)
 
 ### Configuração
-13. `apps/frontend/.env.example` - Exemplo de variáveis de ambiente
+
+1. `apps/*/.env.example` - Exemplos de variáveis de ambiente por app (padrão Turborepo)
 
 ### Documentação
-14. `/home/ubuntu/frame-24/FRONTEND_DEVELOPMENT.md` - Documentação completa do frontend
-15. `/home/ubuntu/frame-24/API_ENDPOINTS.md` - Mapeamento de endpoints
-16. `/home/ubuntu/frame-24/FRONTEND_FILES_SUMMARY.md` - Este arquivo
+
+1. `/home/ubuntu/frame-24/FRONTEND_DEVELOPMENT.md` - Documentação completa do frontend
+2. `/home/ubuntu/frame-24/API_ENDPOINTS.md` - Mapeamento de endpoints
+3. `/home/ubuntu/frame-24/FRONTEND_FILES_SUMMARY.md` - Este arquivo
 
 ## 🔧 Arquivos Modificados
 
@@ -65,6 +71,7 @@
 ## 🔜 Próximas Implementações Sugeridas
 
 ### Páginas de Formulário (Create/Edit)
+
 - `/users/create` e `/users/edit/[id]`
 - `/products/create` e `/products/edit/[id]`
 - `/product-categories` (página completa)
@@ -74,6 +81,7 @@
 - `/suppliers/create` e `/suppliers/edit/[id]`
 
 ### Funcionalidades Avançadas
+
 - Paginação
 - Filtros avançados
 - Upload de imagens
@@ -85,10 +93,10 @@
 ## 🚀 Como Usar
 
 1. Instalar dependências: `pnpm install`
-2. Configurar `.env.local` com `NEXT_PUBLIC_API_URL=http://localhost:4000`
+2. Configurar `apps/web/.env` (a partir de `apps/web/.env.example`) com `NEXT_PUBLIC_API_URL=http://localhost:4000`
 3. Iniciar backend: `pnpm dev:api`
 4. Iniciar frontend: `pnpm dev:web`
-5. Acessar: http://localhost:3000
+5. Acessar: <http://localhost:3000>
 
 ## 📝 Notas Importantes
 
