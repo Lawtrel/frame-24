@@ -9,8 +9,6 @@ import {
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 
 import {
   ApiTags,
@@ -40,11 +38,8 @@ export class AgingReportsController {
       'Gera relatório de inadimplência de clientes (Aging List), agrupando títulos por faixas de atraso (0-30, 31-60, etc).',
   })
   @ApiResponse({ status: 200, description: 'Relatório gerado com sucesso.' })
-  getReceivablesAging(
-    @CurrentUser() user: RequestUser,
-    @Query() query: AgingReportQueryDto,
-  ) {
-    return this.agingService.getReceivablesAging(user.company_id, query);
+  getReceivablesAging(@Query() query: AgingReportQueryDto) {
+    return this.agingService.getReceivablesAging(query);
   }
 
   @Get('aging/payables')
@@ -55,11 +50,8 @@ export class AgingReportsController {
       'Gera relatório de contas a pagar em aberto (Aging List), agrupando títulos por faixas de vencimento.',
   })
   @ApiResponse({ status: 200, description: 'Relatório gerado com sucesso.' })
-  getPayablesAging(
-    @CurrentUser() user: RequestUser,
-    @Query() query: AgingReportQueryDto,
-  ) {
-    return this.agingService.getPayablesAging(user.company_id, query);
+  getPayablesAging(@Query() query: AgingReportQueryDto) {
+    return this.agingService.getPayablesAging(query);
   }
 
   @Get('customer-position')
@@ -70,11 +62,8 @@ export class AgingReportsController {
       'Visão consolidada da situação financeira de todos os clientes (total devido, vencido, ticket médio).',
   })
   @ApiResponse({ status: 200, description: 'Relatório gerado com sucesso.' })
-  getCustomerPosition(
-    @CurrentUser() user: RequestUser,
-    @Query() query: CustomerPositionQueryDto,
-  ) {
-    return this.positionService.getCustomerPosition(user.company_id, query);
+  getCustomerPosition(@Query() query: CustomerPositionQueryDto) {
+    return this.positionService.getCustomerPosition(query);
   }
 
   @Get('customer-position/:customer_id')
@@ -85,14 +74,8 @@ export class AgingReportsController {
       'Extrato detalhado de um cliente específico, listando todos os títulos e histórico de pagamentos.',
   })
   @ApiResponse({ status: 200, description: 'Detalhes retornados com sucesso.' })
-  getCustomerPositionById(
-    @CurrentUser() user: RequestUser,
-    @Param('customer_id') customer_id: string,
-  ) {
-    return this.positionService.getCustomerPositionById(
-      user.company_id,
-      customer_id,
-    );
+  getCustomerPositionById(@Param('customer_id') customer_id: string) {
+    return this.positionService.getCustomerPositionById(customer_id);
   }
 
   @Get('supplier-position')
@@ -103,11 +86,8 @@ export class AgingReportsController {
       'Visão consolidada da situação financeira de todos os fornecedores (total a pagar, vencido).',
   })
   @ApiResponse({ status: 200, description: 'Relatório gerado com sucesso.' })
-  getSupplierPosition(
-    @CurrentUser() user: RequestUser,
-    @Query() query: SupplierPositionQueryDto,
-  ) {
-    return this.positionService.getSupplierPosition(user.company_id, query);
+  getSupplierPosition(@Query() query: SupplierPositionQueryDto) {
+    return this.positionService.getSupplierPosition(query);
   }
 
   @Get('supplier-position/:supplier_id')
@@ -118,14 +98,8 @@ export class AgingReportsController {
       'Extrato detalhado de um fornecedor específico, listando todos os títulos e histórico de pagamentos.',
   })
   @ApiResponse({ status: 200, description: 'Detalhes retornados com sucesso.' })
-  getSupplierPositionById(
-    @CurrentUser() user: RequestUser,
-    @Param('supplier_id') supplier_id: string,
-  ) {
-    return this.positionService.getSupplierPositionById(
-      user.company_id,
-      supplier_id,
-    );
+  getSupplierPositionById(@Param('supplier_id') supplier_id: string) {
+    return this.positionService.getSupplierPositionById(supplier_id);
   }
 
   @Get('income-statement')
@@ -142,10 +116,7 @@ export class AgingReportsController {
     description: 'Mês de competência (YYYY-MM)',
   })
   @ApiResponse({ status: 200, description: 'DRE gerada com sucesso.' })
-  getIncomeStatement(
-    @CurrentUser() user: RequestUser,
-    @Query('month') month: string,
-  ) {
-    return this.financeService.getIncomeStatement(user.company_id, month);
+  getIncomeStatement(@Query('month') month: string) {
+    return this.financeService.getIncomeStatement(month);
   }
 }

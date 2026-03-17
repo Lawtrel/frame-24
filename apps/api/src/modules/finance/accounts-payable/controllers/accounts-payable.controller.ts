@@ -15,8 +15,6 @@ import { AccountPayableQueryDto } from '../dto/account-payable-query.dto';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 
 import {
   ApiTags,
@@ -43,11 +41,8 @@ export class AccountsPayableController {
     status: 201,
     description: 'Conta a pagar criada com sucesso.',
   })
-  create(
-    @CurrentUser() user: RequestUser,
-    @Body() dto: CreateAccountPayableDto,
-  ) {
-    return this.service.create(user.company_id, dto);
+  create(@Body() dto: CreateAccountPayableDto) {
+    return this.service.create(dto);
   }
 
   @Get()
@@ -61,11 +56,8 @@ export class AccountsPayableController {
     status: 200,
     description: 'Lista de contas a pagar retornada com sucesso.',
   })
-  findAll(
-    @CurrentUser() user: RequestUser,
-    @Query() query: AccountPayableQueryDto,
-  ) {
-    return this.service.findAll(user.company_id, query);
+  findAll(@Query() query: AccountPayableQueryDto) {
+    return this.service.findAll(query);
   }
 
   @Get(':id')
@@ -77,8 +69,8 @@ export class AccountsPayableController {
   })
   @ApiResponse({ status: 200, description: 'Detalhes da conta a pagar.' })
   @ApiResponse({ status: 404, description: 'Conta a pagar não encontrada.' })
-  findOne(@CurrentUser() user: RequestUser, @Param('id') id: string) {
-    return this.service.findOne(id, user.company_id);
+  findOne(@Param('id') id: string) {
+    return this.service.findOne(id);
   }
 
   @Patch(':id')
@@ -93,11 +85,7 @@ export class AccountsPayableController {
     description: 'Conta a pagar atualizada com sucesso.',
   })
   @ApiResponse({ status: 404, description: 'Conta a pagar não encontrada.' })
-  update(
-    @CurrentUser() user: RequestUser,
-    @Param('id') id: string,
-    @Body() dto: UpdateAccountPayableDto,
-  ) {
-    return this.service.update(id, user.company_id, dto);
+  update(@Param('id') id: string, @Body() dto: UpdateAccountPayableDto) {
+    return this.service.update(id, dto);
   }
 }

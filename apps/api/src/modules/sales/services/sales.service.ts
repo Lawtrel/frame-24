@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   Injectable,
   NotFoundException,
   BadRequestException,
@@ -6,7 +7,11 @@ import {
 } from '@nestjs/common';
 import { ProductPriceNotFoundException } from '../exceptions/sales.exceptions';
 import { Transactional } from '@nestjs-cls/transactional';
-import { SalesRepository } from '../repositories/sales.repository';
+import {
+  SaleWithBasicRelations,
+  SaleWithFullRelations,
+  SalesRepository,
+} from '../repositories/sales.repository';
 import { TicketsRepository } from '../repositories/tickets.repository';
 import { ConcessionSalesRepository } from '../repositories/concession-sales.repository';
 import { TicketsService } from './tickets.service';
@@ -28,10 +33,32 @@ import type {
   RequestUser,
   CustomerUser,
 } from 'src/modules/identity/auth/strategies/jwt.strategy';
+import { ClsService } from 'nestjs-cls';
 
 import { AccountsReceivableService } from 'src/modules/finance/accounts-receivable/services/accounts-receivable.service';
 import { TransactionsService } from 'src/modules/finance/transactions/services/transactions.service';
 import { BankAccountsRepository } from 'src/modules/finance/cash-flow/repositories/bank-accounts.repository';
+
+type ProductItem = Awaited<
+  ReturnType<ProductRepository['findAllByIds']>
+>[number];
+type ProductPrice = Awaited<
+  ReturnType<ProductPricesRepository['findActivePricesByProductIds']>
+>[number];
+type TicketPricing = Awaited<
+  ReturnType<TicketsService['calculateTicketPrice']>
+>;
+type TicketInputWithPricing = CreateSaleDto['tickets'][number] & {
+  pricing: TicketPricing;
+};
+type ConcessionItemData = {
+  item_type: 'PRODUCT' | 'COMBO';
+  item_id: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+};
+type SaleForResponse = SaleWithBasicRelations | SaleWithFullRelations;
 
 @Injectable()
 export class SalesService {
@@ -52,25 +79,34 @@ export class SalesService {
     private readonly accountsReceivableService: AccountsReceivableService,
     private readonly transactionsService: TransactionsService,
     private readonly bankAccountsRepository: BankAccountsRepository,
+    private readonly cls: ClsService,
   ) {}
 
-  async findAll(
-    user: RequestUser,
-    filters?: {
-      cinema_complex_id?: string;
-      customer_id?: string;
-      start_date?: Date;
-      end_date?: Date;
-      status?: string;
-    },
-  ): Promise<SaleResponseDto[]> {
-    const sales = await this.salesRepository.findAll(user.company_id, filters);
+  private getCompanyId(): string {
+    const companyId = this.cls.get<string>('companyId');
+    if (!companyId) {
+      throw new ForbiddenException('Contexto da empresa não encontrado.');
+    }
+    return companyId;
+  }
+
+  async findAll(filters?: {
+    cinema_complex_id?: string;
+    customer_id?: string;
+    start_date?: Date;
+    end_date?: Date;
+    status?: string;
+  }): Promise<SaleResponseDto[]> {
+    const sales = await this.salesRepository.findAll(
+      this.getCompanyId(),
+      filters,
+    );
 
     return sales.map((sale) => this.mapToDto(sale));
   }
 
-  async findOne(id: string, user: RequestUser): Promise<SaleResponseDto> {
-    const sale = await this.salesRepository.findById(id, user.company_id);
+  async findOne(id: string): Promise<SaleResponseDto> {
+    const sale = await this.salesRepository.findById(id, this.getCompanyId());
 
     if (!sale) {
       throw new NotFoundException('Venda não encontrada');
@@ -132,13 +168,18 @@ export class SalesService {
         .map((i) => i.item_id) || [];
 
     // Buscas paralelas (Promise.all)
-    const [productsMap, productPricesMap] = await Promise.all([
+    const [productsMap, productPricesMap]: [
+      Map<string, ProductItem>,
+      Map<string, ProductPrice>,
+    ] = await Promise.all([
       // Buscar produtos
       productItemIds.length > 0
         ? this.productsRepository
             .findAllByIds(productItemIds, company_id)
-            .then((items) => new Map(items.map((p) => [p.id, p])))
-        : Promise.resolve(new Map()),
+            .then(
+              (items) => new Map(items.map((product) => [product.id, product])),
+            )
+        : Promise.resolve(new Map<string, ProductItem>()),
 
       // Buscar preços de produtos
       productItemIds.length > 0
@@ -150,11 +191,11 @@ export class SalesService {
             )
             .then((prices) => {
               // Mapear preço por produto_id
-              const map = new Map();
+              const map = new Map<string, ProductPrice>();
               prices.forEach((p) => map.set(p.product_id, p));
               return map;
             })
-        : Promise.resolve(new Map()),
+        : Promise.resolve(new Map<string, ProductPrice>()),
     ]);
 
     // 2. Validação e Reserva de Assentos
@@ -188,18 +229,20 @@ export class SalesService {
     }
 
     // 3. Cálculo de Tickets (Otimizado)
-    const ticketPromises = dto.tickets.map(async (ticketDto) => {
-      const pricing = await this.ticketsService.calculateTicketPrice(
-        ticketDto.showtime_id,
-        ticketDto.seat_id,
-        ticketDto.ticket_type,
-        company_id,
-      );
-      return {
-        ...ticketDto,
-        pricing,
-      };
-    });
+    const ticketPromises: Promise<TicketInputWithPricing>[] = dto.tickets.map(
+      async (ticketDto): Promise<TicketInputWithPricing> => {
+        const pricing = await this.ticketsService.calculateTicketPrice(
+          ticketDto.showtime_id,
+          ticketDto.seat_id,
+          ticketDto.ticket_type,
+          company_id,
+        );
+        return {
+          ...ticketDto,
+          pricing,
+        };
+      },
+    );
 
     const ticketData = await Promise.all(ticketPromises);
     const ticketsTotal = ticketData.reduce(
@@ -209,7 +252,7 @@ export class SalesService {
 
     // 4. Cálculo de Concessão (Otimizado)
     let concessionTotal = 0;
-    const concessionItemsData: any[] = [];
+    const concessionItemsData: ConcessionItemData[] = [];
 
     if (dto.concession_items && dto.concession_items.length > 0) {
       for (const item of dto.concession_items) {
@@ -241,7 +284,7 @@ export class SalesService {
               );
             if (!foundPrice)
               throw new ProductPriceNotFoundException(
-                product?.name || item.item_id,
+                product?.name ?? item.item_id,
               );
             unitPrice = Number(foundPrice.sale_price);
           } else {
@@ -376,7 +419,7 @@ export class SalesService {
     competenceDate.setHours(0, 0, 0, 0);
 
     try {
-      const taxPromises: Promise<any>[] = [];
+      const taxPromises: Promise<void>[] = [];
 
       if (ticketsTotal > 0) {
         taxPromises.push(
@@ -389,8 +432,8 @@ export class SalesService {
               competence_date: competenceDate,
               revenue_type: 'BOX_OFFICE',
             })
-            .then((calc) =>
-              this.taxEntriesRepository.create({
+            .then(async (calc) => {
+              await this.taxEntriesRepository.create({
                 cinema_complex_id: dto.cinema_complex_id,
                 source_type: 'SALE',
                 source_id: sale.id,
@@ -416,11 +459,11 @@ export class SalesService {
                 cofins_amount_payable: calc.cofins_amount_payable,
                 processing_user_id: user_id || null,
                 processed: false,
-              }),
-            )
+              });
+            })
             .catch((error) => {
               this.logger.error(
-                `Erro ao criar lançamento fiscal de bilheteria para venda ${sale.id}: ${error.message}`,
+                `Erro ao criar lançamento fiscal de bilheteria para venda ${sale.id}: ${this.toErrorMessage(error)}`,
                 SalesService.name,
               );
               // Não propaga o erro para não causar rollback
@@ -439,8 +482,8 @@ export class SalesService {
               competence_date: competenceDate,
               revenue_type: 'CONCESSION',
             })
-            .then((calc) =>
-              this.taxEntriesRepository.create({
+            .then(async (calc) => {
+              await this.taxEntriesRepository.create({
                 cinema_complex_id: dto.cinema_complex_id,
                 source_type: 'SALE',
                 source_id: sale.id,
@@ -466,11 +509,11 @@ export class SalesService {
                 cofins_amount_payable: calc.cofins_amount_payable,
                 processing_user_id: user_id || null,
                 processed: false,
-              }),
-            )
+              });
+            })
             .catch((error) => {
               this.logger.error(
-                `Erro ao criar lançamento fiscal de concessão para venda ${sale.id}: ${error.message}`,
+                `Erro ao criar lançamento fiscal de concessão para venda ${sale.id}: ${this.toErrorMessage(error)}`,
                 SalesService.name,
               );
               // Não propaga o erro para não causar rollback
@@ -482,7 +525,7 @@ export class SalesService {
     } catch (error) {
       // Este catch não deve ser atingido pois cada Promise tem seu próprio catch
       this.logger.error(
-        `Erro inesperado no processamento fiscal da venda ${sale.id}: ${error}`,
+        `Erro inesperado no processamento fiscal da venda ${sale.id}: ${this.toErrorMessage(error)}`,
         SalesService.name,
       );
     }
@@ -526,7 +569,7 @@ export class SalesService {
     // 9. Contas a Receber (Automático)
     try {
       // Criar título a receber
-      const receivable = await this.accountsReceivableService.create(
+      const receivable = await this.accountsReceivableService.createForCompany(
         company_id,
         {
           cinema_complex_id: dto.cinema_complex_id,
@@ -562,10 +605,10 @@ export class SalesService {
       // Buscar conta bancária padrão
       const bankAccounts =
         await this.bankAccountsRepository.findAll(company_id);
-      const defaultAccount = bankAccounts.find((acc: any) => acc.active);
+      const defaultAccount = bankAccounts.find((account) => account.active);
 
       if (defaultAccount) {
-        await this.transactionsService.settleReceivable(
+        await this.transactionsService.settleReceivableForCompany(
           company_id,
           user_id || 'SYSTEM',
           {
@@ -588,7 +631,7 @@ export class SalesService {
       }
     } catch (error) {
       this.logger.error(
-        `Erro ao criar conta a receber para venda ${sale.id}: ${error}`,
+        `Erro ao criar conta a receber para venda ${sale.id}: ${this.toErrorMessage(error)}`,
         SalesService.name,
       );
     }
@@ -638,7 +681,11 @@ export class SalesService {
 
       await Promise.all(
         Array.from(seatsByShowtime.entries()).map(([showtime_id, seat_ids]) =>
-          this.ticketsService.releaseSeats(showtime_id, seat_ids, user.company_id),
+          this.ticketsService.releaseSeats(
+            showtime_id,
+            seat_ids,
+            user.company_id,
+          ),
         ),
       );
     }
@@ -663,7 +710,7 @@ export class SalesService {
     this.logger.log(`Venda cancelada: ${sale.sale_number}`, SalesService.name);
   }
 
-  private mapToDto(sale: any): SaleResponseDto {
+  private mapToDto(sale: SaleForResponse): SaleResponseDto {
     const promotionUsage =
       sale.promotions_used && sale.promotions_used.length > 0
         ? sale.promotions_used[0]
@@ -686,7 +733,7 @@ export class SalesService {
         ? promotionUsage.discount_applied.toString()
         : undefined,
       tickets: (sale.tickets || []).map(
-        (ticket: any): TicketResponseDto => ({
+        (ticket): TicketResponseDto => ({
           id: ticket.id,
           ticket_number: ticket.ticket_number,
           seat: ticket.seat ?? undefined,
@@ -699,6 +746,13 @@ export class SalesService {
       ),
       created_at: sale.created_at?.toISOString() || new Date().toISOString(),
     };
+  }
+
+  private toErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+      return error.message;
+    }
+    return 'Erro desconhecido';
   }
 
   private isImmediatePaymentMethod(paymentMethodName?: string | null): boolean {

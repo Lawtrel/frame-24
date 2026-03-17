@@ -15,12 +15,10 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
 import { TaxEntriesService } from '../services/tax-entries.service';
 import { CreateTaxEntryDto } from '../dto/create-tax-entry.dto';
 import { TaxEntryResponseDto } from '../dto/tax-entry-response.dto';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 
 @ApiTags('Tax')
 @ApiBearerAuth()
@@ -33,11 +31,8 @@ export class TaxEntriesController {
   @RequirePermission('tax', 'create')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Criar lançamento fiscal' })
-  async create(
-    @Body() dto: CreateTaxEntryDto,
-    @CurrentUser() user: RequestUser,
-  ): Promise<TaxEntryResponseDto> {
-    return await this.taxEntriesService.create(dto, user);
+  async create(@Body() dto: CreateTaxEntryDto): Promise<TaxEntryResponseDto> {
+    return await this.taxEntriesService.create(dto);
   }
 
   @Get()
@@ -50,9 +45,15 @@ export class TaxEntriesController {
     @Query('start_date') start_date?: string,
     @Query('end_date') end_date?: string,
     @Query('processed') processed?: string,
-    @CurrentUser() user?: RequestUser,
   ): Promise<TaxEntryResponseDto[]> {
-    const filters: any = {};
+    const filters: {
+      cinema_complex_id?: string;
+      source_type?: string;
+      source_id?: string;
+      start_date?: Date;
+      end_date?: Date;
+      processed?: boolean;
+    } = {};
     if (cinema_complex_id) filters.cinema_complex_id = cinema_complex_id;
     if (source_type) filters.source_type = source_type;
     if (source_id) filters.source_id = source_id;
@@ -61,27 +62,21 @@ export class TaxEntriesController {
     if (processed !== undefined)
       filters.processed = processed === 'true' ? true : false;
 
-    return await this.taxEntriesService.findAll(user!, filters);
+    return await this.taxEntriesService.findAll(filters);
   }
 
   @Get(':id')
   @RequirePermission('tax', 'read')
   @ApiOperation({ summary: 'Buscar lançamento fiscal por ID' })
-  async findOne(
-    @Param('id') id: string,
-    @CurrentUser() user: RequestUser,
-  ): Promise<TaxEntryResponseDto> {
-    return await this.taxEntriesService.findOne(id, user);
+  async findOne(@Param('id') id: string): Promise<TaxEntryResponseDto> {
+    return await this.taxEntriesService.findOne(id);
   }
 
   @Put(':id/process')
   @RequirePermission('tax', 'update')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Marcar lançamento fiscal como processado' })
-  async markAsProcessed(
-    @Param('id') id: string,
-    @CurrentUser() user: RequestUser,
-  ): Promise<TaxEntryResponseDto> {
-    return await this.taxEntriesService.markAsProcessed(id, user);
+  async markAsProcessed(@Param('id') id: string): Promise<TaxEntryResponseDto> {
+    return await this.taxEntriesService.markAsProcessed(id);
   }
 }

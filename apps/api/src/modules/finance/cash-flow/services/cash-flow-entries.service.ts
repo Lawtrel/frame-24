@@ -1,14 +1,39 @@
 import {
+  ForbiddenException,
   Injectable,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
 import { Transactional } from '@nestjs-cls/transactional';
+import { cash_flow_entries, Prisma } from '@repo/db';
+import { ClsService } from 'nestjs-cls';
 import { CashFlowEntriesRepository } from '../repositories/cash-flow-entries.repository';
 import { BankAccountsRepository } from '../repositories/bank-accounts.repository';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { CreateCashFlowEntryDto } from '../dto/create-cash-flow-entry.dto';
 import { CashFlowQueryType } from '../dto/cash-flow-query.dto';
+
+type CashFlowEntryWithBankAccount = Prisma.cash_flow_entriesGetPayload<{
+  include: { bank_accounts: true };
+}>;
+
+type CashFlowEntriesListResponse = {
+  entries: Prisma.cash_flow_entriesGetPayload<{
+    include: {
+      bank_accounts: {
+        select: {
+          id: true;
+          bank_name: true;
+          account_number: true;
+          account_type: true;
+        };
+      };
+    };
+  }>[];
+  total: number;
+  skip: number;
+  take: number;
+};
 
 @Injectable()
 export class CashFlowEntriesService {
@@ -16,14 +41,36 @@ export class CashFlowEntriesService {
     private readonly repository: CashFlowEntriesRepository,
     private readonly bankAccountsRepository: BankAccountsRepository,
     private readonly snowflake: SnowflakeService,
+    private readonly cls: ClsService,
   ) {}
 
+  private getCompanyId(): string {
+    const companyId = this.cls.get<string>('companyId');
+    if (!companyId) {
+      throw new ForbiddenException('Contexto da empresa não encontrado.');
+    }
+    return companyId;
+  }
+
+  private getUserId(): string {
+    const userId = this.cls.get<string>('userId');
+    if (!userId) {
+      throw new ForbiddenException('Contexto do usuário não encontrado.');
+    }
+    return userId;
+  }
+
   @Transactional()
-  async create(
+  async create(dto: CreateCashFlowEntryDto): Promise<cash_flow_entries> {
+    return this.createForCompany(this.getCompanyId(), this.getUserId(), dto);
+  }
+
+  @Transactional()
+  async createForCompany(
     companyId: string,
     createdBy: string,
     dto: CreateCashFlowEntryDto,
-  ) {
+  ): Promise<cash_flow_entries> {
     // Verify bank account exists and belongs to company
     const bankAccount = await this.bankAccountsRepository.findById(
       dto.bank_account_id,
@@ -67,13 +114,16 @@ export class CashFlowEntriesService {
 
     // If status is confirmed, update bank balance
     if (dto.status === 'confirmed') {
-      await this.updateBankBalance(dto.bank_account_id);
+      await this.updateBankBalance(dto.bank_account_id, companyId);
     }
 
     return entry;
   }
 
-  async findAll(companyId: string, query: CashFlowQueryType) {
+  async findAll(
+    query: CashFlowQueryType,
+  ): Promise<CashFlowEntriesListResponse> {
+    const companyId = this.getCompanyId();
     const entries = await this.repository.findAll(companyId, {
       bank_account_id: query.bank_account_id,
       entry_type: query.entry_type,
@@ -93,7 +143,10 @@ export class CashFlowEntriesService {
     };
   }
 
-  async findOne(id: string, companyId: string) {
+  private async findOneByCompany(
+    companyId: string,
+    id: string,
+  ): Promise<CashFlowEntryWithBankAccount> {
     const entry = await this.repository.findById(id, companyId);
 
     if (!entry) {
@@ -103,9 +156,14 @@ export class CashFlowEntriesService {
     return entry;
   }
 
+  async findOne(id: string): Promise<CashFlowEntryWithBankAccount> {
+    return this.findOneByCompany(this.getCompanyId(), id);
+  }
+
   @Transactional()
-  async delete(id: string, companyId: string) {
-    const entry = await this.findOne(id, companyId);
+  async delete(id: string): Promise<{ message: string }> {
+    const companyId = this.getCompanyId();
+    const entry = await this.findOneByCompany(companyId, id);
 
     if (entry.reconciled) {
       throw new BadRequestException('Cannot delete reconciled entry');
@@ -121,23 +179,24 @@ export class CashFlowEntriesService {
   }
 
   @Transactional()
-  async reconcile(id: string, companyId: string) {
-    const entry = await this.findOne(id, companyId);
+  async reconcile(id: string): Promise<{ message: string }> {
+    const companyId = this.getCompanyId();
+    const entry = await this.findOneByCompany(companyId, id);
 
     if (entry.reconciled) {
       throw new BadRequestException('Entry already reconciled');
     }
 
     await this.repository.reconcile(id, companyId);
-    await this.updateBankBalance(entry.bank_account_id);
+    await this.updateBankBalance(entry.bank_account_id, companyId);
 
     return { message: 'Entry reconciled successfully' };
   }
 
-  private async updateBankBalance(bankAccountId: string) {
+  private async updateBankBalance(bankAccountId: string, companyId: string) {
     const account = await this.bankAccountsRepository.findById(
       bankAccountId,
-      '', // Company check not needed here as we already validated
+      companyId,
     );
 
     if (!account) {

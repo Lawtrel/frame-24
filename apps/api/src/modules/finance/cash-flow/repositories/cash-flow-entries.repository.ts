@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Prisma } from '@repo/db';
+import { cash_flow_entries, Prisma } from '@repo/db';
 
 interface CashFlowFilters {
   bank_account_id?: string;
@@ -13,15 +13,37 @@ interface CashFlowFilters {
   take?: number;
 }
 
+type CashFlowEntryListItem = Prisma.cash_flow_entriesGetPayload<{
+  include: {
+    bank_accounts: {
+      select: {
+        id: true;
+        bank_name: true;
+        account_number: true;
+        account_type: true;
+      };
+    };
+  };
+}>;
+
+type CashFlowEntryWithBankAccount = Prisma.cash_flow_entriesGetPayload<{
+  include: { bank_accounts: true };
+}>;
+
 @Injectable()
 export class CashFlowEntriesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: Prisma.cash_flow_entriesCreateInput) {
+  async create(
+    data: Prisma.cash_flow_entriesCreateInput,
+  ): Promise<cash_flow_entries> {
     return this.prisma.cash_flow_entries.create({ data });
   }
 
-  async findAll(companyId: string, filters: CashFlowFilters) {
+  async findAll(
+    companyId: string,
+    filters: CashFlowFilters,
+  ): Promise<CashFlowEntryListItem[]> {
     const where: Prisma.cash_flow_entriesWhereInput = {
       company_id: companyId,
     };
@@ -70,7 +92,10 @@ export class CashFlowEntriesRepository {
     });
   }
 
-  async findById(id: string, companyId: string) {
+  async findById(
+    id: string,
+    companyId: string,
+  ): Promise<CashFlowEntryWithBankAccount | null> {
     return this.prisma.cash_flow_entries.findFirst({
       where: {
         id,
@@ -86,7 +111,7 @@ export class CashFlowEntriesRepository {
     id: string,
     companyId: string,
     data: Prisma.cash_flow_entriesUpdateInput,
-  ) {
+  ): Promise<Prisma.BatchPayload> {
     return this.prisma.cash_flow_entries.updateMany({
       where: {
         id,
@@ -97,7 +122,7 @@ export class CashFlowEntriesRepository {
     });
   }
 
-  async delete(id: string, companyId: string) {
+  async delete(id: string, companyId: string): Promise<Prisma.BatchPayload> {
     return this.prisma.cash_flow_entries.deleteMany({
       where: {
         id,
@@ -107,7 +132,7 @@ export class CashFlowEntriesRepository {
     });
   }
 
-  async reconcile(id: string, companyId: string) {
+  async reconcile(id: string, companyId: string): Promise<Prisma.BatchPayload> {
     return this.prisma.cash_flow_entries.updateMany({
       where: {
         id,
@@ -121,7 +146,14 @@ export class CashFlowEntriesRepository {
     });
   }
 
-  async calculateBalance(bankAccountId: string, upToDate?: Date) {
+  async calculateBalance(
+    bankAccountId: string,
+    upToDate?: Date,
+  ): Promise<{
+    total_receipts: number;
+    total_payments: number;
+    net_balance: number;
+  }> {
     const where: Prisma.cash_flow_entriesWhereInput = {
       bank_account_id: bankAccountId,
       reconciled: true,

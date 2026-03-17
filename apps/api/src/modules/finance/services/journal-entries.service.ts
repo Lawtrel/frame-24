@@ -1,33 +1,49 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@repo/db';
+import { ClsService } from 'nestjs-cls';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { CreateJournalEntryDto } from '../dto/create-journal-entry.dto';
+
+type JournalEntryWithItems = Prisma.journal_entriesGetPayload<{
+  include: { journal_entry_items: true };
+}>;
 
 @Injectable()
 export class JournalEntriesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly snowflake: SnowflakeService,
+    private readonly cls: ClsService,
   ) {}
 
-  private async getCompanyComplexIds(company_id: string): Promise<string[]> {
+  private getCompanyId(): string {
+    const companyId = this.cls.get<string>('companyId');
+    if (!companyId) {
+      throw new ForbiddenException('Contexto da empresa não encontrado.');
+    }
+    return companyId;
+  }
+
+  private async getCompanyComplexIds(companyId: string): Promise<string[]> {
     const complexes = await this.prisma.cinema_complexes.findMany({
-      where: { company_id },
+      where: { company_id: companyId },
       select: { id: true },
     });
     return complexes.map((c) => c.id);
   }
 
   private async ensureComplexBelongsToCompany(
-    cinema_complex_id: string,
-    company_id: string,
-  ) {
+    cinemaComplexId: string,
+    companyId: string,
+  ): Promise<void> {
     const complex = await this.prisma.cinema_complexes.findFirst({
-      where: { id: cinema_complex_id, company_id },
+      where: { id: cinemaComplexId, company_id: companyId },
     });
 
     if (!complex) {
@@ -36,14 +52,14 @@ export class JournalEntriesService {
   }
 
   private async ensureAccountsBelongToCompany(
-    company_id: string,
+    companyId: string,
     items: CreateJournalEntryDto['items'],
-  ) {
+  ): Promise<void> {
     const accountIds = [...new Set(items.map((item) => item.account_id))];
     const accounts = await this.prisma.chart_of_accounts.findMany({
       where: {
         id: { in: accountIds },
-        company_id,
+        company_id: companyId,
       },
       select: { id: true },
     });
@@ -55,14 +71,14 @@ export class JournalEntriesService {
     }
   }
 
-  private async generateEntryNumber(company_id: string): Promise<string> {
+  private async generateEntryNumber(companyId: string): Promise<string> {
     const today = new Date();
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const day = String(today.getDate()).padStart(2, '0');
     const prefix = `JE-${year}${month}${day}`;
 
-    const complexIds = await this.getCompanyComplexIds(company_id);
+    const complexIds = await this.getCompanyComplexIds(companyId);
 
     const count = await this.prisma.journal_entries.count({
       where: {
@@ -74,9 +90,12 @@ export class JournalEntriesService {
     return `${prefix}-${String(count + 1).padStart(4, '0')}`;
   }
 
-  async create(company_id: string, dto: CreateJournalEntryDto) {
-    await this.ensureComplexBelongsToCompany(dto.cinema_complex_id, company_id);
-    await this.ensureAccountsBelongToCompany(company_id, dto.items);
+  async create(
+    dto: CreateJournalEntryDto,
+  ): Promise<JournalEntryWithItems | null> {
+    const companyId = this.getCompanyId();
+    await this.ensureComplexBelongsToCompany(dto.cinema_complex_id, companyId);
+    await this.ensureAccountsBelongToCompany(companyId, dto.items);
 
     const debitTotal = dto.items
       .filter((i) => i.movement_type === 'DEBIT')
@@ -92,7 +111,7 @@ export class JournalEntriesService {
     }
 
     const entryId = this.snowflake.generate();
-    const entryNumber = await this.generateEntryNumber(company_id);
+    const entryNumber = await this.generateEntryNumber(companyId);
 
     await this.prisma.journal_entries.create({
       data: {
@@ -122,17 +141,15 @@ export class JournalEntriesService {
     });
   }
 
-  async findAll(
-    company_id: string,
-    filters?: {
-      cinema_complex_id?: string;
-      start_date?: string;
-      end_date?: string;
-    },
-  ) {
-    const complexIds = await this.getCompanyComplexIds(company_id);
+  async findAll(filters?: {
+    cinema_complex_id?: string;
+    start_date?: string;
+    end_date?: string;
+  }): Promise<JournalEntryWithItems[]> {
+    const companyId = this.getCompanyId();
+    const complexIds = await this.getCompanyComplexIds(companyId);
 
-    const where: any = {
+    const where: Prisma.journal_entriesWhereInput = {
       cinema_complex_id: {
         in: complexIds,
       },

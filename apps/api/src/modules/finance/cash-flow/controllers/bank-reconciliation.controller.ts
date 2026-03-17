@@ -19,8 +19,6 @@ import {
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { BankReconciliationService } from '../services/bank-reconciliation.service';
 import {
@@ -44,10 +42,9 @@ export class BankReconciliationController {
     description: 'Reconciliation created successfully',
   })
   async create(
-    @CurrentUser() user: RequestUser,
     @Body(new ZodValidationPipe()) dto: CreateBankReconciliationDto,
   ) {
-    return this.service.create(user.company_id, user.company_user_id, dto);
+    return this.service.create(dto);
   }
 
   @Get()
@@ -58,11 +55,8 @@ export class BankReconciliationController {
     status: 200,
     description: 'Reconciliations retrieved successfully',
   })
-  async findAll(
-    @CurrentUser() user: RequestUser,
-    @Query('bank_account_id') bankAccountId?: string,
-  ) {
-    return this.service.findAll(user.company_id, bankAccountId);
+  async findAll(@Query('bank_account_id') bankAccountId?: string) {
+    return this.service.findAll(bankAccountId);
   }
 
   @Get(':id')

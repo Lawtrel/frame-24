@@ -5,15 +5,12 @@ import { CreatePayableTransactionDto } from '../dto/create-payable-transaction.d
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-  ApiBody,
 } from '@nestjs/swagger';
 
 @ApiTags('Transações')
@@ -34,15 +31,8 @@ export class TransactionsController {
     status: 201,
     description: 'Transação de recebimento registrada com sucesso.',
   })
-  settleReceivable(
-    @CurrentUser() user: RequestUser,
-    @Body() dto: CreateReceivableTransactionDto,
-  ) {
-    return this.service.settleReceivable(
-      user.company_id,
-      user.company_user_id,
-      dto,
-    );
+  settleReceivable(@Body() dto: CreateReceivableTransactionDto) {
+    return this.service.settleReceivable(dto);
   }
 
   @Post('payables/settle')
@@ -56,14 +46,7 @@ export class TransactionsController {
     status: 201,
     description: 'Transação de pagamento registrada com sucesso.',
   })
-  settlePayable(
-    @CurrentUser() user: RequestUser,
-    @Body() dto: CreatePayableTransactionDto,
-  ) {
-    return this.service.settlePayable(
-      user.company_id,
-      user.company_user_id,
-      dto,
-    );
+  settlePayable(@Body() dto: CreatePayableTransactionDto) {
+    return this.service.settlePayable(dto);
   }
 }

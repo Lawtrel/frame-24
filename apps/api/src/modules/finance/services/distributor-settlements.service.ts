@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+import { ClsService } from 'nestjs-cls';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { CreateDistributorSettlementDto } from '../dto/create-distributor-settlement.dto';
@@ -7,18 +13,29 @@ import { AccountsPayableService } from '../accounts-payable/services/accounts-pa
 
 @Injectable()
 export class DistributorSettlementsService {
+  private readonly logger = new Logger(DistributorSettlementsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly snowflake: SnowflakeService,
     private readonly accountsPayableService: AccountsPayableService,
+    private readonly cls: ClsService,
   ) {}
 
+  private getCompanyId(): string {
+    const companyId = this.cls.get<string>('companyId');
+    if (!companyId) {
+      throw new ForbiddenException('Contexto da empresa não encontrado.');
+    }
+    return companyId;
+  }
+
   private async ensureComplexBelongsToCompany(
-    cinema_complex_id: string,
-    company_id: string,
+    cinemaComplexId: string,
+    companyId: string,
   ) {
     const complex = await this.prisma.cinema_complexes.findFirst({
-      where: { id: cinema_complex_id, company_id },
+      where: { id: cinemaComplexId, company_id: companyId },
     });
 
     if (!complex) {
@@ -27,11 +44,11 @@ export class DistributorSettlementsService {
   }
 
   private async ensureContractBelongsToCompany(
-    contract_id: string,
-    company_id: string,
+    contractId: string,
+    companyId: string,
   ) {
     const contract = await this.prisma.exhibition_contracts.findFirst({
-      where: { id: contract_id },
+      where: { id: contractId },
       select: { cinema_complex_id: true },
     });
 
@@ -41,16 +58,16 @@ export class DistributorSettlementsService {
 
     await this.ensureComplexBelongsToCompany(
       contract.cinema_complex_id,
-      company_id,
+      companyId,
     );
   }
 
   private async ensureDistributorBelongsToCompany(
-    distributor_id: string,
-    company_id: string,
+    distributorId: string,
+    companyId: string,
   ) {
     const distributor = await this.prisma.suppliers.findFirst({
-      where: { id: distributor_id, company_id },
+      where: { id: distributorId, company_id: companyId },
     });
 
     if (!distributor) {
@@ -58,16 +75,16 @@ export class DistributorSettlementsService {
     }
   }
 
-  private async getCompanyComplexIds(company_id: string): Promise<string[]> {
+  private async getCompanyComplexIds(companyId: string): Promise<string[]> {
     const complexes = await this.prisma.cinema_complexes.findMany({
-      where: { company_id },
+      where: { company_id: companyId },
       select: { id: true },
     });
     return complexes.map((c) => c.id);
   }
 
-  private async getCompanyContractIds(company_id: string): Promise<string[]> {
-    const complexIds = await this.getCompanyComplexIds(company_id);
+  private async getCompanyContractIds(companyId: string): Promise<string[]> {
+    const complexIds = await this.getCompanyComplexIds(companyId);
 
     if (!complexIds.length) {
       return [];
@@ -84,13 +101,17 @@ export class DistributorSettlementsService {
     return contracts.map((c) => c.id);
   }
 
-  async findAll(company_id: string, cinema_complex_id?: string) {
-    const complexIds = await this.getCompanyComplexIds(company_id);
-    const contractIds = await this.getCompanyContractIds(company_id);
+  async findAll(cinemaComplexId?: string) {
+    return this.findAllForCompany(this.getCompanyId(), cinemaComplexId);
+  }
+
+  async findAllForCompany(companyId: string, cinemaComplexId?: string) {
+    const complexIds = await this.getCompanyComplexIds(companyId);
+    const contractIds = await this.getCompanyContractIds(companyId);
 
     return this.prisma.distributor_settlements.findMany({
       where: {
-        cinema_complex_id: cinema_complex_id || { in: complexIds },
+        cinema_complex_id: cinemaComplexId || { in: complexIds },
         contract_id: { in: contractIds },
       },
       orderBy: {
@@ -99,13 +120,17 @@ export class DistributorSettlementsService {
     });
   }
 
-  async create(company_id: string, dto: CreateDistributorSettlementDto) {
-    await this.ensureContractBelongsToCompany(dto.contract_id, company_id);
-    await this.ensureDistributorBelongsToCompany(
-      dto.distributor_id,
-      company_id,
-    );
-    await this.ensureComplexBelongsToCompany(dto.cinema_complex_id, company_id);
+  async create(dto: CreateDistributorSettlementDto) {
+    return this.createForCompany(this.getCompanyId(), dto);
+  }
+
+  async createForCompany(
+    companyId: string,
+    dto: CreateDistributorSettlementDto,
+  ) {
+    await this.ensureContractBelongsToCompany(dto.contract_id, companyId);
+    await this.ensureDistributorBelongsToCompany(dto.distributor_id, companyId);
+    await this.ensureComplexBelongsToCompany(dto.cinema_complex_id, companyId);
 
     const gross = dto.gross_box_office_revenue;
     const distributorPercentage = dto.distributor_percentage / 100;
@@ -134,14 +159,13 @@ export class DistributorSettlementsService {
         net_settlement_amount: netAmount,
         notes: dto.notes,
         calculation_date: new Date(),
-        status: undefined,
       },
     });
 
     // Create Account Payable
     try {
       if (netAmount > 0) {
-        await this.accountsPayableService.create(company_id, {
+        await this.accountsPayableService.createForCompany(companyId, {
           cinema_complex_id: dto.cinema_complex_id,
           supplier_id: dto.distributor_id,
           source_type: 'distributor_settlement',
@@ -162,8 +186,9 @@ export class DistributorSettlementsService {
         });
       }
     } catch (error) {
-      console.error('Erro ao criar conta a pagar para acerto:', error);
-      // Don't fail the settlement creation, but log error
+      const stack = error instanceof Error ? error.stack : undefined;
+      this.logger.error('Erro ao criar conta a pagar para acerto', stack);
+      // Não falha a criação do acerto em caso de erro no contas a pagar
     }
 
     return settlement;

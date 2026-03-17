@@ -8,8 +8,6 @@ import {
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import { DistributorSettlementsService } from '../services/distributor-settlements.service';
 import { CreateDistributorSettlementDto } from '../dto/create-distributor-settlement.dto';
 
@@ -30,20 +28,14 @@ export class DistributorSettlementsController {
     required: false,
     description: 'Filtrar por complexo',
   })
-  async findAll(
-    @CurrentUser() user: RequestUser,
-    @Query('cinema_complex_id') cinema_complex_id?: string,
-  ) {
-    return this.settlementsService.findAll(user.company_id, cinema_complex_id);
+  async findAll(@Query('cinema_complex_id') cinema_complex_id?: string) {
+    return this.settlementsService.findAll(cinema_complex_id);
   }
 
   @Post()
   @RequirePermission('finance_settlements', 'create')
   @ApiOperation({ summary: 'Criar/acertar repasse para distribuidor' })
-  async create(
-    @Body() dto: CreateDistributorSettlementDto,
-    @CurrentUser() user: RequestUser,
-  ) {
-    return this.settlementsService.create(user.company_id, dto);
+  async create(@Body() dto: CreateDistributorSettlementDto) {
+    return this.settlementsService.create(dto);
   }
 }

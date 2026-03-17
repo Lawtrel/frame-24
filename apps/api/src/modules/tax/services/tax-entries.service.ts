@@ -1,9 +1,12 @@
 import {
+  ForbiddenException,
   Injectable,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
 import { Transactional } from '@nestjs-cls/transactional';
+import { tax_entries } from '@repo/db';
+import { ClsService } from 'nestjs-cls';
 import { TaxEntriesRepository } from '../repositories/tax-entries.repository';
 import { TaxCalculationService } from './tax-calculation.service';
 import { CreateTaxEntryDto } from '../dto/create-tax-entry.dto';
@@ -11,7 +14,6 @@ import { TaxEntryResponseDto } from '../dto/tax-entry-response.dto';
 import { CinemaComplexesRepository } from 'src/modules/operations/cinema-complexes/repositories/cinema-complexes.repository';
 import { LoggerService } from 'src/common/services/logger.service';
 import { RabbitMQPublisherService } from 'src/common/rabbitmq/rabbitmq-publisher.service';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 
 import { CashFlowEntriesService } from 'src/modules/finance/cash-flow/services/cash-flow-entries.service';
 import { BankAccountsRepository } from 'src/modules/finance/cash-flow/repositories/bank-accounts.repository';
@@ -26,28 +28,43 @@ export class TaxEntriesService {
     private readonly rabbitmq: RabbitMQPublisherService,
     private readonly cashFlowEntriesService: CashFlowEntriesService,
     private readonly bankAccountsRepository: BankAccountsRepository,
+    private readonly cls: ClsService,
   ) {}
 
-  async findAll(
-    user: RequestUser,
-    filters?: {
-      cinema_complex_id?: string;
-      source_type?: string;
-      source_id?: string;
-      start_date?: Date;
-      end_date?: Date;
-      processed?: boolean;
-    },
-  ): Promise<TaxEntryResponseDto[]> {
+  private getCompanyId(): string {
+    const companyId = this.cls.get<string>('companyId');
+    if (!companyId) {
+      throw new ForbiddenException('Contexto da empresa não encontrado.');
+    }
+    return companyId;
+  }
+
+  private getUserId(): string {
+    const userId = this.cls.get<string>('userId');
+    if (!userId) {
+      throw new ForbiddenException('Contexto do usuário não encontrado.');
+    }
+    return userId;
+  }
+
+  async findAll(filters?: {
+    cinema_complex_id?: string;
+    source_type?: string;
+    source_id?: string;
+    start_date?: Date;
+    end_date?: Date;
+    processed?: boolean;
+  }): Promise<TaxEntryResponseDto[]> {
     const entries = await this.taxEntriesRepository.findAll(
-      user.company_id,
+      this.getCompanyId(),
       filters,
     );
 
     return entries.map((entry) => this.mapToDto(entry));
   }
 
-  async findOne(id: string, user: RequestUser): Promise<TaxEntryResponseDto> {
+  async findOne(id: string): Promise<TaxEntryResponseDto> {
+    const companyId = this.getCompanyId();
     const entry = await this.taxEntriesRepository.findById(id);
 
     if (!entry) {
@@ -58,7 +75,7 @@ export class TaxEntriesService {
     const complex = await this.cinemaComplexesRepository.findById(
       entry.cinema_complex_id,
     );
-    if (!complex || complex.company_id !== user.company_id) {
+    if (!complex || complex.company_id !== companyId) {
       throw new NotFoundException('Lançamento fiscal não encontrado');
     }
 
@@ -66,17 +83,15 @@ export class TaxEntriesService {
   }
 
   @Transactional()
-  async create(
-    dto: CreateTaxEntryDto,
-    user: RequestUser,
-  ): Promise<TaxEntryResponseDto> {
-    const company_id = user.company_id;
+  async create(dto: CreateTaxEntryDto): Promise<TaxEntryResponseDto> {
+    const companyId = this.getCompanyId();
+    const userId = this.getUserId();
 
     // Validar complexo
     const complex = await this.cinemaComplexesRepository.findById(
       dto.cinema_complex_id,
     );
-    if (!complex || complex.company_id !== company_id) {
+    if (!complex || complex.company_id !== companyId) {
       throw new NotFoundException('Complexo de cinema não encontrado');
     }
 
@@ -98,7 +113,7 @@ export class TaxEntriesService {
       gross_amount: dto.gross_amount,
       deductions_amount: dto.deductions_amount,
       cinema_complex_id: dto.cinema_complex_id,
-      company_id,
+      company_id: companyId,
       competence_date: dto.competence_date,
       revenue_type: dto.revenue_type,
       pis_cofins_regime: dto.pis_cofins_regime,
@@ -129,7 +144,7 @@ export class TaxEntriesService {
       cofins_debit_amount: calculation.cofins_debit_amount,
       cofins_credit_amount: calculation.cofins_credit_amount,
       cofins_amount_payable: calculation.cofins_amount_payable,
-      processing_user_id: user.company_user_id,
+      processing_user_id: userId,
       processed: false,
     });
 
@@ -141,7 +156,7 @@ export class TaxEntriesService {
         values: entry,
         calculation,
       },
-      metadata: { companyId: company_id, userId: user.company_user_id },
+      metadata: { companyId, userId },
     });
 
     this.logger.log(
@@ -151,9 +166,8 @@ export class TaxEntriesService {
 
     // Lançamento no Fluxo de Caixa (Previsão de Pagamento de Impostos)
     try {
-      const bankAccounts =
-        await this.bankAccountsRepository.findAll(company_id);
-      const defaultAccount = bankAccounts.find((acc: any) => acc.active);
+      const bankAccounts = await this.bankAccountsRepository.findAll(companyId);
+      const defaultAccount = bankAccounts.find((account) => account.active);
 
       if (defaultAccount) {
         const totalTaxes =
@@ -162,25 +176,31 @@ export class TaxEntriesService {
           Number(entry.cofins_amount_payable);
 
         if (totalTaxes > 0) {
-          await this.cashFlowEntriesService.create(company_id, 'SYSTEM', {
-            bank_account_id: defaultAccount.id,
-            cinema_complex_id: dto.cinema_complex_id,
-            entry_type: 'payment',
-            category: 'tax',
-            amount: totalTaxes,
-            entry_date: new Date().toISOString().split('T')[0],
-            competence_date: dto.competence_date.toISOString().split('T')[0],
-            description: `Impostos (ISS/PIS/COFINS) - Ref. ${entry.id}`,
-            document_number: entry.id,
-            source_type: 'TAX_ENTRY',
-            source_id: entry.id,
-            status: 'pending',
-          });
+          await this.cashFlowEntriesService.createForCompany(
+            companyId,
+            'SYSTEM',
+            {
+              bank_account_id: defaultAccount.id,
+              cinema_complex_id: dto.cinema_complex_id,
+              entry_type: 'payment',
+              category: 'tax',
+              amount: totalTaxes,
+              entry_date: new Date().toISOString().split('T')[0],
+              competence_date: dto.competence_date.toISOString().split('T')[0],
+              description: `Impostos (ISS/PIS/COFINS) - Ref. ${entry.id}`,
+              document_number: entry.id,
+              source_type: 'TAX_ENTRY',
+              source_id: entry.id,
+              status: 'pending',
+            },
+          );
         }
       }
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Erro desconhecido';
       this.logger.error(
-        `Erro ao criar lançamento de fluxo de caixa para impostos ${entry.id}: ${error}`,
+        `Erro ao criar lançamento de fluxo de caixa para impostos ${entry.id}: ${errorMessage}`,
         TaxEntriesService.name,
       );
     }
@@ -189,20 +209,15 @@ export class TaxEntriesService {
   }
 
   @Transactional()
-  async markAsProcessed(
-    id: string,
-    user: RequestUser,
-  ): Promise<TaxEntryResponseDto> {
-    const entry = await this.findOne(id, user);
+  async markAsProcessed(id: string): Promise<TaxEntryResponseDto> {
+    const userId = this.getUserId();
+    const entry = await this.findOne(id);
 
     if (entry.processed) {
       throw new BadRequestException('Lançamento já foi processado');
     }
 
-    const updated = await this.taxEntriesRepository.markAsProcessed(
-      id,
-      user.company_user_id,
-    );
+    const updated = await this.taxEntriesRepository.markAsProcessed(id, userId);
 
     this.logger.log(
       `Lançamento fiscal processado: ${id}`,
@@ -212,7 +227,7 @@ export class TaxEntriesService {
     return this.mapToDto(updated);
   }
 
-  private mapToDto(entry: any): TaxEntryResponseDto {
+  private mapToDto(entry: tax_entries): TaxEntryResponseDto {
     const issAmount = Number(entry.iss_amount || 0);
     const pisPayable = Number(entry.pis_amount_payable);
     const cofinsPayable = Number(entry.cofins_amount_payable);

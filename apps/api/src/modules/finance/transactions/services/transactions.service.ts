@@ -1,9 +1,12 @@
 import {
+  ForbiddenException,
   Injectable,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
 import { Transactional } from '@nestjs-cls/transactional';
+import { payable_transactions, receivable_transactions } from '@repo/db';
+import { ClsService } from 'nestjs-cls';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { AccountsReceivableRepository } from 'src/modules/finance/accounts-receivable/repositories/accounts-receivable.repository';
@@ -20,17 +23,45 @@ export class TransactionsService {
     private readonly receivablesRepository: AccountsReceivableRepository,
     private readonly payablesRepository: AccountsPayableRepository,
     private readonly cashFlowService: CashFlowEntriesService,
+    private readonly cls: ClsService,
   ) {}
+
+  private getCompanyId(): string {
+    const companyId = this.cls.get<string>('companyId');
+    if (!companyId) {
+      throw new ForbiddenException('Contexto da empresa não encontrado.');
+    }
+    return companyId;
+  }
+
+  private getUserId(): string {
+    const userId = this.cls.get<string>('userId');
+    if (!userId) {
+      throw new ForbiddenException('Contexto do usuário não encontrado.');
+    }
+    return userId;
+  }
 
   @Transactional()
   async settleReceivable(
-    company_id: string,
-    user_id: string,
     dto: CreateReceivableTransactionDto,
-  ) {
+  ): Promise<receivable_transactions> {
+    return this.settleReceivableForCompany(
+      this.getCompanyId(),
+      this.getUserId(),
+      dto,
+    );
+  }
+
+  @Transactional()
+  async settleReceivableForCompany(
+    companyId: string,
+    userId: string,
+    dto: CreateReceivableTransactionDto,
+  ): Promise<receivable_transactions> {
     const account = await this.receivablesRepository.findById(
       dto.account_receivable_id,
-      company_id,
+      companyId,
     );
 
     if (!account) {
@@ -73,7 +104,7 @@ export class TransactionsService {
     );
 
     // Create Cash Flow Entry
-    await this.cashFlowService.create(company_id, user_id, {
+    await this.cashFlowService.createForCompany(companyId, userId, {
       bank_account_id: dto.bank_account_id,
       cinema_complex_id: account.cinema_complex_id || undefined,
       entry_type: 'receipt',
@@ -95,13 +126,24 @@ export class TransactionsService {
 
   @Transactional()
   async settlePayable(
-    company_id: string,
-    user_id: string,
     dto: CreatePayableTransactionDto,
-  ) {
+  ): Promise<payable_transactions> {
+    return this.settlePayableForCompany(
+      this.getCompanyId(),
+      this.getUserId(),
+      dto,
+    );
+  }
+
+  @Transactional()
+  async settlePayableForCompany(
+    companyId: string,
+    userId: string,
+    dto: CreatePayableTransactionDto,
+  ): Promise<payable_transactions> {
     const account = await this.payablesRepository.findById(
       dto.account_payable_id,
-      company_id,
+      companyId,
     );
 
     if (!account) {
@@ -144,7 +186,7 @@ export class TransactionsService {
     );
 
     // Create Cash Flow Entry
-    await this.cashFlowService.create(company_id, user_id, {
+    await this.cashFlowService.createForCompany(companyId, userId, {
       bank_account_id: dto.bank_account_id,
       cinema_complex_id: account.cinema_complex_id || undefined,
       entry_type: 'payment',
