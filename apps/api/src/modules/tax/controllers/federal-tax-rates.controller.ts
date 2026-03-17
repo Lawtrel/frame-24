@@ -20,8 +20,6 @@ import {
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import { FederalTaxRatesService } from '../services/federal-tax-rates.service';
 import { CreateFederalTaxRateDto } from '../dto/create-federal-tax-rate.dto';
 import { UpdateFederalTaxRateDto } from '../dto/update-federal-tax-rate.dto';
@@ -37,38 +35,31 @@ export class FederalTaxRatesController {
   @RequirePermission('tax', 'create')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Cadastrar taxa federal (PIS/COFINS/IRPJ/CSLL)' })
-  async create(
-    @Body() dto: CreateFederalTaxRateDto,
-    @CurrentUser() user: RequestUser,
-  ) {
-    return this.service.create(user.company_id, dto);
+  async create(@Body() dto: CreateFederalTaxRateDto) {
+    return this.service.create(dto);
   }
 
   @Get()
   @RequirePermission('tax', 'read')
   @ApiOperation({ summary: 'Listar taxas federais cadastradas' })
-  async list(@CurrentUser() user: RequestUser) {
-    return this.service.list(user.company_id);
+  async list() {
+    return this.service.list();
   }
 
   @Get(':id')
   @RequirePermission('tax', 'read')
   @ApiOperation({ summary: 'Buscar taxa federal por ID' })
   @ApiParam({ name: 'id', description: 'Identificador da taxa federal' })
-  async findOne(@Param('id') id: string, @CurrentUser() user: RequestUser) {
-    return this.service.findById(user.company_id, id);
+  async findOne(@Param('id') id: string) {
+    return this.service.findById(id);
   }
 
   @Put(':id')
   @RequirePermission('tax', 'update')
   @ApiOperation({ summary: 'Atualizar taxa federal' })
   @ApiParam({ name: 'id', description: 'Identificador da taxa federal' })
-  async update(
-    @Param('id') id: string,
-    @Body() dto: UpdateFederalTaxRateDto,
-    @CurrentUser() user: RequestUser,
-  ) {
-    return this.service.update(user.company_id, id, dto);
+  async update(@Param('id') id: string, @Body() dto: UpdateFederalTaxRateDto) {
+    return this.service.update(id, dto);
   }
 
   @Delete(':id')
@@ -77,7 +68,7 @@ export class FederalTaxRatesController {
   @ApiOperation({ summary: 'Excluir taxa federal' })
   @ApiParam({ name: 'id', description: 'Identificador da taxa federal' })
   @ApiResponse({ status: 204, description: 'Taxa removida.' })
-  async delete(@Param('id') id: string, @CurrentUser() user: RequestUser) {
-    await this.service.delete(user.company_id, id);
+  async delete(@Param('id') id: string) {
+    await this.service.delete(id);
   }
 }

@@ -19,13 +19,10 @@ export class SupplierRepository {
     });
   }
 
-  async findByCnpj(
-    cnpj: string,
-    company_id: string,
-  ): Promise<suppliers | null> {
+  async findByCnpj(cnpj: string, companyId: string): Promise<suppliers | null> {
     return this.prisma.suppliers.findFirst({
       where: {
-        company_id,
+        company_id: companyId,
         cnpj,
       },
       include: {
@@ -35,12 +32,12 @@ export class SupplierRepository {
   }
 
   async findByCompany(
-    company_id: string,
+    companyId: string,
     onlyDistributors = false,
   ): Promise<suppliers[]> {
     return this.prisma.suppliers.findMany({
       where: {
-        company_id,
+        company_id: companyId,
         ...(onlyDistributors && { is_film_distributor: true }),
       },
       include: {
@@ -52,13 +49,13 @@ export class SupplierRepository {
     });
   }
 
-  async findDistributors(company_id: string): Promise<suppliers[]> {
-    return this.findByCompany(company_id, true);
+  async findDistributors(companyId: string): Promise<suppliers[]> {
+    return this.findByCompany(companyId, true);
   }
 
-  async findTypes(company_id: string): Promise<supplier_types[]> {
+  async findTypes(companyId: string): Promise<supplier_types[]> {
     return this.prisma.supplier_types.findMany({
-      where: { company_id },
+      where: { company_id: companyId },
       orderBy: {
         name: 'asc',
       },

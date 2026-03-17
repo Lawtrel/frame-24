@@ -10,9 +10,9 @@ export class MovieCategoryRepository {
     private readonly snowflake: SnowflakeService,
   ) {}
 
-  async findAll(company_id: string): Promise<movie_categories[]> {
+  async findAll(companyId: string): Promise<movie_categories[]> {
     return this.prisma.movie_categories.findMany({
-      where: { company_id, active: true },
+      where: { company_id: companyId, active: true },
       orderBy: { name: 'asc' },
     });
   }
@@ -44,15 +44,15 @@ export class MovieCategoryRepository {
     });
   }
 
-  async delete(id: string): Promise<movie_categories> {
-    return this.prisma.movie_categories.delete({
+  async delete(id: string): Promise<void> {
+    await this.prisma.movie_categories.delete({
       where: { id },
     });
   }
 
   async uniqueSlugForName(
     name: string,
-    company_id: string,
+    companyId: string,
     excludeId?: string,
   ): Promise<string> {
     const base = toSlugBase(name);
@@ -60,7 +60,7 @@ export class MovieCategoryRepository {
     const existsBase = await this.prisma.movie_categories.findFirst({
       where: {
         slug: base,
-        company_id,
+        company_id: companyId,
         ...(excludeId && { id: { not: excludeId } }),
       },
       select: { id: true },
@@ -72,7 +72,7 @@ export class MovieCategoryRepository {
       const exists = await this.prisma.movie_categories.findFirst({
         where: {
           slug: candidate,
-          company_id,
+          company_id: companyId,
           ...(excludeId && { id: { not: excludeId } }),
         },
         select: { id: true },

@@ -36,20 +36,20 @@ export class CampaignsRepository {
   }
 
   async findByCode(
-    company_id: string,
-    campaign_code: string,
+    companyId: string,
+    campaignCode: string,
   ): Promise<Campaign | null> {
     return this.prisma.promotional_campaigns.findFirst({
-      where: { company_id, campaign_code },
+      where: { company_id: companyId, campaign_code: campaignCode },
       include: {
         promotion_types: true,
       },
     });
   }
 
-  async findAllByCompany(company_id: string): Promise<Campaign[]> {
+  async findAllByCompany(companyId: string): Promise<Campaign[]> {
     return this.prisma.promotional_campaigns.findMany({
-      where: { company_id },
+      where: { company_id: companyId },
       orderBy: { start_date: 'desc' },
       include: {
         promotion_types: true,
@@ -64,19 +64,19 @@ export class CampaignsRepository {
   }
 
   async findActiveCouponByCode(
-    company_id: string,
-    coupon_code: string,
+    companyId: string,
+    couponCode: string,
   ): Promise<(Coupon & { promotional_campaigns: Campaign }) | null> {
     const now = new Date();
     return this.prisma.promotional_coupons.findFirst({
       where: {
-        coupon_code,
+        coupon_code: couponCode,
         active: true,
         used: false,
         start_date: { lte: now },
         end_date: { gte: now },
         promotional_campaigns: {
-          company_id,
+          company_id: companyId,
           active: true,
         },
       },

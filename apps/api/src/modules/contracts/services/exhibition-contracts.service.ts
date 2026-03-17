@@ -5,6 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ClsService } from 'nestjs-cls';
 import { Prisma } from '@repo/db';
 import {
   ExhibitionContractWithRelations,
@@ -35,12 +36,21 @@ export class ExhibitionContractsService {
     private readonly supplierRepository: SupplierRepository,
     private readonly contractTypesRepository: ContractTypesRepository,
     private readonly snowflake: SnowflakeService,
+    private readonly cls: ClsService,
   ) {}
+
+  private getCompanyId(): string {
+    const companyId = this.cls.get<string>('companyId');
+    if (!companyId) {
+      throw new ForbiddenException('Contexto da empresa não encontrado.');
+    }
+    return companyId;
+  }
 
   async create(
     dto: CreateExhibitionContractDto,
-    companyId: string,
   ): Promise<ExhibitionContractWithRelations> {
+    const companyId = this.getCompanyId();
     await this.validateMovie(dto.movie_id, companyId);
     await this.validateCinemaComplex(dto.cinema_complex_id, companyId);
     await this.validateDistributor(dto.distributor_id, companyId);
@@ -101,9 +111,9 @@ export class ExhibitionContractsService {
   }
 
   async findAll(
-    companyId: string,
     filters: ExhibitionContractFilters,
   ): Promise<ExhibitionContractWithRelations[]> {
+    const companyId = this.getCompanyId();
     const allowedComplexes = await this.getCompanyComplexIds(companyId);
     if (allowedComplexes.length === 0) {
       return [];
@@ -122,10 +132,8 @@ export class ExhibitionContractsService {
     return this.repository.findAll(where);
   }
 
-  async findOne(
-    companyId: string,
-    id: string,
-  ): Promise<ExhibitionContractWithRelations> {
+  async findOne(id: string): Promise<ExhibitionContractWithRelations> {
+    const companyId = this.getCompanyId();
     const contract = await this.repository.findById(id);
     if (!contract) {
       throw new NotFoundException('Contrato não encontrado.');
@@ -136,11 +144,11 @@ export class ExhibitionContractsService {
   }
 
   async update(
-    companyId: string,
     id: string,
     dto: UpdateExhibitionContractDto,
   ): Promise<ExhibitionContractWithRelations> {
-    const existing = await this.findOne(companyId, id);
+    const companyId = this.getCompanyId();
+    const existing = await this.findOne(id);
 
     if (dto.movie_id) {
       await this.validateMovie(dto.movie_id, companyId);
@@ -240,8 +248,8 @@ export class ExhibitionContractsService {
     return this.repository.update(id, data);
   }
 
-  async delete(companyId: string, id: string): Promise<void> {
-    await this.findOne(companyId, id);
+  async delete(id: string): Promise<void> {
+    await this.findOne(id);
     await this.repository.deactivate(id);
   }
 

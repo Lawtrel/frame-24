@@ -1,13 +1,14 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ClsService } from 'nestjs-cls';
 import { Prisma } from '@repo/db';
 import { MovieRepository } from '../repositories/movie.repository';
 import { CreateMovieDto } from '../dto/create-movie.dto';
 import { UpdateMovieDto } from '../dto/update-movie.dto';
-import { LoggerService } from 'src/common/services/logger.service';
 import { SupplierRepository } from 'src/modules/inventory/suppliers/repositories/supplier.repository';
 
 @Injectable()
@@ -15,31 +16,39 @@ export class MoviesService {
   constructor(
     private readonly repository: MovieRepository,
     private readonly suppliers: SupplierRepository,
-    private readonly logger: LoggerService,
+    private readonly cls: ClsService,
   ) {}
 
+  private getCompanyId(): string {
+    const companyId = this.cls.get<string>('companyId');
+    if (!companyId) {
+      throw new ForbiddenException('Contexto da empresa não encontrado.');
+    }
+    return companyId;
+  }
+
   private async validateDistributor(
-    distributor_id: string,
-    company_id: string,
-  ) {
-    const supplier = await this.suppliers.findById(distributor_id);
+    distributorId: string,
+    companyId: string,
+  ): Promise<void> {
+    const supplier = await this.suppliers.findById(distributorId);
     if (!supplier) throw new NotFoundException('Distribuidor não encontrado.');
-    if (supplier.company_id !== company_id) {
+    if (supplier.company_id !== companyId) {
       throw new BadRequestException('Distribuidor de outra empresa.');
     }
     if (!supplier.active || !supplier.is_film_distributor) {
       throw new BadRequestException('Distribuidor inativo ou inválido.');
     }
-    return supplier;
   }
 
-  async create(dto: CreateMovieDto, company_id: string) {
-    await this.validateDistributor(dto.distributor_id, company_id);
+  async create(dto: CreateMovieDto) {
+    const companyId = this.getCompanyId();
+    await this.validateDistributor(dto.distributor_id, companyId);
 
     const slug = await this.repository.uniqueSlugForTitle(dto.original_title);
 
     const data: Prisma.moviesCreateInput = {
-      company_id,
+      company_id: companyId,
       distributor_id: dto.distributor_id,
       original_title: dto.original_title,
       brazil_title: dto.brazil_title,
@@ -80,8 +89,9 @@ export class MoviesService {
     return this.repository.findByIdLite(created.id);
   }
 
-  async findAll(company_id: string) {
-    return this.repository.findByCompanyLite(company_id);
+  async findAll() {
+    const companyId = this.getCompanyId();
+    return this.repository.findByCompanyLite(companyId);
   }
 
   async findOne(id: string) {
@@ -90,14 +100,15 @@ export class MoviesService {
     return movie;
   }
 
-  async update(id: string, dto: UpdateMovieDto, company_id: string) {
+  async update(id: string, dto: UpdateMovieDto) {
+    const companyId = this.getCompanyId();
     const existing = await this.repository.findByIdLite(id);
-    if (!existing || existing.company_id !== company_id) {
+    if (!existing || existing.company_id !== companyId) {
       throw new NotFoundException('Filme não encontrado.');
     }
 
     if (dto.distributor_id) {
-      await this.validateDistributor(dto.distributor_id, company_id);
+      await this.validateDistributor(dto.distributor_id, companyId);
     }
 
     let slugUpdate: string | undefined;
@@ -173,15 +184,18 @@ export class MoviesService {
     return this.repository.delete(id);
   }
 
-  async getCastTypes(company_id: string) {
-    return this.repository.findCastTypes(company_id);
+  async getCastTypes() {
+    const companyId = this.getCompanyId();
+    return this.repository.findCastTypes(companyId);
   }
 
-  async getMediaTypes(company_id: string) {
-    return this.repository.findMediaTypes(company_id);
+  async getMediaTypes() {
+    const companyId = this.getCompanyId();
+    return this.repository.findMediaTypes(companyId);
   }
 
-  async getAgeRatings(company_id: string) {
-    return this.repository.findAgeRatings(company_id);
+  async getAgeRatings() {
+    const companyId = this.getCompanyId();
+    return this.repository.findAgeRatings(companyId);
   }
 }

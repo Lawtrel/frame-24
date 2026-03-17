@@ -22,8 +22,6 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
 import { MunicipalTaxParametersService } from '../services/municipal-tax-parameters.service';
 import { CreateMunicipalTaxParameterDto } from '../dto/create-municipal-tax-parameter.dto';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import { UpdateMunicipalTaxParameterDto } from '../dto/update-municipal-tax-parameter.dto';
 
 @ApiTags('Tax')
@@ -37,26 +35,23 @@ export class MunicipalTaxParametersController {
   @RequirePermission('tax', 'create')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Cadastrar parâmetro municipal de ISS' })
-  async create(
-    @Body() dto: CreateMunicipalTaxParameterDto,
-    @CurrentUser() user: RequestUser,
-  ) {
-    return this.service.create(user.company_id, dto);
+  async create(@Body() dto: CreateMunicipalTaxParameterDto) {
+    return this.service.create(dto);
   }
 
   @Get()
   @RequirePermission('tax', 'read')
   @ApiOperation({ summary: 'Listar parâmetros municipais da empresa' })
-  async list(@CurrentUser() user: RequestUser) {
-    return this.service.listByCompany(user.company_id);
+  async list() {
+    return this.service.listByCompany();
   }
 
   @Get(':id')
   @RequirePermission('tax', 'read')
   @ApiOperation({ summary: 'Buscar parâmetro municipal por ID' })
   @ApiParam({ name: 'id', description: 'Identificador do parâmetro' })
-  async findOne(@Param('id') id: string, @CurrentUser() user: RequestUser) {
-    return this.service.findById(user.company_id, id);
+  async findOne(@Param('id') id: string) {
+    return this.service.findById(id);
   }
 
   @Put(':id')
@@ -66,9 +61,8 @@ export class MunicipalTaxParametersController {
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateMunicipalTaxParameterDto,
-    @CurrentUser() user: RequestUser,
   ) {
-    return this.service.update(user.company_id, id, dto);
+    return this.service.update(id, dto);
   }
 
   @Delete(':id')
@@ -77,7 +71,7 @@ export class MunicipalTaxParametersController {
   @ApiOperation({ summary: 'Excluir parâmetro municipal' })
   @ApiParam({ name: 'id', description: 'Identificador do parâmetro' })
   @ApiResponse({ status: 204, description: 'Parâmetro removido.' })
-  async delete(@Param('id') id: string, @CurrentUser() user: RequestUser) {
-    await this.service.delete(user.company_id, id);
+  async delete(@Param('id') id: string) {
+    await this.service.delete(id);
   }
 }

@@ -6,20 +6,20 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class PromotionTypesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAllByCompany(company_id: string): Promise<PromotionType[]> {
+  async findAllByCompany(companyId: string): Promise<PromotionType[]> {
     return this.prisma.promotion_types.findMany({
-      where: { company_id },
+      where: { company_id: companyId },
       orderBy: [{ active: 'desc' }, { name: 'asc' }],
     });
   }
 
   async findByCode(
-    company_id: string,
+    companyId: string,
     code: string,
   ): Promise<PromotionType | null> {
     return this.prisma.promotion_types.findFirst({
       where: {
-        company_id,
+        company_id: companyId,
         code,
       },
     });

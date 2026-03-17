@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { ClsService } from 'nestjs-cls';
 import { ContractTypesRepository } from '../repositories/contract-types.repository';
 import { CreateContractTypeDto } from '../dto/create-contract-type.dto';
 import { UpdateContractTypeDto } from '../dto/update-contract-type.dto';
@@ -10,12 +15,19 @@ export class ContractTypesService {
   constructor(
     private readonly repository: ContractTypesRepository,
     private readonly snowflake: SnowflakeService,
+    private readonly cls: ClsService,
   ) {}
 
-  async create(
-    companyId: string,
-    dto: CreateContractTypeDto,
-  ): Promise<contract_types> {
+  private getCompanyId(): string {
+    const companyId = this.cls.get<string>('companyId');
+    if (!companyId) {
+      throw new ForbiddenException('Contexto da empresa não encontrado.');
+    }
+    return companyId;
+  }
+
+  async create(dto: CreateContractTypeDto): Promise<contract_types> {
+    const companyId = this.getCompanyId();
     return this.repository.create({
       id: this.snowflake.generate(),
       company_id: companyId,
@@ -25,11 +37,13 @@ export class ContractTypesService {
     });
   }
 
-  async findAll(companyId: string): Promise<contract_types[]> {
+  async findAll(): Promise<contract_types[]> {
+    const companyId = this.getCompanyId();
     return this.repository.findAllByCompany(companyId);
   }
 
-  async findOne(companyId: string, id: string): Promise<contract_types> {
+  async findOne(id: string): Promise<contract_types> {
+    const companyId = this.getCompanyId();
     const type = await this.repository.findById(id);
     if (!type || type.company_id !== companyId) {
       throw new NotFoundException('Tipo de contrato não encontrado.');
@@ -38,11 +52,10 @@ export class ContractTypesService {
   }
 
   async update(
-    companyId: string,
     id: string,
     dto: UpdateContractTypeDto,
   ): Promise<contract_types> {
-    await this.findOne(companyId, id);
+    await this.findOne(id);
 
     return this.repository.update(id, {
       ...(dto.name && { name: dto.name }),
@@ -50,8 +63,8 @@ export class ContractTypesService {
     });
   }
 
-  async delete(companyId: string, id: string): Promise<void> {
-    await this.findOne(companyId, id);
+  async delete(id: string): Promise<void> {
+    await this.findOne(id);
     await this.repository.delete(id);
   }
 }

@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { ClsService } from 'nestjs-cls';
 import { municipal_tax_parameters, Prisma } from '@repo/db';
 import { MunicipalTaxParametersRepository } from '../repositories/municipal-tax-parameters.repository';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
@@ -10,12 +15,21 @@ export class MunicipalTaxParametersService {
   constructor(
     private readonly repository: MunicipalTaxParametersRepository,
     private readonly snowflake: SnowflakeService,
+    private readonly cls: ClsService,
   ) {}
 
+  private getCompanyId(): string {
+    const companyId = this.cls.get<string>('companyId');
+    if (!companyId) {
+      throw new ForbiddenException('Contexto da empresa não encontrado.');
+    }
+    return companyId;
+  }
+
   async create(
-    companyId: string,
     data: CreateMunicipalTaxParameterDto,
   ): Promise<municipal_tax_parameters> {
+    const companyId = this.getCompanyId();
     const payload: Prisma.municipal_tax_parametersCreateInput = {
       id: this.snowflake.generate(),
       company_id: companyId,
@@ -40,14 +54,12 @@ export class MunicipalTaxParametersService {
     return this.repository.create(payload);
   }
 
-  async listByCompany(companyId: string): Promise<municipal_tax_parameters[]> {
-    return this.repository.findAllByCompany(companyId);
+  async listByCompany(): Promise<municipal_tax_parameters[]> {
+    return this.repository.findAllByCompany(this.getCompanyId());
   }
 
-  async findById(
-    companyId: string,
-    id: string,
-  ): Promise<municipal_tax_parameters> {
+  async findById(id: string): Promise<municipal_tax_parameters> {
+    const companyId = this.getCompanyId();
     const record = await this.repository.findById(id);
 
     if (!record || record.company_id !== companyId) {
@@ -58,11 +70,10 @@ export class MunicipalTaxParametersService {
   }
 
   async update(
-    companyId: string,
     id: string,
     dto: UpdateMunicipalTaxParameterDto,
   ): Promise<municipal_tax_parameters> {
-    await this.findById(companyId, id);
+    await this.findById(id);
 
     const payload: Prisma.municipal_tax_parametersUpdateInput = {
       ...(dto.ibge_municipality_code && {
@@ -96,8 +107,8 @@ export class MunicipalTaxParametersService {
     return this.repository.update(id, payload);
   }
 
-  async delete(companyId: string, id: string): Promise<void> {
-    await this.findById(companyId, id);
+  async delete(id: string): Promise<void> {
+    await this.findById(id);
     await this.repository.delete(id);
   }
 }

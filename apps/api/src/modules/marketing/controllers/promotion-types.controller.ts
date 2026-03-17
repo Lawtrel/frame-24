@@ -17,8 +17,6 @@ import {
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import { PromotionTypesService } from '../services/promotion-types.service';
 import {
   CreatePromotionTypeDto,
@@ -42,8 +40,8 @@ export class PromotionTypesController {
     type: PromotionTypeResponseDto,
     isArray: true,
   })
-  async findAll(@CurrentUser() user: RequestUser) {
-    return this.promotionTypesService.findAll(user.company_id);
+  async findAll() {
+    return this.promotionTypesService.findAll();
   }
 
   @Post()
@@ -59,10 +57,7 @@ export class PromotionTypesController {
     description: 'Tipo de promoção criado com sucesso.',
     type: PromotionTypeResponseDto,
   })
-  async create(
-    @Body() dto: CreatePromotionTypeDto,
-    @CurrentUser() user: RequestUser,
-  ) {
-    return this.promotionTypesService.create(user.company_id, dto);
+  async create(@Body() dto: CreatePromotionTypeDto) {
+    return this.promotionTypesService.create(dto);
   }
 }

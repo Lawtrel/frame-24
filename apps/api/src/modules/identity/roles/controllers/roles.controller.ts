@@ -44,7 +44,6 @@ export class RolesController {
   ): Promise<RoleResponseDto> {
     return await this.rolesService.create(
       dto,
-      user.company_id,
       user.identity_id,
       user.role_hierarchy,
     );
@@ -57,10 +56,8 @@ export class RolesController {
     description:
       'Retorna todas as roles (customizadas e do sistema) da empresa, ordenadas por nível hierárquico.',
   })
-  async listRoles(
-    @CurrentUser() user: RequestUser,
-  ): Promise<RoleResponseDto[]> {
-    return await this.rolesService.findAll(user.company_id);
+  async listRoles(): Promise<RoleResponseDto[]> {
+    return await this.rolesService.findAll();
   }
 
   @Get(':id')
@@ -70,11 +67,8 @@ export class RolesController {
     description:
       'Retorna os detalhes de uma role específica, incluindo suas permissões.',
   })
-  async getRole(
-    @Param('id') id: string,
-    @CurrentUser() user: RequestUser,
-  ): Promise<RoleResponseDto> {
-    return await this.rolesService.findOne(id, user.company_id);
+  async getRole(@Param('id') id: string): Promise<RoleResponseDto> {
+    return await this.rolesService.findOne(id);
   }
 
   @Put(':id')
@@ -92,7 +86,6 @@ export class RolesController {
     return await this.rolesService.update(
       id,
       dto,
-      user.company_id,
       user.identity_id,
       user.role_hierarchy,
     );
@@ -106,10 +99,7 @@ export class RolesController {
     description:
       'Deleta uma role customizada permanentemente. Roles do sistema ou que estão sendo usadas por usuários não podem ser deletadas.',
   })
-  async deleteRole(
-    @Param('id') id: string,
-    @CurrentUser() user: RequestUser,
-  ): Promise<void> {
-    return await this.rolesService.delete(id, user.company_id);
+  async deleteRole(@Param('id') id: string): Promise<void> {
+    return await this.rolesService.delete(id);
   }
 }

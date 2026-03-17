@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { ClsService } from 'nestjs-cls';
 import { Prisma, federal_tax_rates } from '@repo/db';
 import { FederalTaxRatesRepository } from '../repositories/federal-tax-rates.repository';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
@@ -10,12 +15,19 @@ export class FederalTaxRatesService {
   constructor(
     private readonly repository: FederalTaxRatesRepository,
     private readonly snowflake: SnowflakeService,
+    private readonly cls: ClsService,
   ) {}
 
-  async create(
-    companyId: string,
-    dto: CreateFederalTaxRateDto,
-  ): Promise<federal_tax_rates> {
+  private getCompanyId(): string {
+    const companyId = this.cls.get<string>('companyId');
+    if (!companyId) {
+      throw new ForbiddenException('Contexto da empresa não encontrado.');
+    }
+    return companyId;
+  }
+
+  async create(dto: CreateFederalTaxRateDto): Promise<federal_tax_rates> {
+    const companyId = this.getCompanyId();
     const payload: Prisma.federal_tax_ratesCreateInput = {
       id: this.snowflake.generate(),
       company_id: companyId,
@@ -38,11 +50,12 @@ export class FederalTaxRatesService {
     return this.repository.create(payload);
   }
 
-  async list(companyId: string): Promise<federal_tax_rates[]> {
-    return this.repository.findAllByCompany(companyId);
+  async list(): Promise<federal_tax_rates[]> {
+    return this.repository.findAllByCompany(this.getCompanyId());
   }
 
-  async findById(companyId: string, id: string): Promise<federal_tax_rates> {
+  async findById(id: string): Promise<federal_tax_rates> {
+    const companyId = this.getCompanyId();
     const record = await this.repository.findById(id);
 
     if (!record || record.company_id !== companyId) {
@@ -53,11 +66,10 @@ export class FederalTaxRatesService {
   }
 
   async update(
-    companyId: string,
     id: string,
     dto: UpdateFederalTaxRateDto,
   ): Promise<federal_tax_rates> {
-    await this.findById(companyId, id);
+    await this.findById(id);
 
     const payload: Prisma.federal_tax_ratesUpdateInput = {
       ...(dto.tax_regime !== undefined && { tax_regime: dto.tax_regime }),
@@ -95,8 +107,8 @@ export class FederalTaxRatesService {
     return this.repository.update(id, payload);
   }
 
-  async delete(companyId: string, id: string): Promise<void> {
-    await this.findById(companyId, id);
+  async delete(id: string): Promise<void> {
+    await this.findById(id);
     await this.repository.delete(id);
   }
 }

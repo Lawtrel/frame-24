@@ -1,9 +1,11 @@
 import {
+  ForbiddenException,
   Injectable,
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma } from '@repo/db';
+import { ClsService } from 'nestjs-cls';
 
 import { SupplierRepository } from '../repositories/supplier.repository';
 import { CreateSupplierDto } from '../dto/create-supplier.dto';
@@ -15,9 +17,19 @@ export class SuppliersService {
   constructor(
     private readonly repository: SupplierRepository,
     private readonly logger: LoggerService,
+    private readonly cls: ClsService,
   ) {}
 
-  async create(dto: CreateSupplierDto, company_id: string) {
+  private getCompanyId(): string {
+    const companyId = this.cls.get<string>('companyId');
+    if (!companyId) {
+      throw new ForbiddenException('Contexto da empresa não encontrado.');
+    }
+    return companyId;
+  }
+
+  async create(dto: CreateSupplierDto) {
+    const companyId = this.getCompanyId();
     this.logger.log(
       `Creating supplier: ${dto.corporate_name}`,
       SuppliersService.name,
@@ -28,7 +40,7 @@ export class SuppliersService {
     if (normalizedCnpj) {
       const existing = await this.repository.findByCnpj(
         normalizedCnpj,
-        company_id,
+        companyId,
       );
       if (existing) {
         throw new ConflictException('CNPJ já cadastrado nesta empresa.');
@@ -36,7 +48,7 @@ export class SuppliersService {
     }
 
     const data: Prisma.suppliersCreateInput = {
-      company_id,
+      company_id: companyId,
 
       ...(dto.supplier_type_id && {
         supplier_type: { connect: { id: dto.supplier_type_id } },
@@ -45,14 +57,14 @@ export class SuppliersService {
       corporate_name: dto.corporate_name,
       trade_name: dto.trade_name,
       cnpj: normalizedCnpj,
-      phone: dto.phone?.replace(/\D/g, ''),
+      phone: dto.phone.replace(/\D/g, ''),
       email: dto.email,
       address: dto.address,
       contact_name: dto.contact_name,
       contact_phone: dto.contact_phone?.replace(/\D/g, ''),
-      delivery_days: dto.delivery_days,
-      is_film_distributor: dto.is_film_distributor || false,
-      active: true,
+      delivery_days: dto.delivery_days ?? 7,
+      is_film_distributor: dto.is_film_distributor ?? false,
+      active: dto.active ?? true,
     };
 
     const supplier = await this.repository.create(data);
@@ -62,27 +74,29 @@ export class SuppliersService {
     return supplier;
   }
 
-  async findAll(company_id: string, onlyDistributors = false) {
+  async findAll(onlyDistributors = false) {
+    const companyId = this.getCompanyId();
     this.logger.log(
-      `Listing suppliers: company=${company_id}, onlyDistributors=${onlyDistributors}`,
+      `Listing suppliers: company=${companyId}, onlyDistributors=${onlyDistributors}`,
       SuppliersService.name,
     );
 
-    return this.repository.findByCompany(company_id, onlyDistributors);
+    return this.repository.findByCompany(companyId, onlyDistributors);
   }
 
-  async findOne(id: string, company_id: string) {
+  async findOne(id: string) {
+    const companyId = this.getCompanyId();
     const supplier = await this.repository.findById(id);
 
-    if (!supplier || supplier.company_id !== company_id) {
+    if (!supplier || supplier.company_id !== companyId) {
       throw new NotFoundException('Fornecedor não encontrado.');
     }
 
     return supplier;
   }
 
-  async update(id: string, dto: UpdateSupplierDto, company_id: string) {
-    await this.findOne(id, company_id);
+  async update(id: string, dto: UpdateSupplierDto) {
+    await this.findOne(id);
 
     this.logger.log(`Updating supplier: ${id}`, SuppliersService.name);
 
@@ -127,8 +141,8 @@ export class SuppliersService {
     return supplier;
   }
 
-  async delete(id: string, company_id: string) {
-    await this.findOne(id, company_id);
+  async delete(id: string) {
+    await this.findOne(id);
 
     this.logger.log(`Deactivating supplier: ${id}`, SuppliersService.name);
 
@@ -139,21 +153,23 @@ export class SuppliersService {
     return supplier;
   }
 
-  async findDistributors(company_id: string) {
+  async findDistributors() {
+    const companyId = this.getCompanyId();
     this.logger.log(
-      `Listing film distributors: company=${company_id}`,
+      `Listing film distributors: company=${companyId}`,
       SuppliersService.name,
     );
 
-    return this.repository.findDistributors(company_id);
+    return this.repository.findDistributors(companyId);
   }
 
-  async findTypes(company_id: string) {
+  async findTypes() {
+    const companyId = this.getCompanyId();
     this.logger.log(
-      `Listing supplier types: company=${company_id}`,
+      `Listing supplier types: company=${companyId}`,
       SuppliersService.name,
     );
 
-    return this.repository.findTypes(company_id);
+    return this.repository.findTypes(companyId);
   }
 }
