@@ -997,6 +997,7 @@ model sales {
   payment_method      String?
   status              String?
   sale_number         String             @unique @db.VarChar(50)
+  public_reference    String             @unique @db.VarChar(64)
   sale_date           DateTime           @db.Timestamp(0)
   total_amount        Decimal            @db.Decimal(10, 2)
   discount_amount     Decimal?           @default(0.00) @db.Decimal(10, 2)
@@ -1017,6 +1018,7 @@ model sales {
   @@index([status])
   @@index([sale_date, status])
   @@index([user_id])
+  @@index([public_reference])
   @@schema("sales")
 }
 

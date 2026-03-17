@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { createHash } from 'crypto';
 import {
   CreateIdentityData,
   IdentityCreatorService,
@@ -140,7 +141,9 @@ describe('IdentityCreatorService', () => {
         personId: 'person-123',
         email: 'novo@example.com',
         passwordHash: 'hashed-password',
-        verificationToken: 'verification-token-789',
+        verificationToken: createHash('sha256')
+          .update('verification-token-789')
+          .digest('hex'),
         verificationExpiresAt: mockVerification.expiresAt,
       });
     });

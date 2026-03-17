@@ -18,7 +18,7 @@ import { FinanceReportsService } from '../services/finance-reports.service';
 @Controller({ path: 'finance', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class FinanceReportsController {
-  constructor(private readonly financeReports: FinanceReportsService) { }
+  constructor(private readonly financeReports: FinanceReportsService) {}
 
   @Get('income-statement')
   @RequirePermission('finance_reports', 'read')

@@ -4,7 +4,6 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { cinema_complexes as CinemaComplex } from '@repo/db';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 
 import { CinemaComplexesRepository } from '../repositories/cinema-complexes.repository';
 import { CreateCinemaComplexDto } from '../dto/create-cinema-complex.dto';
@@ -22,10 +21,9 @@ export class CinemaComplexesService {
   @Transactional()
   async create(
     dto: CreateCinemaComplexDto,
-    user: RequestUser,
+    companyId: string,
+    companyUserId: string,
   ): Promise<CinemaComplex> {
-    const companyId = user.company_id;
-
     const existingByCode = await this.repository.findByCode(
       dto.code,
       companyId,
@@ -36,7 +34,7 @@ export class CinemaComplexesService {
       );
     }
 
-    const dataToCreate: CreateCinemaComplexDto = {
+    const dataToCreate: CreateCinemaComplexDto & { company_id: string } = {
       ...dto,
       company_id: companyId,
     };
@@ -50,8 +48,8 @@ export class CinemaComplexesService {
         new_values: createdComplex,
       },
       metadata: {
-        companyId: companyId,
-        userId: user.company_user_id,
+        companyId,
+        userId: companyUserId,
       },
     });
 
@@ -75,9 +73,9 @@ export class CinemaComplexesService {
   async update(
     id: string,
     dto: UpdateCinemaComplexDto,
-    user: RequestUser,
+    companyId: string,
+    companyUserId: string,
   ): Promise<CinemaComplex> {
-    const companyId = user.company_id;
     const existingComplex = await this.findOne(id, companyId);
 
     if (dto.code && dto.code !== existingComplex.code) {
@@ -102,16 +100,19 @@ export class CinemaComplexesService {
         old_values: existingComplex,
       },
       metadata: {
-        companyId: companyId,
-        userId: user.company_user_id,
+        companyId,
+        userId: companyUserId,
       },
     });
 
     return updatedComplex;
   }
 
-  async delete(id: string, user: RequestUser): Promise<{ message: string }> {
-    const companyId = user.company_id;
+  async delete(
+    id: string,
+    companyId: string,
+    companyUserId: string,
+  ): Promise<{ message: string }> {
     const existingComplex = await this.findOne(id, companyId);
 
     await this.repository.remove(id);
@@ -123,8 +124,8 @@ export class CinemaComplexesService {
         old_values: existingComplex,
       },
       metadata: {
-        companyId: companyId,
-        userId: user.company_user_id,
+        companyId,
+        userId: companyUserId,
       },
     });
 

@@ -99,7 +99,7 @@ export class AccountsReceivableRepository {
 
     return this.prisma.accounts_receivable.update({
       where: { id },
-      data: data as any,
+      data: data,
     });
   }
 

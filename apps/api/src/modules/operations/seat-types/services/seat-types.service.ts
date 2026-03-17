@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { seat_types as SeatType } from '@repo/db';
+import type { OperationTypeResponse } from '../../shared/dto/operation-type-response.dto';
 import { SeatTypesRepository } from '../repositories/seat-types.repository';
 
 @Injectable()
 export class SeatTypesService {
   constructor(private readonly repository: SeatTypesRepository) {}
 
-  async findAll(company_id: string): Promise<SeatType[]> {
-    return this.repository.findAllByCompany(company_id);
+  async findAll(companyId: string): Promise<OperationTypeResponse[]> {
+    return this.repository.findAllByCompany(companyId);
   }
 }

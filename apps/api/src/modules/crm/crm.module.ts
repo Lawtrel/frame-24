@@ -11,6 +11,7 @@ import { CustomerPurchasesService } from './services/customer-purchases.service'
 import { CustomersRepository } from './repositories/customers.repository';
 import { CompanyCustomersRepository } from './repositories/company-customers.repository';
 import { SalesModule } from 'src/modules/sales/sales.module';
+import { requireEnv } from 'src/config/env.util';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { SalesModule } from 'src/modules/sales/sales.module';
     AuthModule,
     SalesModule,
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'dev_secret',
+      secret: requireEnv('JWT_SECRET', 'test-jwt-secret'),
       signOptions: { expiresIn: '8h' },
     }),
   ],

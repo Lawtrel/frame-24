@@ -30,7 +30,7 @@ export class AgingReportsController {
     private readonly agingService: AgingReportsService,
     private readonly positionService: PositionReportsService,
     private readonly financeService: FinanceReportsService,
-  ) { }
+  ) {}
 
   @Get('aging/receivables')
   @RequirePermission('finance_reports', 'read')

@@ -3,10 +3,14 @@ import { JwtService } from '@nestjs/jwt';
 import { TokenGeneratorService } from './token-generator.service';
 import { Identity } from '../domain/entities/identity.entity';
 import { CompanyUser } from '../domain/entities/company-user.entity';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { SnowflakeService } from 'src/common/services/snowflake.service';
 
 describe('TokenGeneratorService', () => {
   let service: TokenGeneratorService;
   let jwtService: jest.Mocked<JwtService>;
+  let prismaService: jest.Mocked<PrismaService>;
+  let snowflakeService: jest.Mocked<SnowflakeService>;
 
   const mockIdentity: Identity = {
     id: 'identity-123',
@@ -43,7 +47,7 @@ describe('TokenGeneratorService', () => {
           },
         },
         {
-          provide: 'PrismaService',
+          provide: PrismaService,
           useValue: {
             user_sessions: {
               create: jest.fn().mockResolvedValue({}),
@@ -51,7 +55,7 @@ describe('TokenGeneratorService', () => {
           },
         },
         {
-          provide: 'SnowflakeService',
+          provide: SnowflakeService,
           useValue: {
             generate: jest.fn().mockReturnValue('session-123'),
           },
@@ -61,6 +65,8 @@ describe('TokenGeneratorService', () => {
 
     service = module.get<TokenGeneratorService>(TokenGeneratorService);
     jwtService = module.get(JwtService);
+    prismaService = module.get(PrismaService);
+    snowflakeService = module.get(SnowflakeService);
   });
 
   afterEach(() => {
@@ -94,8 +100,8 @@ describe('TokenGeneratorService', () => {
       });
     });
 
-    it('deve incluir sub (subject) como identity_id', () => {
-      service.generate(mockIdentity, mockCompanyUser);
+    it('deve incluir sub (subject) como identity_id', async () => {
+      await service.generate(mockIdentity, mockCompanyUser);
 
       expect(jwtService.sign).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -105,8 +111,8 @@ describe('TokenGeneratorService', () => {
       );
     });
 
-    it('deve incluir email do usuário no payload', () => {
-      service.generate(mockIdentity, mockCompanyUser);
+    it('deve incluir email do usuário no payload', async () => {
+      await service.generate(mockIdentity, mockCompanyUser);
 
       expect(jwtService.sign).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -115,8 +121,8 @@ describe('TokenGeneratorService', () => {
       );
     });
 
-    it('deve incluir company_id no payload', () => {
-      service.generate(mockIdentity, mockCompanyUser);
+    it('deve incluir company_id no payload', async () => {
+      await service.generate(mockIdentity, mockCompanyUser);
 
       expect(jwtService.sign).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -125,8 +131,8 @@ describe('TokenGeneratorService', () => {
       );
     });
 
-    it('deve incluir role_id no payload para controle de permissões', () => {
-      service.generate(mockIdentity, mockCompanyUser);
+    it('deve incluir role_id no payload para controle de permissões', async () => {
+      await service.generate(mockIdentity, mockCompanyUser);
 
       expect(jwtService.sign).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -135,8 +141,8 @@ describe('TokenGeneratorService', () => {
       );
     });
 
-    it('deve incluir company_user_id no payload', () => {
-      service.generate(mockIdentity, mockCompanyUser);
+    it('deve incluir company_user_id no payload', async () => {
+      await service.generate(mockIdentity, mockCompanyUser);
 
       expect(jwtService.sign).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -145,8 +151,8 @@ describe('TokenGeneratorService', () => {
       );
     });
 
-    it('deve definir session_context como EMPLOYEE', () => {
-      service.generate(mockIdentity, mockCompanyUser);
+    it('deve definir session_context como EMPLOYEE', async () => {
+      await service.generate(mockIdentity, mockCompanyUser);
 
       expect(jwtService.sign).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -196,8 +202,8 @@ describe('TokenGeneratorService', () => {
       expect(typeof result.user).toBe('object');
     });
 
-    it('deve chamar jwtService.sign apenas uma vez', () => {
-      service.generate(mockIdentity, mockCompanyUser);
+    it('deve chamar jwtService.sign apenas uma vez', async () => {
+      await service.generate(mockIdentity, mockCompanyUser);
 
       expect(jwtService.sign).toHaveBeenCalledTimes(1);
     });
@@ -224,14 +230,14 @@ describe('TokenGeneratorService', () => {
       expect(jwtService.sign).toHaveBeenCalledTimes(2);
     });
 
-    it('deve usar dados corretos da identidade', () => {
+    it('deve usar dados corretos da identidade', async () => {
       const customIdentity = {
         ...mockIdentity,
         id: 'custom-id',
         email: 'custom@email.com',
       };
 
-      service.generate(customIdentity as Identity, mockCompanyUser);
+      await service.generate(customIdentity as Identity, mockCompanyUser);
 
       expect(jwtService.sign).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -242,7 +248,7 @@ describe('TokenGeneratorService', () => {
       );
     });
 
-    it('deve usar dados corretos do company user', () => {
+    it('deve usar dados corretos do company user', async () => {
       const customCompanyUser = {
         ...mockCompanyUser,
         companyId: 'company-custom',
@@ -250,12 +256,33 @@ describe('TokenGeneratorService', () => {
         employeeId: 'EMP999',
       };
 
-      service.generate(mockIdentity, customCompanyUser as CompanyUser);
+      await service.generate(mockIdentity, customCompanyUser as CompanyUser);
 
       expect(jwtService.sign).toHaveBeenCalledWith(
         expect.objectContaining({
           company_id: 'company-custom',
           role_id: 'role-custom',
+        }),
+      );
+    });
+
+    it('deve persistir sessão com hash do token', async () => {
+      await service.generate(mockIdentity, mockCompanyUser);
+
+      expect(snowflakeService.generate).toHaveBeenCalled();
+      expect(prismaService.user_sessions.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            id: 'session-123',
+            identity_id: 'identity-123',
+            company_id: 'company-789',
+            session_id: 'session-123',
+            session_context: 'EMPLOYEE',
+            active: true,
+            revoked: false,
+            access_token_hash: expect.any(String),
+            expires_at: expect.any(Date),
+          }),
         }),
       );
     });

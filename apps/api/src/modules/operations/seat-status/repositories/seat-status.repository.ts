@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, seat_status as SeatStatus } from '@repo/db';
 import { PrismaService } from 'src/prisma/prisma.service';
+import type { SeatStatusResponse } from '../../shared/dto/seat-status-response.dto';
 
 @Injectable()
 export class SeatStatusRepository {
@@ -8,29 +9,37 @@ export class SeatStatusRepository {
 
   async findByNameAndCompany(
     name: string,
-    company_id: string,
+    companyId: string,
   ): Promise<SeatStatus | null> {
     return this.prisma.seat_status.findUnique({
       where: {
         company_id_name: {
-          company_id,
+          company_id: companyId,
           name,
         },
       },
     });
   }
 
-  async findDefaultByCompany(company_id: string): Promise<SeatStatus | null> {
+  async findDefaultByCompany(companyId: string): Promise<SeatStatus | null> {
     return this.prisma.seat_status.findFirst({
       where: {
-        company_id,
+        company_id: companyId,
         is_default: true,
       },
     });
   }
-  async findAllByCompany(company_id: string): Promise<SeatStatus[]> {
+
+  async findAllByCompany(companyId: string): Promise<SeatStatusResponse[]> {
     return this.prisma.seat_status.findMany({
-      where: { company_id },
+      where: { company_id: companyId },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        allows_modification: true,
+        is_default: true,
+      },
       orderBy: { name: 'asc' },
     });
   }

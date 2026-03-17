@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 async function main() {
   const email = 'admin@lawtrel.com';
   const password = 'lawtrel';
-  
+
   // 1. Gerar hash da senha (bypassing da validação de complexidade da API)
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
@@ -26,7 +26,7 @@ async function main() {
       cnpj: '00000000000100', // CNPJ Fictício
       email: 'contato@lawtrel.com',
       tax_regime: 'SIMPLES_NACIONAL', // Enum obrigatório
-      active: true
+      active: true,
     },
   });
 
@@ -38,7 +38,7 @@ async function main() {
       full_name: 'Super Admin',
       email: email,
       cpf: '00000000000', // CPF Fictício
-    }
+    },
   });
 
   // 4. Criar a Identidade (Login)
@@ -50,18 +50,18 @@ async function main() {
       identity_type: 'EMPLOYEE', // Tipo de identidade
       active: true,
       email_verified: true,
-    }
+    },
   });
 
   console.log(`✅ Identidade de login criada.`);
 
   // 5. Criar Perfil de Acesso (Role)
   const role = await prisma.custom_roles.upsert({
-    where: { 
-      company_id_name: { 
-        company_id: company.id, 
-        name: 'Super Admin' 
-      } 
+    where: {
+      company_id_name: {
+        company_id: company.id,
+        name: 'Super Admin',
+      },
     },
     update: {},
     create: {
@@ -69,8 +69,8 @@ async function main() {
       name: 'Super Admin',
       description: 'Acesso total ao sistema',
       is_system_role: true,
-      hierarchy_level: 999
-    }
+      hierarchy_level: 999,
+    },
   });
 
   // 6. Vincular Usuário à Empresa com o Perfil
@@ -82,7 +82,7 @@ async function main() {
       employee_id: 'ADM-001', // Código interno
       active: true,
       start_date: new Date(),
-    }
+    },
   });
 
   console.log(`\n🚀 Usuário Admin criado com sucesso!`);

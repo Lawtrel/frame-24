@@ -17,7 +17,7 @@ export class PublicService {
     private readonly productsRepository: ProductRepository,
     private readonly seatsRepository: SeatsRepository,
     private readonly sessionSeatStatusRepository: SessionSeatStatusRepository,
-  ) { }
+  ) {}
 
   async getCompanies() {
     return this.prisma.companies.findMany({
@@ -110,8 +110,6 @@ export class PublicService {
     // 4. Buscar filmes
     return this.moviesRepository.findByIds(movieIds);
   }
-
-
 
   async getShowtimesByCompany(
     company_id: string,
@@ -246,12 +244,12 @@ export class PublicService {
         ...showtime,
         movie: movie
           ? {
-            id: movie.id,
-            title: movie.brazil_title || movie.original_title,
-            poster_url: movie.movie_media[0]?.media_url || null,
-            duration_minutes: movie.duration_minutes,
-            age_rating: movie.age_rating?.code || null,
-          }
+              id: movie.id,
+              title: movie.brazil_title || movie.original_title,
+              poster_url: movie.movie_media[0]?.media_url || null,
+              duration_minutes: movie.duration_minutes,
+              age_rating: movie.age_rating?.code || null,
+            }
           : null,
       };
     });
@@ -331,20 +329,20 @@ export class PublicService {
       seats: seatsMap,
       movie: movieDetails
         ? {
-          title: movieDetails.brazil_title || movieDetails.original_title,
-          poster_url: movieDetails.movie_media[0]?.media_url,
-        }
+            title: movieDetails.brazil_title || movieDetails.original_title,
+            poster_url: movieDetails.movie_media[0]?.media_url,
+          }
         : null,
       cinema: showtimeDetails?.cinema_complexes
         ? {
-          id: showtimeDetails.cinema_complexes.id,
-          name: showtimeDetails.cinema_complexes.name,
-        }
+            id: showtimeDetails.cinema_complexes.id,
+            name: showtimeDetails.cinema_complexes.name,
+          }
         : null,
       room: showtimeDetails?.rooms
         ? {
-          name: showtimeDetails.rooms.name,
-        }
+            name: showtimeDetails.rooms.name,
+          }
         : null,
       start_time: showtimeDetails?.start_time,
     };
@@ -418,9 +416,16 @@ export class PublicService {
     });
   }
 
-  async getSaleDetails(sale_id: string) {
-    const sale = await this.prisma.sales.findUnique({
-      where: { id: sale_id },
+  async getSaleDetails(company_id: string, public_reference: string) {
+    const complexes =
+      await this.cinemaComplexesRepository.findAllByCompany(company_id);
+    const complexIds = complexes.map((c) => c.id);
+
+    const sale = await this.prisma.sales.findFirst({
+      where: {
+        public_reference,
+        cinema_complex_id: { in: complexIds },
+      },
       include: {
         tickets: {
           include: {

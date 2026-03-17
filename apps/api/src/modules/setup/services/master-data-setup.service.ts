@@ -10,7 +10,7 @@ export class MasterDataSetupService {
     private readonly prisma: PrismaService,
     private readonly snowflake: SnowflakeService,
     private readonly logger: LoggerService,
-  ) { }
+  ) {}
 
   /**
    * Popula TODOS os dados mestres para uma empresa

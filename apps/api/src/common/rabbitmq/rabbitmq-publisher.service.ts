@@ -1,6 +1,7 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { Channel, ChannelModel, connect } from 'amqplib';
 import { LoggerService } from '../services/logger.service';
+import { requireEnv } from 'src/config/env.util';
 
 export interface RabbitMQMessage<T = any> {
   pattern: string;
@@ -44,10 +45,10 @@ export class RabbitMQPublisherService implements OnModuleInit, OnModuleDestroy {
         // Mask password in logs
         logInfo = uri.replace(/:([^:@]+)@/, ':***@');
       } else {
-        const user = process.env.RABBITMQ_USER || 'frame24';
-        const password = process.env.RABBITMQ_PASSWORD || 'frame24pass';
-        const host = process.env.RABBITMQ_HOST || 'localhost';
-        const port = process.env.RABBITMQ_PORT || 5672;
+        const user = requireEnv('RABBITMQ_USER', 'test');
+        const password = requireEnv('RABBITMQ_PASSWORD', 'test');
+        const host = requireEnv('RABBITMQ_HOST', 'localhost');
+        const port = requireEnv('RABBITMQ_PORT', '5672');
         url = `amqp://${user}:${password}@${host}:${port}`;
         logInfo = `${host}:${port}`;
       }

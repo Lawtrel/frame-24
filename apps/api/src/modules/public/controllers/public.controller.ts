@@ -6,19 +6,14 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiQuery,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorator';
 import { PublicService } from '../services/public.service';
 
 @ApiTags('Public')
 @Controller({ path: 'public', version: '1' })
 export class PublicController {
-  constructor(private readonly publicService: PublicService) { }
+  constructor(private readonly publicService: PublicService) {}
 
   @Get('companies')
   @Public()
@@ -200,7 +195,7 @@ export class PublicController {
     return this.publicService.getPaymentMethods(company.id);
   }
 
-  @Get('sales/:id')
+  @Get('companies/:tenant_slug/sales/:reference')
   @Public()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -216,8 +211,12 @@ export class PublicController {
     status: 404,
     description: 'Venda não encontrada',
   })
-  async getSaleDetails(@Param('id') id: string) {
-    return this.publicService.getSaleDetails(id);
+  async getSaleDetails(
+    @Param('tenant_slug') tenant_slug: string,
+    @Param('reference') reference: string,
+  ) {
+    const company = await this.publicService.getCompanyBySlug(tenant_slug);
+    return this.publicService.getSaleDetails(company.id, reference);
   }
 
   @Get('movies/:id')
@@ -238,6 +237,4 @@ export class PublicController {
   async getMovie(@Param('id') id: string) {
     return this.publicService.getMovie(id);
   }
-
-
 }

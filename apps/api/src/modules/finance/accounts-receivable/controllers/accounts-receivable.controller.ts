@@ -30,7 +30,7 @@ import {
 @Controller('finance/receivables')
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class AccountsReceivableController {
-  constructor(private readonly service: AccountsReceivableService) { }
+  constructor(private readonly service: AccountsReceivableService) {}
 
   @Post()
   @RequirePermission('finance_receivables', 'create')

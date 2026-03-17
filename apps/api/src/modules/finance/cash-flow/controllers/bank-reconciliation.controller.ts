@@ -33,7 +33,7 @@ import {
 @Controller({ path: 'finance/bank-reconciliation', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class BankReconciliationController {
-  constructor(private readonly service: BankReconciliationService) { }
+  constructor(private readonly service: BankReconciliationService) {}
 
   @Post()
   @RequirePermission('cash_flow', 'reconcile')

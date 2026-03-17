@@ -35,6 +35,9 @@ import { AppController } from './app.controller';
       },
     ]),
     ClsModule.forRoot({
+      middleware: {
+        mount: true,
+      },
       plugins: [
         new ClsPluginTransactional({
           imports: [PrismaModule],
@@ -74,4 +77,4 @@ import { AppController } from './app.controller';
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}

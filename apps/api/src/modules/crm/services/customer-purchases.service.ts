@@ -24,7 +24,7 @@ export class CustomerPurchasesService {
     private readonly companyCustomersRepository: CompanyCustomersRepository,
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
-  ) { }
+  ) {}
 
   async purchase(
     dto: CreatePurchaseDto,
@@ -178,8 +178,8 @@ export class CustomerPurchasesService {
           where: {
             active: true,
             media_types: {
-              name: 'Poster'
-            }
+              name: 'Poster',
+            },
           },
           include: {
             media_types: true,
@@ -218,12 +218,12 @@ export class CustomerPurchasesService {
           ticket_number: ticket.ticket_number,
           seat: seat
             ? {
-              id: seat.id,
-              seat_code: seat.seat_code,
-              row_code: seat.row_code,
-              column_number: seat.column_number,
-              seat_type: seat.seat_types?.name || 'Padrão',
-            }
+                id: seat.id,
+                seat_code: seat.seat_code,
+                row_code: seat.row_code,
+                column_number: seat.column_number,
+                seat_type: seat.seat_types?.name || 'Padrão',
+              }
             : undefined,
           face_value: ticket.face_value.toString(),
           service_fee: (ticket.service_fee || 0).toString(),
@@ -249,11 +249,11 @@ export class CustomerPurchasesService {
         tickets: ticketsWithSeats,
         showtime: showtimeDetails
           ? {
-            id: showtimeDetails.id,
-            start_time: showtimeDetails.start_time.toISOString(),
-            cinema: showtimeDetails.cinema_complexes?.name,
-            room: showtimeDetails.rooms?.name,
-          }
+              id: showtimeDetails.id,
+              start_time: showtimeDetails.start_time.toISOString(),
+              cinema: showtimeDetails.cinema_complexes?.name,
+              room: showtimeDetails.rooms?.name,
+            }
           : undefined,
         movie: movieDetails || undefined,
         created_at: sale.created_at?.toISOString() || new Date().toISOString(),

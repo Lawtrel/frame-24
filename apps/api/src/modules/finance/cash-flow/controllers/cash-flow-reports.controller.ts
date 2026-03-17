@@ -26,7 +26,7 @@ import { CashFlowReportQueryDto } from '../dto/cash-flow-report.dto';
 @Controller({ path: 'finance/cash-flow/reports', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class CashFlowReportsController {
-  constructor(private readonly service: CashFlowReportsService) { }
+  constructor(private readonly service: CashFlowReportsService) {}
 
   @Get('daily')
   @RequirePermission('cash_flow', 'read')

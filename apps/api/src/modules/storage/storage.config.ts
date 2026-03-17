@@ -1,3 +1,5 @@
+import { requireEnv } from 'src/config/env.util';
+
 export interface StorageConfig {
   endpoint: string;
   port: number;
@@ -10,12 +12,12 @@ export interface StorageConfig {
 }
 
 export const storageConfig: StorageConfig = {
-  endpoint: process.env.MINIO_ENDPOINT || 'localhost',
-  port: parseInt(process.env.MINIO_PORT || '9000', 10),
-  accessKey: process.env.MINIO_ACCESS_KEY || 'minioadmin',
-  secretKey: process.env.MINIO_SECRET_KEY || 'minioadmin',
+  endpoint: requireEnv('MINIO_ENDPOINT', 'localhost'),
+  port: parseInt(requireEnv('MINIO_PORT', '9000'), 10),
+  accessKey: requireEnv('MINIO_ACCESS_KEY', 'test'),
+  secretKey: requireEnv('MINIO_SECRET_KEY', 'test'),
   useSSL: process.env.MINIO_USE_SSL === 'true',
-  bucket: process.env.MINIO_BUCKET || 'frame24-uploads',
+  bucket: requireEnv('MINIO_BUCKET', 'frame24-uploads'),
   region: process.env.MINIO_REGION,
   publicUrl: process.env.STORAGE_PUBLIC_URL,
 };

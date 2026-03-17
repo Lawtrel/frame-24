@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { sales, Prisma } from '@repo/db';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class SalesRepository {
@@ -109,6 +110,7 @@ export class SalesRepository {
     return this.prisma.sales.create({
       data: {
         id: this.snowflake.generate(),
+        public_reference: data.public_reference || randomUUID(),
         ...data,
       },
       include: {

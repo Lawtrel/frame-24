@@ -1,33 +1,30 @@
 import {
-  Controller,
   Get,
   Post,
   Put,
   Delete,
   Body,
   Param,
-  UseGuards,
   HttpCode,
   HttpStatus,
   UploadedFile,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
+  ApiOkResponse,
   ApiBadRequestResponse,
   ApiNotFoundResponse,
-  ApiBearerAuth,
   ApiConflictResponse,
   ApiConsumes,
   ApiBody,
 } from '@nestjs/swagger';
 
-import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { FileUpload } from 'src/common/decorators/file-upload.decorator';
+import { SecuredController } from 'src/common/decorators/secured-controller.decorator';
 import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 
 import { RoomsService } from '../services/rooms.service';
@@ -35,9 +32,10 @@ import { CreateRoomDto } from '../dto/create-room.dto';
 import { UpdateRoomDto } from '../dto/update-room.dto';
 
 @ApiTags('Operations', 'Rooms')
-@ApiBearerAuth()
-@Controller({ path: 'cinema-complexes/:cinemaComplexId/rooms', version: '1' })
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@SecuredController({
+  path: 'cinema-complexes/:cinemaComplexId/rooms',
+  version: '1',
+})
 export class RoomsController {
   constructor(private readonly service: RoomsService) {}
 
@@ -66,13 +64,19 @@ export class RoomsController {
     @Body() dto: CreateRoomDto,
     @CurrentUser() user: RequestUser,
   ) {
-    return this.service.create(cinemaComplexId, dto, user, file);
+    return this.service.create(
+      cinemaComplexId,
+      dto,
+      user.company_id,
+      user.company_user_id,
+      file,
+    );
   }
 
   @Get()
   @RequirePermission('rooms', 'read')
   @ApiOperation({ summary: 'Listar todas as salas de um complexo' })
-  @ApiResponse({ status: 200, description: 'Lista de salas retornada.' })
+  @ApiOkResponse({ description: 'Lista de salas retornada.' })
   @ApiNotFoundResponse({ description: 'Complexo de cinema não encontrado.' })
   async findAll(
     @Param('cinemaComplexId') cinemaComplexId: string,
@@ -107,7 +111,13 @@ export class RoomsController {
     @Body() dto: UpdateRoomDto,
     @CurrentUser() user: RequestUser,
   ) {
-    return this.service.update(id, dto, user, file);
+    return this.service.update(
+      id,
+      dto,
+      user.company_id,
+      user.company_user_id,
+      file,
+    );
   }
 
   @Delete(':id')
@@ -117,6 +127,6 @@ export class RoomsController {
   @ApiResponse({ status: 200, description: 'Sala excluída com sucesso.' })
   @ApiNotFoundResponse({ description: 'Sala não encontrada.' })
   async delete(@Param('id') id: string, @CurrentUser() user: RequestUser) {
-    return this.service.delete(id, user);
+    return this.service.delete(id, user.company_id, user.company_user_id);
   }
 }

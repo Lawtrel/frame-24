@@ -13,7 +13,7 @@ export class TokenGeneratorService {
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
     private readonly snowflake: SnowflakeService,
-  ) { }
+  ) {}
 
   async generate(
     identity: Identity,

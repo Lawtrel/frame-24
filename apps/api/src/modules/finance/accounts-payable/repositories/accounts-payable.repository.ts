@@ -95,7 +95,7 @@ export class AccountsPayableRepository {
 
     return this.prisma.accounts_payable.update({
       where: { id },
-      data: data as any,
+      data: data,
     });
   }
 

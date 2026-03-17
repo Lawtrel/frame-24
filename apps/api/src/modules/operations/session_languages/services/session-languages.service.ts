@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
+import type { SessionLanguageResponse } from '../../shared/dto/session-language-response.dto';
 import { SessionLanguagesRepository } from '../repositories/session-languages.repository';
 
 @Injectable()
 export class SessionLanguagesService {
   constructor(private readonly repository: SessionLanguagesRepository) {}
 
-  async findAll(user: RequestUser) {
-    return this.repository.findAllByCompany(user.company_id);
+  async findAll(companyId: string): Promise<SessionLanguageResponse[]> {
+    return this.repository.findAllByCompany(companyId);
   }
 }

@@ -4,7 +4,7 @@ import { SNOWFLAKE_CONFIG } from '../config/snowflake.config';
 
 /**
  * Serviço para geração de IDs únicos usando Snowflake
- * 
+ *
  * Baseado em @sapphire/snowflake, retorna strings para compatibilidade
  * com Prisma (String IDs) e APIs REST (JSON não suporta bigint nativamente).
  */

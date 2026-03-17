@@ -12,7 +12,7 @@ export class IdentityRepository {
   constructor(
     private readonly prisma: PrismaService,
     private readonly snowflake: SnowflakeService,
-  ) { }
+  ) {}
 
   async findByEmail(email: string): Promise<Identity | null> {
     const raw = await this.prisma.identities.findFirst({ where: { email } });

@@ -9,8 +9,10 @@ import compression from 'compression';
 import { AppModule } from './app.module';
 import { getAllTags, TAG_GROUPS } from './swagger.config';
 import { VersioningType } from '@nestjs/common';
+import { validateEnvironment } from './config/validate-env';
 
 async function bootstrap() {
+  validateEnvironment();
   const app = await NestFactory.create(AppModule);
 
   // Enable compression
@@ -36,7 +38,7 @@ async function bootstrap() {
     'http://localhost:3004',
     'http://localhost:4000',
     ...frontendUrls,
-  ].filter(Boolean) as string[];
+  ].filter(Boolean);
 
   app.enableCors({
     origin: (

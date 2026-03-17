@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { projection_types as ProjectionType } from '@repo/db';
+import type { OperationTypeResponse } from '../../shared/dto/operation-type-response.dto';
 import { ProjectionTypesRepository } from '../repositories/projection-types.repository';
 
 @Injectable()
 export class ProjectionTypesService {
   constructor(private readonly repository: ProjectionTypesRepository) {}
 
-  async findAll(company_id: string): Promise<ProjectionType[]> {
-    return this.repository.findAllByCompany(company_id);
+  async findAll(companyId: string): Promise<OperationTypeResponse[]> {
+    return this.repository.findAllByCompany(companyId);
   }
 }

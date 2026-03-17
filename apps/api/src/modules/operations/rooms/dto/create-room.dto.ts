@@ -19,12 +19,6 @@ class SeatLayoutRowDto {
 }
 
 export class CreateRoomDto extends createZodDto(CreateRoomSchema) {
-  @ApiProperty({
-    description: 'ID do complexo de cinema',
-    example: '251127589321654335',
-  })
-  complex_id!: string;
-
   @ApiProperty({ description: 'Número/identificador da sala', example: '1' })
   room_number!: string;
 

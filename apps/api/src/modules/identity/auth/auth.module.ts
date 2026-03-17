@@ -26,6 +26,7 @@ import { EmployeeIdGeneratorService } from './services/employee-id-generator';
 
 import { MasterDataSetupService } from 'src/modules/setup/services/master-data-setup.service';
 import { TaxModule } from 'src/modules/tax/tax.module';
+import { requireEnv } from 'src/config/env.util';
 
 import { JwtStrategy } from './strategies/jwt.strategy';
 
@@ -36,7 +37,7 @@ import { AuthController } from './controllers/auth.controller';
     PrismaModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'dev_secret',
+      secret: requireEnv('JWT_SECRET', 'test-jwt-secret'),
       signOptions: { expiresIn: '8h' },
     }),
     CommonModule,

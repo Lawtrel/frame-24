@@ -7,7 +7,6 @@ import {
 import { Prisma, rooms as Room } from '@repo/db';
 import { Transactional } from '@nestjs-cls/transactional';
 
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { RabbitMQPublisherService } from 'src/common/rabbitmq/rabbitmq-publisher.service';
 import { StorageService } from 'src/modules/storage/storage.service';
@@ -39,11 +38,10 @@ export class RoomsService {
   async create(
     cinemaComplexId: string,
     dto: CreateRoomDto,
-    user: RequestUser,
+    companyId: string,
+    companyUserId: string,
     file?: Express.Multer.File,
   ): Promise<Room> {
-    const companyId = user.company_id;
-
     await this.validateDependencies(dto, cinemaComplexId, companyId);
 
     const roomId = this.snowflake.generate();
@@ -119,7 +117,7 @@ export class RoomsService {
         id: newRoom.id,
         new_values: { ...newRoom, seat_layout: dto.seat_layout },
       },
-      metadata: { companyId, userId: user.company_user_id },
+      metadata: { companyId, userId: companyUserId },
     });
 
     return newRoom;
@@ -210,11 +208,10 @@ export class RoomsService {
   async update(
     id: string,
     dto: UpdateRoomDto,
-    user: RequestUser,
+    companyId: string,
+    companyUserId: string,
     file?: Express.Multer.File,
   ): Promise<Room> {
-    const companyId = user.company_id;
-
     const existingRoom = await this.findOne(id, companyId);
 
     if (dto.room_number && dto.room_number !== existingRoom.room_number) {
@@ -303,15 +300,18 @@ export class RoomsService {
         new_values: updatedRoom,
         old_values: existingRoom,
       },
-      metadata: { companyId, userId: user.company_user_id },
+      metadata: { companyId, userId: companyUserId },
     });
 
     return updatedRoom;
   }
 
   @Transactional()
-  async delete(id: string, user: RequestUser): Promise<{ message: string }> {
-    const companyId = user.company_id;
+  async delete(
+    id: string,
+    companyId: string,
+    companyUserId: string,
+  ): Promise<{ message: string }> {
     const existingRoom = await this.findOne(id, companyId); // Valida a posse
 
     await this.roomsRepository.remove(id);
@@ -319,7 +319,7 @@ export class RoomsService {
     void this.rabbitmq.publish({
       pattern: 'audit.room.deleted',
       data: { id: existingRoom.id, old_values: existingRoom },
-      metadata: { companyId, userId: user.company_user_id },
+      metadata: { companyId, userId: companyUserId },
     });
 
     return { message: 'Sala deletada com sucesso.' };

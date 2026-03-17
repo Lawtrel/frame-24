@@ -17,7 +17,7 @@ export class BankReconciliationService {
     private readonly repository: BankReconciliationRepository,
     private readonly bankAccountsRepository: BankAccountsRepository,
     private readonly snowflake: SnowflakeService,
-  ) { }
+  ) {}
 
   async create(
     companyId: string,

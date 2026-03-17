@@ -11,14 +11,14 @@ async function main() {
     where: { tenant_slug: 'lawtrel-admin' },
   });
 
-  if (!company) throw new Error("Empresa não encontrada.");
+  if (!company) throw new Error('Empresa não encontrada.');
 
   // 2. Buscar o Role de Super Admin
   const adminRole = await prisma.custom_roles.findFirst({
-    where: { 
+    where: {
       company_id: company.id,
-      name: 'Super Admin'
-    }
+      name: 'Super Admin',
+    },
   });
 
   if (!adminRole) throw new Error("Role 'Super Admin' não encontrado.");
@@ -31,12 +31,24 @@ async function main() {
     { resource: 'movies', action: 'create', name: 'Criar Filmes' },
     { resource: 'movies', action: 'update', name: 'Editar Filmes' },
     { resource: 'movies', action: 'delete', name: 'Excluir Filmes' },
-    
+
     // --- Catálogo: Categorias ---
-    { resource: 'movie_categories', action: 'read', name: 'Visualizar Categorias' },
-    { resource: 'movie_categories', action: 'create', name: 'Criar Categorias' },
-    { resource: 'movie_categories', action: 'update', name: 'Editar Categorias' },
-    
+    {
+      resource: 'movie_categories',
+      action: 'read',
+      name: 'Visualizar Categorias',
+    },
+    {
+      resource: 'movie_categories',
+      action: 'create',
+      name: 'Criar Categorias',
+    },
+    {
+      resource: 'movie_categories',
+      action: 'update',
+      name: 'Editar Categorias',
+    },
+
     // --- Usuários ---
     { resource: 'users', action: 'read', name: 'Visualizar Usuários' },
     { resource: 'users', action: 'create', name: 'Criar Usuários' },
@@ -62,32 +74,39 @@ async function main() {
         action: p.action,
         code: code,
         name: p.name,
-        active: true
-      }
+        active: true,
+      },
     });
 
     // Vincular Permissão ao Role (RolePermissions)
     // Verifica se já existe para não dar erro de unique constraint
     const rolePermExists = await prisma.role_permissions.findUnique({
-        where: { role_id_permission_id: { role_id: adminRole.id, permission_id: permission.id } }
+      where: {
+        role_id_permission_id: {
+          role_id: adminRole.id,
+          permission_id: permission.id,
+        },
+      },
     });
 
     if (!rolePermExists) {
-        await prisma.role_permissions.create({
-            data: {
-                id: randomUUID(),
-                role_id: adminRole.id,
-                permission_id: permission.id
-            }
-        });
-        console.log(`✅ Permissão concedida: ${code}`);
+      await prisma.role_permissions.create({
+        data: {
+          id: randomUUID(),
+          role_id: adminRole.id,
+          permission_id: permission.id,
+        },
+      });
+      console.log(`✅ Permissão concedida: ${code}`);
     } else {
-        console.log(`start_skip Permissão já existe: ${code}`);
+      console.log(`start_skip Permissão já existe: ${code}`);
     }
   }
 
   console.log(`\n🎉 Todas as permissões foram concedidas ao Super Admin!`);
-  console.log(`⚠️ Nota: Para as novas permissões surtirem efeito, faça LOGOUT e LOGIN novamente.`);
+  console.log(
+    `⚠️ Nota: Para as novas permissões surtirem efeito, faça LOGOUT e LOGIN novamente.`,
+  );
 }
 
 main()

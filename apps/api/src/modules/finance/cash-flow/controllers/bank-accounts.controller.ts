@@ -32,7 +32,7 @@ import { UpdateBankAccountDto } from '../dto/update-bank-account.dto';
 @Controller({ path: 'finance/bank-accounts', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class BankAccountsController {
-  constructor(private readonly service: BankAccountsService) { }
+  constructor(private readonly service: BankAccountsService) {}
 
   @Post()
   @RequirePermission('bank_accounts', 'create')

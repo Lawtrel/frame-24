@@ -20,7 +20,7 @@ import { CreateDistributorSettlementDto } from '../dto/create-distributor-settle
 export class DistributorSettlementsController {
   constructor(
     private readonly settlementsService: DistributorSettlementsService,
-  ) { }
+  ) {}
 
   @Get()
   @RequirePermission('finance_settlements', 'read')

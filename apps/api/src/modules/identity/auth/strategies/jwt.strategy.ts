@@ -3,6 +3,8 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { LoggerService } from 'src/common/services/logger.service';
+import { requireEnv } from 'src/config/env.util';
+import { ClsService } from 'nestjs-cls';
 
 export interface JwtPayload {
   sub: string;
@@ -48,11 +50,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
+    private readonly cls: ClsService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET || 'dev_secret',
+      secretOrKey: requireEnv('JWT_SECRET', 'test-jwt-secret'),
     });
   }
 
@@ -91,9 +94,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         company_users: {
           where: payload.company_id
             ? {
-              company_id: payload.company_id,
-              active: true,
-            }
+                company_id: payload.company_id,
+                active: true,
+              }
             : { active: true },
           include: {
             companies: true,
@@ -166,6 +169,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         JwtStrategy.name,
       );
 
+      this.cls.set('companyId', customerUser.company_id);
+
       return customerUser;
     }
 
@@ -215,6 +220,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       `Employee Auth OK: ${user.email} | ${user.role}`,
       JwtStrategy.name,
     );
+
+    this.cls.set('companyId', user.company_id);
 
     return user;
   }

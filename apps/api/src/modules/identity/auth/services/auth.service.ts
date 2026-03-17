@@ -57,7 +57,7 @@ export class AuthService {
     private readonly masterDataSetup: MasterDataSetupService,
     private readonly taxSetup: TaxSetupService,
     private readonly logger: LoggerService,
-  ) { }
+  ) {}
 
   async login(email: string, password: string): Promise<LoginResponseDto> {
     this.logger.log(`Login: ${email}`, AuthService.name);
@@ -339,7 +339,6 @@ export class AuthService {
     return { message: 'Sua senha foi redefinida com sucesso!' };
   }
 
-
   @Transactional()
   async logout(identityId: string, companyId?: string): Promise<void> {
     await this.identityRepository.revokeUserSessions(identityId, companyId);
@@ -354,7 +353,6 @@ export class AuthService {
       AuthService.name,
     );
   }
-
 
   @Transactional()
   async revokeSession(sessionId: string): Promise<void> {

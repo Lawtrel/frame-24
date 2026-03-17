@@ -13,7 +13,7 @@ async function main() {
     { name: 'Cartão de Crédito', fee: 3.5, days: 30 },
     { name: 'Cartão de Débito', fee: 1.5, days: 1 },
     { name: 'Pix', fee: 0.9, days: 0 },
-    { name: 'Dinheiro', fee: 0, days: 0 }
+    { name: 'Dinheiro', fee: 0, days: 0 },
   ];
 
   for (const m of methods) {
@@ -26,8 +26,8 @@ async function main() {
         name: m.name,
         description: `Pagamento via ${m.name}`,
         operator_fee: m.fee,
-        settlement_days: m.days
-      }
+        settlement_days: m.days,
+      },
     });
     console.log(`✅ Método criado: ${m.name}`);
   }

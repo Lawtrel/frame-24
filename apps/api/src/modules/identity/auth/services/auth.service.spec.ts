@@ -23,6 +23,7 @@ import { IdentityCreatorService } from './identity-creator.service';
 import { CompanyUserLinkerService } from './company-user-linker.service';
 import { IdentityEventPublisherService } from './identity-event-publisher.service';
 import { MasterDataSetupService } from 'src/modules/setup/services/master-data-setup.service';
+import { TaxSetupService } from 'src/modules/tax/services/tax-setup.service';
 import { LoggerService } from 'src/common/services/logger.service';
 import { Identity } from '../domain/entities/identity.entity';
 import { CompanyUser } from '../domain/entities/company-user.entity';
@@ -51,6 +52,7 @@ describe('AuthService', () => {
   let companyUserLinker: jest.Mocked<CompanyUserLinkerService>;
   let eventPublisher: jest.Mocked<IdentityEventPublisherService>;
   let masterDataSetup: jest.Mocked<MasterDataSetupService>;
+  let taxSetup: jest.Mocked<TaxSetupService>;
 
   const mockIdentity: Identity = {
     id: 'identity-123',
@@ -96,6 +98,8 @@ describe('AuthService', () => {
             findByEmail: jest.fn(),
             findById: jest.fn(),
             findByEmailAndCompany: jest.fn(),
+            revokeUserSessions: jest.fn(),
+            revokeSessionById: jest.fn(),
           },
         },
         {
@@ -190,6 +194,12 @@ describe('AuthService', () => {
           },
         },
         {
+          provide: TaxSetupService,
+          useValue: {
+            setupCompanyTaxes: jest.fn(),
+          },
+        },
+        {
           provide: LoggerService,
           useValue: {
             log: jest.fn(),
@@ -216,6 +226,7 @@ describe('AuthService', () => {
     companyUserLinker = module.get(CompanyUserLinkerService);
     eventPublisher = module.get(IdentityEventPublisherService);
     masterDataSetup = module.get(MasterDataSetupService);
+    taxSetup = module.get(TaxSetupService);
 
     // Mock dos value objects
     (Cnpj.create as jest.Mock).mockReturnValue({ value: '12345678000199' });
@@ -453,6 +464,12 @@ describe('AuthService', () => {
       );
     });
 
+    it('deve configurar impostos iniciais da empresa', async () => {
+      await service.signup(signupDto);
+
+      expect(taxSetup.setupCompanyTaxes).toHaveBeenCalled();
+    });
+
     it('deve publicar evento de criação', async () => {
       await service.signup(signupDto);
 
@@ -506,6 +523,10 @@ describe('AuthService', () => {
   });
 
   describe('resetPassword', () => {
+    beforeEach(() => {
+      passwordReset.resetPassword.mockResolvedValue(mockIdentity);
+    });
+
     it('deve resetar senha com sucesso', async () => {
       const result = await service.resetPassword('token-abc', 'NovaSenha123!');
 
@@ -513,6 +534,9 @@ describe('AuthService', () => {
       expect(passwordReset.resetPassword).toHaveBeenCalledWith(
         'token-abc',
         'NovaSenha123!',
+      );
+      expect(identityRepository.revokeUserSessions).toHaveBeenCalledWith(
+        'identity-123',
       );
     });
   });

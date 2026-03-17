@@ -38,7 +38,7 @@ import type { RequestUser } from '../strategies/jwt.strategy';
 @ApiTags('Auth')
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   @Public()
   @AuthThrottle()
@@ -190,8 +190,7 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Logout',
-    description:
-      'Revoga a sessão atual do usuário, invalidando o token JWT.',
+    description: 'Revoga a sessão atual do usuário, invalidando o token JWT.',
   })
   @ApiResponse({
     status: 204,

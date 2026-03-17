@@ -16,7 +16,7 @@ export class CashFlowEntriesService {
     private readonly repository: CashFlowEntriesRepository,
     private readonly bankAccountsRepository: BankAccountsRepository,
     private readonly snowflake: SnowflakeService,
-  ) { }
+  ) {}
 
   @Transactional()
   async create(

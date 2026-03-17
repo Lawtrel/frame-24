@@ -22,7 +22,7 @@ export class RolesService {
     private readonly roleRepo: CustomRoleRepository,
     private readonly logger: LoggerService,
     private readonly snowflake: SnowflakeService,
-  ) { }
+  ) {}
 
   @Transactional()
   async create(
@@ -39,9 +39,7 @@ export class RolesService {
     const hierarchyLevel = dto.hierarchy_level ?? 50;
 
     if (hierarchyLevel < 0 || hierarchyLevel > 99) {
-      throw new BadRequestException(
-        'Hierarchy level deve estar entre 0 e 99',
-      );
+      throw new BadRequestException('Hierarchy level deve estar entre 0 e 99');
     }
 
     if (hierarchyLevel <= 1) {

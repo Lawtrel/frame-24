@@ -18,7 +18,7 @@ import { CreateJournalEntryDto } from '../dto/create-journal-entry.dto';
 @Controller({ path: 'finance/journal-entries', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class JournalEntriesController {
-  constructor(private readonly journalEntries: JournalEntriesService) { }
+  constructor(private readonly journalEntries: JournalEntriesService) {}
 
   @Post()
   @RequirePermission('finance_entries', 'create')

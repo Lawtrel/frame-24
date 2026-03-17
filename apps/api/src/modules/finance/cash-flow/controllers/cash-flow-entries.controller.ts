@@ -31,7 +31,7 @@ import { CashFlowQueryDto } from '../dto/cash-flow-query.dto';
 @Controller({ path: 'finance/cash-flow', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class CashFlowEntriesController {
-  constructor(private readonly service: CashFlowEntriesService) { }
+  constructor(private readonly service: CashFlowEntriesService) {}
 
   @Post()
   @RequirePermission('cash_flow', 'create')

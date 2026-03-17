@@ -13,7 +13,7 @@ export class BankAccountsService {
   constructor(
     private readonly repository: BankAccountsRepository,
     private readonly snowflake: SnowflakeService,
-  ) { }
+  ) {}
 
   async create(companyId: string, dto: CreateBankAccountDto) {
     const id = this.snowflake.generate();

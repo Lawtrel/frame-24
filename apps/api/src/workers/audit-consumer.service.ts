@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Channel, ChannelModel, ConsumeMessage, connect } from 'amqplib';
 import { AuditWorkerService } from './audit-worker.service';
+import { requireEnv } from 'src/config/env.util';
 
 interface AuditMessage {
   pattern: string;
@@ -46,10 +47,10 @@ export class AuditConsumerService implements OnModuleInit, OnModuleDestroy {
     this.isConnecting = true;
 
     try {
-      const user = process.env.RABBITMQ_USER || 'frame24';
-      const password = process.env.RABBITMQ_PASSWORD || 'frame24pass';
-      const host = process.env.RABBITMQ_HOST || 'localhost';
-      const port = process.env.RABBITMQ_PORT || 5672;
+      const user = requireEnv('RABBITMQ_USER', 'test');
+      const password = requireEnv('RABBITMQ_PASSWORD', 'test');
+      const host = requireEnv('RABBITMQ_HOST', 'localhost');
+      const port = requireEnv('RABBITMQ_PORT', '5672');
       const url = `amqp://${user}:${password}@${host}:${port}`;
 
       this.connection = await connect(url);

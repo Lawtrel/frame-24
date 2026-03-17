@@ -14,6 +14,9 @@ import { ProductPriceNotFoundException } from '../exceptions/sales.exceptions';
 import { TaxCalculationService } from 'src/modules/tax/services/tax-calculation.service';
 import { TaxEntriesRepository } from 'src/modules/tax/repositories/tax-entries.repository';
 import { CampaignsService } from 'src/modules/marketing/services/campaigns.service';
+import { AccountsReceivableService } from 'src/modules/finance/accounts-receivable/services/accounts-receivable.service';
+import { TransactionsService } from 'src/modules/finance/transactions/services/transactions.service';
+import { BankAccountsRepository } from 'src/modules/finance/cash-flow/repositories/bank-accounts.repository';
 import { ClsModule } from 'nestjs-cls';
 import { ClsPluginTransactional } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
@@ -169,6 +172,26 @@ describe('SalesService', () => {
           useValue: {
             applyPromotion: jest.fn(),
             recordPromotionUsage: jest.fn(),
+          },
+        },
+        {
+          provide: AccountsReceivableService,
+          useValue: {
+            create: jest.fn().mockResolvedValue({ id: 'ar-1' }),
+          },
+        },
+        {
+          provide: TransactionsService,
+          useValue: {
+            settleReceivable: jest.fn().mockResolvedValue(undefined),
+          },
+        },
+        {
+          provide: BankAccountsRepository,
+          useValue: {
+            findAll: jest
+              .fn()
+              .mockResolvedValue([{ id: 'bank-1', active: true }]),
           },
         },
       ],

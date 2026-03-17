@@ -4,12 +4,6 @@ import { CinemaComplexSchema } from './cinema-complex.schema';
 
 export class CreateCinemaComplexDto extends createZodDto(CinemaComplexSchema) {
   @ApiProperty({
-    description: 'ID da empresa proprietária do complexo.',
-    example: 'clx01abcd1234efgh5678ijkl',
-  })
-  company_id!: string;
-
-  @ApiProperty({
     description: 'Nome do complexo de cinema.',
     example: 'Cineplex Ibirapuera',
   })

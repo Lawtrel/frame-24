@@ -30,7 +30,7 @@ import {
 @Controller({ path: 'finance/chart-of-accounts', version: '1' })
 @UseGuards(AuthGuard('jwt'), AuthorizationGuard)
 export class ChartOfAccountsController {
-  constructor(private readonly chartService: ChartOfAccountsService) { }
+  constructor(private readonly chartService: ChartOfAccountsService) {}
 
   @Post()
   @RequirePermission('finance_accounts', 'create')
