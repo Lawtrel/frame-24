@@ -1,5 +1,4 @@
 import { Controller, Get, Query, Param, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { AgingReportsService } from '../services/aging-reports.service';
 import { PositionReportsService } from '../services/position-reports.service';
 import { AgingReportQueryDto } from '../dto/aging-report-query.dto';
@@ -8,6 +7,7 @@ import {
   SupplierPositionQueryDto,
 } from '../dto/position-report-query.dto';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
@@ -24,7 +24,7 @@ import { FinanceReportsService } from '../../services/finance-reports.service';
 @ApiTags('Relatórios Financeiros')
 @ApiBearerAuth()
 @Controller('finance/reports')
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class AgingReportsController {
   constructor(
     private readonly agingService: AgingReportsService,

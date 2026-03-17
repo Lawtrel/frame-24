@@ -8,12 +8,12 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { AccountsReceivableService } from '../services/accounts-receivable.service';
 import { CreateAccountReceivableDto } from '../dto/create-account-receivable.dto';
 import { UpdateAccountReceivableDto } from '../dto/update-account-receivable.dto';
 import { AccountReceivableQueryDto } from '../dto/account-receivable-query.dto';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
@@ -28,7 +28,7 @@ import {
 @ApiTags('Contas a Receber')
 @ApiBearerAuth()
 @Controller('finance/receivables')
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class AccountsReceivableController {
   constructor(private readonly service: AccountsReceivableService) {}
 

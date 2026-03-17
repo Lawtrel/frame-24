@@ -15,7 +15,6 @@ import {
   ApiUnauthorizedResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { AuthGuard } from '@nestjs/passport';
 
 import { AuthService } from '../services/auth.service';
 import { LoginDto } from '../dto/login.dto';
@@ -33,6 +32,7 @@ import {
 import { Public } from 'src/common/decorators/public.decorator';
 import { AuthThrottle } from 'src/common/decorators/auth-throttle.decorator';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import type { RequestUser } from '../strategies/jwt.strategy';
 
 @ApiTags('Auth')
@@ -185,7 +185,7 @@ export class AuthController {
   }
 
   @Post('logout')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiBearerAuth()
   @ApiOperation({

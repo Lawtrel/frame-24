@@ -125,6 +125,76 @@ export class SalesRepository {
     });
   }
 
+  async findPaymentMethodById(id: string, company_id: string) {
+    return this.prisma.payment_methods.findFirst({
+      where: {
+        id,
+        company_id,
+      },
+    });
+  }
+
+  async findSaleTypeById(id: string, company_id: string) {
+    return this.prisma.sale_types.findFirst({
+      where: {
+        id,
+        company_id,
+      },
+    });
+  }
+
+  async findSaleTypeByName(company_id: string, name: string) {
+    return this.prisma.sale_types.findFirst({
+      where: {
+        company_id,
+        name,
+      },
+    });
+  }
+
+  async createSaleType(data: {
+    company_id: string;
+    name: string;
+    description?: string;
+    convenience_fee?: number;
+  }) {
+    return this.prisma.sale_types.create({
+      data: {
+        id: this.snowflake.generate(),
+        company_id: data.company_id,
+        name: data.name,
+        description: data.description,
+        convenience_fee: data.convenience_fee ?? 0,
+      },
+    });
+  }
+
+  async findSaleStatusByName(company_id: string, name: string) {
+    return this.prisma.sale_status.findFirst({
+      where: {
+        company_id,
+        name,
+      },
+    });
+  }
+
+  async createSaleStatus(data: {
+    company_id: string;
+    name: string;
+    description?: string;
+    allows_modification?: boolean;
+  }) {
+    return this.prisma.sale_status.create({
+      data: {
+        id: this.snowflake.generate(),
+        company_id: data.company_id,
+        name: data.name,
+        description: data.description,
+        allows_modification: data.allows_modification ?? false,
+      },
+    });
+  }
+
   async update(id: string, data: Prisma.salesUpdateInput): Promise<sales> {
     return this.prisma.sales.update({
       where: { id },

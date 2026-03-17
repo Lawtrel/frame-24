@@ -98,6 +98,28 @@ export class SalesService {
       throw new NotFoundException('Complexo de cinema não encontrado');
     }
 
+    const paymentMethod = await this.salesRepository.findPaymentMethodById(
+      dto.payment_method,
+      company_id,
+    );
+    if (!paymentMethod) {
+      throw new NotFoundException('Método de pagamento inválido');
+    }
+
+    const resolvedSaleTypeId = await this.resolveSaleTypeId(
+      company_id,
+      dto.sale_type,
+      user,
+    );
+
+    const initialStatusName = paymentMethod.auto_settle
+      ? 'Confirmada'
+      : 'Pendente';
+    const resolvedInitialStatusId = await this.resolveSaleStatusId(
+      company_id,
+      initialStatusName,
+    );
+
     // 1. Preparação de Dados em Lote
     // Coletar IDs para buscas em lote
     const seatIds = dto.tickets
@@ -277,12 +299,9 @@ export class SalesService {
       sale_date: new Date(),
       cinema_complex_id: dto.cinema_complex_id,
       ...(dto.customer_id && { customer_id: dto.customer_id }),
-      ...(dto.sale_type && {
-        sale_types: { connect: { id: dto.sale_type } },
-      }),
-      ...(dto.payment_method && {
-        payment_methods: { connect: { id: dto.payment_method } },
-      }),
+      sale_types: { connect: { id: resolvedSaleTypeId } },
+      payment_methods: { connect: { id: dto.payment_method } },
+      sale_status: { connect: { id: resolvedInitialStatusId } },
       total_amount,
       discount_amount,
       net_amount,
@@ -525,10 +544,20 @@ export class SalesService {
         },
       );
 
-      // Se for pagamento imediato (não crédito), baixar o título
-      // TODO: Verificar tipo de pagamento real. Assumindo imediato para simplificação por enquanto.
-      // Em um cenário real, verificaríamos dto.payment_method para decidir se baixa agora ou não.
-      // Vamos assumir que tudo que entra aqui já foi "pago" no POS, então baixamos para gerar o caixa.
+      const paymentMethodName = completeSale.payment_methods?.name;
+      const paymentMethodAutoSettle = completeSale.payment_methods?.auto_settle;
+      const shouldAutoSettle =
+        typeof paymentMethodAutoSettle === 'boolean'
+          ? paymentMethodAutoSettle
+          : this.isImmediatePaymentMethod(paymentMethodName);
+
+      if (!shouldAutoSettle) {
+        this.logger.log(
+          `Conta a receber ${receivable.id} criada sem baixa automática (método: ${paymentMethodName || dto.payment_method})`,
+          SalesService.name,
+        );
+        return this.mapToDto(completeSale);
+      }
 
       // Buscar conta bancária padrão
       const bankAccounts =
@@ -544,7 +573,7 @@ export class SalesService {
             amount: net_amount,
             transaction_date: new Date().toISOString().split('T')[0],
             bank_account_id: defaultAccount.id,
-            payment_method: dto.payment_method || 'CASH', // Fallback
+            payment_method: paymentMethodName || dto.payment_method || 'CASH',
             notes: `Baixa automática - Venda ${sale_number}`,
             interest_amount: 0,
             penalty_amount: 0,
@@ -584,21 +613,34 @@ export class SalesService {
       throw new BadRequestException('Venda já foi cancelada');
     }
 
+    const cancelledStatusId = await this.resolveSaleStatusId(
+      user.company_id,
+      'Cancelada',
+    );
+
     // Cancelar venda
     await this.salesRepository.update(id, {
+      sale_status: { connect: { id: cancelledStatusId } },
       cancellation_date: new Date(),
       cancellation_reason: reason,
     });
 
     // Liberar assentos
     if (sale.tickets) {
+      const seatsByShowtime = new Map<string, string[]>();
       for (const ticket of sale.tickets) {
-        if (ticket.seat_id) {
-          // Buscar status "disponível" - precisamos injetar os repositórios
-          // Por enquanto, vamos deixar comentado e implementar depois
-          // TODO: Implementar liberação de assentos no cancelamento
+        if (ticket.seat_id && ticket.showtime_id) {
+          const current = seatsByShowtime.get(ticket.showtime_id) || [];
+          current.push(ticket.seat_id);
+          seatsByShowtime.set(ticket.showtime_id, current);
         }
       }
+
+      await Promise.all(
+        Array.from(seatsByShowtime.entries()).map(([showtime_id, seat_ids]) =>
+          this.ticketsService.releaseSeats(showtime_id, seat_ids, user.company_id),
+        ),
+      );
     }
 
     // Publicar evento
@@ -657,5 +699,81 @@ export class SalesService {
       ),
       created_at: sale.created_at?.toISOString() || new Date().toISOString(),
     };
+  }
+
+  private isImmediatePaymentMethod(paymentMethodName?: string | null): boolean {
+    if (!paymentMethodName) {
+      return true;
+    }
+
+    const normalized = paymentMethodName
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase();
+
+    const deferredKeywords = ['CREDITO', 'PRAZO', 'BOLETO', 'FATURADO'];
+
+    return !deferredKeywords.some((keyword) => normalized.includes(keyword));
+  }
+
+  private async resolveSaleTypeId(
+    company_id: string,
+    saleTypeIdFromDto: string | undefined,
+    user: RequestUser | CustomerUser,
+  ): Promise<string> {
+    if (saleTypeIdFromDto) {
+      const saleType = await this.salesRepository.findSaleTypeById(
+        saleTypeIdFromDto,
+        company_id,
+      );
+
+      if (!saleType) {
+        throw new NotFoundException('Tipo de venda inválido');
+      }
+
+      return saleType.id;
+    }
+
+    const defaultName = 'customer_id' in user ? 'Online' : 'Balcão';
+    const existing = await this.salesRepository.findSaleTypeByName(
+      company_id,
+      defaultName,
+    );
+
+    if (existing) {
+      return existing.id;
+    }
+
+    const created = await this.salesRepository.createSaleType({
+      company_id,
+      name: defaultName,
+      description: 'Criado automaticamente para consistência de vendas',
+      convenience_fee: 0,
+    });
+
+    return created.id;
+  }
+
+  private async resolveSaleStatusId(
+    company_id: string,
+    statusName: string,
+  ): Promise<string> {
+    const existing = await this.salesRepository.findSaleStatusByName(
+      company_id,
+      statusName,
+    );
+
+    if (existing) {
+      return existing.id;
+    }
+
+    const created = await this.salesRepository.createSaleStatus({
+      company_id,
+      name: statusName,
+      description: 'Criado automaticamente para consistência de vendas',
+      allows_modification: statusName === 'Pendente',
+    });
+
+    return created.id;
   }
 }

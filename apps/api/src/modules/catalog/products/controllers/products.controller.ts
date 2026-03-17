@@ -12,10 +12,10 @@ import {
   HttpStatus,
   UploadedFile,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { FileUpload } from 'src/common/decorators/file-upload.decorator';
@@ -29,7 +29,7 @@ import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strat
 @ApiTags('Products')
 @ApiBearerAuth()
 @Controller({ path: 'products', version: '1' })
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 

@@ -11,8 +11,8 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import * as jwtStrategy from '../../../identity/auth/strategies/jwt.strategy';
@@ -31,7 +31,7 @@ import {
 
 @ApiTags('Suppliers')
 @Controller({ path: 'suppliers', version: '1' })
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class SuppliersController {
   constructor(private readonly suppliersService: SuppliersService) {}
 

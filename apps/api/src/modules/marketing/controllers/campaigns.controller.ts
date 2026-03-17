@@ -8,7 +8,6 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -18,6 +17,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
@@ -64,7 +64,7 @@ class CreateCampaignDto {
 @ApiTags('Campaigns')
 @ApiBearerAuth()
 @Controller({ path: 'campaigns', version: '1' })
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class CampaignsController {
   constructor(private readonly campaignsService: CampaignsService) {}
 

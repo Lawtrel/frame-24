@@ -8,12 +8,12 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { AccountsPayableService } from '../services/accounts-payable.service';
 import { CreateAccountPayableDto } from '../dto/create-account-payable.dto';
 import { UpdateAccountPayableDto } from '../dto/update-account-payable.dto';
 import { AccountPayableQueryDto } from '../dto/account-payable-query.dto';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
@@ -28,7 +28,7 @@ import {
 @ApiTags('Contas a Pagar')
 @ApiBearerAuth()
 @Controller('finance/payables')
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class AccountsPayableController {
   constructor(private readonly service: AccountsPayableService) {}
 

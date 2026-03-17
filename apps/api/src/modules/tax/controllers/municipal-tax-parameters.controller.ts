@@ -10,7 +10,6 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -19,6 +18,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
 import { MunicipalTaxParametersService } from '../services/municipal-tax-parameters.service';
 import { CreateMunicipalTaxParameterDto } from '../dto/create-municipal-tax-parameter.dto';
@@ -29,7 +29,7 @@ import { UpdateMunicipalTaxParameterDto } from '../dto/update-municipal-tax-para
 @ApiTags('Tax')
 @ApiBearerAuth()
 @Controller({ path: 'tax/municipal', version: '1' })
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class MunicipalTaxParametersController {
   constructor(private readonly service: MunicipalTaxParametersService) {}
 

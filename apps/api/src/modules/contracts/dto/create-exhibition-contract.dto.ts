@@ -68,7 +68,7 @@ export class CreateExhibitionContractDto extends createZodDto(
   guaranteed_minimum?: number;
 
   @ApiPropertyOptional({
-    description: 'Outros valores de garantia mínima (legacy)',
+    description: 'Outros valores de garantia mínima',
     default: 0,
   })
   minimum_guarantee?: number;

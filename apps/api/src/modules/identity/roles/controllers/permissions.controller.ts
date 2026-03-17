@@ -1,17 +1,17 @@
 import { Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { PermissionDiscoveryService } from '../services/permission-discovery.service';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 
 @ApiTags('Permissions')
 @ApiBearerAuth()
 @Controller({ path: 'permissions', version: '1' })
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class PermissionsController {
   constructor(
     private readonly prisma: PrismaService,

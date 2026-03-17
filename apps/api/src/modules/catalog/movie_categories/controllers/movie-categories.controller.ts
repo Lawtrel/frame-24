@@ -10,8 +10,8 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { MovieCategoriesService } from '../services/movie-categories.service';
@@ -28,7 +28,7 @@ import {
 
 @ApiTags('Movie Categories')
 @Controller({ path: 'movie-categories', version: '1' })
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class MovieCategoriesController {
   constructor(private readonly service: MovieCategoriesService) {}
 

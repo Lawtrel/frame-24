@@ -72,6 +72,25 @@ describe('SalesService', () => {
             findAll: jest.fn(),
             create: jest.fn(),
             generateSaleNumber: jest.fn(),
+            findPaymentMethodById: jest.fn().mockResolvedValue({
+              id: 'payment-1',
+              company_id: 'company-1',
+              auto_settle: true,
+              name: 'Dinheiro',
+            }),
+            findSaleTypeById: jest.fn(),
+            findSaleTypeByName: jest.fn().mockResolvedValue({
+              id: 'sale-type-balcao',
+              company_id: 'company-1',
+              name: 'Balcão',
+            }),
+            createSaleType: jest.fn(),
+            findSaleStatusByName: jest.fn().mockResolvedValue({
+              id: 'sale-status-confirmada',
+              company_id: 'company-1',
+              name: 'Confirmada',
+            }),
+            createSaleStatus: jest.fn(),
           },
         },
         {

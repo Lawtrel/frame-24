@@ -255,9 +255,9 @@ model user_sessions {
 
   @@index([identity_id])
   @@index([expires_at, active])
-  @@index([session_id])
   @@index([revoked])
   @@index([last_activity])
+  @@index([identity_id, company_id, session_context, active, revoked, expires_at], map: "idx_user_sessions_validation")
   @@schema("identity")
 }
 
@@ -955,6 +955,7 @@ model payment_methods {
   description     String?
   operator_fee    Decimal?  @default(0.00) @db.Decimal(5, 2)
   settlement_days Int?      @default(0)
+  auto_settle     Boolean   @default(true)
   created_at      DateTime? @default(now())
   sales           sales[]
 
@@ -993,9 +994,9 @@ model sales {
   cinema_complex_id   String
   user_id             String?
   customer_id         String?
-  sale_type           String?
-  payment_method      String?
-  status              String?
+  sale_type           String
+  payment_method      String
+  status              String
   sale_number         String             @unique @db.VarChar(50)
   public_reference    String             @unique @db.VarChar(64)
   sale_date           DateTime           @db.Timestamp(0)
@@ -1007,18 +1008,19 @@ model sales {
   created_at          DateTime?          @default(now())
   concession_sales    concession_sales[]
   promotions_used     promotions_used[]
-  payment_methods     payment_methods?   @relation(fields: [payment_method], references: [id])
-  sale_types          sale_types?        @relation(fields: [sale_type], references: [id])
-  sale_status         sale_status?       @relation(fields: [status], references: [id])
+  payment_methods     payment_methods    @relation(fields: [payment_method], references: [id])
+  sale_types          sale_types         @relation(fields: [sale_type], references: [id])
+  sale_status         sale_status        @relation(fields: [status], references: [id])
   tickets             tickets[]
 
   @@index([cinema_complex_id])
   @@index([sale_date])
   @@index([customer_id])
+  @@index([sale_type])
+  @@index([payment_method])
   @@index([status])
   @@index([sale_date, status])
   @@index([user_id])
-  @@index([public_reference])
   @@schema("sales")
 }
 
@@ -2346,6 +2348,7 @@ model exhibition_contracts {
   @@index([revenue_base])
   @@index([start_date, end_date])
   @@index([active])
+  @@index([movie_id, cinema_complex_id, active, start_date, end_date], map: "idx_exhibition_contract_active_lookup")
   @@schema("contracts")
 }
 

@@ -8,10 +8,10 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
@@ -21,7 +21,7 @@ import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strat
 @ApiTags('Tickets')
 @ApiBearerAuth()
 @Controller({ path: 'tickets', version: '1' })
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class TicketsController {
   constructor(private readonly ticketsRepository: TicketsRepository) {}
 

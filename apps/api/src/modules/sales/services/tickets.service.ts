@@ -145,6 +145,64 @@ export class TicketsService {
     }
   }
 
+  @Transactional()
+  async releaseSeats(
+    showtime_id: string,
+    seat_ids: string[],
+    company_id: string,
+  ): Promise<void> {
+    if (seat_ids.length === 0) {
+      return;
+    }
+
+    const availableStatus = await this.getAvailableSeatStatus(company_id);
+
+    let releasedCount = 0;
+    for (const seat_id of seat_ids) {
+      const sessionSeatStatus =
+        await this.sessionSeatStatusRepository.findBySeatAndShowtime(
+          showtime_id,
+          seat_id,
+        );
+
+      if (!sessionSeatStatus?.sale_id) {
+        continue;
+      }
+
+      await this.sessionSeatStatusRepository.updateStatus(showtime_id, seat_id, {
+        seat_status: { connect: { id: availableStatus.id } },
+        sale_id: null,
+        reservation_uuid: null,
+        reservation_date: null,
+        expiration_date: null,
+      });
+
+      releasedCount += 1;
+    }
+
+    if (releasedCount === 0) {
+      return;
+    }
+
+    const showtime = await this.showtimesRepository.findById(showtime_id);
+    if (!showtime) {
+      return;
+    }
+
+    const currentSold = showtime.sold_seats || 0;
+    const currentAvailable = showtime.available_seats || 0;
+
+    await this.showtimesRepository.update(showtime_id, {
+      sold_seats: Math.max(0, currentSold - releasedCount),
+      available_seats: currentAvailable + releasedCount,
+    });
+
+    this.logger.log(
+      `Assentos liberados na sessão ${showtime_id}: ${releasedCount}`,
+      TicketsService.name,
+    );
+  }
+
   async calculateTicketPrice(
     showtime_id: string,
     seat_id: string | undefined,
@@ -190,7 +248,7 @@ export class TicketsService {
     }
 
     const face_value = basePrice * multiplier;
-    const service_fee = 0; // TODO: Calcular taxa de serviço se houver
+    const service_fee = 0; // Fee não configurada para o tenant no momento
     const total_amount = face_value + service_fee;
 
     return {
@@ -198,5 +256,26 @@ export class TicketsService {
       service_fee,
       total_amount,
     };
+  }
+
+  private async getAvailableSeatStatus(company_id: string): Promise<{
+    id: string;
+  }> {
+    const statusCandidates = ['Disponível', 'Disponivel', 'Livre'];
+
+    for (const statusName of statusCandidates) {
+      const status = await this.seatStatusRepository.findByNameAndCompany(
+        statusName,
+        company_id,
+      );
+
+      if (status) {
+        return status;
+      }
+    }
+
+    throw new NotFoundException(
+      'Status de assento "Disponível" não configurado',
+    );
   }
 }

@@ -10,7 +10,6 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -18,6 +17,7 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
@@ -31,7 +31,7 @@ import {
 @ApiTags('Fluxo de Caixa - Conciliação Bancária')
 @ApiBearerAuth()
 @Controller({ path: 'finance/bank-reconciliation', version: '1' })
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class BankReconciliationController {
   constructor(private readonly service: BankReconciliationService) {}
 

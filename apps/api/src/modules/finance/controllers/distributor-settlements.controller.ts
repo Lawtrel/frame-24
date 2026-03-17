@@ -1,5 +1,4 @@
 import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -7,6 +6,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
@@ -16,7 +16,7 @@ import { CreateDistributorSettlementDto } from '../dto/create-distributor-settle
 @ApiTags('Conciliações com Distribuidoras')
 @ApiBearerAuth()
 @Controller({ path: 'finance/distributor-settlements', version: '1' })
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class DistributorSettlementsController {
   constructor(
     private readonly settlementsService: DistributorSettlementsService,
