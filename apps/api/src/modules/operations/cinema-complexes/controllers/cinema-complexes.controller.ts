@@ -47,9 +47,9 @@ export class CinemaComplexesController {
   })
   async create(
     @Body() dto: CreateCinemaComplexDto,
-    @CurrentUser() user: RequestUser,
+    @CurrentUser() _user: RequestUser,
   ) {
-    return this.service.create(dto, user.company_id, user.company_user_id);
+    return this.service.create(dto);
   }
 
   @Get()
@@ -58,8 +58,8 @@ export class CinemaComplexesController {
   @ApiOkResponse({
     description: 'Lista de complexos retornada com sucesso.',
   })
-  async findAll(@CurrentUser() user: RequestUser) {
-    return this.service.findAll(user.company_id);
+  async findAll(@CurrentUser() _user: RequestUser) {
+    return this.service.findAll();
   }
 
   @Get(':id')
@@ -67,8 +67,8 @@ export class CinemaComplexesController {
   @ApiOperation({ summary: 'Buscar um complexo de cinema por ID' })
   @ApiResponse({ status: 200, description: 'Complexo encontrado.' })
   @ApiNotFoundResponse({ description: 'Complexo não encontrado.' })
-  async findOne(@Param('id') id: string, @CurrentUser() user: RequestUser) {
-    return this.service.findOne(id, user.company_id);
+  async findOne(@Param('id') id: string, @CurrentUser() _user: RequestUser) {
+    return this.service.findOne(id);
   }
 
   @Put(':id')
@@ -80,9 +80,9 @@ export class CinemaComplexesController {
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateCinemaComplexDto,
-    @CurrentUser() user: RequestUser,
+    @CurrentUser() _user: RequestUser,
   ) {
-    return this.service.update(id, dto, user.company_id, user.company_user_id);
+    return this.service.update(id, dto);
   }
 
   @Delete(':id')
@@ -91,7 +91,7 @@ export class CinemaComplexesController {
   @ApiOperation({ summary: 'Excluir um complexo de cinema' })
   @ApiResponse({ status: 200, description: 'Complexo excluído com sucesso.' })
   @ApiNotFoundResponse({ description: 'Complexo não encontrado.' })
-  async delete(@Param('id') id: string, @CurrentUser() user: RequestUser) {
-    return this.service.delete(id, user.company_id, user.company_user_id);
+  async delete(@Param('id') id: string, @CurrentUser() _user: RequestUser) {
+    return this.service.delete(id);
   }
 }

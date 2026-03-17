@@ -1,4 +1,3 @@
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import type { SessionStatusResponse } from '../../shared/dto/session-status-response.dto';
 import { SessionStatusService } from '../services/session-status.service';
 import { SessionStatusController } from './session-status.controller';
@@ -21,11 +20,10 @@ describe('SessionStatusController', () => {
     const controller = new SessionStatusController(
       service as SessionStatusService,
     );
-    const user = { company_id: 'company-123' } as RequestUser;
 
-    const result = await controller.findAll(user);
+    const result = await controller.findAll();
 
-    expect(service.findAll).toHaveBeenCalledWith('company-123');
+    expect(service.findAll).toHaveBeenCalledWith();
     expect(result).toEqual(response);
   });
 });

@@ -48,6 +48,20 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       this.cls.set('companyId', authenticatedUser.company_id);
     }
 
+    if (
+      authenticatedUser &&
+      'company_user_id' in authenticatedUser &&
+      authenticatedUser.company_user_id
+    ) {
+      this.cls.set('userId', authenticatedUser.company_user_id);
+    } else if (
+      authenticatedUser &&
+      'customer_id' in authenticatedUser &&
+      authenticatedUser.customer_id
+    ) {
+      this.cls.set('userId', authenticatedUser.customer_id);
+    }
+
     return authenticatedUser;
   }
 }

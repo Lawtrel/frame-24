@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { cinema_complexes as CinemaComplex } from '@repo/db';
 
@@ -10,20 +11,33 @@ import { CreateCinemaComplexDto } from '../dto/create-cinema-complex.dto';
 import { UpdateCinemaComplexDto } from '../dto/update-cinema-complex.dto';
 import { RabbitMQPublisherService } from 'src/common/rabbitmq/rabbitmq-publisher.service';
 import { Transactional } from '@nestjs-cls/transactional';
+import { ClsService } from 'nestjs-cls';
 
 @Injectable()
 export class CinemaComplexesService {
   constructor(
     private readonly repository: CinemaComplexesRepository,
     private readonly rabbitmq: RabbitMQPublisherService,
+    private readonly cls: ClsService,
   ) {}
 
+  private getCompanyId(): string {
+    const companyId = this.cls.get<string>('companyId');
+    if (!companyId) {
+      throw new ForbiddenException('Contexto de empresa não encontrado.');
+    }
+    return companyId;
+  }
+
+  private getUserId(): string | undefined {
+    return this.cls.get<string>('userId');
+  }
+
   @Transactional()
-  async create(
-    dto: CreateCinemaComplexDto,
-    companyId: string,
-    companyUserId: string,
-  ): Promise<CinemaComplex> {
+  async create(dto: CreateCinemaComplexDto): Promise<CinemaComplex> {
+    const companyId = this.getCompanyId();
+    const userId = this.getUserId();
+
     const existingByCode = await this.repository.findByCode(
       dto.code,
       companyId,
@@ -49,34 +63,32 @@ export class CinemaComplexesService {
       },
       metadata: {
         companyId,
-        userId: companyUserId,
+        userId,
       },
     });
 
     return createdComplex;
   }
 
-  async findAll(company_id: string): Promise<CinemaComplex[]> {
-    return this.repository.findAllByCompany(company_id);
+  async findAll(): Promise<CinemaComplex[]> {
+    return this.repository.findAllByCompany(this.getCompanyId());
   }
 
-  async findOne(id: string, company_id: string): Promise<CinemaComplex> {
+  async findOne(id: string): Promise<CinemaComplex> {
+    const companyId = this.getCompanyId();
     const complex = await this.repository.findById(id);
 
-    if (!complex || complex.company_id !== company_id) {
+    if (!complex || complex.company_id !== companyId) {
       throw new NotFoundException('Complexo de cinema não encontrado.');
     }
     return complex;
   }
 
   @Transactional()
-  async update(
-    id: string,
-    dto: UpdateCinemaComplexDto,
-    companyId: string,
-    companyUserId: string,
-  ): Promise<CinemaComplex> {
-    const existingComplex = await this.findOne(id, companyId);
+  async update(id: string, dto: UpdateCinemaComplexDto): Promise<CinemaComplex> {
+    const companyId = this.getCompanyId();
+    const userId = this.getUserId();
+    const existingComplex = await this.findOne(id);
 
     if (dto.code && dto.code !== existingComplex.code) {
       const existingByCode = await this.repository.findByCode(
@@ -101,19 +113,17 @@ export class CinemaComplexesService {
       },
       metadata: {
         companyId,
-        userId: companyUserId,
+        userId,
       },
     });
 
     return updatedComplex;
   }
 
-  async delete(
-    id: string,
-    companyId: string,
-    companyUserId: string,
-  ): Promise<{ message: string }> {
-    const existingComplex = await this.findOne(id, companyId);
+  async delete(id: string): Promise<{ message: string }> {
+    const companyId = this.getCompanyId();
+    const userId = this.getUserId();
+    const existingComplex = await this.findOne(id);
 
     await this.repository.remove(id);
 
@@ -125,7 +135,7 @@ export class CinemaComplexesService {
       },
       metadata: {
         companyId,
-        userId: companyUserId,
+        userId,
       },
     });
 

@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
+import { ClsService } from 'nestjs-cls';
 import { ShowtimesService } from './shotimes.service';
 import { ShowtimesRepository } from '../repositories/showtime.repository';
 import { SessionSeatStatusRepository } from 'src/modules/operations/session_seat_status/repositories/session-seat-status.repository';
@@ -18,7 +19,6 @@ import { AudioTypesRepository } from 'src/modules/operations/audio-types/reposit
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { RabbitMQPublisherService } from 'src/common/rabbitmq/rabbitmq-publisher.service';
 import { CacheService } from 'src/common/cache/cache.service';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 
 describe('ShowtimesService', () => {
   let service: ShowtimesService;
@@ -32,12 +32,9 @@ describe('ShowtimesService', () => {
   let seatTypesRepository: jest.Mocked<SeatTypesRepository>;
   let projectionTypesRepository: jest.Mocked<ProjectionTypesRepository>;
   let audioTypesRepository: jest.Mocked<AudioTypesRepository>;
-
-  const mockUser: RequestUser = {
-    company_id: 'company-123',
-    company_user_id: 'user-123',
-    identity_id: 'identity-123',
-  } as RequestUser;
+  let cls: jest.Mocked<ClsService>;
+  const COMPANY_ID = 'company-123';
+  const USER_ID = 'user-123';
 
   const mockMovie = {
     id: 'movie-123',
@@ -165,10 +162,16 @@ describe('ShowtimesService', () => {
         {
           provide: CacheService,
           useValue: {
-            wrap: jest.fn((key, fn) => fn()),
+            wrap: jest.fn((_key: string, fn: () => unknown) => fn()),
             get: jest.fn(),
             set: jest.fn(),
             del: jest.fn(),
+          },
+        },
+        {
+          provide: ClsService,
+          useValue: {
+            get: jest.fn(),
           },
         },
       ],
@@ -187,6 +190,13 @@ describe('ShowtimesService', () => {
     seatTypesRepository = module.get(SeatTypesRepository);
     projectionTypesRepository = module.get(ProjectionTypesRepository);
     audioTypesRepository = module.get(AudioTypesRepository);
+    cls = module.get(ClsService);
+
+    cls.get.mockImplementation((key?: string | symbol) => {
+      if (key === 'companyId') return COMPANY_ID;
+      if (key === 'userId') return USER_ID;
+      return undefined;
+    });
   });
 
   afterEach(() => {
@@ -435,7 +445,7 @@ describe('ShowtimesService', () => {
       ] as any);
       seatTypesRepository.findByIds.mockResolvedValue([]);
 
-      const result = await service.preview(mockDto as any, mockUser);
+      const result = await service.preview(mockDto as any);
 
       expect(result).toHaveProperty('baseTicketPrice', 25.0);
       expect(result).toHaveProperty('distributorShare');
@@ -468,12 +478,12 @@ describe('ShowtimesService', () => {
 
       projectionTypesRepository.findById.mockResolvedValue({
         id: 'proj-123',
-        company_id: mockUser.company_id,
+        company_id: COMPANY_ID,
         additional_value: 7,
       } as any);
       audioTypesRepository.findById.mockResolvedValue({
         id: 'audio-123',
-        company_id: mockUser.company_id,
+        company_id: COMPANY_ID,
         additional_value: 3,
       } as any);
 
@@ -490,7 +500,7 @@ describe('ShowtimesService', () => {
         },
       ] as any);
 
-      const result = await service.preview(dtoWithExtras as any, mockUser);
+      const result = await service.preview(dtoWithExtras as any);
 
       expect(result.baseTicketPrice).toBe(32.5); // média ponderada
       expect(result.ticketPricing).toMatchObject({
@@ -519,7 +529,7 @@ describe('ShowtimesService', () => {
     it('deve lançar NotFoundException quando filme não é encontrado', async () => {
       moviesRepository.findById.mockResolvedValue(null);
 
-      await expect(service.preview(mockDto as any, mockUser)).rejects.toThrow(
+      await expect(service.preview(mockDto as any)).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -528,7 +538,7 @@ describe('ShowtimesService', () => {
       moviesRepository.findById.mockResolvedValue(mockMovie as any);
       roomsRepository.findById.mockResolvedValue(null);
 
-      await expect(service.preview(mockDto as any, mockUser)).rejects.toThrow(
+      await expect(service.preview(mockDto as any)).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -545,7 +555,7 @@ describe('ShowtimesService', () => {
         wrongCompanyComplex as any,
       );
 
-      await expect(service.preview(mockDto as any, mockUser)).rejects.toThrow(
+      await expect(service.preview(mockDto as any)).rejects.toThrow(
         ForbiddenException,
       );
     });

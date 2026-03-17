@@ -19,8 +19,6 @@ import {
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 
 import { SeatsService } from '../services/seats.service';
 import { UpdateSeatStatusDto } from '../dto/update-seat-status.dto';
@@ -48,9 +46,8 @@ export class SeatsController {
   async updateSeatStatus(
     @Param('id') id: string,
     @Body() dto: UpdateSeatStatusDto,
-    @CurrentUser() user: RequestUser,
   ) {
-    return this.service.updateStatus(id, dto.active, user);
+    return this.service.updateStatus(id, dto.active);
   }
 
   @Patch('status/batch')
@@ -70,10 +67,7 @@ export class SeatsController {
     description:
       'Acesso negado. Um ou mais assentos não foram encontrados ou não pertencem à sua empresa.',
   })
-  async updateStatusBatch(
-    @Body() dto: UpdateSeatsStatusBatchDto,
-    @CurrentUser() user: RequestUser,
-  ) {
-    return this.service.updateStatusBatch(dto, user);
+  async updateStatusBatch(@Body() dto: UpdateSeatsStatusBatchDto) {
+    return this.service.updateStatusBatch(dto);
   }
 }

@@ -1,4 +1,3 @@
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import type { SessionLanguageResponse } from '../../shared/dto/session-language-response.dto';
 import { SessionLanguagesService } from '../services/session-languages.service';
 import { SessionLanguagesController } from './session-languages.controller';
@@ -21,11 +20,10 @@ describe('SessionLanguagesController', () => {
     const controller = new SessionLanguagesController(
       service as SessionLanguagesService,
     );
-    const user = { company_id: 'company-123' } as RequestUser;
 
-    const result = await controller.findAll(user);
+    const result = await controller.findAll();
 
-    expect(service.findAll).toHaveBeenCalledWith('company-123');
+    expect(service.findAll).toHaveBeenCalledWith();
     expect(result).toEqual(response);
   });
 });

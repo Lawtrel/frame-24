@@ -1,4 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
+import { ClsService } from 'nestjs-cls';
 import { RabbitMQPublisherService } from 'src/common/rabbitmq/rabbitmq-publisher.service';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { StorageService } from 'src/modules/storage/storage.service';
@@ -62,6 +63,10 @@ describe('RoomsService', () => {
     deleteFile: jest.fn(),
   } as unknown as jest.Mocked<StorageService>;
 
+  const cls = {
+    get: jest.fn(),
+  } as unknown as jest.Mocked<ClsService>;
+
   const service = new RoomsService(
     roomsRepository,
     seatsRepository,
@@ -72,10 +77,16 @@ describe('RoomsService', () => {
     snowflake,
     rabbitmq,
     storageService,
+    cls,
   );
 
   beforeEach(() => {
     jest.clearAllMocks();
+    cls.get.mockImplementation((key?: string | symbol) => {
+      if (key === 'companyId') return 'company-123';
+      if (key === 'userId') return 'employee-123';
+      return undefined;
+    });
   });
 
   it('deve criar sala com metadados do funcionario autenticado', async () => {
@@ -110,12 +121,7 @@ describe('RoomsService', () => {
       capacity: 1,
     } as any);
 
-    const result = await service.create(
-      'complex-1',
-      dto,
-      'company-123',
-      'employee-123',
-    );
+    const result = await service.create('complex-1', dto);
 
     expect(roomsRepository.create).toHaveBeenCalled();
     expect(seatsRepository.createMany).toHaveBeenCalledWith(
@@ -149,9 +155,9 @@ describe('RoomsService', () => {
       company_id: 'other-company',
     } as any);
 
-    await expect(
-      service.findAll('complex-1', 'company-123'),
-    ).rejects.toBeInstanceOf(NotFoundException);
+    await expect(service.findAll('complex-1')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 
   it('deve remover sala com metadados do funcionario autenticado', async () => {
@@ -165,11 +171,7 @@ describe('RoomsService', () => {
     } as any);
     roomsRepository.remove.mockResolvedValue({ id: 'room-1' } as any);
 
-    const result = await service.delete(
-      'room-1',
-      'company-123',
-      'employee-123',
-    );
+    const result = await service.delete('room-1');
 
     expect(roomsRepository.remove).toHaveBeenCalledWith('room-1');
     expect(rabbitmq.publish).toHaveBeenCalledWith(

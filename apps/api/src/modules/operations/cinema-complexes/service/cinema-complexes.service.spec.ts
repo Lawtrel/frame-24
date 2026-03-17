@@ -1,4 +1,5 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
+import { ClsService } from 'nestjs-cls';
 import { RabbitMQPublisherService } from 'src/common/rabbitmq/rabbitmq-publisher.service';
 import { CreateCinemaComplexDto } from '../dto/create-cinema-complex.dto';
 import { UpdateCinemaComplexDto } from '../dto/update-cinema-complex.dto';
@@ -26,10 +27,19 @@ describe('CinemaComplexesService', () => {
     publish: jest.fn().mockResolvedValue(undefined),
   } as unknown as jest.Mocked<RabbitMQPublisherService>;
 
-  const service = new CinemaComplexesService(repository, rabbitmq);
+  const cls = {
+    get: jest.fn(),
+  } as unknown as jest.Mocked<ClsService>;
+
+  const service = new CinemaComplexesService(repository, rabbitmq, cls);
 
   beforeEach(() => {
     jest.clearAllMocks();
+    cls.get.mockImplementation((key?: string | symbol) => {
+      if (key === 'companyId') return 'company-123';
+      if (key === 'userId') return 'employee-123';
+      return undefined;
+    });
   });
 
   it('deve criar complexo forçando company_id do contexto autenticado', async () => {
@@ -50,7 +60,7 @@ describe('CinemaComplexesService', () => {
     repository.findByCode.mockResolvedValue(null);
     repository.create.mockResolvedValue(created as any);
 
-    const result = await service.create(dto, 'company-123', 'employee-123');
+    const result = await service.create(dto);
 
     expect(repository.create).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -78,9 +88,7 @@ describe('CinemaComplexesService', () => {
 
     repository.findByCode.mockResolvedValue({ id: 'existing' } as any);
 
-    await expect(
-      service.create(dto, 'company-123', 'employee-123'),
-    ).rejects.toBeInstanceOf(ConflictException);
+    await expect(service.create(dto)).rejects.toBeInstanceOf(ConflictException);
   });
 
   it('deve lançar not found no findOne quando complexo não pertence à empresa', async () => {
@@ -89,9 +97,9 @@ describe('CinemaComplexesService', () => {
       company_id: 'other-company',
     } as any);
 
-    await expect(
-      service.findOne('complex-1', 'company-123'),
-    ).rejects.toBeInstanceOf(NotFoundException);
+    await expect(service.findOne('complex-1')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 
   it('deve atualizar complexo usando metadados do funcionario autenticado', async () => {
@@ -110,12 +118,7 @@ describe('CinemaComplexesService', () => {
     repository.findById.mockResolvedValue(existing as any);
     repository.update.mockResolvedValue(updated as any);
 
-    const result = await service.update(
-      'complex-1',
-      dto,
-      'company-123',
-      'employee-123',
-    );
+    const result = await service.update('complex-1', dto);
 
     expect(repository.update).toHaveBeenCalledWith('complex-1', dto);
     expect(rabbitmq.publish).toHaveBeenCalledWith(

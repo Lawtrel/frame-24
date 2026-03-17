@@ -170,6 +170,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       );
 
       this.cls.set('companyId', customerUser.company_id);
+      this.cls.set('userId', customerUser.customer_id);
 
       return customerUser;
     }
@@ -222,6 +223,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     );
 
     this.cls.set('companyId', user.company_id);
+    this.cls.set('userId', user.company_user_id);
 
     return user;
   }

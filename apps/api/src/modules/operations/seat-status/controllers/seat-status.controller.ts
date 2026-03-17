@@ -1,9 +1,7 @@
 import { Get } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiOkResponse } from '@nestjs/swagger';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
 import { SecuredController } from 'src/common/decorators/secured-controller.decorator';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import { SeatStatusResponseDto } from '../../shared/dto/seat-status-response.dto';
 
 import { SeatStatusService } from '../services/seat-status.service';
@@ -23,9 +21,7 @@ export class SeatStatusController {
     type: SeatStatusResponseDto,
     isArray: true,
   })
-  async findAll(
-    @CurrentUser() user: RequestUser,
-  ): Promise<SeatStatusResponseDto[]> {
-    return this.service.findAll(user.company_id);
+  async findAll(): Promise<SeatStatusResponseDto[]> {
+    return this.service.findAll();
   }
 }

@@ -22,10 +22,8 @@ import {
 } from '@nestjs/swagger';
 
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { FileUpload } from 'src/common/decorators/file-upload.decorator';
 import { SecuredController } from 'src/common/decorators/secured-controller.decorator';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 
 import { RoomsService } from '../services/rooms.service';
 import { CreateRoomDto } from '../dto/create-room.dto';
@@ -62,15 +60,8 @@ export class RoomsController {
     @Param('cinemaComplexId') cinemaComplexId: string,
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: CreateRoomDto,
-    @CurrentUser() user: RequestUser,
   ) {
-    return this.service.create(
-      cinemaComplexId,
-      dto,
-      user.company_id,
-      user.company_user_id,
-      file,
-    );
+    return this.service.create(cinemaComplexId, dto, file);
   }
 
   @Get()
@@ -78,11 +69,8 @@ export class RoomsController {
   @ApiOperation({ summary: 'Listar todas as salas de um complexo' })
   @ApiOkResponse({ description: 'Lista de salas retornada.' })
   @ApiNotFoundResponse({ description: 'Complexo de cinema não encontrado.' })
-  async findAll(
-    @Param('cinemaComplexId') cinemaComplexId: string,
-    @CurrentUser() user: RequestUser,
-  ) {
-    return this.service.findAll(cinemaComplexId, user.company_id);
+  async findAll(@Param('cinemaComplexId') cinemaComplexId: string) {
+    return this.service.findAll(cinemaComplexId);
   }
 
   @Get(':id')
@@ -90,8 +78,8 @@ export class RoomsController {
   @ApiOperation({ summary: 'Buscar uma sala específica por ID' })
   @ApiResponse({ status: 200, description: 'Sala encontrada.' })
   @ApiNotFoundResponse({ description: 'Sala não encontrada.' })
-  async findOne(@Param('id') id: string, @CurrentUser() user: RequestUser) {
-    return this.service.findOne(id, user.company_id);
+  async findOne(@Param('id') id: string) {
+    return this.service.findOne(id);
   }
 
   @Put(':id')
@@ -109,15 +97,8 @@ export class RoomsController {
     @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: UpdateRoomDto,
-    @CurrentUser() user: RequestUser,
   ) {
-    return this.service.update(
-      id,
-      dto,
-      user.company_id,
-      user.company_user_id,
-      file,
-    );
+    return this.service.update(id, dto, file);
   }
 
   @Delete(':id')
@@ -126,7 +107,7 @@ export class RoomsController {
   @ApiOperation({ summary: 'Excluir uma sala' })
   @ApiResponse({ status: 200, description: 'Sala excluída com sucesso.' })
   @ApiNotFoundResponse({ description: 'Sala não encontrada.' })
-  async delete(@Param('id') id: string, @CurrentUser() user: RequestUser) {
-    return this.service.delete(id, user.company_id, user.company_user_id);
+  async delete(@Param('id') id: string) {
+    return this.service.delete(id);
   }
 }

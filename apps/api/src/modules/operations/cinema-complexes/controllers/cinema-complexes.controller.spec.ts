@@ -22,11 +22,7 @@ describe('CinemaComplexesController', () => {
     );
     const result = await controller.create(dto, user);
 
-    expect(service.create).toHaveBeenCalledWith(
-      dto,
-      'company-123',
-      'employee-123',
-    );
+    expect(service.create).toHaveBeenCalledWith(dto);
     expect(result).toEqual(created);
   });
 
@@ -42,12 +38,7 @@ describe('CinemaComplexesController', () => {
     );
     const result = await controller.update('complex-1', dto, user);
 
-    expect(service.update).toHaveBeenCalledWith(
-      'complex-1',
-      dto,
-      'company-123',
-      'employee-123',
-    );
+    expect(service.update).toHaveBeenCalledWith('complex-1', dto);
     expect(result).toEqual(updated);
   });
 
@@ -62,11 +53,7 @@ describe('CinemaComplexesController', () => {
     );
     const result = await controller.delete('complex-1', user);
 
-    expect(service.delete).toHaveBeenCalledWith(
-      'complex-1',
-      'company-123',
-      'employee-123',
-    );
+    expect(service.delete).toHaveBeenCalledWith('complex-1');
     expect(result).toEqual(payload);
   });
 });

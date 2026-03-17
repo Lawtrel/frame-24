@@ -1,15 +1,9 @@
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import { CreateRoomDto } from '../dto/create-room.dto';
 import { UpdateRoomDto } from '../dto/update-room.dto';
 import { RoomsService } from '../services/rooms.service';
 import { RoomsController } from './rooms.controller';
 
 describe('RoomsController', () => {
-  const user = {
-    company_id: 'company-123',
-    company_user_id: 'employee-123',
-  } as RequestUser;
-
   it('deve criar sala com contexto do funcionario autenticado', async () => {
     const dto = { room_number: '1' } as CreateRoomDto;
     const file = { originalname: 'layout.png' } as Express.Multer.File;
@@ -19,15 +13,9 @@ describe('RoomsController', () => {
     };
     const controller = new RoomsController(service as RoomsService);
 
-    const result = await controller.create('complex-1', file, dto, user);
+    const result = await controller.create('complex-1', file, dto);
 
-    expect(service.create).toHaveBeenCalledWith(
-      'complex-1',
-      dto,
-      'company-123',
-      'employee-123',
-      file,
-    );
+    expect(service.create).toHaveBeenCalledWith('complex-1', dto, file);
     expect(result).toEqual(payload);
   });
 
@@ -40,15 +28,9 @@ describe('RoomsController', () => {
     };
     const controller = new RoomsController(service as RoomsService);
 
-    const result = await controller.update('room-1', file, dto, user);
+    const result = await controller.update('room-1', file, dto);
 
-    expect(service.update).toHaveBeenCalledWith(
-      'room-1',
-      dto,
-      'company-123',
-      'employee-123',
-      file,
-    );
+    expect(service.update).toHaveBeenCalledWith('room-1', dto, file);
     expect(result).toEqual(payload);
   });
 
@@ -59,13 +41,9 @@ describe('RoomsController', () => {
     };
     const controller = new RoomsController(service as RoomsService);
 
-    const result = await controller.delete('room-1', user);
+    const result = await controller.delete('room-1');
 
-    expect(service.delete).toHaveBeenCalledWith(
-      'room-1',
-      'company-123',
-      'employee-123',
-    );
+    expect(service.delete).toHaveBeenCalledWith('room-1');
     expect(result).toEqual(payload);
   });
 });

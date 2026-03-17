@@ -1,4 +1,3 @@
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import type { SeatStatusResponse } from '../../shared/dto/seat-status-response.dto';
 import { SeatStatusService } from '../services/seat-status.service';
 import { SeatStatusController } from './seat-status.controller';
@@ -20,11 +19,10 @@ describe('SeatStatusController', () => {
     };
 
     const controller = new SeatStatusController(service as SeatStatusService);
-    const user = { company_id: 'company-123' } as RequestUser;
 
-    const result = await controller.findAll(user);
+    const result = await controller.findAll();
 
-    expect(service.findAll).toHaveBeenCalledWith('company-123');
+    expect(service.findAll).toHaveBeenCalledWith();
     expect(result).toEqual(response);
   });
 });

@@ -1,4 +1,3 @@
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import type { OperationTypeResponse } from '../../shared/dto/operation-type-response.dto';
 import { AudioTypesService } from '../services/audio-types.service';
 import { AudioTypesController } from './audio-types.controller';
@@ -19,11 +18,10 @@ describe('AudioTypesController', () => {
     };
 
     const controller = new AudioTypesController(service as AudioTypesService);
-    const user = { company_id: 'company-123' } as RequestUser;
 
-    const result = await controller.findAll(user);
+    const result = await controller.findAll();
 
-    expect(service.findAll).toHaveBeenCalledWith('company-123');
+    expect(service.findAll).toHaveBeenCalledWith();
     expect(result).toEqual(response);
   });
 });

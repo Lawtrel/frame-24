@@ -1,4 +1,3 @@
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import type { OperationTypeResponse } from '../../shared/dto/operation-type-response.dto';
 import { SeatTypesService } from '../services/seat-types.service';
 import { SeatTypesController } from './seat-types.controller';
@@ -19,11 +18,10 @@ describe('SeatTypesController', () => {
     };
 
     const controller = new SeatTypesController(service as SeatTypesService);
-    const user = { company_id: 'company-123' } as RequestUser;
 
-    const result = await controller.findAll(user);
+    const result = await controller.findAll();
 
-    expect(service.findAll).toHaveBeenCalledWith('company-123');
+    expect(service.findAll).toHaveBeenCalledWith();
     expect(result).toEqual(response);
   });
 });

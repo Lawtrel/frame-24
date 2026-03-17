@@ -5,6 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ClsService } from 'nestjs-cls';
 import {
   movies,
   Prisma,
@@ -13,7 +14,6 @@ import {
   seats as SeatEntity,
 } from '@repo/db';
 
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import { RabbitMQPublisherService } from 'src/common/rabbitmq/rabbitmq-publisher.service';
 
 import { RoomsRepository } from '../../rooms/repositories/rooms.repository';
@@ -102,6 +102,12 @@ interface SeatPricingContext {
   seatTypeMeta: Map<string, SeatTypeMeta>;
 }
 
+interface TicketPricingRoomInput {
+  capacity: number;
+  projection_type?: string | null;
+  audio_type?: string | null;
+}
+
 const WEEK_IN_MS = 7 * 24 * 60 * 60 * 1000;
 const DEFAULT_DISTRIBUTOR_PERCENTAGE = 0;
 const DEFAULT_EXHIBITOR_PERCENTAGE = 100;
@@ -144,9 +150,23 @@ export class ShowtimesService {
     private readonly projectionTypesRepository: ProjectionTypesRepository,
     private readonly audioTypesRepository: AudioTypesRepository,
     private readonly cacheService: CacheService,
+    private readonly cls: ClsService,
   ) {}
 
-  async findOne(id: string, user: RequestUser): Promise<ShowtimeDetailsDto> {
+  private getCompanyId(): string {
+    const companyId = this.cls.get<string>('companyId');
+    if (!companyId) {
+      throw new ForbiddenException('Contexto da empresa não encontrado.');
+    }
+    return companyId;
+  }
+
+  private getUserId(): string | undefined {
+    return this.cls.get<string>('userId');
+  }
+
+  async findOne(id: string): Promise<ShowtimeDetailsDto> {
+    const companyId = this.getCompanyId();
     const showtime = await this.showtimesRepository.findById(id);
 
     if (!showtime) {
@@ -155,7 +175,7 @@ export class ShowtimesService {
 
     if (
       !showtime.cinema_complexes ||
-      showtime.cinema_complexes.company_id !== user.company_id
+      showtime.cinema_complexes.company_id !== companyId
     ) {
       throw new ForbiddenException('Acesso negado a esta sessão.');
     }
@@ -180,17 +200,14 @@ export class ShowtimesService {
     };
   }
 
-  async findAll(
-    user: RequestUser,
-    filters?: {
-      cinema_complex_id?: string;
-      room_id?: string;
-      movie_id?: string;
-      start_time?: Date;
-      status?: string;
-    },
-  ): Promise<any[]> {
-    const companyId = user.company_id;
+  async findAll(filters?: {
+    cinema_complex_id?: string;
+    room_id?: string;
+    movie_id?: string;
+    start_time?: Date;
+    status?: string;
+  }): Promise<any[]> {
+    const companyId = this.getCompanyId();
 
     const where: Prisma.showtime_scheduleWhereInput = {
       cinema_complexes: { company_id: companyId },
@@ -206,11 +223,8 @@ export class ShowtimesService {
     return this.showtimesRepository.findAll(where);
   }
 
-  async preview(
-    dto: CreateShowtimeDto,
-    user: RequestUser,
-  ): Promise<ShowtimeFinancialBreakdown> {
-    const companyId = user.company_id;
+  async preview(dto: CreateShowtimeDto): Promise<ShowtimeFinancialBreakdown> {
+    const companyId = this.getCompanyId();
 
     // Validar filme e sala em paralelo
     const [movie, room] = await Promise.all([
@@ -267,7 +281,7 @@ export class ShowtimesService {
 
   private async buildTicketPricingBreakdown(
     dto: CreateShowtimeDto,
-    room: any,
+    room: TicketPricingRoomInput,
     companyId: string,
     seatContext?: SeatPricingContext,
   ): Promise<ShowtimeTicketPricingBreakdown> {
@@ -581,8 +595,9 @@ export class ShowtimesService {
   }
 
   @Transactional()
-  async create(dto: CreateShowtimeDto, user: RequestUser): Promise<Showtime> {
-    const companyId = user.company_id;
+  async create(dto: CreateShowtimeDto): Promise<Showtime> {
+    const companyId = this.getCompanyId();
+    const userId = this.getUserId();
 
     if (dto.start_time < new Date()) {
       throw new ConflictException(
@@ -685,20 +700,14 @@ export class ShowtimesService {
     }
 
     // Calcular preços dos assentos e criar dados de status
-    const seatStatusData = activeSeats.map((seat) => {
-      const additionalValue = seat.seat_type
-        ? seatPricingContext.seatTypeMeta.get(seat.seat_type)
-            ?.additionalValue || 0
-        : 0;
-      return {
-        id: this.snowflake.generate(),
-        showtime_id: showtimeId,
-        seat_id: seat.id,
-        status: availableStatus.id,
-        // Nota: O schema atual não tem campo de preço em session_seat_status
-        // O preço pode ser calculado dinamicamente quando necessário
-      };
-    });
+    const seatStatusData = activeSeats.map((seat) => ({
+      id: this.snowflake.generate(),
+      showtime_id: showtimeId,
+      seat_id: seat.id,
+      status: availableStatus.id,
+      // Nota: O schema atual não tem campo de preço em session_seat_status
+      // O preço pode ser calculado dinamicamente quando necessário
+    }));
 
     await this.sessionSeatStatusRepository.createMany(seatStatusData);
 
@@ -726,21 +735,18 @@ export class ShowtimesService {
         values: newShowtime,
         financialBreakdown,
       },
-      metadata: { companyId, userId: user.company_user_id },
+      metadata: { companyId, userId },
     });
 
     return newShowtime;
   }
 
   @Transactional()
-  async update(
-    id: string,
-    dto: UpdateShowtimeDto,
-    user: RequestUser,
-  ): Promise<Showtime> {
-    const companyId = user.company_id;
+  async update(id: string, dto: UpdateShowtimeDto): Promise<Showtime> {
+    const companyId = this.getCompanyId();
+    const userId = this.getUserId();
 
-    const existingShowtime = await this.findOne(id, user);
+    const existingShowtime = await this.findOne(id);
     let newStartTime = new Date(existingShowtime.start_time);
     let newEndTime = new Date(existingShowtime.end_time);
 
@@ -814,14 +820,14 @@ export class ShowtimesService {
         new_values: updatedShowtime,
         old_values: existingShowtime,
       },
-      metadata: { companyId, userId: user.company_user_id },
+      metadata: { companyId, userId },
     });
 
     return updatedShowtime;
   }
 
-  async getSeatsMap(id: string, user: RequestUser): Promise<ShowtimeSeatDto[]> {
-    await this.findOne(id, user);
+  async getSeatsMap(id: string): Promise<ShowtimeSeatDto[]> {
+    await this.findOne(id);
 
     const seatStatusList =
       await this.sessionSeatStatusRepository.findByShowtimeId(id);
@@ -840,9 +846,10 @@ export class ShowtimesService {
   }
 
   @Transactional()
-  async remove(id: string, user: RequestUser): Promise<{ message: string }> {
-    const companyId = user.company_id;
-    const showtime = await this.findOne(id, user);
+  async remove(id: string): Promise<{ message: string }> {
+    const companyId = this.getCompanyId();
+    const userId = this.getUserId();
+    const showtime = await this.findOne(id);
 
     const cancelledStatus =
       await this.sessionStatusRepository.findByNameAndCompany(
@@ -863,7 +870,7 @@ export class ShowtimesService {
     await this.rabbitmq.publish({
       pattern: 'audit.showtime.cancelled',
       data: { id: showtime.id, old_values: showtime },
-      metadata: { companyId, userId: user.company_user_id },
+      metadata: { companyId, userId },
     });
 
     return { message: 'Sessão cancelada com sucesso.' };
@@ -873,23 +880,19 @@ export class ShowtimesService {
     showtime_id: string,
     seat_id: string,
     status: 'Bloqueado' | 'Disponível',
-    user: RequestUser,
   ): Promise<void> {
+    const companyId = this.getCompanyId();
     const showtime = await this.showtimesRepository.findById(showtime_id);
 
-    if (
-      !showtime ||
-      showtime.cinema_complexes?.company_id !== user.company_id
-    ) {
+    if (!showtime || showtime.cinema_complexes?.company_id !== companyId) {
       throw new NotFoundException('Sessão não encontrada.');
     }
 
     const seatStatus =
       (await this.seatStatusRepository.findByNameAndCompany(
         status,
-        user.company_id,
-      )) ||
-      (await this.seatStatusRepository.findDefaultByCompany(user.company_id));
+        companyId,
+      )) || (await this.seatStatusRepository.findDefaultByCompany(companyId));
 
     if (!seatStatus) {
       throw new NotFoundException(

@@ -2,6 +2,7 @@ import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { Channel, ChannelModel, connect } from 'amqplib';
 import { LoggerService } from '../services/logger.service';
 import { requireEnv } from 'src/config/env.util';
+import { ClsService } from 'nestjs-cls';
 
 export interface RabbitMQMessage<T = any> {
   pattern: string;
@@ -21,7 +22,10 @@ export class RabbitMQPublisherService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = 'RabbitMQPublisher';
   private isConnecting = false;
 
-  constructor(private loggerService: LoggerService) {}
+  constructor(
+    private loggerService: LoggerService,
+    private readonly cls: ClsService,
+  ) {}
 
   async onModuleInit(): Promise<void> {
     await this.connect();
@@ -60,9 +64,10 @@ export class RabbitMQPublisherService implements OnModuleInit, OnModuleDestroy {
 
       this.connection = await connect(url);
 
-      this.connection.on('error', (err) => {
+      this.connection.on('error', (err: unknown) => {
+        const message = err instanceof Error ? err.message : String(err);
         this.loggerService.error(
-          `Connection error: ${err.message}`,
+          `Connection error: ${message}`,
           '',
           this.logger,
         );
@@ -76,12 +81,9 @@ export class RabbitMQPublisherService implements OnModuleInit, OnModuleDestroy {
 
       this.channel = await this.connection.createChannel();
 
-      this.channel.on('error', (err) => {
-        this.loggerService.error(
-          `Channel error: ${err.message}`,
-          '',
-          this.logger,
-        );
+      this.channel.on('error', (err: unknown) => {
+        const message = err instanceof Error ? err.message : String(err);
+        this.loggerService.error(`Channel error: ${message}`, '', this.logger);
       });
 
       this.channel.on('close', () => {
@@ -103,7 +105,9 @@ export class RabbitMQPublisherService implements OnModuleInit, OnModuleDestroy {
         this.logger,
       );
       // Retry after 5 seconds
-      setTimeout(() => this.connect(), 5000);
+      setTimeout(() => {
+        void this.connect();
+      }, 5000);
     }
   }
 
@@ -111,7 +115,9 @@ export class RabbitMQPublisherService implements OnModuleInit, OnModuleDestroy {
     this.connection = null;
     this.channel = null;
     if (!this.isConnecting) {
-      setTimeout(() => this.connect(), 5000);
+      setTimeout(() => {
+        void this.connect();
+      }, 5000);
     }
   }
 
@@ -136,13 +142,19 @@ export class RabbitMQPublisherService implements OnModuleInit, OnModuleDestroy {
       }
     }
 
+    const contextCompanyId = this.cls.get<string>('companyId');
+    const contextUserId = this.cls.get<string>('userId');
+
+    const metadata = message.metadata ?? {};
+
     const enrichedMessage = {
       ...message,
       metadata: {
-        ...message.metadata,
-        timestamp: message.metadata?.timestamp || new Date(),
-        correlationId:
-          message.metadata?.correlationId || this.generateCorrelationId(),
+        ...metadata,
+        companyId: metadata.companyId ?? contextCompanyId,
+        userId: metadata.userId ?? contextUserId,
+        timestamp: metadata.timestamp ?? new Date(),
+        correlationId: metadata.correlationId ?? this.generateCorrelationId(),
       },
     };
 

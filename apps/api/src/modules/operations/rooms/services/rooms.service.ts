@@ -3,9 +3,11 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { Prisma, rooms as Room } from '@repo/db';
 import { Transactional } from '@nestjs-cls/transactional';
+import { ClsService } from 'nestjs-cls';
 
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { RabbitMQPublisherService } from 'src/common/rabbitmq/rabbitmq-publisher.service';
@@ -32,16 +34,29 @@ export class RoomsService {
     private readonly snowflake: SnowflakeService,
     private readonly rabbitmq: RabbitMQPublisherService,
     private readonly storageService: StorageService,
+    private readonly cls: ClsService,
   ) {}
+
+  private getCompanyId(): string {
+    const companyId = this.cls.get<string>('companyId');
+    if (!companyId) {
+      throw new ForbiddenException('Contexto da empresa não encontrado.');
+    }
+    return companyId;
+  }
+
+  private getUserId(): string | undefined {
+    return this.cls.get<string>('userId');
+  }
 
   @Transactional()
   async create(
     cinemaComplexId: string,
     dto: CreateRoomDto,
-    companyId: string,
-    companyUserId: string,
     file?: Express.Multer.File,
   ): Promise<Room> {
+    const companyId = this.getCompanyId();
+    const userId = this.getUserId();
     await this.validateDependencies(dto, cinemaComplexId, companyId);
 
     const roomId = this.snowflake.generate();
@@ -117,7 +132,7 @@ export class RoomsService {
         id: newRoom.id,
         new_values: { ...newRoom, seat_layout: dto.seat_layout },
       },
-      metadata: { companyId, userId: companyUserId },
+      metadata: { companyId, userId },
     });
 
     return newRoom;
@@ -181,7 +196,8 @@ export class RoomsService {
     }
   }
 
-  async findAll(cinemaComplexId: string, companyId: string): Promise<Room[]> {
+  async findAll(cinemaComplexId: string): Promise<Room[]> {
+    const companyId = this.getCompanyId();
     const complex =
       await this.cinemaComplexesRepository.findById(cinemaComplexId);
     if (!complex || complex.company_id !== companyId) {
@@ -190,7 +206,8 @@ export class RoomsService {
     return this.roomsRepository.findAllByComplex(cinemaComplexId);
   }
 
-  async findOne(id: string, companyId: string): Promise<Room> {
+  async findOne(id: string): Promise<Room> {
+    const companyId = this.getCompanyId();
     const room = await this.roomsRepository.findById(id);
     if (!room) {
       throw new NotFoundException('Sala não encontrada.');
@@ -208,11 +225,11 @@ export class RoomsService {
   async update(
     id: string,
     dto: UpdateRoomDto,
-    companyId: string,
-    companyUserId: string,
     file?: Express.Multer.File,
   ): Promise<Room> {
-    const existingRoom = await this.findOne(id, companyId);
+    const companyId = this.getCompanyId();
+    const userId = this.getUserId();
+    const existingRoom = await this.findOne(id);
 
     if (dto.room_number && dto.room_number !== existingRoom.room_number) {
       const conflict = await this.roomsRepository.findByRoomNumber(
@@ -300,26 +317,24 @@ export class RoomsService {
         new_values: updatedRoom,
         old_values: existingRoom,
       },
-      metadata: { companyId, userId: companyUserId },
+      metadata: { companyId, userId },
     });
 
     return updatedRoom;
   }
 
   @Transactional()
-  async delete(
-    id: string,
-    companyId: string,
-    companyUserId: string,
-  ): Promise<{ message: string }> {
-    const existingRoom = await this.findOne(id, companyId); // Valida a posse
+  async delete(id: string): Promise<{ message: string }> {
+    const companyId = this.getCompanyId();
+    const userId = this.getUserId();
+    const existingRoom = await this.findOne(id); // Valida a posse
 
     await this.roomsRepository.remove(id);
 
     void this.rabbitmq.publish({
       pattern: 'audit.room.deleted',
       data: { id: existingRoom.id, old_values: existingRoom },
-      metadata: { companyId, userId: companyUserId },
+      metadata: { companyId, userId },
     });
 
     return { message: 'Sala deletada com sucesso.' };
