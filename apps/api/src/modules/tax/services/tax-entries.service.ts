@@ -8,7 +8,10 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { tax_entries } from '@repo/db';
 import { ClsService } from 'nestjs-cls';
 import { TaxEntriesRepository } from '../repositories/tax-entries.repository';
-import { TaxCalculationService } from './tax-calculation.service';
+import {
+  TaxCalculationResult,
+  TaxCalculationService,
+} from './tax-calculation.service';
 import { CreateTaxEntryDto } from '../dto/create-tax-entry.dto';
 import { TaxEntryResponseDto } from '../dto/tax-entry-response.dto';
 import { CinemaComplexesRepository } from 'src/modules/operations/cinema-complexes/repositories/cinema-complexes.repository';
@@ -87,123 +90,35 @@ export class TaxEntriesService {
     const companyId = this.getCompanyId();
     const userId = this.getUserId();
 
-    // Validar complexo
-    const complex = await this.cinemaComplexesRepository.findById(
-      dto.cinema_complex_id,
-    );
-    if (!complex || complex.company_id !== companyId) {
-      throw new NotFoundException('Complexo de cinema não encontrado');
-    }
+    await this.ensureComplexBelongsToCompany(companyId, dto.cinema_complex_id);
+    await this.ensureSourceUniqueness(dto);
 
-    // Verificar se já existe lançamento para esta origem
-    if (dto.source_type && dto.source_id) {
-      const existing = await this.taxEntriesRepository.findBySource(
-        dto.source_type,
-        dto.source_id,
-      );
-      if (existing) {
-        throw new BadRequestException(
-          'Já existe um lançamento fiscal para esta origem',
-        );
-      }
-    }
-
-    // Calcular impostos
-    const calculation = await this.taxCalculationService.calculateTaxes({
-      gross_amount: dto.gross_amount,
-      deductions_amount: dto.deductions_amount,
-      cinema_complex_id: dto.cinema_complex_id,
-      company_id: companyId,
-      competence_date: dto.competence_date,
-      revenue_type: dto.revenue_type,
-      pis_cofins_regime: dto.pis_cofins_regime,
-    });
-
-    // Criar lançamento fiscal
-    const entry = await this.taxEntriesRepository.create({
-      cinema_complex_id: dto.cinema_complex_id,
-      ...(dto.source_type && { source_type: dto.source_type }),
-      ...(dto.source_id && { source_id: dto.source_id }),
-      competence_date: dto.competence_date,
-      gross_amount: calculation.gross_amount,
-      deductions_amount: calculation.deductions_amount,
-      calculation_base: calculation.calculation_base,
-      apply_iss: dto.apply_iss !== false,
-      iss_rate: calculation.iss_rate,
-      iss_amount: dto.apply_iss !== false ? calculation.iss_amount : 0,
-      ibge_municipality_code: calculation.ibge_municipality_code,
-      ...(calculation.iss_service_code && {
-        iss_service_code: calculation.iss_service_code,
-      }),
-      pis_cofins_regime: calculation.pis_cofins_regime,
-      pis_rate: calculation.pis_rate,
-      pis_debit_amount: calculation.pis_debit_amount,
-      pis_credit_amount: calculation.pis_credit_amount,
-      pis_amount_payable: calculation.pis_amount_payable,
-      cofins_rate: calculation.cofins_rate,
-      cofins_debit_amount: calculation.cofins_debit_amount,
-      cofins_credit_amount: calculation.cofins_credit_amount,
-      cofins_amount_payable: calculation.cofins_amount_payable,
-      processing_user_id: userId,
-      processed: false,
-    });
-
-    // Publicar evento
-    await this.rabbitmq.publish({
-      pattern: 'audit.tax.entry.created',
-      data: {
-        id: entry.id,
-        values: entry,
-        calculation,
+    const calculation = await this.taxCalculationService.calculateTaxes(
+      {
+        gross_amount: dto.gross_amount,
+        deductions_amount: dto.deductions_amount,
+        cinema_complex_id: dto.cinema_complex_id,
+        competence_date: dto.competence_date,
+        revenue_type: dto.revenue_type,
+        pis_cofins_regime: dto.pis_cofins_regime,
       },
-      metadata: { companyId, userId },
-    });
+      { companyId },
+    );
+
+    const entry = await this.createTaxEntry(dto, calculation, userId);
+    await this.publishTaxEntryCreatedEvent(
+      companyId,
+      userId,
+      entry,
+      calculation,
+    );
 
     this.logger.log(
       `Lançamento fiscal criado: ${entry.id} - R$ ${calculation.gross_amount.toFixed(2)}`,
       TaxEntriesService.name,
     );
 
-    // Lançamento no Fluxo de Caixa (Previsão de Pagamento de Impostos)
-    try {
-      const bankAccounts = await this.bankAccountsRepository.findAll(companyId);
-      const defaultAccount = bankAccounts.find((account) => account.active);
-
-      if (defaultAccount) {
-        const totalTaxes =
-          Number(entry.iss_amount || 0) +
-          Number(entry.pis_amount_payable) +
-          Number(entry.cofins_amount_payable);
-
-        if (totalTaxes > 0) {
-          await this.cashFlowEntriesService.createForCompany(
-            companyId,
-            'SYSTEM',
-            {
-              bank_account_id: defaultAccount.id,
-              cinema_complex_id: dto.cinema_complex_id,
-              entry_type: 'payment',
-              category: 'tax',
-              amount: totalTaxes,
-              entry_date: new Date().toISOString().split('T')[0],
-              competence_date: dto.competence_date.toISOString().split('T')[0],
-              description: `Impostos (ISS/PIS/COFINS) - Ref. ${entry.id}`,
-              document_number: entry.id,
-              source_type: 'TAX_ENTRY',
-              source_id: entry.id,
-              status: 'pending',
-            },
-          );
-        }
-      }
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Erro desconhecido';
-      this.logger.error(
-        `Erro ao criar lançamento de fluxo de caixa para impostos ${entry.id}: ${errorMessage}`,
-        TaxEntriesService.name,
-      );
-    }
+    await this.createProjectedTaxCashFlow(companyId, dto, entry);
 
     return this.mapToDto(entry);
   }
@@ -258,5 +173,136 @@ export class TaxEntriesService {
       processed: entry.processed || false,
       created_at: entry.created_at?.toISOString() || new Date().toISOString(),
     };
+  }
+
+  private async ensureComplexBelongsToCompany(
+    companyId: string,
+    cinemaComplexId: string,
+  ): Promise<void> {
+    const complex =
+      await this.cinemaComplexesRepository.findById(cinemaComplexId);
+    if (!complex || complex.company_id !== companyId) {
+      throw new NotFoundException('Complexo de cinema não encontrado');
+    }
+  }
+
+  private async ensureSourceUniqueness(dto: CreateTaxEntryDto): Promise<void> {
+    if (!dto.source_type || !dto.source_id) {
+      return;
+    }
+
+    const existing = await this.taxEntriesRepository.findBySource(
+      dto.source_type,
+      dto.source_id,
+    );
+
+    if (existing) {
+      throw new BadRequestException(
+        'Já existe um lançamento fiscal para esta origem',
+      );
+    }
+  }
+
+  private async createTaxEntry(
+    dto: CreateTaxEntryDto,
+    calculation: TaxCalculationResult,
+    userId: string,
+  ): Promise<tax_entries> {
+    const applyIss = dto.apply_iss !== false;
+
+    return this.taxEntriesRepository.create({
+      cinema_complex_id: dto.cinema_complex_id,
+      ...(dto.source_type && { source_type: dto.source_type }),
+      ...(dto.source_id && { source_id: dto.source_id }),
+      competence_date: dto.competence_date,
+      gross_amount: calculation.gross_amount,
+      deductions_amount: calculation.deductions_amount,
+      calculation_base: calculation.calculation_base,
+      apply_iss: applyIss,
+      iss_rate: calculation.iss_rate,
+      iss_amount: applyIss ? calculation.iss_amount : 0,
+      ibge_municipality_code: calculation.ibge_municipality_code,
+      ...(calculation.iss_service_code && {
+        iss_service_code: calculation.iss_service_code,
+      }),
+      pis_cofins_regime: calculation.pis_cofins_regime,
+      pis_rate: calculation.pis_rate,
+      pis_debit_amount: calculation.pis_debit_amount,
+      pis_credit_amount: calculation.pis_credit_amount,
+      pis_amount_payable: calculation.pis_amount_payable,
+      cofins_rate: calculation.cofins_rate,
+      cofins_debit_amount: calculation.cofins_debit_amount,
+      cofins_credit_amount: calculation.cofins_credit_amount,
+      cofins_amount_payable: calculation.cofins_amount_payable,
+      processing_user_id: userId,
+      processed: false,
+    });
+  }
+
+  private async publishTaxEntryCreatedEvent(
+    companyId: string,
+    userId: string,
+    entry: tax_entries,
+    calculation: TaxCalculationResult,
+  ): Promise<void> {
+    await this.rabbitmq.publish({
+      pattern: 'audit.tax.entry.created',
+      data: {
+        id: entry.id,
+        values: entry,
+        calculation,
+      },
+      metadata: { companyId, userId },
+    });
+  }
+
+  private async createProjectedTaxCashFlow(
+    companyId: string,
+    dto: CreateTaxEntryDto,
+    entry: tax_entries,
+  ): Promise<void> {
+    try {
+      const bankAccounts = await this.bankAccountsRepository.findAll(companyId);
+      const defaultAccount = bankAccounts.find((account) => account.active);
+
+      if (!defaultAccount) {
+        return;
+      }
+
+      const totalTaxes =
+        Number(entry.iss_amount || 0) +
+        Number(entry.pis_amount_payable) +
+        Number(entry.cofins_amount_payable);
+
+      if (totalTaxes <= 0) {
+        return;
+      }
+
+      await this.cashFlowEntriesService.createForCompany({
+        companyId,
+        createdBy: 'SYSTEM',
+        dto: {
+          bank_account_id: defaultAccount.id,
+          cinema_complex_id: dto.cinema_complex_id,
+          entry_type: 'payment',
+          category: 'tax',
+          amount: totalTaxes,
+          entry_date: new Date().toISOString().split('T')[0],
+          competence_date: dto.competence_date.toISOString().split('T')[0],
+          description: `Impostos (ISS/PIS/COFINS) - Ref. ${entry.id}`,
+          document_number: entry.id,
+          source_type: 'TAX_ENTRY',
+          source_id: entry.id,
+          status: 'pending',
+        },
+      });
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Erro desconhecido';
+      this.logger.error(
+        `Erro ao criar lançamento de fluxo de caixa para impostos ${entry.id}: ${errorMessage}`,
+        TaxEntriesService.name,
+      );
+    }
   }
 }

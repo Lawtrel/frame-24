@@ -30,7 +30,10 @@ import { RequirePermission } from 'src/common/decorators/require-permission.deco
 import { CreateShowtimeDto } from '../dto/create-showtime.dto';
 import { UpdateShowtimeDto } from '../dto/update-showtime.dto';
 import { UpdateShowtimeSeatStatusDto } from '../dto/update-showtime-seat-status.dto';
-import { ShowtimesService } from 'src/modules/operations/showtime_schedule/services/shotimes.service';
+import {
+  ShowtimeDetailsDto,
+  ShowtimesService,
+} from 'src/modules/operations/showtime_schedule/services/shotimes.service';
 
 @ApiTags('Showtimes')
 @ApiBearerAuth()
@@ -109,7 +112,7 @@ export class ShowtimesController {
   @ApiOperation({ summary: 'Buscar uma sessão específica por ID' })
   @ApiNotFoundResponse({ description: 'Sessão não encontrada.' })
   @ApiForbiddenResponse({ description: 'Acesso negado a esta sessão.' })
-  async findOne(@Param('id') id: string): Promise<any> {
+  async findOne(@Param('id') id: string): Promise<ShowtimeDetailsDto> {
     return this.service.findOne(id);
   }
 

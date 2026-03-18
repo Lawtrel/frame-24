@@ -51,11 +51,29 @@ export class StorageService implements OnModuleInit {
   async onModuleInit() {
     try {
       await this.ensureBucket();
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logger.warn(
-        `Storage is not available: ${error.message}. File uploads will fail until storage is configured.`,
+        `Storage is not available: ${this.getErrorMessage(error)}. File uploads will fail until storage is configured.`,
       );
     }
+  }
+
+  private getErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+      return error.message;
+    }
+    return String(error);
+  }
+
+  private isBucketNotFoundError(error: unknown): boolean {
+    const maybeS3Error = error as {
+      name?: string;
+      $metadata?: { httpStatusCode?: number };
+    };
+    return (
+      maybeS3Error?.name === 'NotFound' ||
+      maybeS3Error?.$metadata?.httpStatusCode === 404
+    );
   }
 
   /**
@@ -71,11 +89,9 @@ export class StorageService implements OnModuleInit {
         new HeadBucketCommand({ Bucket: storageConfig.bucket }),
       );
       this.logger.log(`Bucket ${storageConfig.bucket} is accessible`);
-    } catch (error: any) {
-      if (
-        error.name === 'NotFound' ||
-        error.$metadata?.httpStatusCode === 404
-      ) {
+    } catch (error: unknown) {
+      const errorMessage = this.getErrorMessage(error);
+      if (this.isBucketNotFoundError(error)) {
         // Bucket doesn't exist
 
         // Only try to create bucket if using MinIO (typically localhost without SSL)
@@ -92,9 +108,9 @@ export class StorageService implements OnModuleInit {
             this.logger.log(
               `Bucket ${storageConfig.bucket} created successfully`,
             );
-          } catch (createError: any) {
+          } catch (createError: unknown) {
             this.logger.warn(
-              `Could not create bucket ${storageConfig.bucket}: ${createError.message}`,
+              `Could not create bucket ${storageConfig.bucket}: ${this.getErrorMessage(createError)}`,
             );
           }
         } else {
@@ -108,7 +124,7 @@ export class StorageService implements OnModuleInit {
       } else {
         // Other error (permission, network, etc)
         this.logger.warn(
-          `Unable to verify bucket ${storageConfig.bucket}: ${error.message}`,
+          `Unable to verify bucket ${storageConfig.bucket}: ${errorMessage}`,
         );
       }
     }
@@ -121,7 +137,7 @@ export class StorageService implements OnModuleInit {
    * @returns The public URL of the uploaded file
    */
   async uploadFile(file: Express.Multer.File, folder: string): Promise<string> {
-    const companyId = this.cls.get('companyId') || 'default';
+    const companyId = this.cls.get<string>('companyId') || 'default';
     const timestamp = Date.now();
     const uuid = randomUUID();
     const extension = file.originalname.split('.').pop();
@@ -141,8 +157,8 @@ export class StorageService implements OnModuleInit {
 
       // Return the public URL
       return this.getPublicUrl(objectKey);
-    } catch (error: any) {
-      this.logger.error(`Error uploading file: ${error.message}`);
+    } catch (error: unknown) {
+      this.logger.error(`Error uploading file: ${this.getErrorMessage(error)}`);
       throw error;
     }
   }
@@ -164,8 +180,8 @@ export class StorageService implements OnModuleInit {
         }),
       );
       this.logger.log(`File deleted successfully: ${objectKey}`);
-    } catch (error: any) {
-      this.logger.error(`Error deleting file: ${error.message}`);
+    } catch (error: unknown) {
+      this.logger.error(`Error deleting file: ${this.getErrorMessage(error)}`);
       // Don't throw - deletion failures shouldn't break the flow
     }
   }
@@ -187,8 +203,10 @@ export class StorageService implements OnModuleInit {
       return await getSignedUrl(this.s3Client, command, {
         expiresIn: expirySeconds,
       });
-    } catch (error: any) {
-      this.logger.error(`Error generating presigned URL: ${error.message}`);
+    } catch (error: unknown) {
+      this.logger.error(
+        `Error generating presigned URL: ${this.getErrorMessage(error)}`,
+      );
       throw error;
     }
   }

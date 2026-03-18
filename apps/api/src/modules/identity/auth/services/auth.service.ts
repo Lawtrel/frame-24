@@ -205,13 +205,13 @@ export class AuthService {
     await this.masterDataSetup.setupCompanyMasterData(company.id);
 
     // Configurar impostos baseados no regime tributário e município
-    await this.taxSetup.setupCompanyTaxes(
-      company.id,
-      company.tax_regime,
-      dto.company_zip_code,
-      dto.company_city,
-      dto.company_state,
-    );
+    await this.taxSetup.setupCompanyTaxes({
+      companyId: company.id,
+      taxRegime: company.tax_regime,
+      zipCode: dto.company_zip_code,
+      city: dto.company_city,
+      state: dto.company_state,
+    });
 
     await this.eventPublisher.publishCreated({
       identityId: identity.id,

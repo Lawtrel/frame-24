@@ -46,8 +46,8 @@ export class PublicController {
     status: 404,
     description: 'Empresa não encontrada',
   })
-  async getCompanyBySlug(@Param('tenant_slug') tenant_slug: string) {
-    return this.publicService.getCompanyBySlug(tenant_slug);
+  async getCompanyBySlug(@Param('tenant_slug') tenantSlug: string) {
+    return this.publicService.getCompanyBySlug(tenantSlug);
   }
 
   @Get('companies/:tenant_slug/complexes')
@@ -61,8 +61,8 @@ export class PublicController {
     status: 200,
     description: 'Lista de complexos retornada com sucesso',
   })
-  async getComplexes(@Param('tenant_slug') tenant_slug: string) {
-    const company = await this.publicService.getCompanyBySlug(tenant_slug);
+  async getComplexes(@Param('tenant_slug') tenantSlug: string) {
+    const company = await this.publicService.getCompanyBySlug(tenantSlug);
     return this.publicService.getComplexesByCompany(company.id);
   }
 
@@ -77,8 +77,8 @@ export class PublicController {
     status: 200,
     description: 'Lista de filmes retornada com sucesso',
   })
-  async getMovies(@Param('tenant_slug') tenant_slug: string) {
-    const company = await this.publicService.getCompanyBySlug(tenant_slug);
+  async getMovies(@Param('tenant_slug') tenantSlug: string) {
+    const company = await this.publicService.getCompanyBySlug(tenantSlug);
     return this.publicService.getMoviesByCompany(company.id);
   }
 
@@ -106,15 +106,15 @@ export class PublicController {
     description: 'Lista de sessões retornada com sucesso',
   })
   async getShowtimes(
-    @Param('tenant_slug') tenant_slug: string,
-    @Query('complex_id') complex_id?: string,
-    @Query('movie_id') movie_id?: string,
+    @Param('tenant_slug') tenantSlug: string,
+    @Query('complex_id') complexId?: string,
+    @Query('movie_id') movieId?: string,
     @Query('date') date?: string,
   ) {
-    const company = await this.publicService.getCompanyBySlug(tenant_slug);
+    const company = await this.publicService.getCompanyBySlug(tenantSlug);
     return this.publicService.getShowtimesByCompany(company.id, {
-      complex_id,
-      movie_id,
+      complexId,
+      movieId,
       date: date ? new Date(date) : undefined,
     });
   }
@@ -156,11 +156,11 @@ export class PublicController {
     description: 'Lista de produtos retornada com sucesso',
   })
   async getProducts(
-    @Param('tenant_slug') tenant_slug: string,
-    @Query('complex_id') complex_id?: string,
+    @Param('tenant_slug') tenantSlug: string,
+    @Query('complex_id') complexId?: string,
   ) {
-    const company = await this.publicService.getCompanyBySlug(tenant_slug);
-    return this.publicService.getProductsByCompany(company.id, complex_id);
+    const company = await this.publicService.getCompanyBySlug(tenantSlug);
+    return this.publicService.getProductsByCompany(company.id, complexId);
   }
 
   @Get('companies/:tenant_slug/ticket-types')
@@ -174,8 +174,8 @@ export class PublicController {
     status: 200,
     description: 'Lista de tipos de ingresso retornada com sucesso',
   })
-  async getTicketTypes(@Param('tenant_slug') tenant_slug: string) {
-    const company = await this.publicService.getCompanyBySlug(tenant_slug);
+  async getTicketTypes(@Param('tenant_slug') tenantSlug: string) {
+    const company = await this.publicService.getCompanyBySlug(tenantSlug);
     return this.publicService.getTicketTypes(company.id);
   }
 
@@ -190,8 +190,8 @@ export class PublicController {
     status: 200,
     description: 'Lista de métodos de pagamento retornada com sucesso',
   })
-  async getPaymentMethods(@Param('tenant_slug') tenant_slug: string) {
-    const company = await this.publicService.getCompanyBySlug(tenant_slug);
+  async getPaymentMethods(@Param('tenant_slug') tenantSlug: string) {
+    const company = await this.publicService.getCompanyBySlug(tenantSlug);
     return this.publicService.getPaymentMethods(company.id);
   }
 
@@ -212,10 +212,10 @@ export class PublicController {
     description: 'Venda não encontrada',
   })
   async getSaleDetails(
-    @Param('tenant_slug') tenant_slug: string,
+    @Param('tenant_slug') tenantSlug: string,
     @Param('reference') reference: string,
   ) {
-    const company = await this.publicService.getCompanyBySlug(tenant_slug);
+    const company = await this.publicService.getCompanyBySlug(tenantSlug);
     return this.publicService.getSaleDetails(company.id, reference);
   }
 

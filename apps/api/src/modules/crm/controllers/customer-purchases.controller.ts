@@ -17,8 +17,6 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { CustomerGuard } from 'src/common/guards/customer.guard';
-import { CurrentCustomer } from 'src/common/decorators/current-customer.decorator';
-import type { CustomerUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import { CustomerPurchasesService } from '../services/customer-purchases.service';
 import { CreatePurchaseDto } from '../dto/create-purchase.dto';
 import { SaleResponseDto } from 'src/modules/sales/dto/sale-response.dto';
@@ -48,11 +46,8 @@ export class CustomerPurchasesController {
     status: 400,
     description: 'Dados inválidos ou pontos insuficientes',
   })
-  async purchase(
-    @Body() dto: CreatePurchaseDto,
-    @CurrentCustomer() customer: CustomerUser,
-  ): Promise<SaleResponseDto> {
-    return this.customerPurchasesService.purchase(dto, customer);
+  async purchase(@Body() dto: CreatePurchaseDto): Promise<SaleResponseDto> {
+    return this.customerPurchasesService.purchase(dto);
   }
 
   @Get('purchases')
@@ -66,10 +61,8 @@ export class CustomerPurchasesController {
     description: 'Lista de compras retornada com sucesso',
     type: [SaleResponseDto],
   })
-  async findAll(
-    @CurrentCustomer() customer: CustomerUser,
-  ): Promise<SaleResponseDto[]> {
-    return this.customerPurchasesService.findAll(customer);
+  async findAll(): Promise<SaleResponseDto[]> {
+    return this.customerPurchasesService.findAll();
   }
 
   @Get('purchases/:id')
@@ -90,11 +83,8 @@ export class CustomerPurchasesController {
     status: 404,
     description: 'Compra não encontrada',
   })
-  async findOne(
-    @Param('id') id: string,
-    @CurrentCustomer() customer: CustomerUser,
-  ): Promise<SaleResponseDto> {
-    return this.customerPurchasesService.findOne(id, customer);
+  async findOne(@Param('id') id: string): Promise<SaleResponseDto> {
+    return this.customerPurchasesService.findOne(id);
   }
 
   @Get('tickets')
@@ -106,8 +96,8 @@ export class CustomerPurchasesController {
     status: 200,
     description: 'Lista de ingressos retornada com sucesso',
   })
-  async findTickets(@CurrentCustomer() customer: CustomerUser) {
-    return this.customerPurchasesService.findTickets(customer);
+  async findTickets(): Promise<Array<Record<string, unknown>>> {
+    return this.customerPurchasesService.findTickets();
   }
 
   @Get('tickets/:id')
@@ -121,9 +111,8 @@ export class CustomerPurchasesController {
   })
   async findTicketById(
     @Param('id') id: string,
-    @CurrentCustomer() customer: CustomerUser,
-  ) {
-    return this.customerPurchasesService.findTicketById(id, customer);
+  ): Promise<Record<string, unknown>> {
+    return this.customerPurchasesService.findTicketById(id);
   }
 
   @Get('tickets/:id/qr-code')
@@ -136,11 +125,8 @@ export class CustomerPurchasesController {
     status: 200,
     description: 'QR Code retornado com sucesso',
   })
-  async getTicketQrCode(
-    @Param('id') id: string,
-    @CurrentCustomer() customer: CustomerUser,
-  ) {
-    return this.customerPurchasesService.getTicketQrCode(id, customer);
+  async getTicketQrCode(@Param('id') id: string) {
+    return this.customerPurchasesService.getTicketQrCode(id);
   }
 
   @Get('history')
@@ -153,8 +139,11 @@ export class CustomerPurchasesController {
     status: 200,
     description: 'Histórico retornado com sucesso',
   })
-  async getHistory(@CurrentCustomer() customer: CustomerUser) {
-    return this.customerPurchasesService.getHistory(customer);
+  async getHistory(): Promise<{
+    purchases: SaleResponseDto[];
+    tickets: Array<Record<string, unknown>>;
+  }> {
+    return this.customerPurchasesService.getHistory();
   }
 
   @Delete('purchases/:id/cancel')
@@ -167,10 +156,7 @@ export class CustomerPurchasesController {
     status: 204,
     description: 'Compra cancelada com sucesso',
   })
-  async cancelPurchase(
-    @Param('id') id: string,
-    @CurrentCustomer() customer: CustomerUser,
-  ): Promise<void> {
-    return this.customerPurchasesService.cancelPurchase(id, customer);
+  async cancelPurchase(@Param('id') id: string): Promise<void> {
+    return this.customerPurchasesService.cancelPurchase(id);
   }
 }

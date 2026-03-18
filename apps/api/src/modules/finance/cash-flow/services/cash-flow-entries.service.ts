@@ -35,6 +35,12 @@ type CashFlowEntriesListResponse = {
   take: number;
 };
 
+type CreateCashFlowEntryForCompanyInput = {
+  companyId: string;
+  createdBy: string;
+  dto: CreateCashFlowEntryDto;
+};
+
 @Injectable()
 export class CashFlowEntriesService {
   constructor(
@@ -62,15 +68,19 @@ export class CashFlowEntriesService {
 
   @Transactional()
   async create(dto: CreateCashFlowEntryDto): Promise<cash_flow_entries> {
-    return this.createForCompany(this.getCompanyId(), this.getUserId(), dto);
+    return this.createForCompany({
+      companyId: this.getCompanyId(),
+      createdBy: this.getUserId(),
+      dto,
+    });
   }
 
   @Transactional()
   async createForCompany(
-    companyId: string,
-    createdBy: string,
-    dto: CreateCashFlowEntryDto,
+    input: CreateCashFlowEntryForCompanyInput,
   ): Promise<cash_flow_entries> {
+    const { companyId, createdBy, dto } = input;
+
     // Verify bank account exists and belongs to company
     const bankAccount = await this.bankAccountsRepository.findById(
       dto.bank_account_id,

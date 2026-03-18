@@ -56,6 +56,8 @@ describe('RolesService', () => {
     snowflake.generate.mockReturnValue('rp-1');
     cls.get.mockImplementation((key?: string | symbol) => {
       if (key === 'companyId') return 'company-123';
+      if (key === 'identityId') return 'identity-1';
+      if (key === 'roleHierarchy') return 5;
       return undefined;
     });
   });
@@ -81,7 +83,7 @@ describe('RolesService', () => {
     } as any);
     prisma.role_permissions.createMany.mockResolvedValue({ count: 1 });
 
-    await service.create(dto, 'identity-1', 5);
+    await service.create(dto);
 
     expect(roleRepo.findByName).toHaveBeenCalledWith('company-123', 'Operador');
     expect(roleRepo.create).toHaveBeenCalledWith(

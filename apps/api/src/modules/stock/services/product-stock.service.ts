@@ -1,25 +1,34 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { product_stock } from '@repo/db';
+import { ClsService } from 'nestjs-cls';
 import { ProductStockRepository } from '../repositories/product-stock.repository';
 import { ProductStockResponseDto } from '../dto/product-stock-response.dto';
 import { ProductRepository } from 'src/modules/catalog/products/repositories/product.repository';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 
 @Injectable()
 export class ProductStockService {
   constructor(
     private readonly productStockRepository: ProductStockRepository,
     private readonly productsRepository: ProductRepository,
+    private readonly cls: ClsService,
   ) {}
 
-  async findAll(
-    user: RequestUser,
-    complex_id?: string,
-  ): Promise<ProductStockResponseDto[]> {
+  private getCompanyId(): string {
+    const companyId = this.cls.get<string>('companyId');
+    if (!companyId) {
+      throw new ForbiddenException('Contexto da empresa não encontrado.');
+    }
+    return companyId;
+  }
+
+  async findAll(complex_id?: string): Promise<ProductStockResponseDto[]> {
+    const companyId = this.getCompanyId();
     const stocks = complex_id
-      ? await this.productStockRepository.findByComplexId(
-          complex_id,
-          user.company_id,
-        )
+      ? await this.productStockRepository.findByComplexId(complex_id, companyId)
       : [];
 
     return stocks.map((stock) => this.mapToDto(stock));
@@ -28,8 +37,8 @@ export class ProductStockService {
   async findOne(
     product_id: string,
     complex_id: string,
-    user: RequestUser,
   ): Promise<ProductStockResponseDto> {
+    const companyId = this.getCompanyId();
     const stock = await this.productStockRepository.findById(
       product_id,
       complex_id,
@@ -39,7 +48,7 @@ export class ProductStockService {
       // Validar que o produto existe
       const product = await this.productsRepository.findById(
         product_id,
-        user.company_id,
+        companyId,
       );
       if (!product) {
         throw new NotFoundException('Produto não encontrado');
@@ -64,19 +73,16 @@ export class ProductStockService {
     return this.mapToDto(stock);
   }
 
-  async findLowStock(
-    user: RequestUser,
-    complex_id?: string,
-  ): Promise<ProductStockResponseDto[]> {
+  async findLowStock(complex_id?: string): Promise<ProductStockResponseDto[]> {
     const stocks = await this.productStockRepository.findLowStock(
-      user.company_id,
+      this.getCompanyId(),
       complex_id,
     );
 
     return stocks.map((stock) => this.mapToDto(stock));
   }
 
-  private mapToDto(stock: any): ProductStockResponseDto {
+  private mapToDto(stock: product_stock): ProductStockResponseDto {
     const currentQuantity = stock.current_quantity || 0;
     const minimumQuantity = stock.minimum_quantity || 0;
 

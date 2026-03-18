@@ -6,6 +6,7 @@ jest.mock('@nestjs-cls/transactional', () => ({
 }));
 
 import { Test, TestingModule } from '@nestjs/testing';
+import { ClsService } from 'nestjs-cls';
 import { StockMovementsService } from './stock-movements.service';
 import { StockMovementsRepository } from '../repositories/stock-movements.repository';
 import { ProductStockRepository } from '../repositories/product-stock.repository';
@@ -32,6 +33,16 @@ describe('StockMovementsService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         StockMovementsService,
+        {
+          provide: ClsService,
+          useValue: {
+            get: jest.fn((key: string) => {
+              if (key === 'companyId') return 'company-1';
+              if (key === 'userId') return 'user-1';
+              return undefined;
+            }),
+          },
+        },
         {
           provide: StockMovementsRepository,
           useValue: {
@@ -96,11 +107,6 @@ describe('StockMovementsService', () => {
   });
 
   describe('create', () => {
-    const mockUser = {
-      company_id: 'company-1',
-      company_user_id: 'user-1',
-    } as any;
-
     const mockDto = {
       product_id: 'product-1',
       complex_id: 'complex-1',
@@ -118,7 +124,7 @@ describe('StockMovementsService', () => {
     it('should throw ProductNotFoundException when product not found', async () => {
       productsRepository.findById.mockResolvedValue(null);
 
-      await expect(service.create(mockDto, mockUser)).rejects.toThrow(
+      await expect(service.create(mockDto)).rejects.toThrow(
         ProductNotFoundException,
       );
     });
@@ -131,7 +137,7 @@ describe('StockMovementsService', () => {
 
       stockMovementTypesRepository.findByIdOrName.mockResolvedValue(null);
 
-      await expect(service.create(mockDto, mockUser)).rejects.toThrow(
+      await expect(service.create(mockDto)).rejects.toThrow(
         MovementTypeNotFoundException,
       );
     });
@@ -154,7 +160,7 @@ describe('StockMovementsService', () => {
       } as any);
 
       await expect(
-        service.create({ ...mockDto, quantity: 10 }, mockUser),
+        service.create({ ...mockDto, quantity: 10 }),
       ).rejects.toThrow(InsufficientStockException);
     });
 
@@ -184,7 +190,7 @@ describe('StockMovementsService', () => {
         movement_date: new Date('2026-01-01T00:00:00.000Z'),
       } as any);
 
-      const result = await service.create(mockDto, mockUser);
+      const result = await service.create(mockDto);
 
       expect(result).toBeDefined();
       expect(stockMovementsRepository.create).toHaveBeenCalled();

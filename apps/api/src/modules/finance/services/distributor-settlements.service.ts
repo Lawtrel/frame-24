@@ -11,6 +11,16 @@ import { CreateDistributorSettlementDto } from '../dto/create-distributor-settle
 
 import { AccountsPayableService } from '../accounts-payable/services/accounts-payable.service';
 
+type FindDistributorSettlementsForCompanyInput = {
+  companyId: string;
+  cinemaComplexId?: string;
+};
+
+type CreateDistributorSettlementForCompanyInput = {
+  companyId: string;
+  dto: CreateDistributorSettlementDto;
+};
+
 @Injectable()
 export class DistributorSettlementsService {
   private readonly logger = new Logger(DistributorSettlementsService.name);
@@ -102,10 +112,14 @@ export class DistributorSettlementsService {
   }
 
   async findAll(cinemaComplexId?: string) {
-    return this.findAllForCompany(this.getCompanyId(), cinemaComplexId);
+    return this.findAllForCompany({
+      companyId: this.getCompanyId(),
+      cinemaComplexId,
+    });
   }
 
-  async findAllForCompany(companyId: string, cinemaComplexId?: string) {
+  async findAllForCompany(input: FindDistributorSettlementsForCompanyInput) {
+    const { companyId, cinemaComplexId } = input;
     const complexIds = await this.getCompanyComplexIds(companyId);
     const contractIds = await this.getCompanyContractIds(companyId);
 
@@ -121,13 +135,11 @@ export class DistributorSettlementsService {
   }
 
   async create(dto: CreateDistributorSettlementDto) {
-    return this.createForCompany(this.getCompanyId(), dto);
+    return this.createForCompany({ companyId: this.getCompanyId(), dto });
   }
 
-  async createForCompany(
-    companyId: string,
-    dto: CreateDistributorSettlementDto,
-  ) {
+  async createForCompany(input: CreateDistributorSettlementForCompanyInput) {
+    const { companyId, dto } = input;
     await this.ensureContractBelongsToCompany(dto.contract_id, companyId);
     await this.ensureDistributorBelongsToCompany(dto.distributor_id, companyId);
     await this.ensureComplexBelongsToCompany(dto.cinema_complex_id, companyId);
@@ -165,24 +177,27 @@ export class DistributorSettlementsService {
     // Create Account Payable
     try {
       if (netAmount > 0) {
-        await this.accountsPayableService.createForCompany(companyId, {
-          cinema_complex_id: dto.cinema_complex_id,
-          supplier_id: dto.distributor_id,
-          source_type: 'distributor_settlement',
-          source_id: settlement.id,
-          document_number: `SETT-${settlement.id.substring(0, 8)}`,
-          description: `Acerto Distribuidor - Contrato ${dto.contract_id}`,
-          issue_date: new Date().toISOString().split('T')[0],
-          due_date: new Date(dto.competence_end_date)
-            .toISOString()
-            .split('T')[0], // Assuming due date is end of competence
-          competence_date: new Date(dto.competence_start_date)
-            .toISOString()
-            .split('T')[0],
-          original_amount: netAmount,
-          interest_amount: 0,
-          penalty_amount: 0,
-          discount_amount: 0,
+        await this.accountsPayableService.createForCompany({
+          companyId,
+          dto: {
+            cinema_complex_id: dto.cinema_complex_id,
+            supplier_id: dto.distributor_id,
+            source_type: 'distributor_settlement',
+            source_id: settlement.id,
+            document_number: `SETT-${settlement.id.substring(0, 8)}`,
+            description: `Acerto Distribuidor - Contrato ${dto.contract_id}`,
+            issue_date: new Date().toISOString().split('T')[0],
+            due_date: new Date(dto.competence_end_date)
+              .toISOString()
+              .split('T')[0], // Assuming due date is end of competence
+            competence_date: new Date(dto.competence_start_date)
+              .toISOString()
+              .split('T')[0],
+            original_amount: netAmount,
+            interest_amount: 0,
+            penalty_amount: 0,
+            discount_amount: 0,
+          },
         });
       }
     } catch (error) {

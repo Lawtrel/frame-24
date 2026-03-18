@@ -19,9 +19,7 @@ import {
 } from '@nestjs/swagger';
 
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { SecuredController } from 'src/common/decorators/secured-controller.decorator';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 
 import { CreateCinemaComplexDto } from '../dto/create-cinema-complex.dto';
 import { UpdateCinemaComplexDto } from '../dto/update-cinema-complex.dto';
@@ -45,10 +43,7 @@ export class CinemaComplexesController {
   @ApiConflictResponse({
     description: 'Um complexo com o mesmo código já existe.',
   })
-  async create(
-    @Body() dto: CreateCinemaComplexDto,
-    @CurrentUser() _user: RequestUser,
-  ) {
+  async create(@Body() dto: CreateCinemaComplexDto) {
     return this.service.create(dto);
   }
 
@@ -58,7 +53,7 @@ export class CinemaComplexesController {
   @ApiOkResponse({
     description: 'Lista de complexos retornada com sucesso.',
   })
-  async findAll(@CurrentUser() _user: RequestUser) {
+  async findAll() {
     return this.service.findAll();
   }
 
@@ -67,7 +62,7 @@ export class CinemaComplexesController {
   @ApiOperation({ summary: 'Buscar um complexo de cinema por ID' })
   @ApiResponse({ status: 200, description: 'Complexo encontrado.' })
   @ApiNotFoundResponse({ description: 'Complexo não encontrado.' })
-  async findOne(@Param('id') id: string, @CurrentUser() _user: RequestUser) {
+  async findOne(@Param('id') id: string) {
     return this.service.findOne(id);
   }
 
@@ -77,11 +72,7 @@ export class CinemaComplexesController {
   @ApiResponse({ status: 200, description: 'Complexo atualizado com sucesso.' })
   @ApiNotFoundResponse({ description: 'Complexo não encontrado.' })
   @ApiConflictResponse({ description: 'O código fornecido já está em uso.' })
-  async update(
-    @Param('id') id: string,
-    @Body() dto: UpdateCinemaComplexDto,
-    @CurrentUser() _user: RequestUser,
-  ) {
+  async update(@Param('id') id: string, @Body() dto: UpdateCinemaComplexDto) {
     return this.service.update(id, dto);
   }
 
@@ -91,7 +82,7 @@ export class CinemaComplexesController {
   @ApiOperation({ summary: 'Excluir um complexo de cinema' })
   @ApiResponse({ status: 200, description: 'Complexo excluído com sucesso.' })
   @ApiNotFoundResponse({ description: 'Complexo não encontrado.' })
-  async delete(@Param('id') id: string, @CurrentUser() _user: RequestUser) {
+  async delete(@Param('id') id: string) {
     return this.service.delete(id);
   }
 }

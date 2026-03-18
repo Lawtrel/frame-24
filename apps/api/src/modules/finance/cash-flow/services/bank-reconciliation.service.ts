@@ -14,6 +14,12 @@ import {
 } from '../dto/bank-reconciliation.dto';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 
+type CreateBankReconciliationForCompanyInput = {
+  companyId: string;
+  createdBy: string;
+  dto: CreateBankReconciliationDto;
+};
+
 @Injectable()
 export class BankReconciliationService {
   constructor(
@@ -42,14 +48,18 @@ export class BankReconciliationService {
   async create(
     dto: CreateBankReconciliationDto,
   ): Promise<bank_reconciliations> {
-    return this.createForCompany(this.getCompanyId(), this.getUserId(), dto);
+    return this.createForCompany({
+      companyId: this.getCompanyId(),
+      createdBy: this.getUserId(),
+      dto,
+    });
   }
 
   async createForCompany(
-    companyId: string,
-    createdBy: string,
-    dto: CreateBankReconciliationDto,
+    input: CreateBankReconciliationForCompanyInput,
   ): Promise<bank_reconciliations> {
+    const { companyId, createdBy, dto } = input;
+
     const account = await this.bankAccountsRepository.findById(
       dto.bank_account_id,
       companyId,

@@ -1,15 +1,9 @@
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import { CreateCinemaComplexDto } from '../dto/create-cinema-complex.dto';
 import { UpdateCinemaComplexDto } from '../dto/update-cinema-complex.dto';
 import { CinemaComplexesService } from '../service/cinema-complexes.service';
 import { CinemaComplexesController } from './cinema-complexes.controller';
 
 describe('CinemaComplexesController', () => {
-  const user = {
-    company_id: 'company-123',
-    company_user_id: 'employee-123',
-  } as RequestUser;
-
   it('deve criar complexo usando contexto do funcionario autenticado', async () => {
     const dto = { name: 'Cine A', code: 'CINE-A' } as CreateCinemaComplexDto;
     const created = { id: 'complex-1', ...dto };
@@ -20,7 +14,7 @@ describe('CinemaComplexesController', () => {
     const controller = new CinemaComplexesController(
       service as CinemaComplexesService,
     );
-    const result = await controller.create(dto, user);
+    const result = await controller.create(dto);
 
     expect(service.create).toHaveBeenCalledWith(dto);
     expect(result).toEqual(created);
@@ -36,7 +30,7 @@ describe('CinemaComplexesController', () => {
     const controller = new CinemaComplexesController(
       service as CinemaComplexesService,
     );
-    const result = await controller.update('complex-1', dto, user);
+    const result = await controller.update('complex-1', dto);
 
     expect(service.update).toHaveBeenCalledWith('complex-1', dto);
     expect(result).toEqual(updated);
@@ -51,7 +45,7 @@ describe('CinemaComplexesController', () => {
     const controller = new CinemaComplexesController(
       service as CinemaComplexesService,
     );
-    const result = await controller.delete('complex-1', user);
+    const result = await controller.delete('complex-1');
 
     expect(service.delete).toHaveBeenCalledWith('complex-1');
     expect(result).toEqual(payload);

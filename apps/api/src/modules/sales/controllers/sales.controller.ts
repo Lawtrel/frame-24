@@ -15,12 +15,10 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
 import { SalesService } from '../services/sales.service';
 import { CreateSaleDto } from '../dto/create-sale.dto';
 import { SaleResponseDto } from '../dto/sale-response.dto';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 
 @ApiTags('Sales')
 @ApiBearerAuth()
@@ -33,11 +31,8 @@ export class SalesController {
   @RequirePermission('sales', 'create')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Criar nova venda' })
-  async create(
-    @Body() dto: CreateSaleDto,
-    @CurrentUser() user: RequestUser,
-  ): Promise<SaleResponseDto> {
-    return await this.salesService.create(dto, user);
+  async create(@Body() dto: CreateSaleDto): Promise<SaleResponseDto> {
+    return await this.salesService.create(dto);
   }
 
   @Get()
@@ -80,8 +75,7 @@ export class SalesController {
   async cancel(
     @Param('id') id: string,
     @Body('reason') reason: string,
-    @CurrentUser() user: RequestUser,
   ): Promise<void> {
-    return await this.salesService.cancel(id, reason, user);
+    return await this.salesService.cancel(id, reason);
   }
 }

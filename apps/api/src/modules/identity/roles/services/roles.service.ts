@@ -34,13 +34,19 @@ export class RolesService {
     return companyId;
   }
 
+  private getIdentityId(): string | undefined {
+    return this.cls.get<string>('identityId');
+  }
+
+  private getRoleHierarchy(): number | undefined {
+    return this.cls.get<number>('roleHierarchy');
+  }
+
   @Transactional()
-  async create(
-    dto: CreateRoleDto,
-    granted_by?: string,
-    currentUserHierarchy?: number,
-  ): Promise<RoleResponseDto> {
+  async create(dto: CreateRoleDto): Promise<RoleResponseDto> {
     const companyId = this.getCompanyId();
+    const granted_by = this.getIdentityId();
+    const currentUserHierarchy = this.getRoleHierarchy();
     const company_id = companyId;
     const existing = await this.roleRepo.findByName(company_id, dto.name);
     if (existing) {
@@ -123,13 +129,10 @@ export class RolesService {
   }
 
   @Transactional()
-  async update(
-    id: string,
-    dto: UpdateRoleDto,
-    granted_by?: string,
-    currentUserHierarchy?: number,
-  ): Promise<RoleResponseDto> {
+  async update(id: string, dto: UpdateRoleDto): Promise<RoleResponseDto> {
     const company_id = this.getCompanyId();
+    const granted_by = this.getIdentityId();
+    const currentUserHierarchy = this.getRoleHierarchy();
     const role = await this.roleRepo.findByIdAndCompany(id, company_id);
 
     if (!role) {

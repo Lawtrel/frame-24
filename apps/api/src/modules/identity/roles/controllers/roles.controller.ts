@@ -15,8 +15,6 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 
 import { RolesService } from '../services/roles.service';
 import { CreateRoleDto } from '../dto/create-role.dto';
@@ -38,15 +36,8 @@ export class RolesController {
     description:
       'Cria uma nova role para a empresa com permissões específicas. Use GET /admin/permissions para listar permissões disponíveis.',
   })
-  async createRole(
-    @Body() dto: CreateRoleDto,
-    @CurrentUser() user: RequestUser,
-  ): Promise<RoleResponseDto> {
-    return await this.rolesService.create(
-      dto,
-      user.identity_id,
-      user.role_hierarchy,
-    );
+  async createRole(@Body() dto: CreateRoleDto): Promise<RoleResponseDto> {
+    return await this.rolesService.create(dto);
   }
 
   @Get()
@@ -81,14 +72,8 @@ export class RolesController {
   async updateRole(
     @Param('id') id: string,
     @Body() dto: UpdateRoleDto,
-    @CurrentUser() user: RequestUser,
   ): Promise<RoleResponseDto> {
-    return await this.rolesService.update(
-      id,
-      dto,
-      user.identity_id,
-      user.role_hierarchy,
-    );
+    return await this.rolesService.update(id, dto);
   }
 
   @Delete(':id')

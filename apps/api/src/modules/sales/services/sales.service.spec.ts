@@ -232,10 +232,11 @@ describe('SalesService', () => {
   });
 
   describe('create', () => {
-    const mockUser = {
-      company_id: 'company-1',
-      company_user_id: 'user-1',
-    } as any;
+    const mockContext = {
+      companyId: 'company-1',
+      userId: 'user-1',
+      sessionContext: 'EMPLOYEE' as const,
+    };
 
     const mockDto = {
       cinema_complex_id: 'complex-1',
@@ -282,7 +283,7 @@ describe('SalesService', () => {
 
       productPricesRepository.findActivePrice.mockResolvedValue(null);
 
-      await expect(service.create(mockDto, mockUser)).rejects.toThrow(
+      await expect(service.create(mockDto, mockContext)).rejects.toThrow(
         ProductPriceNotFoundException,
       );
     });
@@ -355,7 +356,7 @@ describe('SalesService', () => {
       ticketsRepository.generateTicketNumber.mockReturnValue('TKT-123');
       ticketsRepository.create.mockResolvedValue({} as any);
 
-      const result = await service.create(mockDto, mockUser);
+      const result = await service.create(mockDto, mockContext);
 
       expect(result).toBeDefined();
       expect(salesRepository.create).toHaveBeenCalled();

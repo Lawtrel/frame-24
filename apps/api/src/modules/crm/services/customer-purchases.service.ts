@@ -4,39 +4,128 @@ import {
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
+import { Prisma } from '@repo/db';
+import { ClsService } from 'nestjs-cls';
 import { SalesService } from 'src/modules/sales/services/sales.service';
-import { SalesRepository } from 'src/modules/sales/repositories/sales.repository';
-import { TicketsRepository } from 'src/modules/sales/repositories/tickets.repository';
+import {
+  SaleWithFullRelations,
+  SalesRepository,
+} from 'src/modules/sales/repositories/sales.repository';
 import { CompanyCustomersRepository } from '../repositories/company-customers.repository';
 import { CreatePurchaseDto } from '../dto/create-purchase.dto';
-import { CustomerUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import { SaleResponseDto } from 'src/modules/sales/dto/sale-response.dto';
 import { CreateSaleDto } from 'src/modules/sales/dto/create-sale.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { LoggerService } from 'src/common/services/logger.service';
+
+type CustomerSaleWithRelations = Prisma.salesGetPayload<{
+  include: {
+    tickets: {
+      include: {
+        ticket_types: true;
+      };
+    };
+    concession_sales: {
+      include: {
+        concession_sale_items: true;
+      };
+    };
+    sale_types: true;
+    payment_methods: true;
+    sale_status: true;
+  };
+}>;
+
+type ShowtimeWithRelations = Prisma.showtime_scheduleGetPayload<{
+  include: {
+    cinema_complexes: true;
+    rooms: true;
+    projection_types: true;
+    audio_types: true;
+    session_languages: true;
+  };
+}>;
+
+type SeatWithType = Prisma.seatsGetPayload<{
+  include: {
+    seat_types: true;
+  };
+}>;
+
+type MovieWithPoster = Prisma.moviesGetPayload<{
+  include: {
+    age_rating: true;
+    movie_media: {
+      include: {
+        media_types: true;
+      };
+    };
+  };
+}>;
+
+type TicketWithSaleSummary = Prisma.ticketsGetPayload<{
+  include: {
+    sales: {
+      select: {
+        id: true;
+        sale_number: true;
+        sale_date: true;
+        cinema_complex_id: true;
+        customer_id: true;
+      };
+    };
+  };
+}>;
+
+type CustomerTicketResponse = {
+  id: string;
+  ticket_number: string;
+  seat: string | null;
+  face_value: string;
+  service_fee: string;
+  total_amount: string;
+  used: boolean;
+  usage_date?: string;
+  sale: {
+    id: string;
+    sale_number: string;
+    sale_date: string;
+    cinema_complex_id: string;
+  };
+  created_at?: string;
+};
 
 @Injectable()
 export class CustomerPurchasesService {
   constructor(
     private readonly salesService: SalesService,
     private readonly salesRepository: SalesRepository,
-    private readonly ticketsRepository: TicketsRepository,
     private readonly companyCustomersRepository: CompanyCustomersRepository,
     private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
+    private readonly cls: ClsService,
   ) {}
 
-  async purchase(
-    dto: CreatePurchaseDto,
-    customer: CustomerUser,
-  ): Promise<SaleResponseDto> {
+  private getCustomerContext(): { companyId: string; customerId: string } {
+    const companyId = this.cls.get<string>('companyId');
+    const customerId = this.cls.get<string>('customerId');
+
+    if (!companyId || !customerId) {
+      throw new ForbiddenException('Contexto do cliente não encontrado.');
+    }
+
+    return { companyId, customerId };
+  }
+
+  async purchase(dto: CreatePurchaseDto): Promise<SaleResponseDto> {
+    const context = this.getCustomerContext();
     // Validar pontos se for usar
     let pointsDiscount = 0;
     if (dto.use_points && dto.use_points > 0) {
       const companyCustomer =
         await this.companyCustomersRepository.findByCompanyAndCustomer(
-          customer.company_id,
-          customer.customer_id,
+          context.companyId,
+          context.customerId,
         );
 
       if (!companyCustomer) {
@@ -57,7 +146,7 @@ export class CustomerPurchasesService {
     // Criar DTO de venda
     const createSaleDto: CreateSaleDto = {
       cinema_complex_id: dto.cinema_complex_id,
-      customer_id: customer.customer_id,
+      customer_id: context.customerId,
       payment_method: dto.payment_method,
       tickets: dto.tickets,
       concession_items: dto.concession_items,
@@ -65,15 +154,15 @@ export class CustomerPurchasesService {
       promotion_code: dto.promotion_code,
     };
 
-    // Criar venda usando SalesService (agora aceita CustomerUser)
-    const sale = await this.salesService.create(createSaleDto, customer);
+    // Criar venda usando contexto autenticado no CLS
+    const sale = await this.salesService.create(createSaleDto);
 
     // Acumular pontos de fidelidade
-    await this.accumulateLoyaltyPoints(sale, customer);
+    await this.accumulateLoyaltyPoints(sale, context);
 
     // Se usou pontos, deduzir
     if (dto.use_points && dto.use_points > 0) {
-      await this.deductPoints(customer, dto.use_points);
+      await this.deductPoints(context, dto.use_points);
     }
 
     // Confirmar reserva no WebSocket se houver
@@ -85,63 +174,56 @@ export class CustomerPurchasesService {
     return sale;
   }
 
-  async findAll(customer: CustomerUser): Promise<SaleResponseDto[]> {
-    // Buscar todas as vendas do cliente
-    const sales = await this.prisma.sales.findMany({
-      where: {
-        customer_id: customer.customer_id,
-      },
-      include: {
-        tickets: {
-          include: {
-            ticket_types: true,
-          },
+  async findAll(): Promise<SaleResponseDto[]> {
+    const context = this.getCustomerContext();
+    const sales: CustomerSaleWithRelations[] = await this.prisma.sales.findMany(
+      {
+        where: {
+          customer_id: context.customerId,
         },
-        concession_sales: {
-          include: {
-            concession_sale_items: true,
+        include: {
+          tickets: {
+            include: {
+              ticket_types: true,
+            },
           },
+          concession_sales: {
+            include: {
+              concession_sale_items: true,
+            },
+          },
+          sale_types: true,
+          payment_methods: true,
+          sale_status: true,
         },
-        sale_types: true,
-        payment_methods: true,
-        sale_status: true,
+        orderBy: {
+          sale_date: 'desc',
+        },
       },
-      orderBy: {
-        sale_date: 'desc',
-      },
-    });
+    );
 
-    // Collect all unique IDs for batch fetching
     const showtimeIds = [
       ...new Set(
         sales.flatMap((sale) =>
-          sale.tickets.map((ticket: any) => ticket.showtime_id),
+          sale.tickets
+            .map((ticket) => ticket.showtime_id)
+            .filter((id): id is string => Boolean(id)),
         ),
       ),
     ];
     const seatIds = [
       ...new Set(
         sales.flatMap((sale) =>
-          sale.tickets.map((ticket: any) => ticket.seat_id).filter(Boolean),
-        ),
-      ),
-    ];
-    const productIds = [
-      ...new Set(
-        sales.flatMap((sale) =>
-          sale.concession_sales.flatMap((concession: any) =>
-            concession.concession_sale_items
-              .filter((item: any) => item.item_type === 'PRODUCT')
-              .map((item: any) => item.item_id),
-          ),
+          sale.tickets
+            .map((ticket) => ticket.seat_id)
+            .filter((id): id is string => Boolean(id)),
         ),
       ),
     ];
 
-    // Batch fetch all related data
-    const [showtimes, seats, products] = await Promise.all([
+    const [showtimes, seats] = await Promise.all([
       this.prisma.showtime_schedule.findMany({
-        where: { id: { in: showtimeIds as string[] } },
+        where: { id: { in: showtimeIds } },
         include: {
           cinema_complexes: true,
           rooms: true,
@@ -151,27 +233,29 @@ export class CustomerPurchasesService {
         },
       }),
       this.prisma.seats.findMany({
-        where: { id: { in: seatIds as string[] } },
+        where: { id: { in: seatIds } },
         include: {
           seat_types: true,
         },
       }),
-      this.prisma.products.findMany({
-        where: { id: { in: productIds as string[] } },
-      }),
     ]);
 
-    // Create lookup maps
-    const showtimeMap = new Map(showtimes.map((s) => [s.id, s]));
-    const seatMap = new Map(seats.map((s) => [s.id, s]));
-    const productMap = new Map(products.map((p) => [p.id, p]));
+    const showtimeMap = new Map<string, ShowtimeWithRelations>(
+      showtimes.map((showtime) => [showtime.id, showtime]),
+    );
+    const seatMap = new Map<string, SeatWithType>(
+      seats.map((seat) => [seat.id, seat]),
+    );
 
-    // Get unique movie IDs from showtimes
     const movieIds = [
-      ...new Set(showtimes.map((s: any) => s.movie_id).filter(Boolean)),
+      ...new Set(
+        showtimes
+          .map((showtime) => showtime.movie_id)
+          .filter((id): id is string => Boolean(id)),
+      ),
     ];
-    const movies = await this.prisma.movies.findMany({
-      where: { id: { in: movieIds as string[] } },
+    const movies: MovieWithPoster[] = await this.prisma.movies.findMany({
+      where: { id: { in: movieIds } },
       include: {
         age_rating: true,
         movie_media: {
@@ -188,31 +272,39 @@ export class CustomerPurchasesService {
         },
       },
     });
-    const movieMap = new Map(
-      movies.map((m: any) => [
-        m.id,
+    const movieMap = new Map<
+      string,
+      {
+        id: string;
+        title: string;
+        poster_url: string | null;
+        duration_minutes: number;
+        age_rating: string | null;
+      }
+    >(
+      movies.map((movie) => [
+        movie.id,
         {
-          id: m.id,
-          title: m.brazil_title || m.original_title,
-          poster_url: m.movie_media?.[0]?.media_url || null,
-          duration_minutes: m.duration_minutes,
-          age_rating: m.age_rating?.code || null,
+          id: movie.id,
+          title: movie.brazil_title || movie.original_title || '',
+          poster_url: movie.movie_media[0]?.media_url || null,
+          duration_minutes: movie.duration_minutes ?? 0,
+          age_rating: movie.age_rating?.code || null,
         },
       ]),
     );
 
-    // Enrich sales with fetched data and map to DTO
-    return sales.map((sale: any) => {
+    return sales.map((sale): SaleResponseDto => {
       const firstTicket = sale.tickets[0];
-      const showtimeDetails = firstTicket
+      const showtimeDetails = firstTicket?.showtime_id
         ? showtimeMap.get(firstTicket.showtime_id)
-        : null;
-      const movieDetails = showtimeDetails
-        ? movieMap.get((showtimeDetails as any).movie_id)
-        : null;
+        : undefined;
+      const movieDetails = showtimeDetails?.movie_id
+        ? movieMap.get(showtimeDetails.movie_id)
+        : undefined;
 
-      const ticketsWithSeats = sale.tickets.map((ticket: any) => {
-        const seat = ticket.seat_id ? seatMap.get(ticket.seat_id) : null;
+      const ticketsWithSeats = sale.tickets.map((ticket) => {
+        const seat = ticket.seat_id ? seatMap.get(ticket.seat_id) : undefined;
         return {
           id: ticket.id,
           ticket_number: ticket.ticket_number,
@@ -251,25 +343,26 @@ export class CustomerPurchasesService {
           ? {
               id: showtimeDetails.id,
               start_time: showtimeDetails.start_time.toISOString(),
-              cinema: showtimeDetails.cinema_complexes?.name,
+              cinema: showtimeDetails.cinema_complexes?.name || '',
               room: showtimeDetails.rooms?.name,
             }
           : undefined,
-        movie: movieDetails || undefined,
+        movie: movieDetails,
         created_at: sale.created_at?.toISOString() || new Date().toISOString(),
-      } as SaleResponseDto;
+      };
     });
   }
 
-  async findOne(id: string, customer: CustomerUser): Promise<SaleResponseDto> {
-    const sale = await this.salesRepository.findById(id, customer.company_id);
+  async findOne(id: string): Promise<SaleResponseDto> {
+    const context = this.getCustomerContext();
+    const sale = await this.salesRepository.findById(id, context.companyId);
 
     if (!sale) {
       throw new NotFoundException('Compra não encontrada');
     }
 
     // Validar que a venda pertence ao cliente
-    if (sale.customer_id !== customer.customer_id) {
+    if (sale.customer_id !== context.customerId) {
       throw new ForbiddenException(
         'Você não tem permissão para ver esta compra',
       );
@@ -278,10 +371,11 @@ export class CustomerPurchasesService {
     return this.mapToDto(sale);
   }
 
-  async findTickets(customer: CustomerUser): Promise<any[]> {
+  async findTickets(): Promise<CustomerTicketResponse[]> {
+    const context = this.getCustomerContext();
     // Buscar todas as vendas do cliente
-    const sales = await this.salesRepository.findAll(customer.company_id, {
-      customer_id: customer.customer_id,
+    const sales = await this.salesRepository.findAll(context.companyId, {
+      customer_id: context.customerId,
     });
 
     const saleIds = sales.map((s) => s.id);
@@ -298,6 +392,7 @@ export class CustomerPurchasesService {
             sale_number: true,
             sale_date: true,
             cinema_complex_id: true,
+            customer_id: true,
           },
         },
       },
@@ -306,78 +401,69 @@ export class CustomerPurchasesService {
       },
     });
 
-    return tickets.map((ticket) => ({
-      id: ticket.id,
-      ticket_number: ticket.ticket_number,
-      seat: ticket.seat,
-      face_value: ticket.face_value.toString(),
-      service_fee: (ticket.service_fee || 0).toString(),
-      total_amount: ticket.total_amount.toString(),
-      used: ticket.used || false,
-      usage_date: ticket.usage_date?.toISOString(),
-      sale: {
-        id: ticket.sales.id,
-        sale_number: ticket.sales.sale_number,
-        sale_date: ticket.sales.sale_date.toISOString(),
-        cinema_complex_id: ticket.sales.cinema_complex_id,
-      },
-      created_at: ticket.created_at?.toISOString(),
-    }));
+    return tickets
+      .filter((ticket): ticket is TicketWithSaleSummary =>
+        Boolean(ticket.sales),
+      )
+      .map((ticket) => this.mapTicketToResponse(ticket));
   }
 
-  async findTicketById(id: string, customer: CustomerUser): Promise<any> {
-    const ticket = await this.prisma.tickets.findFirst({
-      where: { id },
-      include: {
-        sales: true,
-      },
-    });
+  async findTicketById(id: string): Promise<CustomerTicketResponse> {
+    const context = this.getCustomerContext();
+    const ticket: TicketWithSaleSummary | null =
+      await this.prisma.tickets.findFirst({
+        where: { id },
+        include: {
+          sales: {
+            select: {
+              id: true,
+              sale_number: true,
+              sale_date: true,
+              cinema_complex_id: true,
+              customer_id: true,
+            },
+          },
+        },
+      });
 
     if (!ticket || !ticket.sales) {
       throw new NotFoundException('Ingresso não encontrado');
     }
 
-    if (ticket.sales.customer_id !== customer.customer_id) {
+    if (ticket.sales.customer_id !== context.customerId) {
       throw new ForbiddenException(
         'Você não tem permissão para ver este ingresso',
       );
     }
 
-    return {
-      id: ticket.id,
-      ticket_number: ticket.ticket_number,
-      seat: ticket.seat,
-      face_value: ticket.face_value.toString(),
-      service_fee: (ticket.service_fee || 0).toString(),
-      total_amount: ticket.total_amount.toString(),
-      used: ticket.used || false,
-      usage_date: ticket.usage_date?.toISOString(),
-      sale: {
-        id: ticket.sales.id,
-        sale_number: ticket.sales.sale_number,
-        sale_date: ticket.sales.sale_date.toISOString(),
-        cinema_complex_id: ticket.sales.cinema_complex_id,
-      },
-      created_at: ticket.created_at?.toISOString(),
-    };
+    return this.mapTicketToResponse(ticket);
   }
 
   async getTicketQrCode(
     id: string,
-    customer: CustomerUser,
   ): Promise<{ payload: string; base64: string }> {
-    const ticket = await this.prisma.tickets.findFirst({
-      where: { id },
-      include: {
-        sales: true,
-      },
-    });
+    const context = this.getCustomerContext();
+    const ticket: TicketWithSaleSummary | null =
+      await this.prisma.tickets.findFirst({
+        where: { id },
+        include: {
+          sales: {
+            select: {
+              id: true,
+              sale_number: true,
+              sale_date: true,
+              cinema_complex_id: true,
+              customer_id: true,
+            },
+          },
+        },
+      });
 
     if (!ticket || !ticket.sales) {
       throw new NotFoundException('Ingresso não encontrado');
     }
 
-    if (ticket.sales.customer_id !== customer.customer_id) {
+    if (ticket.sales.customer_id !== context.customerId) {
       throw new ForbiddenException(
         'Você não tem permissão para ver este ingresso',
       );
@@ -399,37 +485,37 @@ export class CustomerPurchasesService {
 
   async cancelPurchase(
     id: string,
-    customer: CustomerUser,
     reason = 'Cancelado pelo cliente',
   ): Promise<void> {
-    const sale = await this.salesRepository.findById(id, customer.company_id);
+    const context = this.getCustomerContext();
+    const sale = await this.salesRepository.findById(id, context.companyId);
 
     if (!sale) {
       throw new NotFoundException('Compra não encontrada');
     }
 
-    if (sale.customer_id !== customer.customer_id) {
+    if (sale.customer_id !== context.customerId) {
       throw new ForbiddenException(
         'Você não tem permissão para cancelar esta compra',
       );
     }
 
-    await this.salesService.cancel(id, reason, customer);
+    await this.salesService.cancel(id, reason);
   }
 
-  async getHistory(customer: CustomerUser): Promise<{
+  async getHistory(): Promise<{
     purchases: SaleResponseDto[];
-    tickets: any[];
+    tickets: CustomerTicketResponse[];
   }> {
-    const purchases = await this.findAll(customer);
-    const tickets = await this.findTickets(customer);
+    const purchases = await this.findAll();
+    const tickets = await this.findTickets();
 
     return { purchases, tickets };
   }
 
   private async accumulateLoyaltyPoints(
     sale: SaleResponseDto,
-    customer: CustomerUser,
+    context: { companyId: string; customerId: string },
   ): Promise<void> {
     const netAmount = parseFloat(sale.net_amount);
 
@@ -442,8 +528,8 @@ export class CustomerPurchasesService {
 
     const companyCustomer =
       await this.companyCustomersRepository.findByCompanyAndCustomer(
-        customer.company_id,
-        customer.customer_id,
+        context.companyId,
+        context.customerId,
       );
 
     if (!companyCustomer) {
@@ -455,30 +541,30 @@ export class CustomerPurchasesService {
 
     // Atualizar pontos
     await this.companyCustomersRepository.update(
-      customer.company_id,
-      customer.customer_id,
+      context.companyId,
+      context.customerId,
       {
         accumulated_points: newPoints,
       },
     );
 
     // Verificar e atualizar nível de fidelidade
-    await this.updateLoyaltyLevel(customer, newPoints);
+    await this.updateLoyaltyLevel(context, newPoints);
 
     this.logger.log(
-      `Pontos acumulados: ${pointsToAdd} para cliente ${customer.customer_id}. Total: ${newPoints}`,
+      `Pontos acumulados: ${pointsToAdd} para cliente ${context.customerId}. Total: ${newPoints}`,
       CustomerPurchasesService.name,
     );
   }
 
   private async deductPoints(
-    customer: CustomerUser,
+    context: { companyId: string; customerId: string },
     points: number,
   ): Promise<void> {
     const companyCustomer =
       await this.companyCustomersRepository.findByCompanyAndCustomer(
-        customer.company_id,
-        customer.customer_id,
+        context.companyId,
+        context.customerId,
       );
 
     if (!companyCustomer) {
@@ -489,21 +575,21 @@ export class CustomerPurchasesService {
     const newPoints = Math.max(0, currentPoints - points);
 
     await this.companyCustomersRepository.update(
-      customer.company_id,
-      customer.customer_id,
+      context.companyId,
+      context.customerId,
       {
         accumulated_points: newPoints,
       },
     );
 
     this.logger.log(
-      `Pontos deduzidos: ${points} do cliente ${customer.customer_id}. Restante: ${newPoints}`,
+      `Pontos deduzidos: ${points} do cliente ${context.customerId}. Restante: ${newPoints}`,
       CustomerPurchasesService.name,
     );
   }
 
   private async updateLoyaltyLevel(
-    customer: CustomerUser,
+    context: { companyId: string; customerId: string },
     totalPoints: number,
   ): Promise<void> {
     // Definir níveis de fidelidade
@@ -516,27 +602,27 @@ export class CustomerPurchasesService {
 
     const companyCustomer =
       await this.companyCustomersRepository.findByCompanyAndCustomer(
-        customer.company_id,
-        customer.customer_id,
+        context.companyId,
+        context.customerId,
       );
 
     if (companyCustomer && companyCustomer.loyalty_level !== newLevel) {
       await this.companyCustomersRepository.update(
-        customer.company_id,
-        customer.customer_id,
+        context.companyId,
+        context.customerId,
         {
           loyalty_level: newLevel,
         },
       );
 
       this.logger.log(
-        `Nível de fidelidade atualizado: ${companyCustomer.loyalty_level} → ${newLevel} para cliente ${customer.customer_id}`,
+        `Nível de fidelidade atualizado: ${companyCustomer.loyalty_level} → ${newLevel} para cliente ${context.customerId}`,
         CustomerPurchasesService.name,
       );
     }
   }
 
-  private mapToDto(sale: any): SaleResponseDto {
+  private mapToDto(sale: SaleWithFullRelations): SaleResponseDto {
     return {
       id: sale.id,
       sale_number: sale.sale_number,
@@ -549,7 +635,7 @@ export class CustomerPurchasesService {
       sale_type: sale.sale_types?.name,
       payment_method: sale.payment_methods?.name,
       status: sale.sale_status?.name,
-      tickets: (sale.tickets || []).map((ticket: any) => ({
+      tickets: (sale.tickets || []).map((ticket) => ({
         id: ticket.id,
         ticket_number: ticket.ticket_number,
         seat: ticket.seat ?? undefined,
@@ -560,6 +646,28 @@ export class CustomerPurchasesService {
         usage_date: ticket.usage_date?.toISOString(),
       })),
       created_at: sale.created_at?.toISOString() || new Date().toISOString(),
+    };
+  }
+
+  private mapTicketToResponse(
+    ticket: TicketWithSaleSummary,
+  ): CustomerTicketResponse {
+    return {
+      id: ticket.id,
+      ticket_number: ticket.ticket_number,
+      seat: ticket.seat,
+      face_value: ticket.face_value.toString(),
+      service_fee: (ticket.service_fee || 0).toString(),
+      total_amount: ticket.total_amount.toString(),
+      used: ticket.used || false,
+      usage_date: ticket.usage_date?.toISOString(),
+      sale: {
+        id: ticket.sales.id,
+        sale_number: ticket.sales.sale_number,
+        sale_date: ticket.sales.sale_date.toISOString(),
+        cinema_complex_id: ticket.sales.cinema_complex_id,
+      },
+      created_at: ticket.created_at?.toISOString(),
     };
   }
 }

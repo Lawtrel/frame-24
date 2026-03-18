@@ -17,14 +17,12 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { FileUpload } from 'src/common/decorators/file-upload.decorator';
 
 import { ProductsService } from '../services/products.service';
 import { CreateProductDto } from '../dto/create-product.dto';
 import { UpdateProductDto } from '../dto/update-product.dto';
 import { ProductResponseDto } from '../dto/product-response.dto';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 
 @ApiTags('Products')
 @ApiBearerAuth()
@@ -41,9 +39,8 @@ export class ProductsController {
   async create(
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: CreateProductDto,
-    @CurrentUser() user: RequestUser,
   ): Promise<ProductResponseDto> {
-    return await this.productsService.create(dto, user.company_id, file);
+    return await this.productsService.create(dto, file);
   }
 
   @Get()
@@ -51,11 +48,10 @@ export class ProductsController {
   @ApiOperation({ summary: 'Listar produtos' })
   async findAll(
     @Query('active') active?: string,
-    @CurrentUser() user?: RequestUser,
   ): Promise<ProductResponseDto[]> {
     const activeFilter =
       active === 'true' ? true : active === 'false' ? false : undefined;
-    return await this.productsService.findAll(user!.company_id, activeFilter);
+    return await this.productsService.findAll(activeFilter);
   }
 
   @Get('category/:category_id')
@@ -64,15 +60,10 @@ export class ProductsController {
   async findByCategory(
     @Param('category_id') category_id: string,
     @Query('active') active?: string,
-    @CurrentUser() user?: RequestUser,
   ): Promise<ProductResponseDto[]> {
     const activeFilter =
       active === 'true' ? true : active === 'false' ? false : undefined;
-    return await this.productsService.findByCategory(
-      category_id,
-      user!.company_id,
-      activeFilter,
-    );
+    return await this.productsService.findByCategory(category_id, activeFilter);
   }
 
   @Get('search/:term')
@@ -81,25 +72,17 @@ export class ProductsController {
   async search(
     @Param('term') searchTerm: string,
     @Query('active') active?: string,
-    @CurrentUser() user?: RequestUser,
   ): Promise<ProductResponseDto[]> {
     const activeFilter =
       active === 'true' ? true : active === 'false' ? false : undefined;
-    return await this.productsService.search(
-      user!.company_id,
-      searchTerm,
-      activeFilter,
-    );
+    return await this.productsService.search(searchTerm, activeFilter);
   }
 
   @Get(':id')
   @RequirePermission('products', 'read')
   @ApiOperation({ summary: 'Buscar produto por ID' })
-  async findOne(
-    @Param('id') id: string,
-    @CurrentUser() user: RequestUser,
-  ): Promise<ProductResponseDto> {
-    return await this.productsService.findOne(id, user.company_id);
+  async findOne(@Param('id') id: string): Promise<ProductResponseDto> {
+    return await this.productsService.findOne(id);
   }
 
   @Put(':id')
@@ -110,19 +93,15 @@ export class ProductsController {
     @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: UpdateProductDto,
-    @CurrentUser() user: RequestUser,
   ): Promise<ProductResponseDto> {
-    return await this.productsService.update(id, dto, user.company_id, file);
+    return await this.productsService.update(id, dto, file);
   }
 
   @Delete(':id')
   @RequirePermission('products', 'delete')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Deletar produto (soft delete)' })
-  async delete(
-    @Param('id') id: string,
-    @CurrentUser() user: RequestUser,
-  ): Promise<void> {
-    return await this.productsService.delete(id, user.company_id, true);
+  async delete(@Param('id') id: string): Promise<void> {
+    return await this.productsService.delete(id, true);
   }
 }

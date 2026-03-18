@@ -15,6 +15,18 @@ import { CashFlowEntriesService } from 'src/modules/finance/cash-flow/services/c
 import { CreateReceivableTransactionDto } from '../dto/create-receivable-transaction.dto';
 import { CreatePayableTransactionDto } from '../dto/create-payable-transaction.dto';
 
+type SettleReceivableForCompanyInput = {
+  companyId: string;
+  userId: string;
+  dto: CreateReceivableTransactionDto;
+};
+
+type SettlePayableForCompanyInput = {
+  companyId: string;
+  userId: string;
+  dto: CreatePayableTransactionDto;
+};
+
 @Injectable()
 export class TransactionsService {
   constructor(
@@ -46,19 +58,18 @@ export class TransactionsService {
   async settleReceivable(
     dto: CreateReceivableTransactionDto,
   ): Promise<receivable_transactions> {
-    return this.settleReceivableForCompany(
-      this.getCompanyId(),
-      this.getUserId(),
+    return this.settleReceivableForCompany({
+      companyId: this.getCompanyId(),
+      userId: this.getUserId(),
       dto,
-    );
+    });
   }
 
   @Transactional()
   async settleReceivableForCompany(
-    companyId: string,
-    userId: string,
-    dto: CreateReceivableTransactionDto,
+    input: SettleReceivableForCompanyInput,
   ): Promise<receivable_transactions> {
+    const { companyId, userId, dto } = input;
     const account = await this.receivablesRepository.findById(
       dto.account_receivable_id,
       companyId,
@@ -104,21 +115,25 @@ export class TransactionsService {
     );
 
     // Create Cash Flow Entry
-    await this.cashFlowService.createForCompany(companyId, userId, {
-      bank_account_id: dto.bank_account_id,
-      cinema_complex_id: account.cinema_complex_id || undefined,
-      entry_type: 'receipt',
-      category: 'receivable_settlement',
-      amount: dto.amount,
-      entry_date: dto.transaction_date,
-      competence_date: account.competence_date.toISOString().split('T')[0],
-      description: `Recebimento - Ref. ${account.document_number}`,
-      document_number: account.document_number,
-      source_type: 'ACCOUNT_RECEIVABLE',
-      source_id: account.id,
-      status: 'confirmed', // Settlement implies confirmed payment
-      counterpart_type: 'CUSTOMER',
-      counterpart_id: account.customer_id || undefined,
+    await this.cashFlowService.createForCompany({
+      companyId,
+      createdBy: userId,
+      dto: {
+        bank_account_id: dto.bank_account_id,
+        cinema_complex_id: account.cinema_complex_id || undefined,
+        entry_type: 'receipt',
+        category: 'receivable_settlement',
+        amount: dto.amount,
+        entry_date: dto.transaction_date,
+        competence_date: account.competence_date.toISOString().split('T')[0],
+        description: `Recebimento - Ref. ${account.document_number}`,
+        document_number: account.document_number,
+        source_type: 'ACCOUNT_RECEIVABLE',
+        source_id: account.id,
+        status: 'confirmed', // Settlement implies confirmed payment
+        counterpart_type: 'CUSTOMER',
+        counterpart_id: account.customer_id || undefined,
+      },
     });
 
     return transaction;
@@ -128,19 +143,18 @@ export class TransactionsService {
   async settlePayable(
     dto: CreatePayableTransactionDto,
   ): Promise<payable_transactions> {
-    return this.settlePayableForCompany(
-      this.getCompanyId(),
-      this.getUserId(),
+    return this.settlePayableForCompany({
+      companyId: this.getCompanyId(),
+      userId: this.getUserId(),
       dto,
-    );
+    });
   }
 
   @Transactional()
   async settlePayableForCompany(
-    companyId: string,
-    userId: string,
-    dto: CreatePayableTransactionDto,
+    input: SettlePayableForCompanyInput,
   ): Promise<payable_transactions> {
+    const { companyId, userId, dto } = input;
     const account = await this.payablesRepository.findById(
       dto.account_payable_id,
       companyId,
@@ -186,21 +200,25 @@ export class TransactionsService {
     );
 
     // Create Cash Flow Entry
-    await this.cashFlowService.createForCompany(companyId, userId, {
-      bank_account_id: dto.bank_account_id,
-      cinema_complex_id: account.cinema_complex_id || undefined,
-      entry_type: 'payment',
-      category: 'payable_settlement',
-      amount: dto.amount,
-      entry_date: dto.transaction_date,
-      competence_date: account.competence_date.toISOString().split('T')[0],
-      description: `Pagamento - Ref. ${account.document_number}`,
-      document_number: account.document_number,
-      source_type: 'ACCOUNT_PAYABLE',
-      source_id: account.id,
-      status: 'confirmed',
-      counterpart_type: 'SUPPLIER',
-      counterpart_id: account.supplier_id || undefined,
+    await this.cashFlowService.createForCompany({
+      companyId,
+      createdBy: userId,
+      dto: {
+        bank_account_id: dto.bank_account_id,
+        cinema_complex_id: account.cinema_complex_id || undefined,
+        entry_type: 'payment',
+        category: 'payable_settlement',
+        amount: dto.amount,
+        entry_date: dto.transaction_date,
+        competence_date: account.competence_date.toISOString().split('T')[0],
+        description: `Pagamento - Ref. ${account.document_number}`,
+        document_number: account.document_number,
+        source_type: 'ACCOUNT_PAYABLE',
+        source_id: account.id,
+        status: 'confirmed',
+        counterpart_type: 'SUPPLIER',
+        counterpart_id: account.supplier_id || undefined,
+      },
     });
 
     return transaction;

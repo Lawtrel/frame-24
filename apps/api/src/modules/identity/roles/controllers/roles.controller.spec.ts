@@ -4,11 +4,6 @@ import { RolesService } from '../services/roles.service';
 import { RolesController } from './roles.controller';
 
 describe('RolesController', () => {
-  const currentUser = {
-    identity_id: 'identity-1',
-    role_hierarchy: 5,
-  } as any;
-
   it('deve criar role usando contexto do usuário apenas para auditoria/hierarquia', async () => {
     const dto = {
       name: 'Operador',
@@ -21,9 +16,9 @@ describe('RolesController', () => {
     };
 
     const controller = new RolesController(service as RolesService);
-    const result = await controller.createRole(dto, currentUser);
+    const result = await controller.createRole(dto);
 
-    expect(service.create).toHaveBeenCalledWith(dto, 'identity-1', 5);
+    expect(service.create).toHaveBeenCalledWith(dto);
     expect(result).toEqual(payload);
   });
 
@@ -50,7 +45,7 @@ describe('RolesController', () => {
     expect(role).toEqual(rolePayload);
   });
 
-  it('deve atualizar role com granted_by e hierarchy do usuário atual', async () => {
+  it('deve atualizar role usando contexto interno do serviço', async () => {
     const dto = {
       name: 'Operador Sênior',
     } as UpdateRoleDto;
@@ -61,9 +56,9 @@ describe('RolesController', () => {
     };
 
     const controller = new RolesController(service as RolesService);
-    const result = await controller.updateRole('role-1', dto, currentUser);
+    const result = await controller.updateRole('role-1', dto);
 
-    expect(service.update).toHaveBeenCalledWith('role-1', dto, 'identity-1', 5);
+    expect(service.update).toHaveBeenCalledWith('role-1', dto);
     expect(result).toEqual(payload);
   });
 });

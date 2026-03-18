@@ -4,11 +4,9 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
 import { ProductStockService } from '../services/product-stock.service';
 import { ProductStockResponseDto } from '../dto/product-stock-response.dto';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 
 @ApiTags('Product Stock')
 @ApiBearerAuth()
@@ -22,9 +20,8 @@ export class ProductStockController {
   @ApiOperation({ summary: 'Listar estoque de produtos' })
   async findAll(
     @Query('complex_id') complex_id?: string,
-    @CurrentUser() user?: RequestUser,
   ): Promise<ProductStockResponseDto[]> {
-    return await this.productStockService.findAll(user!, complex_id);
+    return await this.productStockService.findAll(complex_id);
   }
 
   @Get('low-stock')
@@ -32,9 +29,8 @@ export class ProductStockController {
   @ApiOperation({ summary: 'Listar produtos com estoque baixo' })
   async findLowStock(
     @Query('complex_id') complex_id?: string,
-    @CurrentUser() user?: RequestUser,
   ): Promise<ProductStockResponseDto[]> {
-    return await this.productStockService.findLowStock(user!, complex_id);
+    return await this.productStockService.findLowStock(complex_id);
   }
 
   @Get(':product_id/:complex_id')
@@ -43,8 +39,7 @@ export class ProductStockController {
   async findOne(
     @Param('product_id') product_id: string,
     @Param('complex_id') complex_id: string,
-    @CurrentUser() user: RequestUser,
   ): Promise<ProductStockResponseDto> {
-    return await this.productStockService.findOne(product_id, complex_id, user);
+    return await this.productStockService.findOne(product_id, complex_id);
   }
 }

@@ -14,12 +14,10 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
 import { StockMovementsService } from '../services/stock-movements.service';
 import { CreateStockMovementDto } from '../dto/create-stock-movement.dto';
 import { StockMovementResponseDto } from '../dto/stock-movement-response.dto';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 
 @ApiTags('Stock Movements')
 @ApiBearerAuth()
@@ -34,9 +32,8 @@ export class StockMovementsController {
   @ApiOperation({ summary: 'Criar movimentação de estoque' })
   async create(
     @Body() dto: CreateStockMovementDto,
-    @CurrentUser() user: RequestUser,
   ): Promise<StockMovementResponseDto> {
-    return await this.stockMovementsService.create(dto, user);
+    return await this.stockMovementsService.create(dto);
   }
 
   @Get()
@@ -48,25 +45,27 @@ export class StockMovementsController {
     @Query('movement_type') movement_type?: string,
     @Query('start_date') start_date?: string,
     @Query('end_date') end_date?: string,
-    @CurrentUser() user?: RequestUser,
   ): Promise<StockMovementResponseDto[]> {
-    const filters: any = {};
+    const filters: {
+      product_id?: string;
+      complex_id?: string;
+      movement_type?: string;
+      start_date?: Date;
+      end_date?: Date;
+    } = {};
     if (product_id) filters.product_id = product_id;
     if (complex_id) filters.complex_id = complex_id;
     if (movement_type) filters.movement_type = movement_type;
     if (start_date) filters.start_date = new Date(start_date);
     if (end_date) filters.end_date = new Date(end_date);
 
-    return await this.stockMovementsService.findAll(user!, filters);
+    return await this.stockMovementsService.findAll(filters);
   }
 
   @Get(':id')
   @RequirePermission('stock', 'read')
   @ApiOperation({ summary: 'Buscar movimentação por ID' })
-  async findOne(
-    @Param('id') id: string,
-    @CurrentUser() user: RequestUser,
-  ): Promise<StockMovementResponseDto> {
-    return await this.stockMovementsService.findOne(id, user);
+  async findOne(@Param('id') id: string): Promise<StockMovementResponseDto> {
+    return await this.stockMovementsService.findOne(id);
   }
 }

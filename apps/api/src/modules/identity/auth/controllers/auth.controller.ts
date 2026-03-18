@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Body,
+  ForbiddenException,
   HttpCode,
   HttpStatus,
   UseGuards,
@@ -31,14 +32,24 @@ import {
 } from '../dto/forgot-password.dto';
 import { Public } from 'src/common/decorators/public.decorator';
 import { AuthThrottle } from 'src/common/decorators/auth-throttle.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
-import type { RequestUser } from '../strategies/jwt.strategy';
+import { ClsService } from 'nestjs-cls';
 
 @ApiTags('Auth')
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly cls: ClsService,
+  ) {}
+
+  private getIdentityId(): string {
+    const identityId = this.cls.get<string>('identityId');
+    if (!identityId) {
+      throw new ForbiddenException('Contexto de identidade não encontrado.');
+    }
+    return identityId;
+  }
 
   @Public()
   @AuthThrottle()
@@ -199,7 +210,10 @@ export class AuthController {
   @ApiUnauthorizedResponse({
     description: 'Token inválido ou expirado',
   })
-  async logout(@CurrentUser() user: RequestUser): Promise<void> {
-    await this.authService.logout(user.identity_id, user.company_id);
+  async logout(): Promise<void> {
+    await this.authService.logout(
+      this.getIdentityId(),
+      this.cls.get<string>('companyId'),
+    );
   }
 }

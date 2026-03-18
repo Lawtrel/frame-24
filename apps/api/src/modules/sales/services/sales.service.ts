@@ -29,10 +29,6 @@ import {
   CampaignsService,
   PromotionApplicationResult,
 } from 'src/modules/marketing/services/campaigns.service';
-import type {
-  RequestUser,
-  CustomerUser,
-} from 'src/modules/identity/auth/strategies/jwt.strategy';
 import { ClsService } from 'nestjs-cls';
 
 import { AccountsReceivableService } from 'src/modules/finance/accounts-receivable/services/accounts-receivable.service';
@@ -59,6 +55,12 @@ type ConcessionItemData = {
   totalPrice: number;
 };
 type SaleForResponse = SaleWithBasicRelations | SaleWithFullRelations;
+type SalesExecutionContext = {
+  companyId: string;
+  userId?: string;
+  customerId?: string;
+  sessionContext?: 'EMPLOYEE' | 'CUSTOMER';
+};
 
 @Injectable()
 export class SalesService {
@@ -90,6 +92,18 @@ export class SalesService {
     return companyId;
   }
 
+  private getUserId(): string | undefined {
+    return this.cls.get<string>('userId');
+  }
+
+  private getCustomerId(): string | undefined {
+    return this.cls.get<string>('customerId');
+  }
+
+  private getSessionContext(): 'EMPLOYEE' | 'CUSTOMER' | undefined {
+    return this.cls.get<'EMPLOYEE' | 'CUSTOMER'>('sessionContext');
+  }
+
   async findAll(filters?: {
     cinema_complex_id?: string;
     customer_id?: string;
@@ -118,13 +132,13 @@ export class SalesService {
   @Transactional()
   async create(
     dto: CreateSaleDto,
-    user: RequestUser | CustomerUser,
+    context?: SalesExecutionContext,
   ): Promise<SaleResponseDto> {
-    const company_id = user.company_id;
-    const user_id =
-      'company_user_id' in user ? user.company_user_id : undefined;
-    const resolvedCustomerId =
-      dto.customer_id || ('customer_id' in user ? user.customer_id : undefined);
+    const company_id = context?.companyId ?? this.getCompanyId();
+    const user_id = context?.userId ?? this.getUserId();
+    const sessionContext = context?.sessionContext ?? this.getSessionContext();
+    const contextCustomerId = context?.customerId ?? this.getCustomerId();
+    const resolvedCustomerId = dto.customer_id || contextCustomerId;
 
     // Validar complexo
     const complex = await this.cinemaComplexesRepository.findById(
@@ -145,7 +159,7 @@ export class SalesService {
     const resolvedSaleTypeId = await this.resolveSaleTypeId(
       company_id,
       dto.sale_type,
-      user,
+      sessionContext,
     );
 
     const initialStatusName = paymentMethod.auto_settle
@@ -219,11 +233,11 @@ export class SalesService {
       // Paralelizar reservas por sessão
       await Promise.all(
         Array.from(showtimeSeats.entries()).map(([showtime_id, seats]) =>
-          this.ticketsService.validateAndReserveSeats(
-            showtime_id,
-            Array.from(seats),
-            company_id,
-          ),
+          this.ticketsService.validateAndReserveSeats({
+            showtimeId: showtime_id,
+            seatIds: Array.from(seats),
+            context: { companyId: company_id },
+          }),
         ),
       );
     }
@@ -231,12 +245,12 @@ export class SalesService {
     // 3. Cálculo de Tickets (Otimizado)
     const ticketPromises: Promise<TicketInputWithPricing>[] = dto.tickets.map(
       async (ticketDto): Promise<TicketInputWithPricing> => {
-        const pricing = await this.ticketsService.calculateTicketPrice(
-          ticketDto.showtime_id,
-          ticketDto.seat_id,
-          ticketDto.ticket_type,
-          company_id,
-        );
+        const pricing = await this.ticketsService.calculateTicketPrice({
+          showtimeId: ticketDto.showtime_id,
+          seatId: ticketDto.seat_id,
+          ticketTypeId: ticketDto.ticket_type,
+          context: { companyId: company_id },
+        });
         return {
           ...ticketDto,
           pricing,
@@ -379,12 +393,12 @@ export class SalesService {
         });
 
         if (ticketInfo.seat_id) {
-          await this.ticketsService.reserveSeats(
-            ticketInfo.showtime_id,
-            [ticketInfo.seat_id],
-            sale.id,
-            company_id,
-          );
+          await this.ticketsService.reserveSeats({
+            showtimeId: ticketInfo.showtime_id,
+            seatIds: [ticketInfo.seat_id],
+            saleId: sale.id,
+            context: { companyId: company_id },
+          });
         }
       }),
     );
@@ -424,14 +438,16 @@ export class SalesService {
       if (ticketsTotal > 0) {
         taxPromises.push(
           this.taxCalculationService
-            .calculateTaxes({
-              gross_amount: ticketsTotal,
-              deductions_amount: 0,
-              cinema_complex_id: dto.cinema_complex_id,
-              company_id,
-              competence_date: competenceDate,
-              revenue_type: 'BOX_OFFICE',
-            })
+            .calculateTaxes(
+              {
+                gross_amount: ticketsTotal,
+                deductions_amount: 0,
+                cinema_complex_id: dto.cinema_complex_id,
+                competence_date: competenceDate,
+                revenue_type: 'BOX_OFFICE',
+              },
+              { companyId: company_id },
+            )
             .then(async (calc) => {
               await this.taxEntriesRepository.create({
                 cinema_complex_id: dto.cinema_complex_id,
@@ -474,14 +490,16 @@ export class SalesService {
       if (concessionTotal > 0) {
         taxPromises.push(
           this.taxCalculationService
-            .calculateTaxes({
-              gross_amount: concessionTotal,
-              deductions_amount: 0,
-              cinema_complex_id: dto.cinema_complex_id,
-              company_id,
-              competence_date: competenceDate,
-              revenue_type: 'CONCESSION',
-            })
+            .calculateTaxes(
+              {
+                gross_amount: concessionTotal,
+                deductions_amount: 0,
+                cinema_complex_id: dto.cinema_complex_id,
+                competence_date: competenceDate,
+                revenue_type: 'CONCESSION',
+              },
+              { companyId: company_id },
+            )
             .then(async (calc) => {
               await this.taxEntriesRepository.create({
                 cinema_complex_id: dto.cinema_complex_id,
@@ -550,7 +568,7 @@ export class SalesService {
 
     // Publicar evento
     const auditUserId =
-      user_id || ('identity_id' in user ? user.identity_id : '');
+      user_id || contextCustomerId || resolvedCustomerId || '';
 
     await this.rabbitmq.publish({
       pattern: 'audit.sale.created',
@@ -569,9 +587,9 @@ export class SalesService {
     // 9. Contas a Receber (Automático)
     try {
       // Criar título a receber
-      const receivable = await this.accountsReceivableService.createForCompany(
-        company_id,
-        {
+      const receivable = await this.accountsReceivableService.createForCompany({
+        companyId: company_id,
+        dto: {
           cinema_complex_id: dto.cinema_complex_id,
           customer_id: resolvedCustomerId,
           sale_id: sale.id,
@@ -585,7 +603,7 @@ export class SalesService {
           penalty_amount: 0,
           discount_amount: 0,
         },
-      );
+      });
 
       const paymentMethodName = completeSale.payment_methods?.name;
       const paymentMethodAutoSettle = completeSale.payment_methods?.auto_settle;
@@ -608,10 +626,10 @@ export class SalesService {
       const defaultAccount = bankAccounts.find((account) => account.active);
 
       if (defaultAccount) {
-        await this.transactionsService.settleReceivableForCompany(
-          company_id,
-          user_id || 'SYSTEM',
-          {
+        await this.transactionsService.settleReceivableForCompany({
+          companyId: company_id,
+          userId: user_id || 'SYSTEM',
+          dto: {
             account_receivable_id: receivable.id,
             amount: net_amount,
             transaction_date: new Date().toISOString().split('T')[0],
@@ -622,7 +640,7 @@ export class SalesService {
             penalty_amount: 0,
             discount_amount: 0,
           },
-        );
+        });
       } else {
         this.logger.warn(
           `Nenhuma conta bancária ativa encontrada para baixar venda ${sale_number}`,
@@ -643,9 +661,16 @@ export class SalesService {
   async cancel(
     id: string,
     reason: string,
-    user: RequestUser | CustomerUser,
+    context?: SalesExecutionContext,
   ): Promise<void> {
-    const sale = await this.salesRepository.findById(id, user.company_id);
+    const companyId = context?.companyId ?? this.getCompanyId();
+    const userId =
+      context?.userId ??
+      this.getUserId() ??
+      context?.customerId ??
+      this.getCustomerId();
+
+    const sale = await this.salesRepository.findById(id, companyId);
 
     if (!sale) {
       throw new NotFoundException('Venda não encontrada');
@@ -657,7 +682,7 @@ export class SalesService {
     }
 
     const cancelledStatusId = await this.resolveSaleStatusId(
-      user.company_id,
+      companyId,
       'Cancelada',
     );
 
@@ -681,19 +706,16 @@ export class SalesService {
 
       await Promise.all(
         Array.from(seatsByShowtime.entries()).map(([showtime_id, seat_ids]) =>
-          this.ticketsService.releaseSeats(
-            showtime_id,
-            seat_ids,
-            user.company_id,
-          ),
+          this.ticketsService.releaseSeats({
+            showtimeId: showtime_id,
+            seatIds: seat_ids,
+            context: { companyId },
+          }),
         ),
       );
     }
 
     // Publicar evento
-    const userId =
-      'company_user_id' in user ? user.company_user_id : user.identity_id;
-
     await this.rabbitmq.publish({
       pattern: 'audit.sale.cancelled',
       data: {
@@ -702,7 +724,7 @@ export class SalesService {
         old_values: sale,
       },
       metadata: {
-        companyId: user.company_id,
+        companyId,
         userId,
       },
     });
@@ -773,7 +795,7 @@ export class SalesService {
   private async resolveSaleTypeId(
     company_id: string,
     saleTypeIdFromDto: string | undefined,
-    user: RequestUser | CustomerUser,
+    sessionContext?: 'EMPLOYEE' | 'CUSTOMER',
   ): Promise<string> {
     if (saleTypeIdFromDto) {
       const saleType = await this.salesRepository.findSaleTypeById(
@@ -788,7 +810,7 @@ export class SalesService {
       return saleType.id;
     }
 
-    const defaultName = 'customer_id' in user ? 'Online' : 'Balcão';
+    const defaultName = sessionContext === 'CUSTOMER' ? 'Online' : 'Balcão';
     const existing = await this.salesRepository.findSaleTypeByName(
       company_id,
       defaultName,

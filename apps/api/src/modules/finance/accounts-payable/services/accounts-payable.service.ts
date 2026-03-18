@@ -20,6 +20,11 @@ type AccountsPayableListResponse = {
   meta: { total: number; page: number; per_page: number; last_page: number };
 };
 
+type CreateAccountPayableForCompanyInput = {
+  companyId: string;
+  dto: CreateAccountPayableDto;
+};
+
 @Injectable()
 export class AccountsPayableService {
   constructor(
@@ -36,13 +41,13 @@ export class AccountsPayableService {
   }
 
   async create(dto: CreateAccountPayableDto): Promise<accounts_payable> {
-    return this.createForCompany(this.getCompanyId(), dto);
+    return this.createForCompany({ companyId: this.getCompanyId(), dto });
   }
 
   async createForCompany(
-    companyId: string,
-    dto: CreateAccountPayableDto,
+    input: CreateAccountPayableForCompanyInput,
   ): Promise<accounts_payable> {
+    const { companyId, dto } = input;
     return this.repository.create(companyId, dto);
   }
 

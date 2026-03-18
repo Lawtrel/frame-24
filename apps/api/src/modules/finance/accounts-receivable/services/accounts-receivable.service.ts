@@ -20,6 +20,11 @@ type AccountsReceivableListResponse = {
   meta: { total: number; page: number; per_page: number; last_page: number };
 };
 
+type CreateAccountReceivableForCompanyInput = {
+  companyId: string;
+  dto: CreateAccountReceivableDto;
+};
+
 @Injectable()
 export class AccountsReceivableService {
   constructor(
@@ -36,13 +41,13 @@ export class AccountsReceivableService {
   }
 
   async create(dto: CreateAccountReceivableDto): Promise<accounts_receivable> {
-    return this.createForCompany(this.getCompanyId(), dto);
+    return this.createForCompany({ companyId: this.getCompanyId(), dto });
   }
 
   async createForCompany(
-    companyId: string,
-    dto: CreateAccountReceivableDto,
+    input: CreateAccountReceivableForCompanyInput,
   ): Promise<accounts_receivable> {
+    const { companyId, dto } = input;
     return this.repository.create(companyId, dto);
   }
 

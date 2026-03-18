@@ -55,9 +55,15 @@ export interface ShowtimeDetailsDto {
     capacity: number;
   } | null;
   complex: { id: string; name: string } | null;
-  projection_type: any;
-  audio_type: any;
-  language: any;
+  projection_type: NonNullable<
+    Awaited<ReturnType<ShowtimesRepository['findById']>>
+  >['projection_types'];
+  audio_type: NonNullable<
+    Awaited<ReturnType<ShowtimesRepository['findById']>>
+  >['audio_types'];
+  language: NonNullable<
+    Awaited<ReturnType<ShowtimesRepository['findById']>>
+  >['session_languages'];
   status: session_status | null;
 }
 
@@ -206,7 +212,7 @@ export class ShowtimesService {
     movie_id?: string;
     start_time?: Date;
     status?: string;
-  }): Promise<any[]> {
+  }): Promise<Awaited<ReturnType<ShowtimesRepository['findAll']>>> {
     const companyId = this.getCompanyId();
 
     const where: Prisma.showtime_scheduleWhereInput = {
