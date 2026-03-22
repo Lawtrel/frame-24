@@ -369,21 +369,21 @@ export class AuthService {
   private async getCompanyList(
     companyUsers: CompanyUser[],
   ): Promise<CompanySelectionDto[]> {
-    return Promise.all(
-      companyUsers
-        .filter((cu) => cu.active)
-        .map(async (cu) => {
-          const company = await this.companyRepository.findById(cu.companyId);
+    const activeUsers = companyUsers.filter((cu) => cu.active);
+    const companyIds = activeUsers.map((cu) => cu.companyId);
+    const companies = await this.companyRepository.findByIds(companyIds);
+    const companyMap = new Map(companies.map((c) => [c.id, c]));
 
-          return {
-            company_id: cu.companyId,
-            company_name:
-              company?.tradeName || company?.corporateName || 'Empresa',
-            tenant_slug: company?.tenantSlug || '',
-            role_name: '',
-          };
-        }),
-    );
+    return activeUsers.map((cu) => {
+      const company = companyMap.get(cu.companyId);
+      return {
+        company_id: cu.companyId,
+        company_name:
+          company?.tradeName || company?.corporateName || 'Empresa',
+        tenant_slug: company?.tenantSlug || '',
+        role_name: '',
+      };
+    });
   }
 
   private async validateSignupUniqueness(dto: SignupDto): Promise<void> {

@@ -176,30 +176,44 @@ export class PositionReportsService {
       }
     }
 
-    // Buscar títulos pagos para calcular taxa de inadimplência e ticket médio
+    // Buscar títulos pagos de TODOS os clientes em uma única query (batch)
+    const customerIds = [...customerMap.keys()].filter(
+      (id) => id !== 'unknown',
+    );
+
+    const allPaidTitles = await this.prisma.accounts_receivable.findMany({
+      where: {
+        company_id: companyId,
+        customer_id: { in: customerIds },
+        status: 'paid',
+      },
+      select: {
+        customer_id: true,
+        original_amount: true,
+      },
+    });
+
+    // Agrupar títulos pagos por cliente em memória
+    const paidByCustomer = new Map<
+      string,
+      { count: number; total: number }
+    >();
+    for (const t of allPaidTitles) {
+      const cid = t.customer_id ?? 'unknown';
+      const entry = paidByCustomer.get(cid) ?? { count: 0, total: 0 };
+      entry.count++;
+      entry.total += Number(t.original_amount);
+      paidByCustomer.set(cid, entry);
+    }
+
     for (const [customerId, customer] of customerMap.entries()) {
       if (customerId === 'unknown') continue;
 
-      const paidTitles = await this.prisma.accounts_receivable.findMany({
-        where: {
-          company_id: companyId,
-          customer_id: customerId,
-          status: 'paid',
-        },
-        select: {
-          original_amount: true,
-        },
-      });
+      const paid = paidByCustomer.get(customerId) ?? { count: 0, total: 0 };
+      const totalTitles = customer.open_titles_count + paid.count;
+      const totalAmount = customer.total_open_amount + paid.total;
 
-      const totalTitles = customer.open_titles_count + paidTitles.length;
-      const totalAmount =
-        customer.total_open_amount +
-        paidTitles.reduce(
-          (sum, title) => sum + Number(title.original_amount),
-          0,
-        );
-
-      customer.paid_titles_count = paidTitles.length;
+      customer.paid_titles_count = paid.count;
       customer.avg_ticket = totalTitles > 0 ? totalAmount / totalTitles : 0;
       customer.default_rate =
         totalTitles > 0 ? (customer.open_titles_count / totalTitles) * 100 : 0;

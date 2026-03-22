@@ -107,6 +107,7 @@ describe('AuthService', () => {
           useValue: {
             findById: jest.fn(),
             findByCnpj: jest.fn(),
+            findByIds: jest.fn(),
           },
         },
         {
@@ -350,7 +351,10 @@ describe('AuthService', () => {
       companyUserRepository.findAllByIdentity.mockResolvedValue(
         multipleCompanyUsers,
       );
-      companyRepository.findById.mockResolvedValue(mockCompany as any);
+      companyRepository.findByIds.mockResolvedValue([
+        mockCompany as any,
+        { ...mockCompany, id: 'company-999' } as any,
+      ]);
 
       const result = await service.login(email, password);
 

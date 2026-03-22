@@ -126,9 +126,10 @@ export class CashFlowReportsService {
     const futureDate = new Date();
     futureDate.setDate(today.getDate() + days);
 
-    // Get current balance of all accounts
+    // Get current balance of all accounts (select only needed fields)
     const accounts = await this.prisma.bank_accounts.findMany({
       where: { company_id: companyId, active: true },
+      select: { current_balance: true },
     });
 
     const currentTotalBalance = accounts.reduce(
@@ -136,7 +137,7 @@ export class CashFlowReportsService {
       0,
     );
 
-    // Get pending entries
+    // Get pending entries (select only needed fields)
     const pendingEntries = await this.prisma.cash_flow_entries.findMany({
       where: {
         company_id: companyId,
@@ -145,6 +146,12 @@ export class CashFlowReportsService {
           gte: today,
           lte: futureDate,
         },
+      },
+      select: {
+        amount: true,
+        entry_type: true,
+        entry_date: true,
+        description: true,
       },
       orderBy: { entry_date: 'asc' },
     });

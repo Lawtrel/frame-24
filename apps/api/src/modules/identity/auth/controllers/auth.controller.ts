@@ -6,7 +6,9 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
+  Res,
 } from '@nestjs/common';
+import * as express from 'express';
 import {
   ApiTags,
   ApiOperation,
@@ -44,6 +46,17 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly cls: ClsService,
   ) {}
+
+  private setAuthCookie(res: express.Response, token: string): void {
+    const isProduction = process.env.NODE_ENV === 'production';
+    res.cookie('access_token', token, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000, // 24h
+      path: '/',
+    });
+  }
 
   private getIdentityId(): string {
     const identityId = this.cls.get<string>('identityId');
@@ -94,8 +107,15 @@ export class AuthController {
   @ApiUnauthorizedResponse({
     description: 'Credenciais inválidas ou conta bloqueada',
   })
-  async login(@Body() dto: LoginDto): Promise<LoginResponseDto> {
-    return this.authService.login(dto.email, dto.password);
+  async login(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) res: express.Response,
+  ): Promise<LoginResponseDto> {
+    const result = await this.authService.login(dto.email, dto.password);
+    if (result.access_token) {
+      this.setAuthCookie(res, result.access_token);
+    }
+    return result;
   }
 
   @AuthThrottle()
@@ -138,8 +158,16 @@ export class AuthController {
   })
   async selectCompany(
     @Body() dto: SelectCompanyDto,
+    @Res({ passthrough: true }) res: express.Response,
   ): Promise<LoginResponseDto> {
-    return this.authService.selectCompany(dto.temp_token, dto.company_id);
+    const result = await this.authService.selectCompany(
+      dto.temp_token,
+      dto.company_id,
+    );
+    if (result.access_token) {
+      this.setAuthCookie(res, result.access_token);
+    }
+    return result;
   }
 
   @Public()

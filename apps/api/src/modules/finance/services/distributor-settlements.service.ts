@@ -88,18 +88,14 @@ export class DistributorSettlementsService {
     return complexes.map((c) => c.id);
   }
 
-  private async getCompanyContractIds(companyId: string): Promise<string[]> {
-    const complexIds = await this.getCompanyComplexIds(companyId);
-
-    if (!complexIds.length) {
-      return [];
-    }
+  private async getContractIdsByComplexIds(
+    complexIds: string[],
+  ): Promise<string[]> {
+    if (!complexIds.length) return [];
 
     const contracts = await this.prisma.exhibition_contracts.findMany({
       where: {
-        cinema_complex_id: {
-          in: complexIds,
-        },
+        cinema_complex_id: { in: complexIds },
       },
       select: { id: true },
     });
@@ -116,7 +112,7 @@ export class DistributorSettlementsService {
   async findAllForCompany(input: FindDistributorSettlementsForCompanyInput) {
     const { companyId, cinemaComplexId } = input;
     const complexIds = await this.getCompanyComplexIds(companyId);
-    const contractIds = await this.getCompanyContractIds(companyId);
+    const contractIds = await this.getContractIdsByComplexIds(complexIds);
 
     return this.prisma.distributor_settlements.findMany({
       where: {

@@ -20,6 +20,14 @@ export class CompanyRepository {
     return raw ? CompanyMapper.toDomain(raw) : null;
   }
 
+  async findByIds(ids: string[]): Promise<Company[]> {
+    if (ids.length === 0) return [];
+    const rows = await this.prisma.companies.findMany({
+      where: { id: { in: ids } },
+    });
+    return rows.map(CompanyMapper.toDomain);
+  }
+
   async findByCnpj(cnpj: string): Promise<companies | null> {
     return this.prisma.companies.findUnique({
       where: { cnpj },
