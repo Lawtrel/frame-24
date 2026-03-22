@@ -45,7 +45,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
       path: request.url,
       method: request.method,
       message,
-      ...(process.env.NODE_ENV === 'development' && { error: exception }),
+      ...(process.env.NODE_ENV === 'development' && {
+        error: exception instanceof Error
+          ? { name: exception.name, message: exception.message, stack: exception.stack }
+          : String(exception),
+      }),
     };
 
     response.status(status).json(errorResponse);

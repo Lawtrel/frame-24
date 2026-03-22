@@ -104,6 +104,8 @@ export class AuthService {
         AuthService.name,
       );
 
+      const temp_token = this.tokenGenerator.generateTempToken(identity.id);
+
       return {
         user: {
           id: identity.id,
@@ -113,6 +115,7 @@ export class AuthService {
           employee_id: '',
         },
         companies,
+        temp_token,
       };
     } catch (error) {
       if (error instanceof UnauthorizedException) {
@@ -126,9 +129,16 @@ export class AuthService {
   }
 
   async selectCompany(
-    identityId: string,
+    tempToken: string,
     companyId: string,
   ): Promise<LoginResponseDto> {
+    let identityId: string;
+    try {
+      identityId = this.tokenGenerator.verifyTempToken(tempToken);
+    } catch {
+      throw new UnauthorizedException('Token temporário inválido ou expirado.');
+    }
+
     this.logger.log(
       `Seleção de empresa: ${identityId} @ ${companyId}`,
       AuthService.name,
@@ -220,20 +230,13 @@ export class AuthService {
       verificationToken: verification.token,
     });
 
-    // Auto-verify: Publish verified event immediately
-    await this.eventPublisher.publishVerified({
-      identityId: identity.id,
-      email: identity.email,
-      fullName: person.fullName,
-    });
-
-    this.logger.log(`Signup concluído: ${identity.email}`, AuthService.name);
+    this.logger.log(`Signup concluído aguardando verificação: ${identity.email}`, AuthService.name);
 
     return {
       success: true,
       user_id: identity.id,
       email: identity.email,
-      message: 'Conta criada com sucesso! Bem-vindo ao Frame 24.',
+      message: 'Conta criada com sucesso! Verifique seu email para ativar.',
     };
   }
 
@@ -278,20 +281,13 @@ export class AuthService {
       verificationToken: verification.token,
     });
 
-    // Auto-verify: Publish verified event immediately
-    await this.eventPublisher.publishVerified({
-      identityId: identity.id,
-      email: identity.email,
-      fullName: person.fullName,
-    });
-
-    this.logger.log(`Register concluído: ${identity.email}`, AuthService.name);
+    this.logger.log(`Register concluído aguardando verificação: ${identity.email}`, AuthService.name);
 
     return {
       success: true,
       user_id: identity.id,
       email: identity.email,
-      message: 'Usuário criado com sucesso. Acesso liberado.',
+      message: 'Usuário cadastrado com sucesso. Verifique o email para ativar o acesso.',
     };
   }
 

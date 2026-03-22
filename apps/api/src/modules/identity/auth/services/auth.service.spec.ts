@@ -145,6 +145,8 @@ describe('AuthService', () => {
           provide: TokenGeneratorService,
           useValue: {
             generate: jest.fn(),
+            generateTempToken: jest.fn(),
+            verifyTempToken: jest.fn(),
           },
         },
         {
@@ -252,6 +254,7 @@ describe('AuthService', () => {
         mockCompanyUser,
       ]);
       tokenGenerator.generate.mockResolvedValue(mockToken);
+      tokenGenerator.generateTempToken.mockReturnValue('temp-token-xyz');
     });
 
     it('deve fazer login com sucesso para usuário com uma empresa', async () => {
@@ -353,6 +356,7 @@ describe('AuthService', () => {
 
       expect(result.companies).toBeDefined();
       expect(result.companies).toHaveLength(2);
+      expect(result.temp_token).toBe('temp-token-xyz');
       expect(tokenGenerator.generate).not.toHaveBeenCalled();
     });
 
@@ -379,24 +383,26 @@ describe('AuthService', () => {
       );
       identityRepository.findById.mockResolvedValue(mockIdentity);
       tokenGenerator.generate.mockResolvedValue(mockToken);
+      tokenGenerator.verifyTempToken.mockReturnValue('identity-123');
     });
 
     it('deve selecionar empresa com sucesso', async () => {
-      const result = await service.selectCompany('identity-123', 'company-789');
+      const result = await service.selectCompany('temp-token-xyz', 'company-789');
 
       expect(result).toEqual(mockToken);
+      expect(tokenGenerator.verifyTempToken).toHaveBeenCalledWith('temp-token-xyz');
     });
 
     it('deve lançar UnauthorizedException quando company_user não existir', async () => {
       companyUserRepository.findByIdentityAndCompany.mockResolvedValue(null);
 
       await expect(
-        service.selectCompany('identity-123', 'company-789'),
+        service.selectCompany('temp-token-xyz', 'company-789'),
       ).rejects.toThrow('Acesso negado nesta empresa');
     });
 
     it('deve resetar tentativas após seleção', async () => {
-      await service.selectCompany('identity-123', 'company-789');
+      await service.selectCompany('temp-token-xyz', 'company-789');
 
       expect(loginAttempt.resetAttempts).toHaveBeenCalledWith('identity-123');
     });

@@ -63,7 +63,7 @@ export class AuthorizationGuard implements CanActivate {
         `Acesso negado: ${employeeUser.email} (role: ${employeeUser.role}, hierarchy: ${employeeUser.role_hierarchy}) tentou ${requiredPermission}`,
         AuthorizationGuard.name,
       );
-      throw new ForbiddenException(`Sem permissão: ${requiredPermission}`);
+      throw new ForbiddenException('Acesso negado');
     }
 
     return true;

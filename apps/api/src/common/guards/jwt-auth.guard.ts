@@ -43,68 +43,41 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       context,
     );
 
-    if (
-      authenticatedUser &&
-      'company_id' in authenticatedUser &&
-      authenticatedUser.company_id
-    ) {
-      this.cls.set('companyId', authenticatedUser.company_id);
-    }
-
-    if (
-      authenticatedUser &&
-      'company_user_id' in authenticatedUser &&
-      authenticatedUser.company_user_id
-    ) {
-      this.cls.set('userId', authenticatedUser.company_user_id);
-    } else if (
-      authenticatedUser &&
-      'customer_id' in authenticatedUser &&
-      authenticatedUser.customer_id
-    ) {
-      this.cls.set('userId', authenticatedUser.customer_id);
-    }
-
-    if (
-      authenticatedUser &&
-      'identity_id' in authenticatedUser &&
-      authenticatedUser.identity_id
-    ) {
-      this.cls.set('identityId', authenticatedUser.identity_id);
-    }
-
-    if (
-      authenticatedUser &&
-      'role_hierarchy' in authenticatedUser &&
-      typeof authenticatedUser.role_hierarchy === 'number'
-    ) {
-      this.cls.set('roleHierarchy', authenticatedUser.role_hierarchy);
-    }
-
-    if (
-      authenticatedUser &&
-      'session_context' in authenticatedUser &&
-      authenticatedUser.session_context
-    ) {
-      this.cls.set('sessionContext', authenticatedUser.session_context);
-    }
-
-    if (
-      authenticatedUser &&
-      'customer_id' in authenticatedUser &&
-      authenticatedUser.customer_id
-    ) {
-      this.cls.set('customerId', authenticatedUser.customer_id);
-    }
-
-    if (
-      authenticatedUser &&
-      'tenant_slug' in authenticatedUser &&
-      authenticatedUser.tenant_slug
-    ) {
-      this.cls.set('tenantSlug', authenticatedUser.tenant_slug);
+    if (authenticatedUser) {
+      this.setClsFromUser(authenticatedUser);
     }
 
     return authenticatedUser;
+  }
+
+  private setClsFromUser(user: RequestUser | CustomerUser): void {
+    const fieldMap: Array<{ field: string; clsKey: string; typeCheck?: string }> = [
+      { field: 'company_id', clsKey: 'companyId' },
+      { field: 'company_user_id', clsKey: 'userId' },
+      { field: 'identity_id', clsKey: 'identityId' },
+      { field: 'role_hierarchy', clsKey: 'roleHierarchy', typeCheck: 'number' },
+      { field: 'session_context', clsKey: 'sessionContext' },
+      { field: 'customer_id', clsKey: 'customerId' },
+      { field: 'tenant_slug', clsKey: 'tenantSlug' },
+    ];
+
+    const record = user as unknown as Record<string, unknown>;
+
+    for (const { field, clsKey, typeCheck } of fieldMap) {
+      if (!(field in user)) continue;
+      const value = record[field];
+      if (value == null) continue;
+      if (typeCheck && typeof value !== typeCheck) continue;
+      this.cls.set(clsKey, value);
+    }
+
+    // userId fallback: use customer_id when company_user_id is not present
+    if (
+      !('company_user_id' in user) &&
+      'customer_id' in user &&
+      record.customer_id
+    ) {
+      this.cls.set('userId', record.customer_id);
+    }
   }
 }

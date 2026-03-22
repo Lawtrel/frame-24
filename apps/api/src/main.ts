@@ -19,10 +19,12 @@ async function bootstrap() {
   app.use(compression());
 
   // Security: HTTP headers protection
+  // CSP desabilitado apenas em dev para Swagger/Scalar funcionar
+  const isDev = process.env.NODE_ENV !== 'production';
   app.use(
     helmet({
-      contentSecurityPolicy: false, // Disable for Swagger/Scalar to work
-      crossOriginEmbedderPolicy: false,
+      contentSecurityPolicy: isDev ? false : undefined,
+      crossOriginEmbedderPolicy: isDev ? false : undefined,
     }),
   );
 
@@ -31,14 +33,16 @@ async function bootstrap() {
     ? process.env.FRONTEND_URL.split(',').map((url) => url.trim())
     : [];
 
-  const allowedOrigins = [
-    // Desenvolvimento
-    'http://localhost:3000',
-    'http://localhost:3002',
-    'http://localhost:3004',
-    'http://localhost:4000',
-    ...frontendUrls,
-  ].filter(Boolean);
+  const devOrigins = isDev
+    ? [
+        'http://localhost:3000',
+        'http://localhost:3002',
+        'http://localhost:3004',
+        'http://localhost:4000',
+      ]
+    : [];
+
+  const allowedOrigins = [...devOrigins, ...frontendUrls].filter(Boolean);
 
   app.enableCors({
     origin: (
@@ -139,12 +143,13 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(4000);
+  const port = process.env.PORT || 4000;
+  await app.listen(port);
 
   console.log('\nFrame24 API iniciada com sucesso!\n');
-  console.log('Documentação Scalar:   http://localhost:4000/api/docs');
-  console.log('OpenAPI JSON:          http://localhost:4000/api/openapi.json');
-  console.log('API Base:              http://localhost:4000\n');
+  console.log(`Documentação Scalar:   http://localhost:${port}/api/docs`);
+  console.log(`OpenAPI JSON:          http://localhost:${port}/api/openapi.json`);
+  console.log(`API Base:              http://localhost:${port}\n`);
 }
 
 void bootstrap();

@@ -45,6 +45,7 @@ const LoginUserSchema = z.object({
 
 const LoginResponseSchema = z.object({
   access_token: z.string().optional(),
+  temp_token: z.string().optional(),
   user: LoginUserSchema,
   companies: z.array(CompanySelectionSchema).optional(),
 });
@@ -56,6 +57,13 @@ export class LoginResponseDto extends createZodDto(LoginResponseSchema) {
     example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
   })
   access_token?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'JWT temporário (retornado quando usuário tem múltiplas empresas)',
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+  })
+  temp_token?: string;
 
   @ApiProperty({
     description: 'Dados do usuário autenticado',

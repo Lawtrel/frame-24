@@ -29,7 +29,7 @@ export class TokenGeneratorService {
       session_context: 'EMPLOYEE' as const,
     };
 
-    const access_token = this.jwtService.sign(payload);
+    const access_token = this.jwtService.sign(payload, { expiresIn: '24h' });
 
     // Security: Store session in database for token revocation
     const sessionId = this.snowflake.generate();
@@ -64,5 +64,20 @@ export class TokenGeneratorService {
 
   private hashToken(token: string): string {
     return createHash('sha256').update(token).digest('hex');
+  }
+
+  generateTempToken(identityId: string): string {
+    return this.jwtService.sign(
+      { sub: identityId, type: 'temp_login' },
+      { expiresIn: '5m' },
+    );
+  }
+
+  verifyTempToken(token: string): string {
+    const payload = this.jwtService.verify(token);
+    if (payload.type !== 'temp_login' || !payload.sub) {
+      throw new Error('Token inválido para seleção de empresa');
+    }
+    return payload.sub;
   }
 }

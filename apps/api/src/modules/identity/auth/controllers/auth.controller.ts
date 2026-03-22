@@ -24,7 +24,9 @@ import { SignupDto } from '../dto/signup.dto';
 import {
   LoginResponseDto,
   RegisterResponseDto,
+  SelectCompanyResponseDto,
 } from '../dto/auth-response.dto';
+import { SelectCompanyDto } from '../dto/select-company.dto';
 import { VerifyEmailDto } from '../dto/verify-email.dto';
 import {
   ForgotPasswordDto,
@@ -96,14 +98,14 @@ export class AuthController {
     return this.authService.login(dto.email, dto.password);
   }
 
-  @Public()
   @AuthThrottle()
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Registro de usuário em empresa existente',
     description:
-      'Adiciona um novo usuário a uma empresa já cadastrada. Use para funcionários convidados.',
+      'Adiciona um novo usuário a uma empresa já cadastrada. Apenas para funcionários autenticados.',
   })
   @ApiResponse({
     status: 201,
@@ -115,6 +117,29 @@ export class AuthController {
   })
   async register(@Body() dto: RegisterDto): Promise<RegisterResponseDto> {
     return this.authService.register(dto);
+  }
+
+  @Public()
+  @AuthThrottle()
+  @Post('select-company')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Selecionar empresa após login',
+    description:
+      'Quando o usuário pertence a múltiplas empresas, este endpoint recebe o token temporário para emitir o token definitivo.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Empresa selecionada com sucesso',
+    type: SelectCompanyResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Token inválido ou empresa não permitida',
+  })
+  async selectCompany(
+    @Body() dto: SelectCompanyDto,
+  ): Promise<LoginResponseDto> {
+    return this.authService.selectCompany(dto.temp_token, dto.company_id);
   }
 
   @Public()
