@@ -24,6 +24,7 @@ import { SeatsReservationGateway } from './gateways/seats-reservation.gateway';
 import { CashFlowModule } from '../finance/cash-flow/cash-flow.module';
 import { AccountsReceivableModule } from '../finance/accounts-receivable/accounts-receivable.module';
 import { TransactionsModule } from '../finance/transactions/transactions.module';
+import { AuthModule } from '../identity/auth/auth.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { TransactionsModule } from '../finance/transactions/transactions.module'
     CashFlowModule,
     AccountsReceivableModule,
     TransactionsModule,
+    AuthModule,
   ],
   controllers: [SalesController, TicketsController],
   providers: [

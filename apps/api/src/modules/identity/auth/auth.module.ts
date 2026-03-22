@@ -74,6 +74,7 @@ import { AuthController } from './controllers/auth.controller';
     CustomRoleRepository,
     EmployeeIdGeneratorService,
     JwtStrategy,
+    JwtModule,
   ],
 })
 export class AuthModule {}

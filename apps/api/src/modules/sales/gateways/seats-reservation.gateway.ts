@@ -13,6 +13,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { SessionSeatStatusRepository } from 'src/modules/operations/session_seat_status/repositories/session-seat-status.repository';
 import { SeatStatusRepository } from 'src/modules/operations/seat-status/repositories/seat-status.repository';
 import { OnModuleInit } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 
 interface SeatReservation {
   showtime_id: string;
@@ -45,6 +46,7 @@ export class SeatsReservationGateway
     private readonly prisma: PrismaService,
     private readonly sessionSeatStatusRepository: SessionSeatStatusRepository,
     private readonly seatStatusRepository: SeatStatusRepository,
+    private readonly jwtService: JwtService,
   ) {
     // Limpar reservas expiradas a cada minuto
     setInterval(() => {
@@ -122,10 +124,30 @@ export class SeatsReservationGateway
   }
 
   handleConnection(client: Socket) {
-    this.logger.log(
-      `WebSocket client connected: ${client.id}`,
-      'SeatsReservationGateway',
-    );
+    try {
+      // Allow passing auth via token or headers
+      const token =
+        client.handshake.auth?.token ||
+        client.handshake.headers['authorization']?.split(' ')[1];
+
+      if (!token) {
+        throw new Error('Unauthorized - Token not provided');
+      }
+
+      const payload = this.jwtService.verify(token);
+      client.data.user = payload; // Attach user to socket connection
+
+      this.logger.log(
+        `WebSocket client connected: ${client.id} (User: ${payload.sub || 'guest'})`,
+        'SeatsReservationGateway',
+      );
+    } catch (error) {
+      this.logger.error(
+        `Unauthorized connection attempt: ${client.id} - ${error instanceof Error ? error.message : 'Unknown error'}`,
+        'SeatsReservationGateway',
+      );
+      client.disconnect(true);
+    }
   }
 
   handleDisconnect(client: Socket) {

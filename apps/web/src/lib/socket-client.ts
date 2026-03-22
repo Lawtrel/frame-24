@@ -69,6 +69,14 @@ export const getSeatsSocket = (): SeatsSocket => {
         }) as SeatsSocket;
     }
 
+    // Attempt to grab token from localStorage if we are in the browser
+    if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('token') || localStorage.getItem('access_token');
+        if (token) {
+            socketInstance.auth = { token };
+        }
+    }
+
     return socketInstance;
 };
 
