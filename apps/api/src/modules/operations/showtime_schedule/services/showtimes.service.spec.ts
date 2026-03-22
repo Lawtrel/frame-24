@@ -1,5 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  NotFoundException,
+  ForbiddenException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { ShowtimesService } from './showtimes.service';
 import { ShowtimesRepository } from '../repositories/showtime.repository';
@@ -20,6 +25,10 @@ import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { RabbitMQPublisherService } from 'src/common/rabbitmq/rabbitmq-publisher.service';
 import { CacheService } from 'src/common/cache/cache.service';
 
+jest.mock('@nestjs-cls/transactional', () => ({
+  Transactional: () => (_target: unknown, _key: string, descriptor: PropertyDescriptor) => descriptor,
+}));
+
 describe('ShowtimesService', () => {
   let service: ShowtimesService;
   let exhibitionContractsRepository: jest.Mocked<ExhibitionContractsRepository>;
@@ -32,6 +41,11 @@ describe('ShowtimesService', () => {
   let seatTypesRepository: jest.Mocked<SeatTypesRepository>;
   let projectionTypesRepository: jest.Mocked<ProjectionTypesRepository>;
   let audioTypesRepository: jest.Mocked<AudioTypesRepository>;
+  let showtimesRepository: jest.Mocked<ShowtimesRepository>;
+  let sessionSeatStatusRepository: jest.Mocked<SessionSeatStatusRepository>;
+  let seatStatusRepository: jest.Mocked<SeatStatusRepository>;
+  let sessionStatusRepository: jest.Mocked<SessionStatusRepository>;
+  let rabbitmq: jest.Mocked<RabbitMQPublisherService>;
   let cls: jest.Mocked<TenantContextService>;
   const COMPANY_ID = 'company-123';
   const USER_ID = 'user-123';
@@ -73,6 +87,7 @@ describe('ShowtimesService', () => {
           useValue: {
             createMany: jest.fn(),
             findByShowtimeId: jest.fn(),
+            updateStatus: jest.fn(),
           },
         },
         {
@@ -108,6 +123,7 @@ describe('ShowtimesService', () => {
         {
           provide: SeatStatusRepository,
           useValue: {
+            findByNameAndCompany: jest.fn(),
             findDefaultByCompany: jest.fn(),
           },
         },
@@ -198,6 +214,11 @@ describe('ShowtimesService', () => {
     seatTypesRepository = module.get(SeatTypesRepository);
     projectionTypesRepository = module.get(ProjectionTypesRepository);
     audioTypesRepository = module.get(AudioTypesRepository);
+    showtimesRepository = module.get(ShowtimesRepository);
+    sessionSeatStatusRepository = module.get(SessionSeatStatusRepository);
+    seatStatusRepository = module.get(SeatStatusRepository);
+    sessionStatusRepository = module.get(SessionStatusRepository);
+    rabbitmq = module.get(RabbitMQPublisherService);
     cls = module.get(TenantContextService);
 
     cls.getCompanyId.mockReturnValue(COMPANY_ID);
@@ -563,6 +584,490 @@ describe('ShowtimesService', () => {
 
       await expect(service.preview(mockDto as any)).rejects.toThrow(
         ForbiddenException,
+      );
+    });
+
+    it('deve lançar ForbiddenException quando tipo de projeção é de outra empresa', async () => {
+      moviesRepository.findById.mockResolvedValue(mockMovie as any);
+      roomsRepository.findById.mockResolvedValue(mockRoom as any);
+      cinemaComplexesRepository.findById.mockResolvedValue(mockComplex as any);
+      exhibitionContractsRepository.findActiveContract.mockResolvedValue(null);
+      municipalTaxParametersRepository.findActiveByCompanyAndIbge.mockResolvedValue(
+        null,
+      );
+      federalTaxRatesRepository.findActiveByCompany.mockResolvedValue(null);
+      seatsRepository.findByRoomId.mockResolvedValue([] as any);
+      seatTypesRepository.findByIds.mockResolvedValue([] as any);
+      projectionTypesRepository.findById.mockResolvedValue({
+        id: 'proj-wrong',
+        company_id: 'other-company',
+        additional_value: 5,
+      } as any);
+
+      await expect(
+        service.preview({ ...mockDto, projection_type: 'proj-wrong' } as any),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('deve lançar ForbiddenException quando tipo de áudio é de outra empresa', async () => {
+      moviesRepository.findById.mockResolvedValue(mockMovie as any);
+      roomsRepository.findById.mockResolvedValue(mockRoom as any);
+      cinemaComplexesRepository.findById.mockResolvedValue(mockComplex as any);
+      exhibitionContractsRepository.findActiveContract.mockResolvedValue(null);
+      municipalTaxParametersRepository.findActiveByCompanyAndIbge.mockResolvedValue(
+        null,
+      );
+      federalTaxRatesRepository.findActiveByCompany.mockResolvedValue(null);
+      seatsRepository.findByRoomId.mockResolvedValue([] as any);
+      seatTypesRepository.findByIds.mockResolvedValue([] as any);
+      projectionTypesRepository.findById.mockResolvedValue({
+        id: 'proj-ok',
+        company_id: COMPANY_ID,
+        additional_value: 1,
+      } as any);
+      audioTypesRepository.findById.mockResolvedValue({
+        id: 'audio-wrong',
+        company_id: 'other-company',
+        additional_value: 5,
+      } as any);
+
+      await expect(
+        service.preview({
+          ...mockDto,
+          projection_type: 'proj-ok',
+          audio_type: 'audio-wrong',
+        } as any),
+      ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('internal pricing and contract helpers', () => {
+    it('deve usar fallback de assentos quando todos estão inativos e sem capacidade', () => {
+      const result = (service as any).buildSeatPricingDetails(
+        {
+          activeSeats: [{ id: 'seat-1', active: false, seat_type: null }],
+          seatTypeMeta: new Map(),
+        },
+        22,
+        undefined,
+      );
+
+      expect(result).toEqual([
+        {
+          seat_type_id: null,
+          seat_type_name: 'Padrão',
+          seat_count: 1,
+          additional_value: 0,
+          final_price: 22,
+        },
+      ]);
+    });
+
+    it('deve escolher primeira escala quando semana calculada é antes da inicial', () => {
+      const contract = {
+        distributor_percentage: 40,
+        exhibitor_percentage: 60,
+        start_date: new Date('2026-01-10T00:00:00.000Z'),
+        sliding_scales: [
+          {
+            week_number: 3,
+            distributor_percentage: 35,
+            exhibitor_percentage: 65,
+          },
+          {
+            week_number: 1,
+            distributor_percentage: 50,
+            exhibitor_percentage: 50,
+          },
+        ],
+      };
+
+      const result = (service as any).resolveContractPercentages(
+        contract,
+        new Date('2026-01-05T00:00:00.000Z'),
+      );
+
+      expect(result).toEqual({ distributor: 50, exhibitor: 50 });
+    });
+
+    it('deve escolher última escala anterior quando não há semana exata', () => {
+      const contract = {
+        distributor_percentage: 40,
+        exhibitor_percentage: 60,
+        start_date: new Date('2026-01-01T00:00:00.000Z'),
+        sliding_scales: [
+          {
+            week_number: 1,
+            distributor_percentage: 60,
+            exhibitor_percentage: 40,
+          },
+          {
+            week_number: 3,
+            distributor_percentage: 45,
+            exhibitor_percentage: 55,
+          },
+        ],
+      };
+
+      const result = (service as any).resolveContractPercentages(
+        contract,
+        new Date('2026-01-12T00:00:00.000Z'),
+      );
+
+      expect(result).toEqual({ distributor: 60, exhibitor: 40 });
+    });
+  });
+
+  describe('create', () => {
+    const baseDto = {
+      movie_id: 'movie-123',
+      room_id: 'room-123',
+      start_time: new Date(Date.now() + 60 * 60 * 1000),
+      base_ticket_price: 25,
+      session_language: 'lang-123',
+    };
+
+    it('deve rejeitar criação no passado', async () => {
+      await expect(async () =>
+        service.create({
+          ...baseDto,
+          start_time: new Date(Date.now() - 60 * 60 * 1000),
+        } as any),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('deve rejeitar quando filme não possui duração', async () => {
+      moviesRepository.findById.mockResolvedValue({
+        ...mockMovie,
+        duration_minutes: null,
+      } as any);
+      roomsRepository.findById.mockResolvedValue(mockRoom as any);
+
+      await expect(async () => service.create(baseDto as any)).rejects.toThrow(
+        'O filme selecionado não tem uma duração cadastrada.',
+      );
+    });
+
+    it('deve rejeitar quando há conflito de horário', async () => {
+      moviesRepository.findById.mockResolvedValue(mockMovie as any);
+      roomsRepository.findById.mockResolvedValue(mockRoom as any);
+      showtimesRepository.findOverlappingSessions.mockResolvedValue([
+        { id: 'show-conflict' },
+      ] as any);
+
+      await expect(async () => service.create(baseDto as any)).rejects.toThrow(
+        ConflictException,
+      );
+    });
+
+    it('deve criar sessão, assentos e publicar auditoria', async () => {
+      moviesRepository.findById.mockResolvedValue(mockMovie as any);
+      roomsRepository.findById.mockResolvedValue(mockRoom as any);
+      showtimesRepository.findOverlappingSessions.mockResolvedValue([] as any);
+      cinemaComplexesRepository.findById.mockResolvedValue(mockComplex as any);
+      showtimesRepository.create.mockResolvedValue({ id: 'show-1' } as any);
+      seatsRepository.findByRoomId.mockResolvedValue([
+        { id: 'seat-1', seat_type: null, active: true },
+      ] as any);
+      seatTypesRepository.findByIds.mockResolvedValue([] as any);
+      seatStatusRepository.findDefaultByCompany.mockResolvedValue({
+        id: 'status-available',
+      } as any);
+      exhibitionContractsRepository.findActiveContract.mockResolvedValue(null);
+      municipalTaxParametersRepository.findActiveByCompanyAndIbge.mockResolvedValue(
+        null,
+      );
+      federalTaxRatesRepository.findActiveByCompany.mockResolvedValue(null);
+
+      const result = await service.create(baseDto as any);
+
+      expect(showtimesRepository.create).toHaveBeenCalled();
+      expect(sessionSeatStatusRepository.createMany).toHaveBeenCalledTimes(1);
+      expect(rabbitmq.publish).toHaveBeenCalledWith(
+        expect.objectContaining({ pattern: 'audit.showtime.created' }),
+      );
+      expect(result).toEqual({ id: 'show-1' });
+    });
+
+    it('deve rejeitar quando não há status padrão de assento', async () => {
+      moviesRepository.findById.mockResolvedValue(mockMovie as any);
+      roomsRepository.findById.mockResolvedValue(mockRoom as any);
+      showtimesRepository.findOverlappingSessions.mockResolvedValue([] as any);
+      cinemaComplexesRepository.findById.mockResolvedValue(mockComplex as any);
+      showtimesRepository.create.mockResolvedValue({ id: 'show-1' } as any);
+      seatsRepository.findByRoomId.mockResolvedValue([
+        { id: 'seat-1', seat_type: null, active: true },
+      ] as any);
+      seatTypesRepository.findByIds.mockResolvedValue([] as any);
+      seatStatusRepository.findDefaultByCompany.mockResolvedValue(null);
+
+      await expect(async () => service.create(baseDto as any)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('findOne', () => {
+    it('deve lançar not found quando sessão não existe', async () => {
+      showtimesRepository.findById.mockResolvedValue(null as any);
+
+      await expect(service.findOne('show-404')).rejects.toThrow(NotFoundException);
+    });
+
+    it('deve lançar forbidden para sessão de outra empresa', async () => {
+      showtimesRepository.findById.mockResolvedValue({
+        id: 'show-1',
+        movie_id: 'movie-1',
+        start_time: new Date(),
+        end_time: new Date(),
+        base_ticket_price: 10,
+        available_seats: 1,
+        sold_seats: 0,
+        blocked_seats: 0,
+        cinema_complexes: { company_id: 'other-company' },
+      } as any);
+
+      await expect(service.findOne('show-1')).rejects.toThrow(ForbiddenException);
+    });
+
+    it('deve retornar sessão mapeada quando válida', async () => {
+      showtimesRepository.findById.mockResolvedValue({
+        id: 'show-1',
+        movie_id: 'movie-1',
+        start_time: new Date('2026-03-01T10:00:00.000Z'),
+        end_time: new Date('2026-03-01T12:00:00.000Z'),
+        base_ticket_price: 10,
+        available_seats: 50,
+        sold_seats: 10,
+        blocked_seats: 5,
+        rooms: { id: 'room-1', name: 'Sala 1', capacity: 100 },
+        cinema_complexes: { id: 'cx-1', name: 'Complexo', company_id: COMPANY_ID },
+        projection_types: null,
+        audio_types: null,
+        session_languages: null,
+        session_status: null,
+      } as any);
+      moviesRepository.findById.mockResolvedValue({ id: 'movie-1' } as any);
+
+      const result = await service.findOne('show-1');
+
+      expect(result.id).toBe('show-1');
+      expect(result.movie).toEqual({ id: 'movie-1' });
+    });
+  });
+
+  describe('findAll', () => {
+    it('deve montar filtros e delegar para repository', async () => {
+      showtimesRepository.findAll.mockResolvedValue([] as any);
+
+      await service.findAll({
+        cinema_complex_id: 'cx-1',
+        room_id: 'room-1',
+        movie_id: 'movie-1',
+        start_time: new Date('2026-03-01T10:00:00.000Z'),
+        status: 'status-1',
+      });
+
+      expect(showtimesRepository.findAll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          cinema_complexes: { company_id: COMPANY_ID },
+          cinema_complex_id: 'cx-1',
+          room_id: 'room-1',
+          movie_id: 'movie-1',
+          status: 'status-1',
+        }),
+      );
+    });
+  });
+
+  describe('update', () => {
+    const baseExisting = {
+      id: 'show-1',
+      start_time: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+      end_time: new Date(Date.now() + 120 * 60 * 1000).toISOString(),
+      room: { id: 'room-1' },
+      movie: { id: 'movie-1' },
+    } as any;
+
+    it('deve rejeitar update com data no passado', async () => {
+      jest.spyOn(service, 'findOne').mockResolvedValue(baseExisting);
+
+      await expect(
+        service.update('show-1', {
+          start_time: new Date(Date.now() - 60 * 60 * 1000),
+        } as any),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('deve rejeitar quando filme não possui duração no recálculo', async () => {
+      jest.spyOn(service, 'findOne').mockResolvedValue(baseExisting);
+      moviesRepository.findById.mockResolvedValue({ id: 'movie-1', duration_minutes: null } as any);
+
+      await expect(
+        service.update('show-1', {
+          start_time: new Date(Date.now() + 3 * 60 * 60 * 1000),
+        } as any),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('deve rejeitar quando novo horário conflita', async () => {
+      jest.spyOn(service, 'findOne').mockResolvedValue(baseExisting);
+      moviesRepository.findById.mockResolvedValue({ id: 'movie-1', duration_minutes: 120 } as any);
+      showtimesRepository.findOverlappingSessions.mockResolvedValue([{ id: 'conflict' }] as any);
+
+      await expect(
+        service.update('show-1', {
+          start_time: new Date(Date.now() + 3 * 60 * 60 * 1000),
+        } as any),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('deve atualizar e publicar auditoria', async () => {
+      jest.spyOn(service, 'findOne').mockResolvedValue(baseExisting);
+      showtimesRepository.update.mockResolvedValue({ id: 'show-1' } as any);
+
+      const result = await service.update('show-1', {
+        base_ticket_price: 30,
+      } as any);
+
+      expect(showtimesRepository.update).toHaveBeenCalled();
+      expect(rabbitmq.publish).toHaveBeenCalledWith(
+        expect.objectContaining({ pattern: 'audit.showtime.updated' }),
+      );
+      expect(result).toEqual({ id: 'show-1' });
+    });
+
+    it('deve enviar disconnect para projeção e áudio quando nulos', async () => {
+      jest.spyOn(service, 'findOne').mockResolvedValue(baseExisting);
+      showtimesRepository.update.mockResolvedValue({ id: 'show-1' } as any);
+
+      await service.update('show-1', {
+        projection_type: null,
+        audio_type: null,
+      } as any);
+
+      expect(showtimesRepository.update).toHaveBeenCalledWith(
+        'show-1',
+        expect.objectContaining({
+          projection_types: { disconnect: true },
+          audio_types: { disconnect: true },
+        }),
+      );
+    });
+  });
+
+  describe('getSeatsMap', () => {
+    it('deve mapear status dos assentos', async () => {
+      jest.spyOn(service, 'findOne').mockResolvedValue({ id: 'show-1' } as any);
+      sessionSeatStatusRepository.findByShowtimeId.mockResolvedValue([
+        {
+          seat_id: 'seat-1',
+          seats: {
+            row_code: 'A',
+            column_number: 1,
+            accessible: false,
+            seat_type: 'type-1',
+          },
+          seat_status: { id: 'status-1', name: 'Disponível' },
+        },
+      ] as any);
+
+      const result = await service.getSeatsMap('show-1');
+
+      expect(result).toEqual([
+        {
+          seat_id: 'seat-1',
+          row: 'A',
+          number: 1,
+          accessible: false,
+          status: { id: 'status-1', name: 'Disponível' },
+          seat_type_id: 'type-1',
+        },
+      ]);
+    });
+  });
+
+  describe('remove', () => {
+    it('deve rejeitar quando status Cancelada não existe', async () => {
+      jest.spyOn(service, 'findOne').mockResolvedValue({ id: 'show-1' } as any);
+      sessionStatusRepository.findByNameAndCompany.mockResolvedValue(null as any);
+
+      await expect(service.remove('show-1')).rejects.toThrow(NotFoundException);
+    });
+
+    it('deve cancelar sessão e publicar auditoria', async () => {
+      jest.spyOn(service, 'findOne').mockResolvedValue({ id: 'show-1' } as any);
+      sessionStatusRepository.findByNameAndCompany.mockResolvedValue({ id: 'cancelled-1' } as any);
+      showtimesRepository.update.mockResolvedValue({ id: 'show-1' } as any);
+
+      const result = await service.remove('show-1');
+
+      expect(showtimesRepository.update).toHaveBeenCalled();
+      expect(rabbitmq.publish).toHaveBeenCalledWith(
+        expect.objectContaining({ pattern: 'audit.showtime.cancelled' }),
+      );
+      expect(result).toEqual({ message: 'Sessão cancelada com sucesso.' });
+    });
+  });
+
+  describe('updateSeatStatus', () => {
+    it('deve lançar not found quando sessão não existe', async () => {
+      showtimesRepository.findById.mockResolvedValue(null as any);
+
+      await expect(
+        service.updateSeatStatus('show-1', 'seat-1', 'Bloqueado'),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('deve lançar not found quando status não configurado', async () => {
+      showtimesRepository.findById.mockResolvedValue({
+        id: 'show-1',
+        cinema_complexes: { company_id: COMPANY_ID },
+      } as any);
+      seatStatusRepository.findByNameAndCompany.mockResolvedValue(null as any);
+      seatStatusRepository.findDefaultByCompany.mockResolvedValue(null as any);
+
+      await expect(
+        service.updateSeatStatus('show-1', 'seat-1', 'Bloqueado'),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('deve limpar reserva ao marcar como Disponível', async () => {
+      showtimesRepository.findById.mockResolvedValue({
+        id: 'show-1',
+        cinema_complexes: { company_id: COMPANY_ID },
+      } as any);
+      seatStatusRepository.findByNameAndCompany.mockResolvedValue({ id: 'status-available' } as any);
+
+      await service.updateSeatStatus('show-1', 'seat-1', 'Disponível');
+
+      expect(sessionSeatStatusRepository.updateStatus).toHaveBeenCalledWith(
+        'show-1',
+        'seat-1',
+        expect.objectContaining({
+          reservation_uuid: null,
+          reservation_date: null,
+          expiration_date: null,
+        }),
+      );
+    });
+
+    it('deve usar status padrão quando nome não é encontrado', async () => {
+      showtimesRepository.findById.mockResolvedValue({
+        id: 'show-1',
+        cinema_complexes: { company_id: COMPANY_ID },
+      } as any);
+      seatStatusRepository.findByNameAndCompany.mockResolvedValue(null as any);
+      seatStatusRepository.findDefaultByCompany.mockResolvedValue({ id: 'status-default' } as any);
+
+      await service.updateSeatStatus('show-1', 'seat-1', 'Bloqueado');
+
+      expect(sessionSeatStatusRepository.updateStatus).toHaveBeenCalledWith(
+        'show-1',
+        'seat-1',
+        expect.objectContaining({
+          seat_status: { connect: { id: 'status-default' } },
+        }),
       );
     });
   });

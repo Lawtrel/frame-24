@@ -73,7 +73,9 @@ describe('MovieCategoriesService', () => {
   });
 
   it('deve lançar erro quando company_id não existe no contexto', async () => {
-    cls.getCompanyId.mockReturnValue(undefined as any);
+    cls.getCompanyId.mockImplementation(() => {
+      throw new ForbiddenException('Contexto da empresa não encontrado.');
+    });
 
     await expect(service.findAll()).rejects.toBeInstanceOf(ForbiddenException);
   });

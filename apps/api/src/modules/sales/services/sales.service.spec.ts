@@ -17,6 +17,7 @@ import { CampaignsService } from 'src/modules/marketing/services/campaigns.servi
 import { AccountsReceivableService } from 'src/modules/finance/accounts-receivable/services/accounts-receivable.service';
 import { TransactionsService } from 'src/modules/finance/transactions/services/transactions.service';
 import { BankAccountsRepository } from 'src/modules/finance/cash-flow/repositories/bank-accounts.repository';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { ClsModule } from 'nestjs-cls';
 import { ClsPluginTransactional } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
@@ -211,6 +212,15 @@ describe('SalesService', () => {
             findAll: jest
               .fn()
               .mockResolvedValue([{ id: 'bank-1', active: true }]),
+          },
+        },
+        {
+          provide: TenantContextService,
+          useValue: {
+            getCompanyId: jest.fn().mockReturnValue('company-1'),
+            getUserId: jest.fn().mockReturnValue('user-1'),
+            getCustomerId: jest.fn().mockReturnValue(undefined),
+            getSessionContext: jest.fn().mockReturnValue('EMPLOYEE'),
           },
         },
       ],

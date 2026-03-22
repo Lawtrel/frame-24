@@ -36,11 +36,8 @@ describe('StockMovementsService', () => {
         {
           provide: TenantContextService,
           useValue: {
-            get: jest.fn((key: string) => {
-              if (key === 'companyId') return 'company-1';
-              if (key === 'userId') return 'user-1';
-              return undefined;
-            }),
+            getCompanyId: jest.fn().mockReturnValue('company-1'),
+            getUserId: jest.fn().mockReturnValue('user-1'),
           },
         },
         {

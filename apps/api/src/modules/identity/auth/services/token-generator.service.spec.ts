@@ -97,7 +97,7 @@ describe('TokenGeneratorService', () => {
         company_user_id: 'company-user-456',
         role_id: 'role-admin',
         session_context: 'EMPLOYEE',
-      });
+      }, { expiresIn: '24h' });
     });
 
     it('deve incluir sub (subject) como identity_id', async () => {
@@ -108,6 +108,7 @@ describe('TokenGeneratorService', () => {
           sub: mockIdentity.id,
           identity_id: mockIdentity.id,
         }),
+        expect.objectContaining({ expiresIn: '24h' }),
       );
     });
 
@@ -118,6 +119,7 @@ describe('TokenGeneratorService', () => {
         expect.objectContaining({
           email: mockIdentity.email,
         }),
+        expect.objectContaining({ expiresIn: '24h' }),
       );
     });
 
@@ -128,6 +130,7 @@ describe('TokenGeneratorService', () => {
         expect.objectContaining({
           company_id: mockCompanyUser.companyId,
         }),
+        expect.objectContaining({ expiresIn: '24h' }),
       );
     });
 
@@ -138,6 +141,7 @@ describe('TokenGeneratorService', () => {
         expect.objectContaining({
           role_id: mockCompanyUser.roleId,
         }),
+        expect.objectContaining({ expiresIn: '24h' }),
       );
     });
 
@@ -148,6 +152,7 @@ describe('TokenGeneratorService', () => {
         expect.objectContaining({
           company_user_id: mockCompanyUser.id,
         }),
+        expect.objectContaining({ expiresIn: '24h' }),
       );
     });
 
@@ -158,6 +163,7 @@ describe('TokenGeneratorService', () => {
         expect.objectContaining({
           session_context: 'EMPLOYEE',
         }),
+        expect.objectContaining({ expiresIn: '24h' }),
       );
     });
 
@@ -245,6 +251,7 @@ describe('TokenGeneratorService', () => {
           identity_id: 'custom-id',
           email: 'custom@email.com',
         }),
+        expect.objectContaining({ expiresIn: '24h' }),
       );
     });
 
@@ -263,6 +270,7 @@ describe('TokenGeneratorService', () => {
           company_id: 'company-custom',
           role_id: 'role-custom',
         }),
+        expect.objectContaining({ expiresIn: '24h' }),
       );
     });
 

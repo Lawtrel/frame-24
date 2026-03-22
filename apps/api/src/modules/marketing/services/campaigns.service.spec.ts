@@ -107,11 +107,9 @@ describe('CampaignsService', () => {
   });
 
   it('deve lançar erro quando company_id não existe no contexto', async () => {
-    cls.getCompanyId.mockReturnValue(undefined as any);
-    cls.getUserId.mockReturnValue(undefined as any);
-    cls.getRequiredUserId.mockReturnValue(undefined as any);
-    cls.getIdentityId.mockReturnValue(undefined as any);
-    cls.getRoleHierarchy.mockReturnValue(undefined as any);
+    cls.getCompanyId.mockImplementation(() => {
+      throw new ForbiddenException('Contexto da empresa não encontrado.');
+    });
 
     await expect(service.findAll()).rejects.toBeInstanceOf(ForbiddenException);
   });

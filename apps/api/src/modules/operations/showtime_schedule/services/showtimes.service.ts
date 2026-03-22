@@ -221,32 +221,12 @@ export class ShowtimesService {
   async preview(dto: CreateShowtimeDto): Promise<ShowtimeFinancialBreakdown> {
     const companyId = this.tenantContext.getCompanyId();
 
-    // Validar filme e sala em paralelo
-    const [movie, room] = await Promise.all([
-      this.moviesRepository.findById(dto.movie_id),
-      this.roomsRepository.findById(dto.room_id),
-    ]);
-
-    if (!movie || movie.company_id !== companyId) {
-      throw new NotFoundException('Filme não encontrado.');
-    }
-
-    if (!room) {
-      throw new NotFoundException('Sala não encontrada.');
-    }
-
-    // Validar complexo (com cache)
-    const complex = await this.cacheService.wrap(
-      `complex:${room.cinema_complex_id}`,
-      () => this.cinemaComplexesRepository.findById(room.cinema_complex_id),
-      3600000, // 1 hora
+    const { movie, room } = await this.loadMovieAndRoom(
+      dto.movie_id,
+      dto.room_id,
+      companyId,
     );
-
-    if (!complex || complex.company_id !== companyId) {
-      throw new ForbiddenException(
-        'Acesso negado. Esta sala não pertence à sua empresa.',
-      );
-    }
+    await this.assertRoomComplexOwnership(room.cinema_complex_id, companyId);
 
     const seatPricingContext = await this.loadSeatPricingContext(
       dto.room_id,
@@ -594,31 +574,14 @@ export class ShowtimesService {
     const companyId = this.tenantContext.getCompanyId();
     const userId = this.tenantContext.getUserId();
 
-    if (dto.start_time < new Date()) {
-      throw new ConflictException(
-        'Não é possível criar uma sessão para uma data no passado.',
-      );
-    }
+    this.assertShowtimeDateInFuture(dto.start_time);
 
-    // Validar filme e sala em paralelo
-    const [movie, room] = await Promise.all([
-      this.moviesRepository.findById(dto.movie_id),
-      this.roomsRepository.findById(dto.room_id),
-    ]);
-
-    if (!movie || movie.company_id !== companyId) {
-      throw new NotFoundException('Filme não encontrado.');
-    }
-
-    if (!movie.duration_minutes) {
-      throw new BadRequestException(
-        'O filme selecionado não tem uma duração cadastrada.',
-      );
-    }
-
-    if (!room) {
-      throw new NotFoundException('Sala não encontrada.');
-    }
+    const { movie, room } = await this.loadMovieAndRoom(
+      dto.movie_id,
+      dto.room_id,
+      companyId,
+      true,
+    );
 
     const startTime = dto.start_time;
     const endTime = new Date(
@@ -637,18 +600,7 @@ export class ShowtimesService {
       );
     }
 
-    // Validar complexo (com cache)
-    const complex = await this.cacheService.wrap(
-      `complex:${room.cinema_complex_id}`,
-      () => this.cinemaComplexesRepository.findById(room.cinema_complex_id),
-      3600000,
-    );
-
-    if (!complex || complex.company_id !== companyId) {
-      throw new ForbiddenException(
-        'Acesso negado. Esta sala não pertence à sua empresa.',
-      );
-    }
+    await this.assertRoomComplexOwnership(room.cinema_complex_id, companyId);
 
     const showtimeId = this.snowflake.generate();
     const newShowtime = await this.showtimesRepository.create({
@@ -734,6 +686,59 @@ export class ShowtimesService {
     });
 
     return newShowtime;
+  }
+
+  private assertShowtimeDateInFuture(startTime: Date): void {
+    if (startTime < new Date()) {
+      throw new ConflictException(
+        'Não é possível criar uma sessão para uma data no passado.',
+      );
+    }
+  }
+
+  private async loadMovieAndRoom(
+    movieId: string,
+    roomId: string,
+    companyId: string,
+    requireMovieDuration = false,
+  ) {
+    const [movie, room] = await Promise.all([
+      this.moviesRepository.findById(movieId),
+      this.roomsRepository.findById(roomId),
+    ]);
+
+    if (!movie || movie.company_id !== companyId) {
+      throw new NotFoundException('Filme não encontrado.');
+    }
+
+    if (requireMovieDuration && !movie.duration_minutes) {
+      throw new BadRequestException(
+        'O filme selecionado não tem uma duração cadastrada.',
+      );
+    }
+
+    if (!room) {
+      throw new NotFoundException('Sala não encontrada.');
+    }
+
+    return { movie, room };
+  }
+
+  private async assertRoomComplexOwnership(
+    cinemaComplexId: string,
+    companyId: string,
+  ): Promise<void> {
+    const complex = await this.cacheService.wrap(
+      `complex:${cinemaComplexId}`,
+      () => this.cinemaComplexesRepository.findById(cinemaComplexId),
+      3600000,
+    );
+
+    if (!complex || complex.company_id !== companyId) {
+      throw new ForbiddenException(
+        'Acesso negado. Esta sala não pertence à sua empresa.',
+      );
+    }
   }
 
   @Transactional()

@@ -65,6 +65,36 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       JwtStrategy.name,
     );
 
+    await this.assertValidSession(payload);
+    const identity = await this.loadIdentity(payload);
+    this.assertIdentityActive(identity);
+
+    // Se for CUSTOMER, validar customer
+    if (payload.session_context === 'CUSTOMER') {
+      const customerUser = await this.buildCustomerUser(payload, identity.email);
+
+      this.logger.debug(
+        `Customer Auth OK: ${customerUser.email}`,
+        JwtStrategy.name,
+      );
+      this.setContext(customerUser.company_id, customerUser.customer_id);
+
+      return customerUser;
+    }
+
+    // Validação para EMPLOYEE (lógica original)
+    const user = this.buildEmployeeUser(payload, identity);
+
+    this.logger.debug(
+      `Employee Auth OK: ${user.email} | ${user.role}`,
+      JwtStrategy.name,
+    );
+    this.setContext(user.company_id, user.company_user_id);
+
+    return user;
+  }
+
+  private async assertValidSession(payload: JwtPayload): Promise<void> {
     const session = await this.prisma.user_sessions.findFirst({
       where: {
         identity_id: payload.identity_id,
@@ -87,8 +117,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         'Sessão inválida, revogada ou expirada. Faça login novamente.',
       );
     }
+  }
 
-    const identity = await this.prisma.identities.findUnique({
+  private async loadIdentity(payload: JwtPayload) {
+    return this.prisma.identities.findUnique({
       where: { id: payload.identity_id },
       include: {
         company_users: {
@@ -114,68 +146,70 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         persons: true,
       },
     });
+  }
 
+  private assertIdentityActive(
+    identity: Awaited<ReturnType<JwtStrategy['loadIdentity']>>,
+  ): asserts identity is NonNullable<
+    Awaited<ReturnType<JwtStrategy['loadIdentity']>>
+  > {
     if (!identity || !identity.active) {
       throw new UnauthorizedException('Token inválido ou usuário inativo');
     }
+  }
 
-    // Se for CUSTOMER, validar customer
-    if (payload.session_context === 'CUSTOMER') {
-      if (!payload.company_id) {
-        throw new UnauthorizedException('Company ID obrigatório para clientes');
-      }
-
-      const customer = await this.prisma.customers.findUnique({
-        where: { identity_id: payload.identity_id },
-        include: {
-          company_customers: {
-            where: { company_id: payload.company_id },
-          },
-        },
-      });
-
-      if (!customer || !customer.active || customer.blocked) {
-        throw new UnauthorizedException('Cliente não encontrado ou inativo');
-      }
-
-      const companyCustomer = customer.company_customers[0];
-      if (!companyCustomer || !companyCustomer.is_active_in_loyalty) {
-        throw new UnauthorizedException('Cliente não vinculado à empresa');
-      }
-
-      const company = await this.prisma.companies.findUnique({
-        where: { id: payload.company_id },
-      });
-
-      if (!company || !company.active) {
-        throw new UnauthorizedException('Empresa inativa ou suspensa');
-      }
-
-      const customerUser: CustomerUser = {
-        sub: payload.sub,
-        identity_id: payload.identity_id,
-        customer_id: customer.id,
-        company_id: payload.company_id,
-        email: customer.email || identity.email,
-        name: customer.full_name,
-        tenant_slug: company.tenant_slug,
-        session_context: 'CUSTOMER',
-        loyalty_level: companyCustomer.loyalty_level || 'BRONZE',
-        accumulated_points: companyCustomer.accumulated_points || 0,
-      };
-
-      this.logger.debug(
-        `Customer Auth OK: ${customerUser.email}`,
-        JwtStrategy.name,
-      );
-
-      this.cls.set('companyId', customerUser.company_id);
-      this.cls.set('userId', customerUser.customer_id);
-
-      return customerUser;
+  private async buildCustomerUser(
+    payload: JwtPayload,
+    identityEmail: string,
+  ): Promise<CustomerUser> {
+    if (!payload.company_id) {
+      throw new UnauthorizedException('Company ID obrigatório para clientes');
     }
 
-    // Validação para EMPLOYEE (lógica original)
+    const customer = await this.prisma.customers.findUnique({
+      where: { identity_id: payload.identity_id },
+      include: {
+        company_customers: {
+          where: { company_id: payload.company_id },
+        },
+      },
+    });
+
+    if (!customer || !customer.active || customer.blocked) {
+      throw new UnauthorizedException('Cliente não encontrado ou inativo');
+    }
+
+    const companyCustomer = customer.company_customers[0];
+    if (!companyCustomer || !companyCustomer.is_active_in_loyalty) {
+      throw new UnauthorizedException('Cliente não vinculado à empresa');
+    }
+
+    const company = await this.prisma.companies.findUnique({
+      where: { id: payload.company_id },
+    });
+
+    if (!company || !company.active) {
+      throw new UnauthorizedException('Empresa inativa ou suspensa');
+    }
+
+    return {
+      sub: payload.sub,
+      identity_id: payload.identity_id,
+      customer_id: customer.id,
+      company_id: payload.company_id,
+      email: customer.email || identityEmail,
+      name: customer.full_name,
+      tenant_slug: company.tenant_slug,
+      session_context: 'CUSTOMER',
+      loyalty_level: companyCustomer.loyalty_level || 'BRONZE',
+      accumulated_points: companyCustomer.accumulated_points || 0,
+    };
+  }
+
+  private buildEmployeeUser(
+    payload: JwtPayload,
+    identity: NonNullable<Awaited<ReturnType<JwtStrategy['loadIdentity']>>>,
+  ): RequestUser {
     if (!identity.company_users || identity.company_users.length === 0) {
       throw new UnauthorizedException('Usuário não vinculado a empresa ativa');
     }
@@ -190,18 +224,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('Usuário sem perfil de acesso definido');
     }
 
-    const permissions: string[] = [];
-    if (companyUser.custom_roles.role_permissions) {
-      companyUser.custom_roles.role_permissions.forEach((rp) => {
-        const perm = rp.permissions;
-        if (perm) {
-          permissions.push(`${perm.resource}:${perm.action}`);
-        }
-      });
-    }
+    const permissions = (companyUser.custom_roles.role_permissions || [])
+      .filter((rp) => !!rp.permissions)
+      .map((rp) => `${rp.permissions!.resource}:${rp.permissions!.action}`);
 
-    // Monta RequestUser
-    const user: RequestUser = {
+    return {
       sub: payload.sub,
       identity_id: payload.identity_id,
       company_user_id: companyUser.id,
@@ -216,15 +243,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       permissions,
       session_context: 'EMPLOYEE',
     };
+  }
 
-    this.logger.debug(
-      `Employee Auth OK: ${user.email} | ${user.role}`,
-      JwtStrategy.name,
-    );
-
-    this.cls.set('companyId', user.company_id);
-    this.cls.set('userId', user.company_user_id);
-
-    return user;
+  private setContext(companyId: string, userId: string) {
+    this.cls.set('companyId', companyId);
+    this.cls.set('userId', userId);
   }
 }

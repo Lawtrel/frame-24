@@ -69,7 +69,9 @@ describe('ContractTypesService', () => {
   });
 
   it('deve lançar erro quando contexto da empresa não existir', async () => {
-    cls.getCompanyId.mockReturnValue(undefined as any);
+    cls.getCompanyId.mockImplementation(() => {
+      throw new ForbiddenException('Contexto da empresa não encontrado.');
+    });
 
     await expect(service.findAll()).rejects.toBeInstanceOf(ForbiddenException);
   });
