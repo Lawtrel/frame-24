@@ -12,325 +12,522 @@
  * Do not edit the class manually.
  */
 
-
-import type { Configuration } from '../configuration';
-import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from 'axios';
-import globalAxios from 'axios';
+import type { Configuration } from "../configuration";
+import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from "axios";
+import globalAxios from "axios";
 // Some imports not used depending on template conditions
 // @ts-ignore
-import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from '../common';
+import {
+  DUMMY_BASE_URL,
+  assertParamExists,
+  setApiKeyToObject,
+  setBasicAuthToObject,
+  setBearerAuthToObject,
+  setOAuthToObject,
+  setSearchParams,
+  serializeDataIfNeeded,
+  toPathString,
+  createRequestFunction,
+} from "../common";
 // @ts-ignore
-import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
+import {
+  BASE_PATH,
+  COLLECTION_FORMATS,
+  type RequestArgs,
+  BaseAPI,
+  RequiredError,
+  operationServerMap,
+} from "../base";
 // @ts-ignore
-import type { CreateCampaignDto } from '../models';
+import type { CreateCampaignDto } from "../models";
 /**
  * CampaignsApi - axios parameter creator
  * @export
  */
-export const CampaignsApiAxiosParamCreator = function (configuration?: Configuration) {
-    return {
-        /**
-         * 
-         * @summary Ativar campanha
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        campaignsControllerActivateV1: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('campaignsControllerActivateV1', 'id', id)
-            const localVarPath = `/v1/campaigns/{id}/activate`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+export const CampaignsApiAxiosParamCreator = function (
+  configuration?: Configuration,
+) {
+  return {
+    /**
+     *
+     * @summary Ativar campanha
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    campaignsControllerActivateV1: async (
+      id: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists("campaignsControllerActivateV1", "id", id);
+      const localVarPath = `/v1/campaigns/{id}/activate`.replace(
+        `{${"id"}}`,
+        encodeURIComponent(String(id)),
+      );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      const localVarRequestOptions = {
+        method: "POST",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Cria uma nova campanha promocional para a empresa do usuário autenticado.
+     * @summary Criar campanha promocional
+     * @param {CreateCampaignDto} createCampaignDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    campaignsControllerCreateV1: async (
+      createCampaignDto: CreateCampaignDto,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'createCampaignDto' is not null or undefined
+      assertParamExists(
+        "campaignsControllerCreateV1",
+        "createCampaignDto",
+        createCampaignDto,
+      );
+      const localVarPath = `/v1/campaigns`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Cria uma nova campanha promocional para a empresa do usuário autenticado.
-         * @summary Criar campanha promocional
-         * @param {CreateCampaignDto} createCampaignDto 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        campaignsControllerCreateV1: async (createCampaignDto: CreateCampaignDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'createCampaignDto' is not null or undefined
-            assertParamExists('campaignsControllerCreateV1', 'createCampaignDto', createCampaignDto)
-            const localVarPath = `/v1/campaigns`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+      const localVarRequestOptions = {
+        method: "POST",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      localVarHeaderParameter["Content-Type"] = "application/json";
 
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        createCampaignDto,
+        localVarRequestOptions,
+        configuration,
+      );
 
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Lista todas as campanhas da empresa do usuário.
+     * @summary Listar campanhas
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    campaignsControllerFindAllV1: async (
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      const localVarPath = `/v1/campaigns`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(createCampaignDto, localVarRequestOptions, configuration)
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Lista todas as campanhas da empresa do usuário.
-         * @summary Listar campanhas
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        campaignsControllerFindAllV1: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/v1/campaigns`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @summary Buscar campanha por ID
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    campaignsControllerFindOneV1: async (
+      id: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists("campaignsControllerFindOneV1", "id", id);
+      const localVarPath = `/v1/campaigns/{id}`.replace(
+        `{${"id"}}`,
+        encodeURIComponent(String(id)),
+      );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary Buscar campanha por ID
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        campaignsControllerFindOneV1: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('campaignsControllerFindOneV1', 'id', id)
-            const localVarPath = `/v1/campaigns/{id}`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @summary Pausar campanha
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    campaignsControllerPauseV1: async (
+      id: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists("campaignsControllerPauseV1", "id", id);
+      const localVarPath = `/v1/campaigns/{id}/pause`.replace(
+        `{${"id"}}`,
+        encodeURIComponent(String(id)),
+      );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      const localVarRequestOptions = {
+        method: "POST",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary Pausar campanha
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        campaignsControllerPauseV1: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('campaignsControllerPauseV1', 'id', id)
-            const localVarPath = `/v1/campaigns/{id}/pause`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-    }
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+  };
 };
 
 /**
  * CampaignsApi - functional programming interface
  * @export
  */
-export const CampaignsApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = CampaignsApiAxiosParamCreator(configuration)
-    return {
-        /**
-         * 
-         * @summary Ativar campanha
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async campaignsControllerActivateV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.campaignsControllerActivateV1(id, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CampaignsApi.campaignsControllerActivateV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Cria uma nova campanha promocional para a empresa do usuário autenticado.
-         * @summary Criar campanha promocional
-         * @param {CreateCampaignDto} createCampaignDto 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async campaignsControllerCreateV1(createCampaignDto: CreateCampaignDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.campaignsControllerCreateV1(createCampaignDto, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CampaignsApi.campaignsControllerCreateV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Lista todas as campanhas da empresa do usuário.
-         * @summary Listar campanhas
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async campaignsControllerFindAllV1(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.campaignsControllerFindAllV1(options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CampaignsApi.campaignsControllerFindAllV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @summary Buscar campanha por ID
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async campaignsControllerFindOneV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.campaignsControllerFindOneV1(id, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CampaignsApi.campaignsControllerFindOneV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @summary Pausar campanha
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async campaignsControllerPauseV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.campaignsControllerPauseV1(id, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CampaignsApi.campaignsControllerPauseV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-    }
+export const CampaignsApiFp = function (configuration?: Configuration) {
+  const localVarAxiosParamCreator =
+    CampaignsApiAxiosParamCreator(configuration);
+  return {
+    /**
+     *
+     * @summary Ativar campanha
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async campaignsControllerActivateV1(
+      id: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.campaignsControllerActivateV1(
+          id,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["CampaignsApi.campaignsControllerActivateV1"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     * Cria uma nova campanha promocional para a empresa do usuário autenticado.
+     * @summary Criar campanha promocional
+     * @param {CreateCampaignDto} createCampaignDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async campaignsControllerCreateV1(
+      createCampaignDto: CreateCampaignDto,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.campaignsControllerCreateV1(
+          createCampaignDto,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["CampaignsApi.campaignsControllerCreateV1"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     * Lista todas as campanhas da empresa do usuário.
+     * @summary Listar campanhas
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async campaignsControllerFindAllV1(
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.campaignsControllerFindAllV1(options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["CampaignsApi.campaignsControllerFindAllV1"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     *
+     * @summary Buscar campanha por ID
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async campaignsControllerFindOneV1(
+      id: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.campaignsControllerFindOneV1(
+          id,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["CampaignsApi.campaignsControllerFindOneV1"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     *
+     * @summary Pausar campanha
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async campaignsControllerPauseV1(
+      id: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.campaignsControllerPauseV1(id, options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["CampaignsApi.campaignsControllerPauseV1"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+  };
 };
 
 /**
  * CampaignsApi - factory interface
  * @export
  */
-export const CampaignsApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = CampaignsApiFp(configuration)
-    return {
-        /**
-         * 
-         * @summary Ativar campanha
-         * @param {CampaignsApiCampaignsControllerActivateV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        campaignsControllerActivateV1(requestParameters: CampaignsApiCampaignsControllerActivateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.campaignsControllerActivateV1(requestParameters.id, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Cria uma nova campanha promocional para a empresa do usuário autenticado.
-         * @summary Criar campanha promocional
-         * @param {CampaignsApiCampaignsControllerCreateV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        campaignsControllerCreateV1(requestParameters: CampaignsApiCampaignsControllerCreateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.campaignsControllerCreateV1(requestParameters.createCampaignDto, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Lista todas as campanhas da empresa do usuário.
-         * @summary Listar campanhas
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        campaignsControllerFindAllV1(options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.campaignsControllerFindAllV1(options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @summary Buscar campanha por ID
-         * @param {CampaignsApiCampaignsControllerFindOneV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        campaignsControllerFindOneV1(requestParameters: CampaignsApiCampaignsControllerFindOneV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.campaignsControllerFindOneV1(requestParameters.id, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @summary Pausar campanha
-         * @param {CampaignsApiCampaignsControllerPauseV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        campaignsControllerPauseV1(requestParameters: CampaignsApiCampaignsControllerPauseV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.campaignsControllerPauseV1(requestParameters.id, options).then((request) => request(axios, basePath));
-        },
-    };
+export const CampaignsApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance,
+) {
+  const localVarFp = CampaignsApiFp(configuration);
+  return {
+    /**
+     *
+     * @summary Ativar campanha
+     * @param {CampaignsApiCampaignsControllerActivateV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    campaignsControllerActivateV1(
+      requestParameters: CampaignsApiCampaignsControllerActivateV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .campaignsControllerActivateV1(requestParameters.id, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     * Cria uma nova campanha promocional para a empresa do usuário autenticado.
+     * @summary Criar campanha promocional
+     * @param {CampaignsApiCampaignsControllerCreateV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    campaignsControllerCreateV1(
+      requestParameters: CampaignsApiCampaignsControllerCreateV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .campaignsControllerCreateV1(
+          requestParameters.createCampaignDto,
+          options,
+        )
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     * Lista todas as campanhas da empresa do usuário.
+     * @summary Listar campanhas
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    campaignsControllerFindAllV1(
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .campaignsControllerFindAllV1(options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @summary Buscar campanha por ID
+     * @param {CampaignsApiCampaignsControllerFindOneV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    campaignsControllerFindOneV1(
+      requestParameters: CampaignsApiCampaignsControllerFindOneV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .campaignsControllerFindOneV1(requestParameters.id, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @summary Pausar campanha
+     * @param {CampaignsApiCampaignsControllerPauseV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    campaignsControllerPauseV1(
+      requestParameters: CampaignsApiCampaignsControllerPauseV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .campaignsControllerPauseV1(requestParameters.id, options)
+        .then((request) => request(axios, basePath));
+    },
+  };
 };
 
 /**
@@ -339,55 +536,68 @@ export const CampaignsApiFactory = function (configuration?: Configuration, base
  * @interface CampaignsApi
  */
 export interface CampaignsApiInterface {
-    /**
-     * 
-     * @summary Ativar campanha
-     * @param {CampaignsApiCampaignsControllerActivateV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CampaignsApiInterface
-     */
-    campaignsControllerActivateV1(requestParameters: CampaignsApiCampaignsControllerActivateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   *
+   * @summary Ativar campanha
+   * @param {CampaignsApiCampaignsControllerActivateV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CampaignsApiInterface
+   */
+  campaignsControllerActivateV1(
+    requestParameters: CampaignsApiCampaignsControllerActivateV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * Cria uma nova campanha promocional para a empresa do usuário autenticado.
-     * @summary Criar campanha promocional
-     * @param {CampaignsApiCampaignsControllerCreateV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CampaignsApiInterface
-     */
-    campaignsControllerCreateV1(requestParameters: CampaignsApiCampaignsControllerCreateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   * Cria uma nova campanha promocional para a empresa do usuário autenticado.
+   * @summary Criar campanha promocional
+   * @param {CampaignsApiCampaignsControllerCreateV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CampaignsApiInterface
+   */
+  campaignsControllerCreateV1(
+    requestParameters: CampaignsApiCampaignsControllerCreateV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * Lista todas as campanhas da empresa do usuário.
-     * @summary Listar campanhas
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CampaignsApiInterface
-     */
-    campaignsControllerFindAllV1(options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   * Lista todas as campanhas da empresa do usuário.
+   * @summary Listar campanhas
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CampaignsApiInterface
+   */
+  campaignsControllerFindAllV1(
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * 
-     * @summary Buscar campanha por ID
-     * @param {CampaignsApiCampaignsControllerFindOneV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CampaignsApiInterface
-     */
-    campaignsControllerFindOneV1(requestParameters: CampaignsApiCampaignsControllerFindOneV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   *
+   * @summary Buscar campanha por ID
+   * @param {CampaignsApiCampaignsControllerFindOneV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CampaignsApiInterface
+   */
+  campaignsControllerFindOneV1(
+    requestParameters: CampaignsApiCampaignsControllerFindOneV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * 
-     * @summary Pausar campanha
-     * @param {CampaignsApiCampaignsControllerPauseV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CampaignsApiInterface
-     */
-    campaignsControllerPauseV1(requestParameters: CampaignsApiCampaignsControllerPauseV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
-
+  /**
+   *
+   * @summary Pausar campanha
+   * @param {CampaignsApiCampaignsControllerPauseV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CampaignsApiInterface
+   */
+  campaignsControllerPauseV1(
+    requestParameters: CampaignsApiCampaignsControllerPauseV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 }
 
 /**
@@ -396,12 +606,12 @@ export interface CampaignsApiInterface {
  * @interface CampaignsApiCampaignsControllerActivateV1Request
  */
 export interface CampaignsApiCampaignsControllerActivateV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof CampaignsApiCampaignsControllerActivateV1
-     */
-    readonly id: string
+  /**
+   *
+   * @type {string}
+   * @memberof CampaignsApiCampaignsControllerActivateV1
+   */
+  readonly id: string;
 }
 
 /**
@@ -410,12 +620,12 @@ export interface CampaignsApiCampaignsControllerActivateV1Request {
  * @interface CampaignsApiCampaignsControllerCreateV1Request
  */
 export interface CampaignsApiCampaignsControllerCreateV1Request {
-    /**
-     * 
-     * @type {CreateCampaignDto}
-     * @memberof CampaignsApiCampaignsControllerCreateV1
-     */
-    readonly createCampaignDto: CreateCampaignDto
+  /**
+   *
+   * @type {CreateCampaignDto}
+   * @memberof CampaignsApiCampaignsControllerCreateV1
+   */
+  readonly createCampaignDto: CreateCampaignDto;
 }
 
 /**
@@ -424,12 +634,12 @@ export interface CampaignsApiCampaignsControllerCreateV1Request {
  * @interface CampaignsApiCampaignsControllerFindOneV1Request
  */
 export interface CampaignsApiCampaignsControllerFindOneV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof CampaignsApiCampaignsControllerFindOneV1
-     */
-    readonly id: string
+  /**
+   *
+   * @type {string}
+   * @memberof CampaignsApiCampaignsControllerFindOneV1
+   */
+  readonly id: string;
 }
 
 /**
@@ -438,12 +648,12 @@ export interface CampaignsApiCampaignsControllerFindOneV1Request {
  * @interface CampaignsApiCampaignsControllerPauseV1Request
  */
 export interface CampaignsApiCampaignsControllerPauseV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof CampaignsApiCampaignsControllerPauseV1
-     */
-    readonly id: string
+  /**
+   *
+   * @type {string}
+   * @memberof CampaignsApiCampaignsControllerPauseV1
+   */
+  readonly id: string;
 }
 
 /**
@@ -453,63 +663,84 @@ export interface CampaignsApiCampaignsControllerPauseV1Request {
  * @extends {BaseAPI}
  */
 export class CampaignsApi extends BaseAPI implements CampaignsApiInterface {
-    /**
-     * 
-     * @summary Ativar campanha
-     * @param {CampaignsApiCampaignsControllerActivateV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CampaignsApi
-     */
-    public campaignsControllerActivateV1(requestParameters: CampaignsApiCampaignsControllerActivateV1Request, options?: RawAxiosRequestConfig) {
-        return CampaignsApiFp(this.configuration).campaignsControllerActivateV1(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   *
+   * @summary Ativar campanha
+   * @param {CampaignsApiCampaignsControllerActivateV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CampaignsApi
+   */
+  public campaignsControllerActivateV1(
+    requestParameters: CampaignsApiCampaignsControllerActivateV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return CampaignsApiFp(this.configuration)
+      .campaignsControllerActivateV1(requestParameters.id, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * Cria uma nova campanha promocional para a empresa do usuário autenticado.
-     * @summary Criar campanha promocional
-     * @param {CampaignsApiCampaignsControllerCreateV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CampaignsApi
-     */
-    public campaignsControllerCreateV1(requestParameters: CampaignsApiCampaignsControllerCreateV1Request, options?: RawAxiosRequestConfig) {
-        return CampaignsApiFp(this.configuration).campaignsControllerCreateV1(requestParameters.createCampaignDto, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   * Cria uma nova campanha promocional para a empresa do usuário autenticado.
+   * @summary Criar campanha promocional
+   * @param {CampaignsApiCampaignsControllerCreateV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CampaignsApi
+   */
+  public campaignsControllerCreateV1(
+    requestParameters: CampaignsApiCampaignsControllerCreateV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return CampaignsApiFp(this.configuration)
+      .campaignsControllerCreateV1(requestParameters.createCampaignDto, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * Lista todas as campanhas da empresa do usuário.
-     * @summary Listar campanhas
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CampaignsApi
-     */
-    public campaignsControllerFindAllV1(options?: RawAxiosRequestConfig) {
-        return CampaignsApiFp(this.configuration).campaignsControllerFindAllV1(options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   * Lista todas as campanhas da empresa do usuário.
+   * @summary Listar campanhas
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CampaignsApi
+   */
+  public campaignsControllerFindAllV1(options?: RawAxiosRequestConfig) {
+    return CampaignsApiFp(this.configuration)
+      .campaignsControllerFindAllV1(options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * 
-     * @summary Buscar campanha por ID
-     * @param {CampaignsApiCampaignsControllerFindOneV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CampaignsApi
-     */
-    public campaignsControllerFindOneV1(requestParameters: CampaignsApiCampaignsControllerFindOneV1Request, options?: RawAxiosRequestConfig) {
-        return CampaignsApiFp(this.configuration).campaignsControllerFindOneV1(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   *
+   * @summary Buscar campanha por ID
+   * @param {CampaignsApiCampaignsControllerFindOneV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CampaignsApi
+   */
+  public campaignsControllerFindOneV1(
+    requestParameters: CampaignsApiCampaignsControllerFindOneV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return CampaignsApiFp(this.configuration)
+      .campaignsControllerFindOneV1(requestParameters.id, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * 
-     * @summary Pausar campanha
-     * @param {CampaignsApiCampaignsControllerPauseV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CampaignsApi
-     */
-    public campaignsControllerPauseV1(requestParameters: CampaignsApiCampaignsControllerPauseV1Request, options?: RawAxiosRequestConfig) {
-        return CampaignsApiFp(this.configuration).campaignsControllerPauseV1(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   *
+   * @summary Pausar campanha
+   * @param {CampaignsApiCampaignsControllerPauseV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CampaignsApi
+   */
+  public campaignsControllerPauseV1(
+    requestParameters: CampaignsApiCampaignsControllerPauseV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return CampaignsApiFp(this.configuration)
+      .campaignsControllerPauseV1(requestParameters.id, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 }
-

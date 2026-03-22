@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useCompanies } from '@/hooks/use-companies';
-import { useEffect } from 'react';
+import { useRouter } from "next/navigation";
+import { useCompanies } from "@/hooks/use-companies";
+import { useEffect } from "react";
 
 interface Company {
   id: string;
@@ -52,9 +52,7 @@ export default function Home() {
           <h1 className="text-6xl font-bold text-white mb-4">
             Frame<span className="text-red-500">24</span>
           </h1>
-          <p className="text-zinc-400 text-xl">
-            Escolha sua rede de cinemas
-          </p>
+          <p className="text-zinc-400 text-xl">Escolha sua rede de cinemas</p>
         </div>
 
         <div className="space-y-4">
@@ -85,8 +83,18 @@ export default function Home() {
                   )}
                 </div>
                 <div className="text-zinc-600 group-hover:text-red-400 transition-colors">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
                   </svg>
                 </div>
               </div>

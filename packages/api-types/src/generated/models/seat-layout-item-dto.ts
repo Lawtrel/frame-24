@@ -12,31 +12,28 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface SeatLayoutItemDto
  */
 export interface SeatLayoutItemDto {
-    /**
-     * 
-     * @type {string}
-     * @memberof SeatLayoutItemDto
-     */
-    'seat_type_id'?: string | null;
-    /**
-     * 
-     * @type {number}
-     * @memberof SeatLayoutItemDto
-     */
-    'column_number': number;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof SeatLayoutItemDto
-     */
-    'accessible'?: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof SeatLayoutItemDto
+   */
+  seat_type_id?: string | null;
+  /**
+   *
+   * @type {number}
+   * @memberof SeatLayoutItemDto
+   */
+  column_number: number;
+  /**
+   *
+   * @type {boolean}
+   * @memberof SeatLayoutItemDto
+   */
+  accessible?: boolean;
 }
-

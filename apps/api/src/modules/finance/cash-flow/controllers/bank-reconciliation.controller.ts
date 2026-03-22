@@ -9,6 +9,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -67,7 +68,7 @@ export class BankReconciliationController {
     status: 200,
     description: 'Reconciliation retrieved successfully',
   })
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.findOne(id);
   }
 
@@ -80,7 +81,7 @@ export class BankReconciliationController {
     description: 'Reconciliation updated successfully',
   })
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body(new ZodValidationPipe()) dto: UpdateBankReconciliationDto,
   ) {
     return this.service.update(id, dto);
@@ -94,7 +95,7 @@ export class BankReconciliationController {
     status: 200,
     description: 'Reconciliation completed successfully',
   })
-  async complete(@Param('id') id: string) {
+  async complete(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.complete(id);
   }
 }

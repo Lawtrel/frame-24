@@ -82,11 +82,13 @@ const CREATE_SCOPED_OPERATIONS = new Set<string>(['create', 'createMany']);
 
 function objectHasCompanyId(value: unknown): boolean {
   if (value === null || value === undefined) return false;
-  if (Array.isArray(value)) return value.some((item) => objectHasCompanyId(item));
+  if (Array.isArray(value))
+    return value.some((item) => objectHasCompanyId(item));
   if (typeof value !== 'object') return false;
 
   const record = value as Record<string, unknown>;
-  if (record.company_id !== undefined && record.company_id !== null) return true;
+  if (record.company_id !== undefined && record.company_id !== null)
+    return true;
 
   return Object.values(record).some((item) => objectHasCompanyId(item));
 }

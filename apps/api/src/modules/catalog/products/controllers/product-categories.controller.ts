@@ -9,6 +9,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
@@ -48,7 +49,9 @@ export class ProductCategoriesController {
   @Get(':id')
   @RequirePermission('product_categories', 'read')
   @ApiOperation({ summary: 'Buscar categoria por ID' })
-  async findOne(@Param('id') id: string): Promise<ProductCategoryResponseDto> {
+  async findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<ProductCategoryResponseDto> {
     return await this.categoriesService.findOne(id);
   }
 
@@ -56,7 +59,7 @@ export class ProductCategoriesController {
   @RequirePermission('product_categories', 'update')
   @ApiOperation({ summary: 'Atualizar categoria' })
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateProductCategoryDto,
   ): Promise<ProductCategoryResponseDto> {
     return await this.categoriesService.update(id, dto);
@@ -66,7 +69,7 @@ export class ProductCategoriesController {
   @RequirePermission('product_categories', 'delete')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Deletar categoria' })
-  async delete(@Param('id') id: string): Promise<void> {
+  async delete(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return await this.categoriesService.delete(id);
   }
 }

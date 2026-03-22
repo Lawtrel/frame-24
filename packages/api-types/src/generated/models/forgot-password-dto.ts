@@ -12,19 +12,16 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface ForgotPasswordDto
  */
 export interface ForgotPasswordDto {
-    /**
-     * Email associado à conta para recuperação
-     * @type {string}
-     * @memberof ForgotPasswordDto
-     */
-    'email': string;
+  /**
+   * Email associado à conta para recuperação
+   * @type {string}
+   * @memberof ForgotPasswordDto
+   */
+  email: string;
 }
-

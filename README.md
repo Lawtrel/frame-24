@@ -247,11 +247,11 @@ Após a instalação, você pode acessar os seguintes serviços:
 
 | 🎯 Serviço              | 🔗 URL                                    | 🔐 Credenciais            |
 | ----------------------- | ----------------------------------------- | ------------------------- |
-| **API (Swagger)**       | <http://localhost:4000/api/docs>            | -                         |
-| **Frontend**            | <http://localhost:3000>                     | -                         |
-| **Landing Page**        | <http://localhost:3003>                     | -                         |
-| **RabbitMQ Management** | <http://localhost:15672>                    | `frame24` / `frame24pass` |
-| **MailHog (Email UI)**  | <http://localhost:8025>                     | -                         |
+| **API (Swagger)**       | <http://localhost:4000/api/docs>          | -                         |
+| **Frontend**            | <http://localhost:3000>                   | -                         |
+| **Landing Page**        | <http://localhost:3003>                   | -                         |
+| **RabbitMQ Management** | <http://localhost:15672>                  | `frame24` / `frame24pass` |
+| **MailHog (Email UI)**  | <http://localhost:8025>                   | -                         |
 | **Prisma Studio**       | Execute `pnpm db:studio` em `packages/db` | -                         |
 
 ## 📊 Database Schemas

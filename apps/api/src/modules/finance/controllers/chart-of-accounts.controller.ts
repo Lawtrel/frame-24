@@ -7,6 +7,7 @@ import {
   Post,
   Put,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -47,7 +48,10 @@ export class ChartOfAccountsController {
   @Put(':id')
   @RequirePermission('finance_accounts', 'update')
   @ApiOperation({ summary: 'Atualizar conta contábil' })
-  async update(@Param('id') id: string, @Body() dto: UpdateChartAccountDto) {
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateChartAccountDto,
+  ) {
     return this.chartService.update(id, dto);
   }
 
@@ -55,7 +59,7 @@ export class ChartOfAccountsController {
   @RequirePermission('finance_accounts', 'delete')
   @ApiOperation({ summary: 'Inativar conta contábil' })
   @ApiResponse({ status: 200, description: 'Conta inativada com sucesso' })
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.chartService.remove(id);
   }
 }

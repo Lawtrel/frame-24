@@ -12,34 +12,32 @@
  * Do not edit the class manually.
  */
 
-
 // May contain unused imports in some cases
 // @ts-ignore
-import type { ConcessionSaleItemDto } from './concession-sale-item-dto';
+import type { ConcessionSaleItemDto } from "./concession-sale-item-dto";
 
 /**
- * 
+ *
  * @export
  * @interface ConcessionSaleDto
  */
 export interface ConcessionSaleDto {
-    /**
-     * 
-     * @type {string}
-     * @memberof ConcessionSaleDto
-     */
-    'id': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConcessionSaleDto
-     */
-    'total_amount': number;
-    /**
-     * 
-     * @type {Array<ConcessionSaleItemDto>}
-     * @memberof ConcessionSaleDto
-     */
-    'concession_sale_items': Array<ConcessionSaleItemDto>;
+  /**
+   *
+   * @type {string}
+   * @memberof ConcessionSaleDto
+   */
+  id: string;
+  /**
+   *
+   * @type {number}
+   * @memberof ConcessionSaleDto
+   */
+  total_amount: number;
+  /**
+   *
+   * @type {Array<ConcessionSaleItemDto>}
+   * @memberof ConcessionSaleDto
+   */
+  concession_sale_items: Array<ConcessionSaleItemDto>;
 }
-

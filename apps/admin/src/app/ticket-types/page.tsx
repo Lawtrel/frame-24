@@ -25,7 +25,7 @@ export default function TicketTypesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if(!confirm("Excluir este tipo de ingresso?")) return;
+    if (!confirm("Excluir este tipo de ingresso?")) return;
     await SalesService.deleteTicketType(id);
     loadData();
   };
@@ -33,8 +33,13 @@ export default function TicketTypesPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-foreground">Tipos de Ingresso</h1>
-        <Link href="/ticket-types/new" className="bg-accent-red px-4 py-2 rounded text-white flex gap-2">
+        <h1 className="text-2xl font-bold text-foreground">
+          Tipos de Ingresso
+        </h1>
+        <Link
+          href="/ticket-types/new"
+          className="bg-accent-red px-4 py-2 rounded text-white flex gap-2"
+        >
           <Plus className="w-4 h-4" /> Novo Tipo
         </Link>
       </div>
@@ -56,7 +61,10 @@ export default function TicketTypesPage() {
                 </td>
                 <td className="px-6 py-4">{t.discount_percentage}%</td>
                 <td className="px-6 py-4 text-right">
-                  <button onClick={() => handleDelete(t.id)} className="text-zinc-400 hover:text-red-500">
+                  <button
+                    onClick={() => handleDelete(t.id)}
+                    className="text-zinc-400 hover:text-red-500"
+                  >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </td>

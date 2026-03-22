@@ -230,7 +230,10 @@ export class AuthService {
       verificationToken: verification.token,
     });
 
-    this.logger.log(`Signup concluído aguardando verificação: ${identity.email}`, AuthService.name);
+    this.logger.log(
+      `Signup concluído aguardando verificação: ${identity.email}`,
+      AuthService.name,
+    );
 
     return {
       success: true,
@@ -281,13 +284,17 @@ export class AuthService {
       verificationToken: verification.token,
     });
 
-    this.logger.log(`Register concluído aguardando verificação: ${identity.email}`, AuthService.name);
+    this.logger.log(
+      `Register concluído aguardando verificação: ${identity.email}`,
+      AuthService.name,
+    );
 
     return {
       success: true,
       user_id: identity.id,
       email: identity.email,
-      message: 'Usuário cadastrado com sucesso. Verifique o email para ativar o acesso.',
+      message:
+        'Usuário cadastrado com sucesso. Verifique o email para ativar o acesso.',
     };
   }
 

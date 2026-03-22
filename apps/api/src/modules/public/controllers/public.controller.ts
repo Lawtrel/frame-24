@@ -5,6 +5,7 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorator';
@@ -135,7 +136,7 @@ export class PublicController {
     status: 404,
     description: 'Sessão não encontrada',
   })
-  async getSeatsMap(@Param('id') id: string) {
+  async getSeatsMap(@Param('id', ParseUUIDPipe) id: string) {
     return this.publicService.getShowtimeSeatsMap(id);
   }
 
@@ -234,7 +235,7 @@ export class PublicController {
     status: 404,
     description: 'Filme não encontrado',
   })
-  async getMovie(@Param('id') id: string) {
+  async getMovie(@Param('id', ParseUUIDPipe) id: string) {
     return this.publicService.getMovie(id);
   }
 }

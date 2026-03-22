@@ -7,6 +7,7 @@ import {
   Param,
   HttpCode,
   HttpStatus,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -62,7 +63,7 @@ export class CinemaComplexesController {
   @ApiOperation({ summary: 'Buscar um complexo de cinema por ID' })
   @ApiResponse({ status: 200, description: 'Complexo encontrado.' })
   @ApiNotFoundResponse({ description: 'Complexo não encontrado.' })
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.findOne(id);
   }
 
@@ -72,7 +73,10 @@ export class CinemaComplexesController {
   @ApiResponse({ status: 200, description: 'Complexo atualizado com sucesso.' })
   @ApiNotFoundResponse({ description: 'Complexo não encontrado.' })
   @ApiConflictResponse({ description: 'O código fornecido já está em uso.' })
-  async update(@Param('id') id: string, @Body() dto: UpdateCinemaComplexDto) {
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateCinemaComplexDto,
+  ) {
     return this.service.update(id, dto);
   }
 
@@ -82,7 +86,7 @@ export class CinemaComplexesController {
   @ApiOperation({ summary: 'Excluir um complexo de cinema' })
   @ApiResponse({ status: 200, description: 'Complexo excluído com sucesso.' })
   @ApiNotFoundResponse({ description: 'Complexo não encontrado.' })
-  async delete(@Param('id') id: string) {
+  async delete(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.delete(id);
   }
 }

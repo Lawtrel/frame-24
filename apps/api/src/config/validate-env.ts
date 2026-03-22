@@ -28,4 +28,3 @@ export function validateEnvironment(): void {
     'frame24pass',
   ]);
 }
-

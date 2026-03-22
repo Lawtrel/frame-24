@@ -12,79 +12,76 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface ProductStockResponseDto
  */
 export interface ProductStockResponseDto {
-    /**
-     * 
-     * @type {string}
-     * @memberof ProductStockResponseDto
-     */
-    'id': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ProductStockResponseDto
-     */
-    'product_id': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ProductStockResponseDto
-     */
-    'complex_id': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof ProductStockResponseDto
-     */
-    'current_quantity': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ProductStockResponseDto
-     */
-    'minimum_quantity': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ProductStockResponseDto
-     */
-    'maximum_quantity': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof ProductStockResponseDto
-     */
-    'location'?: string;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof ProductStockResponseDto
-     */
-    'active': boolean;
-    /**
-     * 
-     * @type {string}
-     * @memberof ProductStockResponseDto
-     */
-    'created_at': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ProductStockResponseDto
-     */
-    'updated_at': string;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof ProductStockResponseDto
-     */
-    'is_low_stock': boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof ProductStockResponseDto
+   */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ProductStockResponseDto
+   */
+  product_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ProductStockResponseDto
+   */
+  complex_id: string;
+  /**
+   *
+   * @type {number}
+   * @memberof ProductStockResponseDto
+   */
+  current_quantity: number;
+  /**
+   *
+   * @type {number}
+   * @memberof ProductStockResponseDto
+   */
+  minimum_quantity: number;
+  /**
+   *
+   * @type {number}
+   * @memberof ProductStockResponseDto
+   */
+  maximum_quantity: number;
+  /**
+   *
+   * @type {string}
+   * @memberof ProductStockResponseDto
+   */
+  location?: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ProductStockResponseDto
+   */
+  active: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof ProductStockResponseDto
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ProductStockResponseDto
+   */
+  updated_at: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ProductStockResponseDto
+   */
+  is_low_stock: boolean;
 }
-

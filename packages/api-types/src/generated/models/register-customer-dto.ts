@@ -12,73 +12,70 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface RegisterCustomerDto
  */
 export interface RegisterCustomerDto {
-    /**
-     * ID da empresa
-     * @type {string}
-     * @memberof RegisterCustomerDto
-     */
-    'company_id': string;
-    /**
-     * CPF do cliente
-     * @type {string}
-     * @memberof RegisterCustomerDto
-     */
-    'cpf': string;
-    /**
-     * Nome completo
-     * @type {string}
-     * @memberof RegisterCustomerDto
-     */
-    'full_name': string;
-    /**
-     * Email
-     * @type {string}
-     * @memberof RegisterCustomerDto
-     */
-    'email': string;
-    /**
-     * Telefone
-     * @type {string}
-     * @memberof RegisterCustomerDto
-     */
-    'phone'?: string;
-    /**
-     * Data de nascimento
-     * @type {string}
-     * @memberof RegisterCustomerDto
-     */
-    'birth_date'?: string;
-    /**
-     * Senha (mín. 8 caracteres, maiúscula, minúscula e número)
-     * @type {string}
-     * @memberof RegisterCustomerDto
-     */
-    'password': string;
-    /**
-     * Aceita marketing
-     * @type {boolean}
-     * @memberof RegisterCustomerDto
-     */
-    'accepts_marketing'?: boolean;
-    /**
-     * Aceita emails
-     * @type {boolean}
-     * @memberof RegisterCustomerDto
-     */
-    'accepts_email'?: boolean;
-    /**
-     * Aceita SMS
-     * @type {boolean}
-     * @memberof RegisterCustomerDto
-     */
-    'accepts_sms'?: boolean;
+  /**
+   * ID da empresa
+   * @type {string}
+   * @memberof RegisterCustomerDto
+   */
+  company_id: string;
+  /**
+   * CPF do cliente
+   * @type {string}
+   * @memberof RegisterCustomerDto
+   */
+  cpf: string;
+  /**
+   * Nome completo
+   * @type {string}
+   * @memberof RegisterCustomerDto
+   */
+  full_name: string;
+  /**
+   * Email
+   * @type {string}
+   * @memberof RegisterCustomerDto
+   */
+  email: string;
+  /**
+   * Telefone
+   * @type {string}
+   * @memberof RegisterCustomerDto
+   */
+  phone?: string;
+  /**
+   * Data de nascimento
+   * @type {string}
+   * @memberof RegisterCustomerDto
+   */
+  birth_date?: string;
+  /**
+   * Senha (mín. 8 caracteres, maiúscula, minúscula e número)
+   * @type {string}
+   * @memberof RegisterCustomerDto
+   */
+  password: string;
+  /**
+   * Aceita marketing
+   * @type {boolean}
+   * @memberof RegisterCustomerDto
+   */
+  accepts_marketing?: boolean;
+  /**
+   * Aceita emails
+   * @type {boolean}
+   * @memberof RegisterCustomerDto
+   */
+  accepts_email?: boolean;
+  /**
+   * Aceita SMS
+   * @type {boolean}
+   * @memberof RegisterCustomerDto
+   */
+  accepts_sms?: boolean;
 }
-

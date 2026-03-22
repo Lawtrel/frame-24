@@ -51,7 +51,11 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   private setClsFromUser(user: RequestUser | CustomerUser): void {
-    const fieldMap: Array<{ field: string; clsKey: string; typeCheck?: string }> = [
+    const fieldMap: Array<{
+      field: string;
+      clsKey: string;
+      typeCheck?: string;
+    }> = [
       { field: 'company_id', clsKey: 'companyId' },
       { field: 'company_user_id', clsKey: 'userId' },
       { field: 'identity_id', clsKey: 'identityId' },

@@ -9,6 +9,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -63,7 +64,7 @@ export class CashFlowEntriesController {
     status: 200,
     description: 'Cash flow entry retrieved successfully',
   })
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.findOne(id);
   }
 
@@ -72,7 +73,7 @@ export class CashFlowEntriesController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Reconcile a cash flow entry' })
   @ApiResponse({ status: 200, description: 'Entry reconciled successfully' })
-  async reconcile(@Param('id') id: string) {
+  async reconcile(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.reconcile(id);
   }
 
@@ -81,7 +82,7 @@ export class CashFlowEntriesController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a cash flow entry' })
   @ApiResponse({ status: 200, description: 'Entry deleted successfully' })
-  async delete(@Param('id') id: string) {
+  async delete(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.delete(id);
   }
 }

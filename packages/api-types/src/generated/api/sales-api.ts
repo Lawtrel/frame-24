@@ -12,311 +12,504 @@
  * Do not edit the class manually.
  */
 
-
-import type { Configuration } from '../configuration';
-import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from 'axios';
-import globalAxios from 'axios';
+import type { Configuration } from "../configuration";
+import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from "axios";
+import globalAxios from "axios";
 // Some imports not used depending on template conditions
 // @ts-ignore
-import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from '../common';
+import {
+  DUMMY_BASE_URL,
+  assertParamExists,
+  setApiKeyToObject,
+  setBasicAuthToObject,
+  setBearerAuthToObject,
+  setOAuthToObject,
+  setSearchParams,
+  serializeDataIfNeeded,
+  toPathString,
+  createRequestFunction,
+} from "../common";
 // @ts-ignore
-import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
+import {
+  BASE_PATH,
+  COLLECTION_FORMATS,
+  type RequestArgs,
+  BaseAPI,
+  RequiredError,
+  operationServerMap,
+} from "../base";
 // @ts-ignore
-import type { CreateSaleDto } from '../models';
+import type { CreateSaleDto } from "../models";
 // @ts-ignore
-import type { SaleResponseDto } from '../models';
+import type { SaleResponseDto } from "../models";
 /**
  * SalesApi - axios parameter creator
  * @export
  */
-export const SalesApiAxiosParamCreator = function (configuration?: Configuration) {
-    return {
-        /**
-         * 
-         * @summary Cancelar venda
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        salesControllerCancelV1: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('salesControllerCancelV1', 'id', id)
-            const localVarPath = `/v1/sales/{id}/cancel`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+export const SalesApiAxiosParamCreator = function (
+  configuration?: Configuration,
+) {
+  return {
+    /**
+     *
+     * @summary Cancelar venda
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    salesControllerCancelV1: async (
+      id: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists("salesControllerCancelV1", "id", id);
+      const localVarPath = `/v1/sales/{id}/cancel`.replace(
+        `{${"id"}}`,
+        encodeURIComponent(String(id)),
+      );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      const localVarRequestOptions = {
+        method: "DELETE",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @summary Criar nova venda
+     * @param {CreateSaleDto} createSaleDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    salesControllerCreateV1: async (
+      createSaleDto: CreateSaleDto,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'createSaleDto' is not null or undefined
+      assertParamExists(
+        "salesControllerCreateV1",
+        "createSaleDto",
+        createSaleDto,
+      );
+      const localVarPath = `/v1/sales`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary Criar nova venda
-         * @param {CreateSaleDto} createSaleDto 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        salesControllerCreateV1: async (createSaleDto: CreateSaleDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'createSaleDto' is not null or undefined
-            assertParamExists('salesControllerCreateV1', 'createSaleDto', createSaleDto)
-            const localVarPath = `/v1/sales`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+      const localVarRequestOptions = {
+        method: "POST",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      localVarHeaderParameter["Content-Type"] = "application/json";
 
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        createSaleDto,
+        localVarRequestOptions,
+        configuration,
+      );
 
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @summary Listar vendas
+     * @param {string} cinemaComplexId
+     * @param {string} customerId
+     * @param {string} startDate
+     * @param {string} endDate
+     * @param {string} status
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    salesControllerFindAllV1: async (
+      cinemaComplexId: string,
+      customerId: string,
+      startDate: string,
+      endDate: string,
+      status: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'cinemaComplexId' is not null or undefined
+      assertParamExists(
+        "salesControllerFindAllV1",
+        "cinemaComplexId",
+        cinemaComplexId,
+      );
+      // verify required parameter 'customerId' is not null or undefined
+      assertParamExists("salesControllerFindAllV1", "customerId", customerId);
+      // verify required parameter 'startDate' is not null or undefined
+      assertParamExists("salesControllerFindAllV1", "startDate", startDate);
+      // verify required parameter 'endDate' is not null or undefined
+      assertParamExists("salesControllerFindAllV1", "endDate", endDate);
+      // verify required parameter 'status' is not null or undefined
+      assertParamExists("salesControllerFindAllV1", "status", status);
+      const localVarPath = `/v1/sales`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(createSaleDto, localVarRequestOptions, configuration)
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary Listar vendas
-         * @param {string} cinemaComplexId 
-         * @param {string} customerId 
-         * @param {string} startDate 
-         * @param {string} endDate 
-         * @param {string} status 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        salesControllerFindAllV1: async (cinemaComplexId: string, customerId: string, startDate: string, endDate: string, status: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'cinemaComplexId' is not null or undefined
-            assertParamExists('salesControllerFindAllV1', 'cinemaComplexId', cinemaComplexId)
-            // verify required parameter 'customerId' is not null or undefined
-            assertParamExists('salesControllerFindAllV1', 'customerId', customerId)
-            // verify required parameter 'startDate' is not null or undefined
-            assertParamExists('salesControllerFindAllV1', 'startDate', startDate)
-            // verify required parameter 'endDate' is not null or undefined
-            assertParamExists('salesControllerFindAllV1', 'endDate', endDate)
-            // verify required parameter 'status' is not null or undefined
-            assertParamExists('salesControllerFindAllV1', 'status', status)
-            const localVarPath = `/v1/sales`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+      if (cinemaComplexId !== undefined) {
+        localVarQueryParameter["cinema_complex_id"] = cinemaComplexId;
+      }
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      if (customerId !== undefined) {
+        localVarQueryParameter["customer_id"] = customerId;
+      }
 
-            if (cinemaComplexId !== undefined) {
-                localVarQueryParameter['cinema_complex_id'] = cinemaComplexId;
-            }
+      if (startDate !== undefined) {
+        localVarQueryParameter["start_date"] = startDate;
+      }
 
-            if (customerId !== undefined) {
-                localVarQueryParameter['customer_id'] = customerId;
-            }
+      if (endDate !== undefined) {
+        localVarQueryParameter["end_date"] = endDate;
+      }
 
-            if (startDate !== undefined) {
-                localVarQueryParameter['start_date'] = startDate;
-            }
+      if (status !== undefined) {
+        localVarQueryParameter["status"] = status;
+      }
 
-            if (endDate !== undefined) {
-                localVarQueryParameter['end_date'] = endDate;
-            }
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
-            if (status !== undefined) {
-                localVarQueryParameter['status'] = status;
-            }
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @summary Buscar venda por ID
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    salesControllerFindOneV1: async (
+      id: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists("salesControllerFindOneV1", "id", id);
+      const localVarPath = `/v1/sales/{id}`.replace(
+        `{${"id"}}`,
+        encodeURIComponent(String(id)),
+      );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary Buscar venda por ID
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        salesControllerFindOneV1: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('salesControllerFindOneV1', 'id', id)
-            const localVarPath = `/v1/sales/{id}`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-    }
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+  };
 };
 
 /**
  * SalesApi - functional programming interface
  * @export
  */
-export const SalesApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = SalesApiAxiosParamCreator(configuration)
-    return {
-        /**
-         * 
-         * @summary Cancelar venda
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async salesControllerCancelV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.salesControllerCancelV1(id, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['SalesApi.salesControllerCancelV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @summary Criar nova venda
-         * @param {CreateSaleDto} createSaleDto 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async salesControllerCreateV1(createSaleDto: CreateSaleDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SaleResponseDto>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.salesControllerCreateV1(createSaleDto, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['SalesApi.salesControllerCreateV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @summary Listar vendas
-         * @param {string} cinemaComplexId 
-         * @param {string} customerId 
-         * @param {string} startDate 
-         * @param {string} endDate 
-         * @param {string} status 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async salesControllerFindAllV1(cinemaComplexId: string, customerId: string, startDate: string, endDate: string, status: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<SaleResponseDto>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.salesControllerFindAllV1(cinemaComplexId, customerId, startDate, endDate, status, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['SalesApi.salesControllerFindAllV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @summary Buscar venda por ID
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async salesControllerFindOneV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SaleResponseDto>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.salesControllerFindOneV1(id, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['SalesApi.salesControllerFindOneV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-    }
+export const SalesApiFp = function (configuration?: Configuration) {
+  const localVarAxiosParamCreator = SalesApiAxiosParamCreator(configuration);
+  return {
+    /**
+     *
+     * @summary Cancelar venda
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async salesControllerCancelV1(
+      id: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.salesControllerCancelV1(id, options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["SalesApi.salesControllerCancelV1"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     *
+     * @summary Criar nova venda
+     * @param {CreateSaleDto} createSaleDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async salesControllerCreateV1(
+      createSaleDto: CreateSaleDto,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (
+        axios?: AxiosInstance,
+        basePath?: string,
+      ) => AxiosPromise<SaleResponseDto>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.salesControllerCreateV1(
+          createSaleDto,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["SalesApi.salesControllerCreateV1"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     *
+     * @summary Listar vendas
+     * @param {string} cinemaComplexId
+     * @param {string} customerId
+     * @param {string} startDate
+     * @param {string} endDate
+     * @param {string} status
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async salesControllerFindAllV1(
+      cinemaComplexId: string,
+      customerId: string,
+      startDate: string,
+      endDate: string,
+      status: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (
+        axios?: AxiosInstance,
+        basePath?: string,
+      ) => AxiosPromise<Array<SaleResponseDto>>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.salesControllerFindAllV1(
+          cinemaComplexId,
+          customerId,
+          startDate,
+          endDate,
+          status,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["SalesApi.salesControllerFindAllV1"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     *
+     * @summary Buscar venda por ID
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async salesControllerFindOneV1(
+      id: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (
+        axios?: AxiosInstance,
+        basePath?: string,
+      ) => AxiosPromise<SaleResponseDto>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.salesControllerFindOneV1(id, options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["SalesApi.salesControllerFindOneV1"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+  };
 };
 
 /**
  * SalesApi - factory interface
  * @export
  */
-export const SalesApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = SalesApiFp(configuration)
-    return {
-        /**
-         * 
-         * @summary Cancelar venda
-         * @param {SalesApiSalesControllerCancelV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        salesControllerCancelV1(requestParameters: SalesApiSalesControllerCancelV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.salesControllerCancelV1(requestParameters.id, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @summary Criar nova venda
-         * @param {SalesApiSalesControllerCreateV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        salesControllerCreateV1(requestParameters: SalesApiSalesControllerCreateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<SaleResponseDto> {
-            return localVarFp.salesControllerCreateV1(requestParameters.createSaleDto, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @summary Listar vendas
-         * @param {SalesApiSalesControllerFindAllV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        salesControllerFindAllV1(requestParameters: SalesApiSalesControllerFindAllV1Request, options?: RawAxiosRequestConfig): AxiosPromise<Array<SaleResponseDto>> {
-            return localVarFp.salesControllerFindAllV1(requestParameters.cinemaComplexId, requestParameters.customerId, requestParameters.startDate, requestParameters.endDate, requestParameters.status, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @summary Buscar venda por ID
-         * @param {SalesApiSalesControllerFindOneV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        salesControllerFindOneV1(requestParameters: SalesApiSalesControllerFindOneV1Request, options?: RawAxiosRequestConfig): AxiosPromise<SaleResponseDto> {
-            return localVarFp.salesControllerFindOneV1(requestParameters.id, options).then((request) => request(axios, basePath));
-        },
-    };
+export const SalesApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance,
+) {
+  const localVarFp = SalesApiFp(configuration);
+  return {
+    /**
+     *
+     * @summary Cancelar venda
+     * @param {SalesApiSalesControllerCancelV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    salesControllerCancelV1(
+      requestParameters: SalesApiSalesControllerCancelV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .salesControllerCancelV1(requestParameters.id, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @summary Criar nova venda
+     * @param {SalesApiSalesControllerCreateV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    salesControllerCreateV1(
+      requestParameters: SalesApiSalesControllerCreateV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<SaleResponseDto> {
+      return localVarFp
+        .salesControllerCreateV1(requestParameters.createSaleDto, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @summary Listar vendas
+     * @param {SalesApiSalesControllerFindAllV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    salesControllerFindAllV1(
+      requestParameters: SalesApiSalesControllerFindAllV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<Array<SaleResponseDto>> {
+      return localVarFp
+        .salesControllerFindAllV1(
+          requestParameters.cinemaComplexId,
+          requestParameters.customerId,
+          requestParameters.startDate,
+          requestParameters.endDate,
+          requestParameters.status,
+          options,
+        )
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @summary Buscar venda por ID
+     * @param {SalesApiSalesControllerFindOneV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    salesControllerFindOneV1(
+      requestParameters: SalesApiSalesControllerFindOneV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<SaleResponseDto> {
+      return localVarFp
+        .salesControllerFindOneV1(requestParameters.id, options)
+        .then((request) => request(axios, basePath));
+    },
+  };
 };
 
 /**
@@ -325,46 +518,57 @@ export const SalesApiFactory = function (configuration?: Configuration, basePath
  * @interface SalesApi
  */
 export interface SalesApiInterface {
-    /**
-     * 
-     * @summary Cancelar venda
-     * @param {SalesApiSalesControllerCancelV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof SalesApiInterface
-     */
-    salesControllerCancelV1(requestParameters: SalesApiSalesControllerCancelV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   *
+   * @summary Cancelar venda
+   * @param {SalesApiSalesControllerCancelV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof SalesApiInterface
+   */
+  salesControllerCancelV1(
+    requestParameters: SalesApiSalesControllerCancelV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * 
-     * @summary Criar nova venda
-     * @param {SalesApiSalesControllerCreateV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof SalesApiInterface
-     */
-    salesControllerCreateV1(requestParameters: SalesApiSalesControllerCreateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<SaleResponseDto>;
+  /**
+   *
+   * @summary Criar nova venda
+   * @param {SalesApiSalesControllerCreateV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof SalesApiInterface
+   */
+  salesControllerCreateV1(
+    requestParameters: SalesApiSalesControllerCreateV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<SaleResponseDto>;
 
-    /**
-     * 
-     * @summary Listar vendas
-     * @param {SalesApiSalesControllerFindAllV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof SalesApiInterface
-     */
-    salesControllerFindAllV1(requestParameters: SalesApiSalesControllerFindAllV1Request, options?: RawAxiosRequestConfig): AxiosPromise<Array<SaleResponseDto>>;
+  /**
+   *
+   * @summary Listar vendas
+   * @param {SalesApiSalesControllerFindAllV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof SalesApiInterface
+   */
+  salesControllerFindAllV1(
+    requestParameters: SalesApiSalesControllerFindAllV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<Array<SaleResponseDto>>;
 
-    /**
-     * 
-     * @summary Buscar venda por ID
-     * @param {SalesApiSalesControllerFindOneV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof SalesApiInterface
-     */
-    salesControllerFindOneV1(requestParameters: SalesApiSalesControllerFindOneV1Request, options?: RawAxiosRequestConfig): AxiosPromise<SaleResponseDto>;
-
+  /**
+   *
+   * @summary Buscar venda por ID
+   * @param {SalesApiSalesControllerFindOneV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof SalesApiInterface
+   */
+  salesControllerFindOneV1(
+    requestParameters: SalesApiSalesControllerFindOneV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<SaleResponseDto>;
 }
 
 /**
@@ -373,12 +577,12 @@ export interface SalesApiInterface {
  * @interface SalesApiSalesControllerCancelV1Request
  */
 export interface SalesApiSalesControllerCancelV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof SalesApiSalesControllerCancelV1
-     */
-    readonly id: string
+  /**
+   *
+   * @type {string}
+   * @memberof SalesApiSalesControllerCancelV1
+   */
+  readonly id: string;
 }
 
 /**
@@ -387,12 +591,12 @@ export interface SalesApiSalesControllerCancelV1Request {
  * @interface SalesApiSalesControllerCreateV1Request
  */
 export interface SalesApiSalesControllerCreateV1Request {
-    /**
-     * 
-     * @type {CreateSaleDto}
-     * @memberof SalesApiSalesControllerCreateV1
-     */
-    readonly createSaleDto: CreateSaleDto
+  /**
+   *
+   * @type {CreateSaleDto}
+   * @memberof SalesApiSalesControllerCreateV1
+   */
+  readonly createSaleDto: CreateSaleDto;
 }
 
 /**
@@ -401,40 +605,40 @@ export interface SalesApiSalesControllerCreateV1Request {
  * @interface SalesApiSalesControllerFindAllV1Request
  */
 export interface SalesApiSalesControllerFindAllV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof SalesApiSalesControllerFindAllV1
-     */
-    readonly cinemaComplexId: string
+  /**
+   *
+   * @type {string}
+   * @memberof SalesApiSalesControllerFindAllV1
+   */
+  readonly cinemaComplexId: string;
 
-    /**
-     * 
-     * @type {string}
-     * @memberof SalesApiSalesControllerFindAllV1
-     */
-    readonly customerId: string
+  /**
+   *
+   * @type {string}
+   * @memberof SalesApiSalesControllerFindAllV1
+   */
+  readonly customerId: string;
 
-    /**
-     * 
-     * @type {string}
-     * @memberof SalesApiSalesControllerFindAllV1
-     */
-    readonly startDate: string
+  /**
+   *
+   * @type {string}
+   * @memberof SalesApiSalesControllerFindAllV1
+   */
+  readonly startDate: string;
 
-    /**
-     * 
-     * @type {string}
-     * @memberof SalesApiSalesControllerFindAllV1
-     */
-    readonly endDate: string
+  /**
+   *
+   * @type {string}
+   * @memberof SalesApiSalesControllerFindAllV1
+   */
+  readonly endDate: string;
 
-    /**
-     * 
-     * @type {string}
-     * @memberof SalesApiSalesControllerFindAllV1
-     */
-    readonly status: string
+  /**
+   *
+   * @type {string}
+   * @memberof SalesApiSalesControllerFindAllV1
+   */
+  readonly status: string;
 }
 
 /**
@@ -443,12 +647,12 @@ export interface SalesApiSalesControllerFindAllV1Request {
  * @interface SalesApiSalesControllerFindOneV1Request
  */
 export interface SalesApiSalesControllerFindOneV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof SalesApiSalesControllerFindOneV1
-     */
-    readonly id: string
+  /**
+   *
+   * @type {string}
+   * @memberof SalesApiSalesControllerFindOneV1
+   */
+  readonly id: string;
 }
 
 /**
@@ -458,52 +662,78 @@ export interface SalesApiSalesControllerFindOneV1Request {
  * @extends {BaseAPI}
  */
 export class SalesApi extends BaseAPI implements SalesApiInterface {
-    /**
-     * 
-     * @summary Cancelar venda
-     * @param {SalesApiSalesControllerCancelV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof SalesApi
-     */
-    public salesControllerCancelV1(requestParameters: SalesApiSalesControllerCancelV1Request, options?: RawAxiosRequestConfig) {
-        return SalesApiFp(this.configuration).salesControllerCancelV1(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   *
+   * @summary Cancelar venda
+   * @param {SalesApiSalesControllerCancelV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof SalesApi
+   */
+  public salesControllerCancelV1(
+    requestParameters: SalesApiSalesControllerCancelV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return SalesApiFp(this.configuration)
+      .salesControllerCancelV1(requestParameters.id, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * 
-     * @summary Criar nova venda
-     * @param {SalesApiSalesControllerCreateV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof SalesApi
-     */
-    public salesControllerCreateV1(requestParameters: SalesApiSalesControllerCreateV1Request, options?: RawAxiosRequestConfig) {
-        return SalesApiFp(this.configuration).salesControllerCreateV1(requestParameters.createSaleDto, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   *
+   * @summary Criar nova venda
+   * @param {SalesApiSalesControllerCreateV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof SalesApi
+   */
+  public salesControllerCreateV1(
+    requestParameters: SalesApiSalesControllerCreateV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return SalesApiFp(this.configuration)
+      .salesControllerCreateV1(requestParameters.createSaleDto, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * 
-     * @summary Listar vendas
-     * @param {SalesApiSalesControllerFindAllV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof SalesApi
-     */
-    public salesControllerFindAllV1(requestParameters: SalesApiSalesControllerFindAllV1Request, options?: RawAxiosRequestConfig) {
-        return SalesApiFp(this.configuration).salesControllerFindAllV1(requestParameters.cinemaComplexId, requestParameters.customerId, requestParameters.startDate, requestParameters.endDate, requestParameters.status, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   *
+   * @summary Listar vendas
+   * @param {SalesApiSalesControllerFindAllV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof SalesApi
+   */
+  public salesControllerFindAllV1(
+    requestParameters: SalesApiSalesControllerFindAllV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return SalesApiFp(this.configuration)
+      .salesControllerFindAllV1(
+        requestParameters.cinemaComplexId,
+        requestParameters.customerId,
+        requestParameters.startDate,
+        requestParameters.endDate,
+        requestParameters.status,
+        options,
+      )
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * 
-     * @summary Buscar venda por ID
-     * @param {SalesApiSalesControllerFindOneV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof SalesApi
-     */
-    public salesControllerFindOneV1(requestParameters: SalesApiSalesControllerFindOneV1Request, options?: RawAxiosRequestConfig) {
-        return SalesApiFp(this.configuration).salesControllerFindOneV1(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   *
+   * @summary Buscar venda por ID
+   * @param {SalesApiSalesControllerFindOneV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof SalesApi
+   */
+  public salesControllerFindOneV1(
+    requestParameters: SalesApiSalesControllerFindOneV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return SalesApiFp(this.configuration)
+      .salesControllerFindOneV1(requestParameters.id, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 }
-

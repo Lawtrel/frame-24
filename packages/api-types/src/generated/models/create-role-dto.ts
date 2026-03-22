@@ -12,37 +12,34 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface CreateRoleDto
  */
 export interface CreateRoleDto {
-    /**
-     * Role name
-     * @type {string}
-     * @memberof CreateRoleDto
-     */
-    'name': string;
-    /**
-     * Role description
-     * @type {string}
-     * @memberof CreateRoleDto
-     */
-    'description'?: string;
-    /**
-     * 
-     * @type {Array<Array<string>>}
-     * @memberof CreateRoleDto
-     */
-    'permissions': Array<Array<string>>;
-    /**
-     * Hierarchy level (1 = highest, 100 = lowest)
-     * @type {number}
-     * @memberof CreateRoleDto
-     */
-    'hierarchy_level'?: number;
+  /**
+   * Role name
+   * @type {string}
+   * @memberof CreateRoleDto
+   */
+  name: string;
+  /**
+   * Role description
+   * @type {string}
+   * @memberof CreateRoleDto
+   */
+  description?: string;
+  /**
+   *
+   * @type {Array<Array<string>>}
+   * @memberof CreateRoleDto
+   */
+  permissions: Array<Array<string>>;
+  /**
+   * Hierarchy level (1 = highest, 100 = lowest)
+   * @type {number}
+   * @memberof CreateRoleDto
+   */
+  hierarchy_level?: number;
 }
-

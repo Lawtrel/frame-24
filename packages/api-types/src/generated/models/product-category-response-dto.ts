@@ -12,37 +12,34 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface ProductCategoryResponseDto
  */
 export interface ProductCategoryResponseDto {
-    /**
-     * ID da categoria
-     * @type {string}
-     * @memberof ProductCategoryResponseDto
-     */
-    'id': string;
-    /**
-     * Nome da categoria
-     * @type {string}
-     * @memberof ProductCategoryResponseDto
-     */
-    'name': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ProductCategoryResponseDto
-     */
-    'description'?: string | null;
-    /**
-     * Quantidade de produtos nesta categoria
-     * @type {number}
-     * @memberof ProductCategoryResponseDto
-     */
-    'product_count'?: number;
+  /**
+   * ID da categoria
+   * @type {string}
+   * @memberof ProductCategoryResponseDto
+   */
+  id: string;
+  /**
+   * Nome da categoria
+   * @type {string}
+   * @memberof ProductCategoryResponseDto
+   */
+  name: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ProductCategoryResponseDto
+   */
+  description?: string | null;
+  /**
+   * Quantidade de produtos nesta categoria
+   * @type {number}
+   * @memberof ProductCategoryResponseDto
+   */
+  product_count?: number;
 }
-

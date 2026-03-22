@@ -12,97 +12,94 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface UpdateFederalTaxRateDto
  */
 export interface UpdateFederalTaxRateDto {
-    /**
-     * 
-     * @type {string}
-     * @memberof UpdateFederalTaxRateDto
-     */
-    'tax_regime'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof UpdateFederalTaxRateDto
-     */
-    'pis_cofins_regime'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof UpdateFederalTaxRateDto
-     */
-    'revenue_type'?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof UpdateFederalTaxRateDto
-     */
-    'pis_rate'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof UpdateFederalTaxRateDto
-     */
-    'cofins_rate'?: number;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof UpdateFederalTaxRateDto
-     */
-    'credit_allowed'?: boolean;
-    /**
-     * 
-     * @type {number}
-     * @memberof UpdateFederalTaxRateDto
-     */
-    'irpj_base_rate'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof UpdateFederalTaxRateDto
-     */
-    'irpj_additional_rate'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof UpdateFederalTaxRateDto
-     */
-    'irpj_additional_limit'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof UpdateFederalTaxRateDto
-     */
-    'csll_rate'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof UpdateFederalTaxRateDto
-     */
-    'presumed_profit_percentage'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof UpdateFederalTaxRateDto
-     */
-    'validity_start'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof UpdateFederalTaxRateDto
-     */
-    'validity_end'?: string | null;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof UpdateFederalTaxRateDto
-     */
-    'active'?: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateFederalTaxRateDto
+   */
+  tax_regime?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateFederalTaxRateDto
+   */
+  pis_cofins_regime?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateFederalTaxRateDto
+   */
+  revenue_type?: string;
+  /**
+   *
+   * @type {number}
+   * @memberof UpdateFederalTaxRateDto
+   */
+  pis_rate?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof UpdateFederalTaxRateDto
+   */
+  cofins_rate?: number;
+  /**
+   *
+   * @type {boolean}
+   * @memberof UpdateFederalTaxRateDto
+   */
+  credit_allowed?: boolean;
+  /**
+   *
+   * @type {number}
+   * @memberof UpdateFederalTaxRateDto
+   */
+  irpj_base_rate?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof UpdateFederalTaxRateDto
+   */
+  irpj_additional_rate?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof UpdateFederalTaxRateDto
+   */
+  irpj_additional_limit?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof UpdateFederalTaxRateDto
+   */
+  csll_rate?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof UpdateFederalTaxRateDto
+   */
+  presumed_profit_percentage?: number;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateFederalTaxRateDto
+   */
+  validity_start?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateFederalTaxRateDto
+   */
+  validity_end?: string | null;
+  /**
+   *
+   * @type {boolean}
+   * @memberof UpdateFederalTaxRateDto
+   */
+  active?: boolean;
 }
-

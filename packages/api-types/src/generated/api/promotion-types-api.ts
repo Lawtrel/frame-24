@@ -12,156 +12,259 @@
  * Do not edit the class manually.
  */
 
-
-import type { Configuration } from '../configuration';
-import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from 'axios';
-import globalAxios from 'axios';
+import type { Configuration } from "../configuration";
+import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from "axios";
+import globalAxios from "axios";
 // Some imports not used depending on template conditions
 // @ts-ignore
-import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from '../common';
+import {
+  DUMMY_BASE_URL,
+  assertParamExists,
+  setApiKeyToObject,
+  setBasicAuthToObject,
+  setBearerAuthToObject,
+  setOAuthToObject,
+  setSearchParams,
+  serializeDataIfNeeded,
+  toPathString,
+  createRequestFunction,
+} from "../common";
 // @ts-ignore
-import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
+import {
+  BASE_PATH,
+  COLLECTION_FORMATS,
+  type RequestArgs,
+  BaseAPI,
+  RequiredError,
+  operationServerMap,
+} from "../base";
 // @ts-ignore
-import type { CreatePromotionTypeDto } from '../models';
+import type { CreatePromotionTypeDto } from "../models";
 // @ts-ignore
-import type { PromotionTypeResponseDto } from '../models';
+import type { PromotionTypeResponseDto } from "../models";
 /**
  * PromotionTypesApi - axios parameter creator
  * @export
  */
-export const PromotionTypesApiAxiosParamCreator = function (configuration?: Configuration) {
-    return {
-        /**
-         * Registra um novo tipo de promoção para ser usado nas campanhas.
-         * @summary Criar tipo de promoção
-         * @param {CreatePromotionTypeDto} createPromotionTypeDto 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        promotionTypesControllerCreateV1: async (createPromotionTypeDto: CreatePromotionTypeDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'createPromotionTypeDto' is not null or undefined
-            assertParamExists('promotionTypesControllerCreateV1', 'createPromotionTypeDto', createPromotionTypeDto)
-            const localVarPath = `/v1/promotion-types`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+export const PromotionTypesApiAxiosParamCreator = function (
+  configuration?: Configuration,
+) {
+  return {
+    /**
+     * Registra um novo tipo de promoção para ser usado nas campanhas.
+     * @summary Criar tipo de promoção
+     * @param {CreatePromotionTypeDto} createPromotionTypeDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    promotionTypesControllerCreateV1: async (
+      createPromotionTypeDto: CreatePromotionTypeDto,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'createPromotionTypeDto' is not null or undefined
+      assertParamExists(
+        "promotionTypesControllerCreateV1",
+        "createPromotionTypeDto",
+        createPromotionTypeDto,
+      );
+      const localVarPath = `/v1/promotion-types`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      const localVarRequestOptions = {
+        method: "POST",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
+      localVarHeaderParameter["Content-Type"] = "application/json";
 
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        createPromotionTypeDto,
+        localVarRequestOptions,
+        configuration,
+      );
 
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(createPromotionTypeDto, localVarRequestOptions, configuration)
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @summary Listar tipos de promoção da empresa
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    promotionTypesControllerFindAllV1: async (
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      const localVarPath = `/v1/promotion-types`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary Listar tipos de promoção da empresa
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        promotionTypesControllerFindAllV1: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/v1/promotion-types`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-    }
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+  };
 };
 
 /**
  * PromotionTypesApi - functional programming interface
  * @export
  */
-export const PromotionTypesApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = PromotionTypesApiAxiosParamCreator(configuration)
-    return {
-        /**
-         * Registra um novo tipo de promoção para ser usado nas campanhas.
-         * @summary Criar tipo de promoção
-         * @param {CreatePromotionTypeDto} createPromotionTypeDto 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async promotionTypesControllerCreateV1(createPromotionTypeDto: CreatePromotionTypeDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PromotionTypeResponseDto>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.promotionTypesControllerCreateV1(createPromotionTypeDto, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['PromotionTypesApi.promotionTypesControllerCreateV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @summary Listar tipos de promoção da empresa
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async promotionTypesControllerFindAllV1(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<PromotionTypeResponseDto>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.promotionTypesControllerFindAllV1(options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['PromotionTypesApi.promotionTypesControllerFindAllV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-    }
+export const PromotionTypesApiFp = function (configuration?: Configuration) {
+  const localVarAxiosParamCreator =
+    PromotionTypesApiAxiosParamCreator(configuration);
+  return {
+    /**
+     * Registra um novo tipo de promoção para ser usado nas campanhas.
+     * @summary Criar tipo de promoção
+     * @param {CreatePromotionTypeDto} createPromotionTypeDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async promotionTypesControllerCreateV1(
+      createPromotionTypeDto: CreatePromotionTypeDto,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (
+        axios?: AxiosInstance,
+        basePath?: string,
+      ) => AxiosPromise<PromotionTypeResponseDto>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.promotionTypesControllerCreateV1(
+          createPromotionTypeDto,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap[
+          "PromotionTypesApi.promotionTypesControllerCreateV1"
+        ]?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     *
+     * @summary Listar tipos de promoção da empresa
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async promotionTypesControllerFindAllV1(
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (
+        axios?: AxiosInstance,
+        basePath?: string,
+      ) => AxiosPromise<Array<PromotionTypeResponseDto>>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.promotionTypesControllerFindAllV1(
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap[
+          "PromotionTypesApi.promotionTypesControllerFindAllV1"
+        ]?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+  };
 };
 
 /**
  * PromotionTypesApi - factory interface
  * @export
  */
-export const PromotionTypesApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = PromotionTypesApiFp(configuration)
-    return {
-        /**
-         * Registra um novo tipo de promoção para ser usado nas campanhas.
-         * @summary Criar tipo de promoção
-         * @param {PromotionTypesApiPromotionTypesControllerCreateV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        promotionTypesControllerCreateV1(requestParameters: PromotionTypesApiPromotionTypesControllerCreateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<PromotionTypeResponseDto> {
-            return localVarFp.promotionTypesControllerCreateV1(requestParameters.createPromotionTypeDto, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @summary Listar tipos de promoção da empresa
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        promotionTypesControllerFindAllV1(options?: RawAxiosRequestConfig): AxiosPromise<Array<PromotionTypeResponseDto>> {
-            return localVarFp.promotionTypesControllerFindAllV1(options).then((request) => request(axios, basePath));
-        },
-    };
+export const PromotionTypesApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance,
+) {
+  const localVarFp = PromotionTypesApiFp(configuration);
+  return {
+    /**
+     * Registra um novo tipo de promoção para ser usado nas campanhas.
+     * @summary Criar tipo de promoção
+     * @param {PromotionTypesApiPromotionTypesControllerCreateV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    promotionTypesControllerCreateV1(
+      requestParameters: PromotionTypesApiPromotionTypesControllerCreateV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<PromotionTypeResponseDto> {
+      return localVarFp
+        .promotionTypesControllerCreateV1(
+          requestParameters.createPromotionTypeDto,
+          options,
+        )
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @summary Listar tipos de promoção da empresa
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    promotionTypesControllerFindAllV1(
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<Array<PromotionTypeResponseDto>> {
+      return localVarFp
+        .promotionTypesControllerFindAllV1(options)
+        .then((request) => request(axios, basePath));
+    },
+  };
 };
 
 /**
@@ -170,25 +273,29 @@ export const PromotionTypesApiFactory = function (configuration?: Configuration,
  * @interface PromotionTypesApi
  */
 export interface PromotionTypesApiInterface {
-    /**
-     * Registra um novo tipo de promoção para ser usado nas campanhas.
-     * @summary Criar tipo de promoção
-     * @param {PromotionTypesApiPromotionTypesControllerCreateV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PromotionTypesApiInterface
-     */
-    promotionTypesControllerCreateV1(requestParameters: PromotionTypesApiPromotionTypesControllerCreateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<PromotionTypeResponseDto>;
+  /**
+   * Registra um novo tipo de promoção para ser usado nas campanhas.
+   * @summary Criar tipo de promoção
+   * @param {PromotionTypesApiPromotionTypesControllerCreateV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof PromotionTypesApiInterface
+   */
+  promotionTypesControllerCreateV1(
+    requestParameters: PromotionTypesApiPromotionTypesControllerCreateV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<PromotionTypeResponseDto>;
 
-    /**
-     * 
-     * @summary Listar tipos de promoção da empresa
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PromotionTypesApiInterface
-     */
-    promotionTypesControllerFindAllV1(options?: RawAxiosRequestConfig): AxiosPromise<Array<PromotionTypeResponseDto>>;
-
+  /**
+   *
+   * @summary Listar tipos de promoção da empresa
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof PromotionTypesApiInterface
+   */
+  promotionTypesControllerFindAllV1(
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<Array<PromotionTypeResponseDto>>;
 }
 
 /**
@@ -197,12 +304,12 @@ export interface PromotionTypesApiInterface {
  * @interface PromotionTypesApiPromotionTypesControllerCreateV1Request
  */
 export interface PromotionTypesApiPromotionTypesControllerCreateV1Request {
-    /**
-     * 
-     * @type {CreatePromotionTypeDto}
-     * @memberof PromotionTypesApiPromotionTypesControllerCreateV1
-     */
-    readonly createPromotionTypeDto: CreatePromotionTypeDto
+  /**
+   *
+   * @type {CreatePromotionTypeDto}
+   * @memberof PromotionTypesApiPromotionTypesControllerCreateV1
+   */
+  readonly createPromotionTypeDto: CreatePromotionTypeDto;
 }
 
 /**
@@ -211,28 +318,40 @@ export interface PromotionTypesApiPromotionTypesControllerCreateV1Request {
  * @class PromotionTypesApi
  * @extends {BaseAPI}
  */
-export class PromotionTypesApi extends BaseAPI implements PromotionTypesApiInterface {
-    /**
-     * Registra um novo tipo de promoção para ser usado nas campanhas.
-     * @summary Criar tipo de promoção
-     * @param {PromotionTypesApiPromotionTypesControllerCreateV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PromotionTypesApi
-     */
-    public promotionTypesControllerCreateV1(requestParameters: PromotionTypesApiPromotionTypesControllerCreateV1Request, options?: RawAxiosRequestConfig) {
-        return PromotionTypesApiFp(this.configuration).promotionTypesControllerCreateV1(requestParameters.createPromotionTypeDto, options).then((request) => request(this.axios, this.basePath));
-    }
+export class PromotionTypesApi
+  extends BaseAPI
+  implements PromotionTypesApiInterface
+{
+  /**
+   * Registra um novo tipo de promoção para ser usado nas campanhas.
+   * @summary Criar tipo de promoção
+   * @param {PromotionTypesApiPromotionTypesControllerCreateV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof PromotionTypesApi
+   */
+  public promotionTypesControllerCreateV1(
+    requestParameters: PromotionTypesApiPromotionTypesControllerCreateV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return PromotionTypesApiFp(this.configuration)
+      .promotionTypesControllerCreateV1(
+        requestParameters.createPromotionTypeDto,
+        options,
+      )
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * 
-     * @summary Listar tipos de promoção da empresa
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PromotionTypesApi
-     */
-    public promotionTypesControllerFindAllV1(options?: RawAxiosRequestConfig) {
-        return PromotionTypesApiFp(this.configuration).promotionTypesControllerFindAllV1(options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   *
+   * @summary Listar tipos de promoção da empresa
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof PromotionTypesApi
+   */
+  public promotionTypesControllerFindAllV1(options?: RawAxiosRequestConfig) {
+    return PromotionTypesApiFp(this.configuration)
+      .promotionTypesControllerFindAllV1(options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 }
-

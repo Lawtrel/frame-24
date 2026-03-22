@@ -21,6 +21,9 @@ export class RabbitMQPublisherService implements OnModuleInit, OnModuleDestroy {
   private channel: Channel | null = null;
   private readonly logger = 'RabbitMQPublisher';
   private isConnecting = false;
+  private reconnectAttempts = 0;
+  private readonly maxReconnectDelay = 60000;
+  private readonly baseReconnectDelay = 5000;
 
   constructor(
     private loggerService: LoggerService,
@@ -97,6 +100,7 @@ export class RabbitMQPublisherService implements OnModuleInit, OnModuleDestroy {
 
       this.loggerService.log('Connected to RabbitMQ successfully', this.logger);
       this.isConnecting = false;
+      this.reconnectAttempts = 0; // Reset backoff counter on success
     } catch (error) {
       this.isConnecting = false;
       this.loggerService.error(
@@ -104,20 +108,30 @@ export class RabbitMQPublisherService implements OnModuleInit, OnModuleDestroy {
         '',
         this.logger,
       );
-      // Retry after 5 seconds
-      setTimeout(() => {
-        void this.connect();
-      }, 5000);
+      this.scheduleReconnect();
     }
+  }
+
+  private scheduleReconnect() {
+    const delay = Math.min(
+      this.baseReconnectDelay * Math.pow(2, this.reconnectAttempts),
+      this.maxReconnectDelay,
+    );
+    this.loggerService.warn(
+      `Scheduling RabbitMQ reconnect in ${delay}ms (Attempt ${this.reconnectAttempts + 1})...`,
+      this.logger,
+    );
+    this.reconnectAttempts++;
+    setTimeout(() => {
+      void this.connect();
+    }, delay);
   }
 
   private handleDisconnect() {
     this.connection = null;
     this.channel = null;
     if (!this.isConnecting) {
-      setTimeout(() => {
-        void this.connect();
-      }, 5000);
+      this.scheduleReconnect();
     }
   }
 

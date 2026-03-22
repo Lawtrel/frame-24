@@ -12,37 +12,34 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface SaleResponseDtoShowtime
  */
 export interface SaleResponseDtoShowtime {
-    /**
-     * 
-     * @type {string}
-     * @memberof SaleResponseDtoShowtime
-     */
-    'id': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof SaleResponseDtoShowtime
-     */
-    'start_time': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof SaleResponseDtoShowtime
-     */
-    'cinema': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof SaleResponseDtoShowtime
-     */
-    'room': string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof SaleResponseDtoShowtime
+   */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof SaleResponseDtoShowtime
+   */
+  start_time: string;
+  /**
+   *
+   * @type {string}
+   * @memberof SaleResponseDtoShowtime
+   */
+  cinema: string;
+  /**
+   *
+   * @type {string}
+   * @memberof SaleResponseDtoShowtime
+   */
+  room: string | null;
 }
-

@@ -12,374 +12,613 @@
  * Do not edit the class manually.
  */
 
-
-import type { Configuration } from '../configuration';
-import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from 'axios';
-import globalAxios from 'axios';
+import type { Configuration } from "../configuration";
+import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from "axios";
+import globalAxios from "axios";
 // Some imports not used depending on template conditions
 // @ts-ignore
-import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from '../common';
+import {
+  DUMMY_BASE_URL,
+  assertParamExists,
+  setApiKeyToObject,
+  setBasicAuthToObject,
+  setBearerAuthToObject,
+  setOAuthToObject,
+  setSearchParams,
+  serializeDataIfNeeded,
+  toPathString,
+  createRequestFunction,
+} from "../common";
 // @ts-ignore
-import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
+import {
+  BASE_PATH,
+  COLLECTION_FORMATS,
+  type RequestArgs,
+  BaseAPI,
+  RequiredError,
+  operationServerMap,
+} from "../base";
 // @ts-ignore
-import type { CreateCashFlowEntryDto } from '../models';
+import type { CreateCashFlowEntryDto } from "../models";
 /**
  * FluxoDeCaixaLanamentosApi - axios parameter creator
  * @export
  */
-export const FluxoDeCaixaLanamentosApiAxiosParamCreator = function (configuration?: Configuration) {
-    return {
-        /**
-         * 
-         * @summary Create a new cash flow entry
-         * @param {CreateCashFlowEntryDto} createCashFlowEntryDto 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        cashFlowEntriesControllerCreateV1: async (createCashFlowEntryDto: CreateCashFlowEntryDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'createCashFlowEntryDto' is not null or undefined
-            assertParamExists('cashFlowEntriesControllerCreateV1', 'createCashFlowEntryDto', createCashFlowEntryDto)
-            const localVarPath = `/v1/finance/cash-flow`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+export const FluxoDeCaixaLanamentosApiAxiosParamCreator = function (
+  configuration?: Configuration,
+) {
+  return {
+    /**
+     *
+     * @summary Create a new cash flow entry
+     * @param {CreateCashFlowEntryDto} createCashFlowEntryDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    cashFlowEntriesControllerCreateV1: async (
+      createCashFlowEntryDto: CreateCashFlowEntryDto,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'createCashFlowEntryDto' is not null or undefined
+      assertParamExists(
+        "cashFlowEntriesControllerCreateV1",
+        "createCashFlowEntryDto",
+        createCashFlowEntryDto,
+      );
+      const localVarPath = `/v1/finance/cash-flow`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      const localVarRequestOptions = {
+        method: "POST",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
+      localVarHeaderParameter["Content-Type"] = "application/json";
 
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        createCashFlowEntryDto,
+        localVarRequestOptions,
+        configuration,
+      );
 
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(createCashFlowEntryDto, localVarRequestOptions, configuration)
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @summary Delete a cash flow entry
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    cashFlowEntriesControllerDeleteV1: async (
+      id: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists("cashFlowEntriesControllerDeleteV1", "id", id);
+      const localVarPath = `/v1/finance/cash-flow/{id}`.replace(
+        `{${"id"}}`,
+        encodeURIComponent(String(id)),
+      );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary Delete a cash flow entry
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        cashFlowEntriesControllerDeleteV1: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('cashFlowEntriesControllerDeleteV1', 'id', id)
-            const localVarPath = `/v1/finance/cash-flow/{id}`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+      const localVarRequestOptions = {
+        method: "DELETE",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @summary List cash flow entries with filters
+     * @param {string} [bankAccountId]
+     * @param {CashFlowEntriesControllerFindAllV1EntryTypeEnum} [entryType]
+     * @param {string} [category]
+     * @param {string} [startDate]
+     * @param {string} [endDate]
+     * @param {CashFlowEntriesControllerFindAllV1StatusEnum} [status]
+     * @param {number} [skip]
+     * @param {number} [take]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    cashFlowEntriesControllerFindAllV1: async (
+      bankAccountId?: string,
+      entryType?: CashFlowEntriesControllerFindAllV1EntryTypeEnum,
+      category?: string,
+      startDate?: string,
+      endDate?: string,
+      status?: CashFlowEntriesControllerFindAllV1StatusEnum,
+      skip?: number,
+      take?: number,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      const localVarPath = `/v1/finance/cash-flow`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary List cash flow entries with filters
-         * @param {string} [bankAccountId] 
-         * @param {CashFlowEntriesControllerFindAllV1EntryTypeEnum} [entryType] 
-         * @param {string} [category] 
-         * @param {string} [startDate] 
-         * @param {string} [endDate] 
-         * @param {CashFlowEntriesControllerFindAllV1StatusEnum} [status] 
-         * @param {number} [skip] 
-         * @param {number} [take] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        cashFlowEntriesControllerFindAllV1: async (bankAccountId?: string, entryType?: CashFlowEntriesControllerFindAllV1EntryTypeEnum, category?: string, startDate?: string, endDate?: string, status?: CashFlowEntriesControllerFindAllV1StatusEnum, skip?: number, take?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/v1/finance/cash-flow`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+      if (bankAccountId !== undefined) {
+        localVarQueryParameter["bank_account_id"] = bankAccountId;
+      }
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      if (entryType !== undefined) {
+        localVarQueryParameter["entry_type"] = entryType;
+      }
 
-            if (bankAccountId !== undefined) {
-                localVarQueryParameter['bank_account_id'] = bankAccountId;
-            }
+      if (category !== undefined) {
+        localVarQueryParameter["category"] = category;
+      }
 
-            if (entryType !== undefined) {
-                localVarQueryParameter['entry_type'] = entryType;
-            }
+      if (startDate !== undefined) {
+        localVarQueryParameter["start_date"] = startDate;
+      }
 
-            if (category !== undefined) {
-                localVarQueryParameter['category'] = category;
-            }
+      if (endDate !== undefined) {
+        localVarQueryParameter["end_date"] = endDate;
+      }
 
-            if (startDate !== undefined) {
-                localVarQueryParameter['start_date'] = startDate;
-            }
+      if (status !== undefined) {
+        localVarQueryParameter["status"] = status;
+      }
 
-            if (endDate !== undefined) {
-                localVarQueryParameter['end_date'] = endDate;
-            }
+      if (skip !== undefined) {
+        localVarQueryParameter["skip"] = skip;
+      }
 
-            if (status !== undefined) {
-                localVarQueryParameter['status'] = status;
-            }
+      if (take !== undefined) {
+        localVarQueryParameter["take"] = take;
+      }
 
-            if (skip !== undefined) {
-                localVarQueryParameter['skip'] = skip;
-            }
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
-            if (take !== undefined) {
-                localVarQueryParameter['take'] = take;
-            }
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @summary Get cash flow entry details
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    cashFlowEntriesControllerFindOneV1: async (
+      id: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists("cashFlowEntriesControllerFindOneV1", "id", id);
+      const localVarPath = `/v1/finance/cash-flow/{id}`.replace(
+        `{${"id"}}`,
+        encodeURIComponent(String(id)),
+      );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary Get cash flow entry details
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        cashFlowEntriesControllerFindOneV1: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('cashFlowEntriesControllerFindOneV1', 'id', id)
-            const localVarPath = `/v1/finance/cash-flow/{id}`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @summary Reconcile a cash flow entry
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    cashFlowEntriesControllerReconcileV1: async (
+      id: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists("cashFlowEntriesControllerReconcileV1", "id", id);
+      const localVarPath = `/v1/finance/cash-flow/{id}/reconcile`.replace(
+        `{${"id"}}`,
+        encodeURIComponent(String(id)),
+      );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      const localVarRequestOptions = {
+        method: "POST",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary Reconcile a cash flow entry
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        cashFlowEntriesControllerReconcileV1: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('cashFlowEntriesControllerReconcileV1', 'id', id)
-            const localVarPath = `/v1/finance/cash-flow/{id}/reconcile`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-    }
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+  };
 };
 
 /**
  * FluxoDeCaixaLanamentosApi - functional programming interface
  * @export
  */
-export const FluxoDeCaixaLanamentosApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = FluxoDeCaixaLanamentosApiAxiosParamCreator(configuration)
-    return {
-        /**
-         * 
-         * @summary Create a new cash flow entry
-         * @param {CreateCashFlowEntryDto} createCashFlowEntryDto 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async cashFlowEntriesControllerCreateV1(createCashFlowEntryDto: CreateCashFlowEntryDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.cashFlowEntriesControllerCreateV1(createCashFlowEntryDto, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['FluxoDeCaixaLanamentosApi.cashFlowEntriesControllerCreateV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @summary Delete a cash flow entry
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async cashFlowEntriesControllerDeleteV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.cashFlowEntriesControllerDeleteV1(id, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['FluxoDeCaixaLanamentosApi.cashFlowEntriesControllerDeleteV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @summary List cash flow entries with filters
-         * @param {string} [bankAccountId] 
-         * @param {CashFlowEntriesControllerFindAllV1EntryTypeEnum} [entryType] 
-         * @param {string} [category] 
-         * @param {string} [startDate] 
-         * @param {string} [endDate] 
-         * @param {CashFlowEntriesControllerFindAllV1StatusEnum} [status] 
-         * @param {number} [skip] 
-         * @param {number} [take] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async cashFlowEntriesControllerFindAllV1(bankAccountId?: string, entryType?: CashFlowEntriesControllerFindAllV1EntryTypeEnum, category?: string, startDate?: string, endDate?: string, status?: CashFlowEntriesControllerFindAllV1StatusEnum, skip?: number, take?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.cashFlowEntriesControllerFindAllV1(bankAccountId, entryType, category, startDate, endDate, status, skip, take, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['FluxoDeCaixaLanamentosApi.cashFlowEntriesControllerFindAllV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @summary Get cash flow entry details
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async cashFlowEntriesControllerFindOneV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.cashFlowEntriesControllerFindOneV1(id, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['FluxoDeCaixaLanamentosApi.cashFlowEntriesControllerFindOneV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @summary Reconcile a cash flow entry
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async cashFlowEntriesControllerReconcileV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.cashFlowEntriesControllerReconcileV1(id, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['FluxoDeCaixaLanamentosApi.cashFlowEntriesControllerReconcileV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-    }
+export const FluxoDeCaixaLanamentosApiFp = function (
+  configuration?: Configuration,
+) {
+  const localVarAxiosParamCreator =
+    FluxoDeCaixaLanamentosApiAxiosParamCreator(configuration);
+  return {
+    /**
+     *
+     * @summary Create a new cash flow entry
+     * @param {CreateCashFlowEntryDto} createCashFlowEntryDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async cashFlowEntriesControllerCreateV1(
+      createCashFlowEntryDto: CreateCashFlowEntryDto,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.cashFlowEntriesControllerCreateV1(
+          createCashFlowEntryDto,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap[
+          "FluxoDeCaixaLanamentosApi.cashFlowEntriesControllerCreateV1"
+        ]?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     *
+     * @summary Delete a cash flow entry
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async cashFlowEntriesControllerDeleteV1(
+      id: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.cashFlowEntriesControllerDeleteV1(
+          id,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap[
+          "FluxoDeCaixaLanamentosApi.cashFlowEntriesControllerDeleteV1"
+        ]?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     *
+     * @summary List cash flow entries with filters
+     * @param {string} [bankAccountId]
+     * @param {CashFlowEntriesControllerFindAllV1EntryTypeEnum} [entryType]
+     * @param {string} [category]
+     * @param {string} [startDate]
+     * @param {string} [endDate]
+     * @param {CashFlowEntriesControllerFindAllV1StatusEnum} [status]
+     * @param {number} [skip]
+     * @param {number} [take]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async cashFlowEntriesControllerFindAllV1(
+      bankAccountId?: string,
+      entryType?: CashFlowEntriesControllerFindAllV1EntryTypeEnum,
+      category?: string,
+      startDate?: string,
+      endDate?: string,
+      status?: CashFlowEntriesControllerFindAllV1StatusEnum,
+      skip?: number,
+      take?: number,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.cashFlowEntriesControllerFindAllV1(
+          bankAccountId,
+          entryType,
+          category,
+          startDate,
+          endDate,
+          status,
+          skip,
+          take,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap[
+          "FluxoDeCaixaLanamentosApi.cashFlowEntriesControllerFindAllV1"
+        ]?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     *
+     * @summary Get cash flow entry details
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async cashFlowEntriesControllerFindOneV1(
+      id: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.cashFlowEntriesControllerFindOneV1(
+          id,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap[
+          "FluxoDeCaixaLanamentosApi.cashFlowEntriesControllerFindOneV1"
+        ]?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     *
+     * @summary Reconcile a cash flow entry
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async cashFlowEntriesControllerReconcileV1(
+      id: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.cashFlowEntriesControllerReconcileV1(
+          id,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap[
+          "FluxoDeCaixaLanamentosApi.cashFlowEntriesControllerReconcileV1"
+        ]?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+  };
 };
 
 /**
  * FluxoDeCaixaLanamentosApi - factory interface
  * @export
  */
-export const FluxoDeCaixaLanamentosApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = FluxoDeCaixaLanamentosApiFp(configuration)
-    return {
-        /**
-         * 
-         * @summary Create a new cash flow entry
-         * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerCreateV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        cashFlowEntriesControllerCreateV1(requestParameters: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerCreateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.cashFlowEntriesControllerCreateV1(requestParameters.createCashFlowEntryDto, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @summary Delete a cash flow entry
-         * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerDeleteV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        cashFlowEntriesControllerDeleteV1(requestParameters: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerDeleteV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.cashFlowEntriesControllerDeleteV1(requestParameters.id, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @summary List cash flow entries with filters
-         * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        cashFlowEntriesControllerFindAllV1(requestParameters: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1Request = {}, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.cashFlowEntriesControllerFindAllV1(requestParameters.bankAccountId, requestParameters.entryType, requestParameters.category, requestParameters.startDate, requestParameters.endDate, requestParameters.status, requestParameters.skip, requestParameters.take, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @summary Get cash flow entry details
-         * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindOneV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        cashFlowEntriesControllerFindOneV1(requestParameters: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindOneV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.cashFlowEntriesControllerFindOneV1(requestParameters.id, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @summary Reconcile a cash flow entry
-         * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerReconcileV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        cashFlowEntriesControllerReconcileV1(requestParameters: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerReconcileV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.cashFlowEntriesControllerReconcileV1(requestParameters.id, options).then((request) => request(axios, basePath));
-        },
-    };
+export const FluxoDeCaixaLanamentosApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance,
+) {
+  const localVarFp = FluxoDeCaixaLanamentosApiFp(configuration);
+  return {
+    /**
+     *
+     * @summary Create a new cash flow entry
+     * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerCreateV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    cashFlowEntriesControllerCreateV1(
+      requestParameters: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerCreateV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .cashFlowEntriesControllerCreateV1(
+          requestParameters.createCashFlowEntryDto,
+          options,
+        )
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @summary Delete a cash flow entry
+     * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerDeleteV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    cashFlowEntriesControllerDeleteV1(
+      requestParameters: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerDeleteV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .cashFlowEntriesControllerDeleteV1(requestParameters.id, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @summary List cash flow entries with filters
+     * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    cashFlowEntriesControllerFindAllV1(
+      requestParameters: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1Request = {},
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .cashFlowEntriesControllerFindAllV1(
+          requestParameters.bankAccountId,
+          requestParameters.entryType,
+          requestParameters.category,
+          requestParameters.startDate,
+          requestParameters.endDate,
+          requestParameters.status,
+          requestParameters.skip,
+          requestParameters.take,
+          options,
+        )
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @summary Get cash flow entry details
+     * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindOneV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    cashFlowEntriesControllerFindOneV1(
+      requestParameters: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindOneV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .cashFlowEntriesControllerFindOneV1(requestParameters.id, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @summary Reconcile a cash flow entry
+     * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerReconcileV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    cashFlowEntriesControllerReconcileV1(
+      requestParameters: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerReconcileV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .cashFlowEntriesControllerReconcileV1(requestParameters.id, options)
+        .then((request) => request(axios, basePath));
+    },
+  };
 };
 
 /**
@@ -388,56 +627,70 @@ export const FluxoDeCaixaLanamentosApiFactory = function (configuration?: Config
  * @interface FluxoDeCaixaLanamentosApi
  */
 export interface FluxoDeCaixaLanamentosApiInterface {
-    /**
-     * 
-     * @summary Create a new cash flow entry
-     * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerCreateV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof FluxoDeCaixaLanamentosApiInterface
-     */
-    cashFlowEntriesControllerCreateV1(requestParameters: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerCreateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   *
+   * @summary Create a new cash flow entry
+   * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerCreateV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof FluxoDeCaixaLanamentosApiInterface
+   */
+  cashFlowEntriesControllerCreateV1(
+    requestParameters: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerCreateV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * 
-     * @summary Delete a cash flow entry
-     * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerDeleteV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof FluxoDeCaixaLanamentosApiInterface
-     */
-    cashFlowEntriesControllerDeleteV1(requestParameters: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerDeleteV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   *
+   * @summary Delete a cash flow entry
+   * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerDeleteV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof FluxoDeCaixaLanamentosApiInterface
+   */
+  cashFlowEntriesControllerDeleteV1(
+    requestParameters: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerDeleteV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * 
-     * @summary List cash flow entries with filters
-     * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof FluxoDeCaixaLanamentosApiInterface
-     */
-    cashFlowEntriesControllerFindAllV1(requestParameters?: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   *
+   * @summary List cash flow entries with filters
+   * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof FluxoDeCaixaLanamentosApiInterface
+   */
+  cashFlowEntriesControllerFindAllV1(
+    requestParameters?: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * 
-     * @summary Get cash flow entry details
-     * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindOneV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof FluxoDeCaixaLanamentosApiInterface
-     */
-    cashFlowEntriesControllerFindOneV1(requestParameters: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindOneV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   *
+   * @summary Get cash flow entry details
+   * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindOneV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof FluxoDeCaixaLanamentosApiInterface
+   */
+  cashFlowEntriesControllerFindOneV1(
+    requestParameters: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindOneV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * 
-     * @summary Reconcile a cash flow entry
-     * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerReconcileV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof FluxoDeCaixaLanamentosApiInterface
-     */
-    cashFlowEntriesControllerReconcileV1(requestParameters: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerReconcileV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
-
+  /**
+   *
+   * @summary Reconcile a cash flow entry
+   * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerReconcileV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof FluxoDeCaixaLanamentosApiInterface
+   */
+  cashFlowEntriesControllerReconcileV1(
+    requestParameters: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerReconcileV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 }
 
 /**
@@ -446,12 +699,12 @@ export interface FluxoDeCaixaLanamentosApiInterface {
  * @interface FluxoDeCaixaLanamentosApiCashFlowEntriesControllerCreateV1Request
  */
 export interface FluxoDeCaixaLanamentosApiCashFlowEntriesControllerCreateV1Request {
-    /**
-     * 
-     * @type {CreateCashFlowEntryDto}
-     * @memberof FluxoDeCaixaLanamentosApiCashFlowEntriesControllerCreateV1
-     */
-    readonly createCashFlowEntryDto: CreateCashFlowEntryDto
+  /**
+   *
+   * @type {CreateCashFlowEntryDto}
+   * @memberof FluxoDeCaixaLanamentosApiCashFlowEntriesControllerCreateV1
+   */
+  readonly createCashFlowEntryDto: CreateCashFlowEntryDto;
 }
 
 /**
@@ -460,12 +713,12 @@ export interface FluxoDeCaixaLanamentosApiCashFlowEntriesControllerCreateV1Reque
  * @interface FluxoDeCaixaLanamentosApiCashFlowEntriesControllerDeleteV1Request
  */
 export interface FluxoDeCaixaLanamentosApiCashFlowEntriesControllerDeleteV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof FluxoDeCaixaLanamentosApiCashFlowEntriesControllerDeleteV1
-     */
-    readonly id: string
+  /**
+   *
+   * @type {string}
+   * @memberof FluxoDeCaixaLanamentosApiCashFlowEntriesControllerDeleteV1
+   */
+  readonly id: string;
 }
 
 /**
@@ -474,61 +727,61 @@ export interface FluxoDeCaixaLanamentosApiCashFlowEntriesControllerDeleteV1Reque
  * @interface FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1Request
  */
 export interface FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1
-     */
-    readonly bankAccountId?: string
+  /**
+   *
+   * @type {string}
+   * @memberof FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1
+   */
+  readonly bankAccountId?: string;
 
-    /**
-     * 
-     * @type {'receipt' | 'payment'}
-     * @memberof FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1
-     */
-    readonly entryType?: CashFlowEntriesControllerFindAllV1EntryTypeEnum
+  /**
+   *
+   * @type {'receipt' | 'payment'}
+   * @memberof FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1
+   */
+  readonly entryType?: CashFlowEntriesControllerFindAllV1EntryTypeEnum;
 
-    /**
-     * 
-     * @type {string}
-     * @memberof FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1
-     */
-    readonly category?: string
+  /**
+   *
+   * @type {string}
+   * @memberof FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1
+   */
+  readonly category?: string;
 
-    /**
-     * 
-     * @type {string}
-     * @memberof FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1
-     */
-    readonly startDate?: string
+  /**
+   *
+   * @type {string}
+   * @memberof FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1
+   */
+  readonly startDate?: string;
 
-    /**
-     * 
-     * @type {string}
-     * @memberof FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1
-     */
-    readonly endDate?: string
+  /**
+   *
+   * @type {string}
+   * @memberof FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1
+   */
+  readonly endDate?: string;
 
-    /**
-     * 
-     * @type {'pending' | 'confirmed' | 'reconciled'}
-     * @memberof FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1
-     */
-    readonly status?: CashFlowEntriesControllerFindAllV1StatusEnum
+  /**
+   *
+   * @type {'pending' | 'confirmed' | 'reconciled'}
+   * @memberof FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1
+   */
+  readonly status?: CashFlowEntriesControllerFindAllV1StatusEnum;
 
-    /**
-     * 
-     * @type {number}
-     * @memberof FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1
-     */
-    readonly skip?: number
+  /**
+   *
+   * @type {number}
+   * @memberof FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1
+   */
+  readonly skip?: number;
 
-    /**
-     * 
-     * @type {number}
-     * @memberof FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1
-     */
-    readonly take?: number
+  /**
+   *
+   * @type {number}
+   * @memberof FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1
+   */
+  readonly take?: number;
 }
 
 /**
@@ -537,12 +790,12 @@ export interface FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1Requ
  * @interface FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindOneV1Request
  */
 export interface FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindOneV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindOneV1
-     */
-    readonly id: string
+  /**
+   *
+   * @type {string}
+   * @memberof FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindOneV1
+   */
+  readonly id: string;
 }
 
 /**
@@ -551,12 +804,12 @@ export interface FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindOneV1Requ
  * @interface FluxoDeCaixaLanamentosApiCashFlowEntriesControllerReconcileV1Request
  */
 export interface FluxoDeCaixaLanamentosApiCashFlowEntriesControllerReconcileV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof FluxoDeCaixaLanamentosApiCashFlowEntriesControllerReconcileV1
-     */
-    readonly id: string
+  /**
+   *
+   * @type {string}
+   * @memberof FluxoDeCaixaLanamentosApiCashFlowEntriesControllerReconcileV1
+   */
+  readonly id: string;
 }
 
 /**
@@ -565,82 +818,125 @@ export interface FluxoDeCaixaLanamentosApiCashFlowEntriesControllerReconcileV1Re
  * @class FluxoDeCaixaLanamentosApi
  * @extends {BaseAPI}
  */
-export class FluxoDeCaixaLanamentosApi extends BaseAPI implements FluxoDeCaixaLanamentosApiInterface {
-    /**
-     * 
-     * @summary Create a new cash flow entry
-     * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerCreateV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof FluxoDeCaixaLanamentosApi
-     */
-    public cashFlowEntriesControllerCreateV1(requestParameters: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerCreateV1Request, options?: RawAxiosRequestConfig) {
-        return FluxoDeCaixaLanamentosApiFp(this.configuration).cashFlowEntriesControllerCreateV1(requestParameters.createCashFlowEntryDto, options).then((request) => request(this.axios, this.basePath));
-    }
+export class FluxoDeCaixaLanamentosApi
+  extends BaseAPI
+  implements FluxoDeCaixaLanamentosApiInterface
+{
+  /**
+   *
+   * @summary Create a new cash flow entry
+   * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerCreateV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof FluxoDeCaixaLanamentosApi
+   */
+  public cashFlowEntriesControllerCreateV1(
+    requestParameters: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerCreateV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return FluxoDeCaixaLanamentosApiFp(this.configuration)
+      .cashFlowEntriesControllerCreateV1(
+        requestParameters.createCashFlowEntryDto,
+        options,
+      )
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * 
-     * @summary Delete a cash flow entry
-     * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerDeleteV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof FluxoDeCaixaLanamentosApi
-     */
-    public cashFlowEntriesControllerDeleteV1(requestParameters: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerDeleteV1Request, options?: RawAxiosRequestConfig) {
-        return FluxoDeCaixaLanamentosApiFp(this.configuration).cashFlowEntriesControllerDeleteV1(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   *
+   * @summary Delete a cash flow entry
+   * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerDeleteV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof FluxoDeCaixaLanamentosApi
+   */
+  public cashFlowEntriesControllerDeleteV1(
+    requestParameters: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerDeleteV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return FluxoDeCaixaLanamentosApiFp(this.configuration)
+      .cashFlowEntriesControllerDeleteV1(requestParameters.id, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * 
-     * @summary List cash flow entries with filters
-     * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof FluxoDeCaixaLanamentosApi
-     */
-    public cashFlowEntriesControllerFindAllV1(requestParameters: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1Request = {}, options?: RawAxiosRequestConfig) {
-        return FluxoDeCaixaLanamentosApiFp(this.configuration).cashFlowEntriesControllerFindAllV1(requestParameters.bankAccountId, requestParameters.entryType, requestParameters.category, requestParameters.startDate, requestParameters.endDate, requestParameters.status, requestParameters.skip, requestParameters.take, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   *
+   * @summary List cash flow entries with filters
+   * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof FluxoDeCaixaLanamentosApi
+   */
+  public cashFlowEntriesControllerFindAllV1(
+    requestParameters: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindAllV1Request = {},
+    options?: RawAxiosRequestConfig,
+  ) {
+    return FluxoDeCaixaLanamentosApiFp(this.configuration)
+      .cashFlowEntriesControllerFindAllV1(
+        requestParameters.bankAccountId,
+        requestParameters.entryType,
+        requestParameters.category,
+        requestParameters.startDate,
+        requestParameters.endDate,
+        requestParameters.status,
+        requestParameters.skip,
+        requestParameters.take,
+        options,
+      )
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * 
-     * @summary Get cash flow entry details
-     * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindOneV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof FluxoDeCaixaLanamentosApi
-     */
-    public cashFlowEntriesControllerFindOneV1(requestParameters: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindOneV1Request, options?: RawAxiosRequestConfig) {
-        return FluxoDeCaixaLanamentosApiFp(this.configuration).cashFlowEntriesControllerFindOneV1(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   *
+   * @summary Get cash flow entry details
+   * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindOneV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof FluxoDeCaixaLanamentosApi
+   */
+  public cashFlowEntriesControllerFindOneV1(
+    requestParameters: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerFindOneV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return FluxoDeCaixaLanamentosApiFp(this.configuration)
+      .cashFlowEntriesControllerFindOneV1(requestParameters.id, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * 
-     * @summary Reconcile a cash flow entry
-     * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerReconcileV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof FluxoDeCaixaLanamentosApi
-     */
-    public cashFlowEntriesControllerReconcileV1(requestParameters: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerReconcileV1Request, options?: RawAxiosRequestConfig) {
-        return FluxoDeCaixaLanamentosApiFp(this.configuration).cashFlowEntriesControllerReconcileV1(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   *
+   * @summary Reconcile a cash flow entry
+   * @param {FluxoDeCaixaLanamentosApiCashFlowEntriesControllerReconcileV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof FluxoDeCaixaLanamentosApi
+   */
+  public cashFlowEntriesControllerReconcileV1(
+    requestParameters: FluxoDeCaixaLanamentosApiCashFlowEntriesControllerReconcileV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return FluxoDeCaixaLanamentosApiFp(this.configuration)
+      .cashFlowEntriesControllerReconcileV1(requestParameters.id, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 }
 
 /**
  * @export
  */
 export const CashFlowEntriesControllerFindAllV1EntryTypeEnum = {
-    Receipt: 'receipt',
-    Payment: 'payment'
+  Receipt: "receipt",
+  Payment: "payment",
 } as const;
-export type CashFlowEntriesControllerFindAllV1EntryTypeEnum = typeof CashFlowEntriesControllerFindAllV1EntryTypeEnum[keyof typeof CashFlowEntriesControllerFindAllV1EntryTypeEnum];
+export type CashFlowEntriesControllerFindAllV1EntryTypeEnum =
+  (typeof CashFlowEntriesControllerFindAllV1EntryTypeEnum)[keyof typeof CashFlowEntriesControllerFindAllV1EntryTypeEnum];
 /**
  * @export
  */
 export const CashFlowEntriesControllerFindAllV1StatusEnum = {
-    Pending: 'pending',
-    Confirmed: 'confirmed',
-    Reconciled: 'reconciled'
+  Pending: "pending",
+  Confirmed: "confirmed",
+  Reconciled: "reconciled",
 } as const;
-export type CashFlowEntriesControllerFindAllV1StatusEnum = typeof CashFlowEntriesControllerFindAllV1StatusEnum[keyof typeof CashFlowEntriesControllerFindAllV1StatusEnum];
+export type CashFlowEntriesControllerFindAllV1StatusEnum =
+  (typeof CashFlowEntriesControllerFindAllV1StatusEnum)[keyof typeof CashFlowEntriesControllerFindAllV1StatusEnum];

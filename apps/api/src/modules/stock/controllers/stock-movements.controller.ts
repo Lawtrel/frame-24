@@ -8,6 +8,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
@@ -65,7 +66,9 @@ export class StockMovementsController {
   @Get(':id')
   @RequirePermission('stock', 'read')
   @ApiOperation({ summary: 'Buscar movimentação por ID' })
-  async findOne(@Param('id') id: string): Promise<StockMovementResponseDto> {
+  async findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<StockMovementResponseDto> {
     return await this.stockMovementsService.findOne(id);
   }
 }

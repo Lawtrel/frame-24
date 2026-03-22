@@ -12,28 +12,26 @@
  * Do not edit the class manually.
  */
 
-
 // May contain unused imports in some cases
 // @ts-ignore
-import type { UpdateRoomDtoSeatLayoutInnerSeatsInner } from './update-room-dto-seat-layout-inner-seats-inner';
+import type { UpdateRoomDtoSeatLayoutInnerSeatsInner } from "./update-room-dto-seat-layout-inner-seats-inner";
 
 /**
- * 
+ *
  * @export
  * @interface UpdateRoomDtoSeatLayoutInner
  */
 export interface UpdateRoomDtoSeatLayoutInner {
-    /**
-     * 
-     * @type {string}
-     * @memberof UpdateRoomDtoSeatLayoutInner
-     */
-    'row_code': string;
-    /**
-     * 
-     * @type {Array<UpdateRoomDtoSeatLayoutInnerSeatsInner>}
-     * @memberof UpdateRoomDtoSeatLayoutInner
-     */
-    'seats': Array<UpdateRoomDtoSeatLayoutInnerSeatsInner>;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateRoomDtoSeatLayoutInner
+   */
+  row_code: string;
+  /**
+   *
+   * @type {Array<UpdateRoomDtoSeatLayoutInnerSeatsInner>}
+   * @memberof UpdateRoomDtoSeatLayoutInner
+   */
+  seats: Array<UpdateRoomDtoSeatLayoutInnerSeatsInner>;
 }
-

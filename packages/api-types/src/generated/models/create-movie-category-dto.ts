@@ -12,37 +12,34 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface CreateMovieCategoryDto
  */
 export interface CreateMovieCategoryDto {
-    /**
-     * Nome da categoria
-     * @type {string}
-     * @memberof CreateMovieCategoryDto
-     */
-    'name': string;
-    /**
-     * Descrição da categoria
-     * @type {string}
-     * @memberof CreateMovieCategoryDto
-     */
-    'description'?: string;
-    /**
-     * Idade mínima recomendada
-     * @type {number}
-     * @memberof CreateMovieCategoryDto
-     */
-    'minimum_age'?: number;
-    /**
-     * Categoria ativa?
-     * @type {boolean}
-     * @memberof CreateMovieCategoryDto
-     */
-    'active'?: boolean;
+  /**
+   * Nome da categoria
+   * @type {string}
+   * @memberof CreateMovieCategoryDto
+   */
+  name: string;
+  /**
+   * Descrição da categoria
+   * @type {string}
+   * @memberof CreateMovieCategoryDto
+   */
+  description?: string;
+  /**
+   * Idade mínima recomendada
+   * @type {number}
+   * @memberof CreateMovieCategoryDto
+   */
+  minimum_age?: number;
+  /**
+   * Categoria ativa?
+   * @type {boolean}
+   * @memberof CreateMovieCategoryDto
+   */
+  active?: boolean;
 }
-

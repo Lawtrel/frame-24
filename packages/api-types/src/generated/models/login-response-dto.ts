@@ -12,37 +12,35 @@
  * Do not edit the class manually.
  */
 
-
 // May contain unused imports in some cases
 // @ts-ignore
-import type { CompanySelectionDto } from './company-selection-dto';
+import type { CompanySelectionDto } from "./company-selection-dto";
 // May contain unused imports in some cases
 // @ts-ignore
-import type { LoginResponseDtoUser } from './login-response-dto-user';
+import type { LoginResponseDtoUser } from "./login-response-dto-user";
 
 /**
- * 
+ *
  * @export
  * @interface LoginResponseDto
  */
 export interface LoginResponseDto {
-    /**
-     * JWT access token (retornado quando usuário tem apenas 1 empresa)
-     * @type {string}
-     * @memberof LoginResponseDto
-     */
-    'access_token'?: string;
-    /**
-     * 
-     * @type {LoginResponseDtoUser}
-     * @memberof LoginResponseDto
-     */
-    'user': LoginResponseDtoUser;
-    /**
-     * Lista de empresas (retornado quando usuário tem múltiplas empresas)
-     * @type {Array<CompanySelectionDto>}
-     * @memberof LoginResponseDto
-     */
-    'companies'?: Array<CompanySelectionDto>;
+  /**
+   * JWT access token (retornado quando usuário tem apenas 1 empresa)
+   * @type {string}
+   * @memberof LoginResponseDto
+   */
+  access_token?: string;
+  /**
+   *
+   * @type {LoginResponseDtoUser}
+   * @memberof LoginResponseDto
+   */
+  user: LoginResponseDtoUser;
+  /**
+   * Lista de empresas (retornado quando usuário tem múltiplas empresas)
+   * @type {Array<CompanySelectionDto>}
+   * @memberof LoginResponseDto
+   */
+  companies?: Array<CompanySelectionDto>;
 }
-

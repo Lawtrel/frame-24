@@ -12,31 +12,28 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface LoginCustomerDto
  */
 export interface LoginCustomerDto {
-    /**
-     * ID da empresa
-     * @type {string}
-     * @memberof LoginCustomerDto
-     */
-    'company_id': string;
-    /**
-     * Email
-     * @type {string}
-     * @memberof LoginCustomerDto
-     */
-    'email': string;
-    /**
-     * Senha
-     * @type {string}
-     * @memberof LoginCustomerDto
-     */
-    'password': string;
+  /**
+   * ID da empresa
+   * @type {string}
+   * @memberof LoginCustomerDto
+   */
+  company_id: string;
+  /**
+   * Email
+   * @type {string}
+   * @memberof LoginCustomerDto
+   */
+  email: string;
+  /**
+   * Senha
+   * @type {string}
+   * @memberof LoginCustomerDto
+   */
+  password: string;
 }
-

@@ -12,85 +12,82 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface UpdateSupplierDto
  */
 export interface UpdateSupplierDto {
-    /**
-     * Razão social (opcional para atualização parcial)
-     * @type {string}
-     * @memberof UpdateSupplierDto
-     */
-    'corporate_name'?: string;
-    /**
-     * Nome fantasia (opcional)
-     * @type {string}
-     * @memberof UpdateSupplierDto
-     */
-    'trade_name'?: string;
-    /**
-     * CNPJ (somente se for atualizado)
-     * @type {string}
-     * @memberof UpdateSupplierDto
-     */
-    'cnpj'?: string;
-    /**
-     * Telefone atualizado do fornecedor
-     * @type {string}
-     * @memberof UpdateSupplierDto
-     */
-    'phone'?: string;
-    /**
-     * Email de contato atualizado
-     * @type {string}
-     * @memberof UpdateSupplierDto
-     */
-    'email'?: string;
-    /**
-     * Endereço comercial atualizado
-     * @type {string}
-     * @memberof UpdateSupplierDto
-     */
-    'address'?: string;
-    /**
-     * Nome do contato atualizado
-     * @type {string}
-     * @memberof UpdateSupplierDto
-     */
-    'contact_name'?: string;
-    /**
-     * Telefone de contato atualizado
-     * @type {string}
-     * @memberof UpdateSupplierDto
-     */
-    'contact_phone'?: string;
-    /**
-     * Dias médios de entrega atualizados
-     * @type {number}
-     * @memberof UpdateSupplierDto
-     */
-    'delivery_days'?: number;
-    /**
-     * Atualiza flag de distribuidor de filmes
-     * @type {boolean}
-     * @memberof UpdateSupplierDto
-     */
-    'is_film_distributor'?: boolean;
-    /**
-     * Atualiza o tipo de fornecedor (UUID)
-     * @type {string}
-     * @memberof UpdateSupplierDto
-     */
-    'supplier_type_id'?: string;
-    /**
-     * Ativa ou desativa o fornecedor
-     * @type {boolean}
-     * @memberof UpdateSupplierDto
-     */
-    'active'?: boolean;
+  /**
+   * Razão social (opcional para atualização parcial)
+   * @type {string}
+   * @memberof UpdateSupplierDto
+   */
+  corporate_name?: string;
+  /**
+   * Nome fantasia (opcional)
+   * @type {string}
+   * @memberof UpdateSupplierDto
+   */
+  trade_name?: string;
+  /**
+   * CNPJ (somente se for atualizado)
+   * @type {string}
+   * @memberof UpdateSupplierDto
+   */
+  cnpj?: string;
+  /**
+   * Telefone atualizado do fornecedor
+   * @type {string}
+   * @memberof UpdateSupplierDto
+   */
+  phone?: string;
+  /**
+   * Email de contato atualizado
+   * @type {string}
+   * @memberof UpdateSupplierDto
+   */
+  email?: string;
+  /**
+   * Endereço comercial atualizado
+   * @type {string}
+   * @memberof UpdateSupplierDto
+   */
+  address?: string;
+  /**
+   * Nome do contato atualizado
+   * @type {string}
+   * @memberof UpdateSupplierDto
+   */
+  contact_name?: string;
+  /**
+   * Telefone de contato atualizado
+   * @type {string}
+   * @memberof UpdateSupplierDto
+   */
+  contact_phone?: string;
+  /**
+   * Dias médios de entrega atualizados
+   * @type {number}
+   * @memberof UpdateSupplierDto
+   */
+  delivery_days?: number;
+  /**
+   * Atualiza flag de distribuidor de filmes
+   * @type {boolean}
+   * @memberof UpdateSupplierDto
+   */
+  is_film_distributor?: boolean;
+  /**
+   * Atualiza o tipo de fornecedor (UUID)
+   * @type {string}
+   * @memberof UpdateSupplierDto
+   */
+  supplier_type_id?: string;
+  /**
+   * Ativa ou desativa o fornecedor
+   * @type {boolean}
+   * @memberof UpdateSupplierDto
+   */
+  active?: boolean;
 }
-

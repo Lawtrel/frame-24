@@ -12,320 +12,533 @@
  * Do not edit the class manually.
  */
 
-
-import type { Configuration } from '../configuration';
-import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from 'axios';
-import globalAxios from 'axios';
+import type { Configuration } from "../configuration";
+import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from "axios";
+import globalAxios from "axios";
 // Some imports not used depending on template conditions
 // @ts-ignore
-import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from '../common';
+import {
+  DUMMY_BASE_URL,
+  assertParamExists,
+  setApiKeyToObject,
+  setBasicAuthToObject,
+  setBearerAuthToObject,
+  setOAuthToObject,
+  setSearchParams,
+  serializeDataIfNeeded,
+  toPathString,
+  createRequestFunction,
+} from "../common";
 // @ts-ignore
-import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
+import {
+  BASE_PATH,
+  COLLECTION_FORMATS,
+  type RequestArgs,
+  BaseAPI,
+  RequiredError,
+  operationServerMap,
+} from "../base";
 // @ts-ignore
-import type { CreateAccountPayableDto } from '../models';
+import type { CreateAccountPayableDto } from "../models";
 // @ts-ignore
-import type { UpdateAccountPayableDto } from '../models';
+import type { UpdateAccountPayableDto } from "../models";
 /**
  * ContasAPagarApi - axios parameter creator
  * @export
  */
-export const ContasAPagarApiAxiosParamCreator = function (configuration?: Configuration) {
-    return {
-        /**
-         * Registra uma nova conta a pagar no sistema. Pode ser vinculada a um fornecedor e categorizada por tipo de despesa (operacional, administrativa, etc).
-         * @summary Criar nova conta a pagar
-         * @param {CreateAccountPayableDto} createAccountPayableDto 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        accountsPayableControllerCreate: async (createAccountPayableDto: CreateAccountPayableDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'createAccountPayableDto' is not null or undefined
-            assertParamExists('accountsPayableControllerCreate', 'createAccountPayableDto', createAccountPayableDto)
-            const localVarPath = `/finance/payables`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+export const ContasAPagarApiAxiosParamCreator = function (
+  configuration?: Configuration,
+) {
+  return {
+    /**
+     * Registra uma nova conta a pagar no sistema. Pode ser vinculada a um fornecedor e categorizada por tipo de despesa (operacional, administrativa, etc).
+     * @summary Criar nova conta a pagar
+     * @param {CreateAccountPayableDto} createAccountPayableDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    accountsPayableControllerCreate: async (
+      createAccountPayableDto: CreateAccountPayableDto,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'createAccountPayableDto' is not null or undefined
+      assertParamExists(
+        "accountsPayableControllerCreate",
+        "createAccountPayableDto",
+        createAccountPayableDto,
+      );
+      const localVarPath = `/finance/payables`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      const localVarRequestOptions = {
+        method: "POST",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
+      localVarHeaderParameter["Content-Type"] = "application/json";
 
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        createAccountPayableDto,
+        localVarRequestOptions,
+        configuration,
+      );
 
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(createAccountPayableDto, localVarRequestOptions, configuration)
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Retorna uma lista paginada de contas a pagar, com filtros por data, status, fornecedor e complexo.
+     * @summary Listar contas a pagar
+     * @param {string} [cinemaComplexId]
+     * @param {string} [supplierId]
+     * @param {AccountsPayableControllerFindAllStatusEnum} [status]
+     * @param {string} [startDueDate]
+     * @param {string} [endDueDate]
+     * @param {string} [page]
+     * @param {string} [perPage]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    accountsPayableControllerFindAll: async (
+      cinemaComplexId?: string,
+      supplierId?: string,
+      status?: AccountsPayableControllerFindAllStatusEnum,
+      startDueDate?: string,
+      endDueDate?: string,
+      page?: string,
+      perPage?: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      const localVarPath = `/finance/payables`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Retorna uma lista paginada de contas a pagar, com filtros por data, status, fornecedor e complexo.
-         * @summary Listar contas a pagar
-         * @param {string} [cinemaComplexId] 
-         * @param {string} [supplierId] 
-         * @param {AccountsPayableControllerFindAllStatusEnum} [status] 
-         * @param {string} [startDueDate] 
-         * @param {string} [endDueDate] 
-         * @param {string} [page] 
-         * @param {string} [perPage] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        accountsPayableControllerFindAll: async (cinemaComplexId?: string, supplierId?: string, status?: AccountsPayableControllerFindAllStatusEnum, startDueDate?: string, endDueDate?: string, page?: string, perPage?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/finance/payables`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      if (cinemaComplexId !== undefined) {
+        localVarQueryParameter["cinema_complex_id"] = cinemaComplexId;
+      }
 
-            if (cinemaComplexId !== undefined) {
-                localVarQueryParameter['cinema_complex_id'] = cinemaComplexId;
-            }
+      if (supplierId !== undefined) {
+        localVarQueryParameter["supplier_id"] = supplierId;
+      }
 
-            if (supplierId !== undefined) {
-                localVarQueryParameter['supplier_id'] = supplierId;
-            }
+      if (status !== undefined) {
+        localVarQueryParameter["status"] = status;
+      }
 
-            if (status !== undefined) {
-                localVarQueryParameter['status'] = status;
-            }
+      if (startDueDate !== undefined) {
+        localVarQueryParameter["start_due_date"] = startDueDate;
+      }
 
-            if (startDueDate !== undefined) {
-                localVarQueryParameter['start_due_date'] = startDueDate;
-            }
+      if (endDueDate !== undefined) {
+        localVarQueryParameter["end_due_date"] = endDueDate;
+      }
 
-            if (endDueDate !== undefined) {
-                localVarQueryParameter['end_due_date'] = endDueDate;
-            }
+      if (page !== undefined) {
+        localVarQueryParameter["page"] = page;
+      }
 
-            if (page !== undefined) {
-                localVarQueryParameter['page'] = page;
-            }
+      if (perPage !== undefined) {
+        localVarQueryParameter["per_page"] = perPage;
+      }
 
-            if (perPage !== undefined) {
-                localVarQueryParameter['per_page'] = perPage;
-            }
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Retorna os detalhes completos de uma conta a pagar específica, incluindo histórico de transações.
+     * @summary Buscar conta a pagar por ID
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    accountsPayableControllerFindOne: async (
+      id: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists("accountsPayableControllerFindOne", "id", id);
+      const localVarPath = `/finance/payables/{id}`.replace(
+        `{${"id"}}`,
+        encodeURIComponent(String(id)),
+      );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Retorna os detalhes completos de uma conta a pagar específica, incluindo histórico de transações.
-         * @summary Buscar conta a pagar por ID
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        accountsPayableControllerFindOne: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('accountsPayableControllerFindOne', 'id', id)
-            const localVarPath = `/finance/payables/{id}`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Atualiza os dados de uma conta a pagar existente. Permite alterar valores, datas e status (se permitido).
+     * @summary Atualizar conta a pagar
+     * @param {string} id
+     * @param {UpdateAccountPayableDto} updateAccountPayableDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    accountsPayableControllerUpdate: async (
+      id: string,
+      updateAccountPayableDto: UpdateAccountPayableDto,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists("accountsPayableControllerUpdate", "id", id);
+      // verify required parameter 'updateAccountPayableDto' is not null or undefined
+      assertParamExists(
+        "accountsPayableControllerUpdate",
+        "updateAccountPayableDto",
+        updateAccountPayableDto,
+      );
+      const localVarPath = `/finance/payables/{id}`.replace(
+        `{${"id"}}`,
+        encodeURIComponent(String(id)),
+      );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
+      const localVarRequestOptions = {
+        method: "PATCH",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      localVarHeaderParameter["Content-Type"] = "application/json";
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Atualiza os dados de uma conta a pagar existente. Permite alterar valores, datas e status (se permitido).
-         * @summary Atualizar conta a pagar
-         * @param {string} id 
-         * @param {UpdateAccountPayableDto} updateAccountPayableDto 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        accountsPayableControllerUpdate: async (id: string, updateAccountPayableDto: UpdateAccountPayableDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('accountsPayableControllerUpdate', 'id', id)
-            // verify required parameter 'updateAccountPayableDto' is not null or undefined
-            assertParamExists('accountsPayableControllerUpdate', 'updateAccountPayableDto', updateAccountPayableDto)
-            const localVarPath = `/finance/payables/{id}`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        updateAccountPayableDto,
+        localVarRequestOptions,
+        configuration,
+      );
 
-            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(updateAccountPayableDto, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-    }
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+  };
 };
 
 /**
  * ContasAPagarApi - functional programming interface
  * @export
  */
-export const ContasAPagarApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = ContasAPagarApiAxiosParamCreator(configuration)
-    return {
-        /**
-         * Registra uma nova conta a pagar no sistema. Pode ser vinculada a um fornecedor e categorizada por tipo de despesa (operacional, administrativa, etc).
-         * @summary Criar nova conta a pagar
-         * @param {CreateAccountPayableDto} createAccountPayableDto 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async accountsPayableControllerCreate(createAccountPayableDto: CreateAccountPayableDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.accountsPayableControllerCreate(createAccountPayableDto, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ContasAPagarApi.accountsPayableControllerCreate']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Retorna uma lista paginada de contas a pagar, com filtros por data, status, fornecedor e complexo.
-         * @summary Listar contas a pagar
-         * @param {string} [cinemaComplexId] 
-         * @param {string} [supplierId] 
-         * @param {AccountsPayableControllerFindAllStatusEnum} [status] 
-         * @param {string} [startDueDate] 
-         * @param {string} [endDueDate] 
-         * @param {string} [page] 
-         * @param {string} [perPage] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async accountsPayableControllerFindAll(cinemaComplexId?: string, supplierId?: string, status?: AccountsPayableControllerFindAllStatusEnum, startDueDate?: string, endDueDate?: string, page?: string, perPage?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.accountsPayableControllerFindAll(cinemaComplexId, supplierId, status, startDueDate, endDueDate, page, perPage, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ContasAPagarApi.accountsPayableControllerFindAll']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Retorna os detalhes completos de uma conta a pagar específica, incluindo histórico de transações.
-         * @summary Buscar conta a pagar por ID
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async accountsPayableControllerFindOne(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.accountsPayableControllerFindOne(id, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ContasAPagarApi.accountsPayableControllerFindOne']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Atualiza os dados de uma conta a pagar existente. Permite alterar valores, datas e status (se permitido).
-         * @summary Atualizar conta a pagar
-         * @param {string} id 
-         * @param {UpdateAccountPayableDto} updateAccountPayableDto 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async accountsPayableControllerUpdate(id: string, updateAccountPayableDto: UpdateAccountPayableDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.accountsPayableControllerUpdate(id, updateAccountPayableDto, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ContasAPagarApi.accountsPayableControllerUpdate']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-    }
+export const ContasAPagarApiFp = function (configuration?: Configuration) {
+  const localVarAxiosParamCreator =
+    ContasAPagarApiAxiosParamCreator(configuration);
+  return {
+    /**
+     * Registra uma nova conta a pagar no sistema. Pode ser vinculada a um fornecedor e categorizada por tipo de despesa (operacional, administrativa, etc).
+     * @summary Criar nova conta a pagar
+     * @param {CreateAccountPayableDto} createAccountPayableDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async accountsPayableControllerCreate(
+      createAccountPayableDto: CreateAccountPayableDto,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.accountsPayableControllerCreate(
+          createAccountPayableDto,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["ContasAPagarApi.accountsPayableControllerCreate"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     * Retorna uma lista paginada de contas a pagar, com filtros por data, status, fornecedor e complexo.
+     * @summary Listar contas a pagar
+     * @param {string} [cinemaComplexId]
+     * @param {string} [supplierId]
+     * @param {AccountsPayableControllerFindAllStatusEnum} [status]
+     * @param {string} [startDueDate]
+     * @param {string} [endDueDate]
+     * @param {string} [page]
+     * @param {string} [perPage]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async accountsPayableControllerFindAll(
+      cinemaComplexId?: string,
+      supplierId?: string,
+      status?: AccountsPayableControllerFindAllStatusEnum,
+      startDueDate?: string,
+      endDueDate?: string,
+      page?: string,
+      perPage?: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.accountsPayableControllerFindAll(
+          cinemaComplexId,
+          supplierId,
+          status,
+          startDueDate,
+          endDueDate,
+          page,
+          perPage,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap[
+          "ContasAPagarApi.accountsPayableControllerFindAll"
+        ]?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     * Retorna os detalhes completos de uma conta a pagar específica, incluindo histórico de transações.
+     * @summary Buscar conta a pagar por ID
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async accountsPayableControllerFindOne(
+      id: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.accountsPayableControllerFindOne(
+          id,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap[
+          "ContasAPagarApi.accountsPayableControllerFindOne"
+        ]?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     * Atualiza os dados de uma conta a pagar existente. Permite alterar valores, datas e status (se permitido).
+     * @summary Atualizar conta a pagar
+     * @param {string} id
+     * @param {UpdateAccountPayableDto} updateAccountPayableDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async accountsPayableControllerUpdate(
+      id: string,
+      updateAccountPayableDto: UpdateAccountPayableDto,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.accountsPayableControllerUpdate(
+          id,
+          updateAccountPayableDto,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["ContasAPagarApi.accountsPayableControllerUpdate"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+  };
 };
 
 /**
  * ContasAPagarApi - factory interface
  * @export
  */
-export const ContasAPagarApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = ContasAPagarApiFp(configuration)
-    return {
-        /**
-         * Registra uma nova conta a pagar no sistema. Pode ser vinculada a um fornecedor e categorizada por tipo de despesa (operacional, administrativa, etc).
-         * @summary Criar nova conta a pagar
-         * @param {ContasAPagarApiAccountsPayableControllerCreateRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        accountsPayableControllerCreate(requestParameters: ContasAPagarApiAccountsPayableControllerCreateRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.accountsPayableControllerCreate(requestParameters.createAccountPayableDto, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Retorna uma lista paginada de contas a pagar, com filtros por data, status, fornecedor e complexo.
-         * @summary Listar contas a pagar
-         * @param {ContasAPagarApiAccountsPayableControllerFindAllRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        accountsPayableControllerFindAll(requestParameters: ContasAPagarApiAccountsPayableControllerFindAllRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.accountsPayableControllerFindAll(requestParameters.cinemaComplexId, requestParameters.supplierId, requestParameters.status, requestParameters.startDueDate, requestParameters.endDueDate, requestParameters.page, requestParameters.perPage, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Retorna os detalhes completos de uma conta a pagar específica, incluindo histórico de transações.
-         * @summary Buscar conta a pagar por ID
-         * @param {ContasAPagarApiAccountsPayableControllerFindOneRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        accountsPayableControllerFindOne(requestParameters: ContasAPagarApiAccountsPayableControllerFindOneRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.accountsPayableControllerFindOne(requestParameters.id, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Atualiza os dados de uma conta a pagar existente. Permite alterar valores, datas e status (se permitido).
-         * @summary Atualizar conta a pagar
-         * @param {ContasAPagarApiAccountsPayableControllerUpdateRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        accountsPayableControllerUpdate(requestParameters: ContasAPagarApiAccountsPayableControllerUpdateRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.accountsPayableControllerUpdate(requestParameters.id, requestParameters.updateAccountPayableDto, options).then((request) => request(axios, basePath));
-        },
-    };
+export const ContasAPagarApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance,
+) {
+  const localVarFp = ContasAPagarApiFp(configuration);
+  return {
+    /**
+     * Registra uma nova conta a pagar no sistema. Pode ser vinculada a um fornecedor e categorizada por tipo de despesa (operacional, administrativa, etc).
+     * @summary Criar nova conta a pagar
+     * @param {ContasAPagarApiAccountsPayableControllerCreateRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    accountsPayableControllerCreate(
+      requestParameters: ContasAPagarApiAccountsPayableControllerCreateRequest,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .accountsPayableControllerCreate(
+          requestParameters.createAccountPayableDto,
+          options,
+        )
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     * Retorna uma lista paginada de contas a pagar, com filtros por data, status, fornecedor e complexo.
+     * @summary Listar contas a pagar
+     * @param {ContasAPagarApiAccountsPayableControllerFindAllRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    accountsPayableControllerFindAll(
+      requestParameters: ContasAPagarApiAccountsPayableControllerFindAllRequest = {},
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .accountsPayableControllerFindAll(
+          requestParameters.cinemaComplexId,
+          requestParameters.supplierId,
+          requestParameters.status,
+          requestParameters.startDueDate,
+          requestParameters.endDueDate,
+          requestParameters.page,
+          requestParameters.perPage,
+          options,
+        )
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     * Retorna os detalhes completos de uma conta a pagar específica, incluindo histórico de transações.
+     * @summary Buscar conta a pagar por ID
+     * @param {ContasAPagarApiAccountsPayableControllerFindOneRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    accountsPayableControllerFindOne(
+      requestParameters: ContasAPagarApiAccountsPayableControllerFindOneRequest,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .accountsPayableControllerFindOne(requestParameters.id, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     * Atualiza os dados de uma conta a pagar existente. Permite alterar valores, datas e status (se permitido).
+     * @summary Atualizar conta a pagar
+     * @param {ContasAPagarApiAccountsPayableControllerUpdateRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    accountsPayableControllerUpdate(
+      requestParameters: ContasAPagarApiAccountsPayableControllerUpdateRequest,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .accountsPayableControllerUpdate(
+          requestParameters.id,
+          requestParameters.updateAccountPayableDto,
+          options,
+        )
+        .then((request) => request(axios, basePath));
+    },
+  };
 };
 
 /**
@@ -334,46 +547,57 @@ export const ContasAPagarApiFactory = function (configuration?: Configuration, b
  * @interface ContasAPagarApi
  */
 export interface ContasAPagarApiInterface {
-    /**
-     * Registra uma nova conta a pagar no sistema. Pode ser vinculada a um fornecedor e categorizada por tipo de despesa (operacional, administrativa, etc).
-     * @summary Criar nova conta a pagar
-     * @param {ContasAPagarApiAccountsPayableControllerCreateRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ContasAPagarApiInterface
-     */
-    accountsPayableControllerCreate(requestParameters: ContasAPagarApiAccountsPayableControllerCreateRequest, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   * Registra uma nova conta a pagar no sistema. Pode ser vinculada a um fornecedor e categorizada por tipo de despesa (operacional, administrativa, etc).
+   * @summary Criar nova conta a pagar
+   * @param {ContasAPagarApiAccountsPayableControllerCreateRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ContasAPagarApiInterface
+   */
+  accountsPayableControllerCreate(
+    requestParameters: ContasAPagarApiAccountsPayableControllerCreateRequest,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * Retorna uma lista paginada de contas a pagar, com filtros por data, status, fornecedor e complexo.
-     * @summary Listar contas a pagar
-     * @param {ContasAPagarApiAccountsPayableControllerFindAllRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ContasAPagarApiInterface
-     */
-    accountsPayableControllerFindAll(requestParameters?: ContasAPagarApiAccountsPayableControllerFindAllRequest, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   * Retorna uma lista paginada de contas a pagar, com filtros por data, status, fornecedor e complexo.
+   * @summary Listar contas a pagar
+   * @param {ContasAPagarApiAccountsPayableControllerFindAllRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ContasAPagarApiInterface
+   */
+  accountsPayableControllerFindAll(
+    requestParameters?: ContasAPagarApiAccountsPayableControllerFindAllRequest,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * Retorna os detalhes completos de uma conta a pagar específica, incluindo histórico de transações.
-     * @summary Buscar conta a pagar por ID
-     * @param {ContasAPagarApiAccountsPayableControllerFindOneRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ContasAPagarApiInterface
-     */
-    accountsPayableControllerFindOne(requestParameters: ContasAPagarApiAccountsPayableControllerFindOneRequest, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   * Retorna os detalhes completos de uma conta a pagar específica, incluindo histórico de transações.
+   * @summary Buscar conta a pagar por ID
+   * @param {ContasAPagarApiAccountsPayableControllerFindOneRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ContasAPagarApiInterface
+   */
+  accountsPayableControllerFindOne(
+    requestParameters: ContasAPagarApiAccountsPayableControllerFindOneRequest,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * Atualiza os dados de uma conta a pagar existente. Permite alterar valores, datas e status (se permitido).
-     * @summary Atualizar conta a pagar
-     * @param {ContasAPagarApiAccountsPayableControllerUpdateRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ContasAPagarApiInterface
-     */
-    accountsPayableControllerUpdate(requestParameters: ContasAPagarApiAccountsPayableControllerUpdateRequest, options?: RawAxiosRequestConfig): AxiosPromise<void>;
-
+  /**
+   * Atualiza os dados de uma conta a pagar existente. Permite alterar valores, datas e status (se permitido).
+   * @summary Atualizar conta a pagar
+   * @param {ContasAPagarApiAccountsPayableControllerUpdateRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ContasAPagarApiInterface
+   */
+  accountsPayableControllerUpdate(
+    requestParameters: ContasAPagarApiAccountsPayableControllerUpdateRequest,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 }
 
 /**
@@ -382,12 +606,12 @@ export interface ContasAPagarApiInterface {
  * @interface ContasAPagarApiAccountsPayableControllerCreateRequest
  */
 export interface ContasAPagarApiAccountsPayableControllerCreateRequest {
-    /**
-     * 
-     * @type {CreateAccountPayableDto}
-     * @memberof ContasAPagarApiAccountsPayableControllerCreate
-     */
-    readonly createAccountPayableDto: CreateAccountPayableDto
+  /**
+   *
+   * @type {CreateAccountPayableDto}
+   * @memberof ContasAPagarApiAccountsPayableControllerCreate
+   */
+  readonly createAccountPayableDto: CreateAccountPayableDto;
 }
 
 /**
@@ -396,54 +620,54 @@ export interface ContasAPagarApiAccountsPayableControllerCreateRequest {
  * @interface ContasAPagarApiAccountsPayableControllerFindAllRequest
  */
 export interface ContasAPagarApiAccountsPayableControllerFindAllRequest {
-    /**
-     * 
-     * @type {string}
-     * @memberof ContasAPagarApiAccountsPayableControllerFindAll
-     */
-    readonly cinemaComplexId?: string
+  /**
+   *
+   * @type {string}
+   * @memberof ContasAPagarApiAccountsPayableControllerFindAll
+   */
+  readonly cinemaComplexId?: string;
 
-    /**
-     * 
-     * @type {string}
-     * @memberof ContasAPagarApiAccountsPayableControllerFindAll
-     */
-    readonly supplierId?: string
+  /**
+   *
+   * @type {string}
+   * @memberof ContasAPagarApiAccountsPayableControllerFindAll
+   */
+  readonly supplierId?: string;
 
-    /**
-     * 
-     * @type {'pending' | 'partially_paid' | 'paid' | 'cancelled' | 'overdue'}
-     * @memberof ContasAPagarApiAccountsPayableControllerFindAll
-     */
-    readonly status?: AccountsPayableControllerFindAllStatusEnum
+  /**
+   *
+   * @type {'pending' | 'partially_paid' | 'paid' | 'cancelled' | 'overdue'}
+   * @memberof ContasAPagarApiAccountsPayableControllerFindAll
+   */
+  readonly status?: AccountsPayableControllerFindAllStatusEnum;
 
-    /**
-     * 
-     * @type {string}
-     * @memberof ContasAPagarApiAccountsPayableControllerFindAll
-     */
-    readonly startDueDate?: string
+  /**
+   *
+   * @type {string}
+   * @memberof ContasAPagarApiAccountsPayableControllerFindAll
+   */
+  readonly startDueDate?: string;
 
-    /**
-     * 
-     * @type {string}
-     * @memberof ContasAPagarApiAccountsPayableControllerFindAll
-     */
-    readonly endDueDate?: string
+  /**
+   *
+   * @type {string}
+   * @memberof ContasAPagarApiAccountsPayableControllerFindAll
+   */
+  readonly endDueDate?: string;
 
-    /**
-     * 
-     * @type {string}
-     * @memberof ContasAPagarApiAccountsPayableControllerFindAll
-     */
-    readonly page?: string
+  /**
+   *
+   * @type {string}
+   * @memberof ContasAPagarApiAccountsPayableControllerFindAll
+   */
+  readonly page?: string;
 
-    /**
-     * 
-     * @type {string}
-     * @memberof ContasAPagarApiAccountsPayableControllerFindAll
-     */
-    readonly perPage?: string
+  /**
+   *
+   * @type {string}
+   * @memberof ContasAPagarApiAccountsPayableControllerFindAll
+   */
+  readonly perPage?: string;
 }
 
 /**
@@ -452,12 +676,12 @@ export interface ContasAPagarApiAccountsPayableControllerFindAllRequest {
  * @interface ContasAPagarApiAccountsPayableControllerFindOneRequest
  */
 export interface ContasAPagarApiAccountsPayableControllerFindOneRequest {
-    /**
-     * 
-     * @type {string}
-     * @memberof ContasAPagarApiAccountsPayableControllerFindOne
-     */
-    readonly id: string
+  /**
+   *
+   * @type {string}
+   * @memberof ContasAPagarApiAccountsPayableControllerFindOne
+   */
+  readonly id: string;
 }
 
 /**
@@ -466,19 +690,19 @@ export interface ContasAPagarApiAccountsPayableControllerFindOneRequest {
  * @interface ContasAPagarApiAccountsPayableControllerUpdateRequest
  */
 export interface ContasAPagarApiAccountsPayableControllerUpdateRequest {
-    /**
-     * 
-     * @type {string}
-     * @memberof ContasAPagarApiAccountsPayableControllerUpdate
-     */
-    readonly id: string
+  /**
+   *
+   * @type {string}
+   * @memberof ContasAPagarApiAccountsPayableControllerUpdate
+   */
+  readonly id: string;
 
-    /**
-     * 
-     * @type {UpdateAccountPayableDto}
-     * @memberof ContasAPagarApiAccountsPayableControllerUpdate
-     */
-    readonly updateAccountPayableDto: UpdateAccountPayableDto
+  /**
+   *
+   * @type {UpdateAccountPayableDto}
+   * @memberof ContasAPagarApiAccountsPayableControllerUpdate
+   */
+  readonly updateAccountPayableDto: UpdateAccountPayableDto;
 }
 
 /**
@@ -487,64 +711,104 @@ export interface ContasAPagarApiAccountsPayableControllerUpdateRequest {
  * @class ContasAPagarApi
  * @extends {BaseAPI}
  */
-export class ContasAPagarApi extends BaseAPI implements ContasAPagarApiInterface {
-    /**
-     * Registra uma nova conta a pagar no sistema. Pode ser vinculada a um fornecedor e categorizada por tipo de despesa (operacional, administrativa, etc).
-     * @summary Criar nova conta a pagar
-     * @param {ContasAPagarApiAccountsPayableControllerCreateRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ContasAPagarApi
-     */
-    public accountsPayableControllerCreate(requestParameters: ContasAPagarApiAccountsPayableControllerCreateRequest, options?: RawAxiosRequestConfig) {
-        return ContasAPagarApiFp(this.configuration).accountsPayableControllerCreate(requestParameters.createAccountPayableDto, options).then((request) => request(this.axios, this.basePath));
-    }
+export class ContasAPagarApi
+  extends BaseAPI
+  implements ContasAPagarApiInterface
+{
+  /**
+   * Registra uma nova conta a pagar no sistema. Pode ser vinculada a um fornecedor e categorizada por tipo de despesa (operacional, administrativa, etc).
+   * @summary Criar nova conta a pagar
+   * @param {ContasAPagarApiAccountsPayableControllerCreateRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ContasAPagarApi
+   */
+  public accountsPayableControllerCreate(
+    requestParameters: ContasAPagarApiAccountsPayableControllerCreateRequest,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return ContasAPagarApiFp(this.configuration)
+      .accountsPayableControllerCreate(
+        requestParameters.createAccountPayableDto,
+        options,
+      )
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * Retorna uma lista paginada de contas a pagar, com filtros por data, status, fornecedor e complexo.
-     * @summary Listar contas a pagar
-     * @param {ContasAPagarApiAccountsPayableControllerFindAllRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ContasAPagarApi
-     */
-    public accountsPayableControllerFindAll(requestParameters: ContasAPagarApiAccountsPayableControllerFindAllRequest = {}, options?: RawAxiosRequestConfig) {
-        return ContasAPagarApiFp(this.configuration).accountsPayableControllerFindAll(requestParameters.cinemaComplexId, requestParameters.supplierId, requestParameters.status, requestParameters.startDueDate, requestParameters.endDueDate, requestParameters.page, requestParameters.perPage, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   * Retorna uma lista paginada de contas a pagar, com filtros por data, status, fornecedor e complexo.
+   * @summary Listar contas a pagar
+   * @param {ContasAPagarApiAccountsPayableControllerFindAllRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ContasAPagarApi
+   */
+  public accountsPayableControllerFindAll(
+    requestParameters: ContasAPagarApiAccountsPayableControllerFindAllRequest = {},
+    options?: RawAxiosRequestConfig,
+  ) {
+    return ContasAPagarApiFp(this.configuration)
+      .accountsPayableControllerFindAll(
+        requestParameters.cinemaComplexId,
+        requestParameters.supplierId,
+        requestParameters.status,
+        requestParameters.startDueDate,
+        requestParameters.endDueDate,
+        requestParameters.page,
+        requestParameters.perPage,
+        options,
+      )
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * Retorna os detalhes completos de uma conta a pagar específica, incluindo histórico de transações.
-     * @summary Buscar conta a pagar por ID
-     * @param {ContasAPagarApiAccountsPayableControllerFindOneRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ContasAPagarApi
-     */
-    public accountsPayableControllerFindOne(requestParameters: ContasAPagarApiAccountsPayableControllerFindOneRequest, options?: RawAxiosRequestConfig) {
-        return ContasAPagarApiFp(this.configuration).accountsPayableControllerFindOne(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   * Retorna os detalhes completos de uma conta a pagar específica, incluindo histórico de transações.
+   * @summary Buscar conta a pagar por ID
+   * @param {ContasAPagarApiAccountsPayableControllerFindOneRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ContasAPagarApi
+   */
+  public accountsPayableControllerFindOne(
+    requestParameters: ContasAPagarApiAccountsPayableControllerFindOneRequest,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return ContasAPagarApiFp(this.configuration)
+      .accountsPayableControllerFindOne(requestParameters.id, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * Atualiza os dados de uma conta a pagar existente. Permite alterar valores, datas e status (se permitido).
-     * @summary Atualizar conta a pagar
-     * @param {ContasAPagarApiAccountsPayableControllerUpdateRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ContasAPagarApi
-     */
-    public accountsPayableControllerUpdate(requestParameters: ContasAPagarApiAccountsPayableControllerUpdateRequest, options?: RawAxiosRequestConfig) {
-        return ContasAPagarApiFp(this.configuration).accountsPayableControllerUpdate(requestParameters.id, requestParameters.updateAccountPayableDto, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   * Atualiza os dados de uma conta a pagar existente. Permite alterar valores, datas e status (se permitido).
+   * @summary Atualizar conta a pagar
+   * @param {ContasAPagarApiAccountsPayableControllerUpdateRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ContasAPagarApi
+   */
+  public accountsPayableControllerUpdate(
+    requestParameters: ContasAPagarApiAccountsPayableControllerUpdateRequest,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return ContasAPagarApiFp(this.configuration)
+      .accountsPayableControllerUpdate(
+        requestParameters.id,
+        requestParameters.updateAccountPayableDto,
+        options,
+      )
+      .then((request) => request(this.axios, this.basePath));
+  }
 }
 
 /**
  * @export
  */
 export const AccountsPayableControllerFindAllStatusEnum = {
-    Pending: 'pending',
-    PartiallyPaid: 'partially_paid',
-    Paid: 'paid',
-    Cancelled: 'cancelled',
-    Overdue: 'overdue'
+  Pending: "pending",
+  PartiallyPaid: "partially_paid",
+  Paid: "paid",
+  Cancelled: "cancelled",
+  Overdue: "overdue",
 } as const;
-export type AccountsPayableControllerFindAllStatusEnum = typeof AccountsPayableControllerFindAllStatusEnum[keyof typeof AccountsPayableControllerFindAllStatusEnum];
+export type AccountsPayableControllerFindAllStatusEnum =
+  (typeof AccountsPayableControllerFindAllStatusEnum)[keyof typeof AccountsPayableControllerFindAllStatusEnum];

@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -58,7 +59,7 @@ export class CampaignsController {
   @ApiOperation({
     summary: 'Buscar campanha por ID',
   })
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.campaignsService.findOne(id);
   }
 
@@ -67,7 +68,7 @@ export class CampaignsController {
   @ApiOperation({
     summary: 'Ativar campanha',
   })
-  async activate(@Param('id') id: string) {
+  async activate(@Param('id', ParseUUIDPipe) id: string) {
     return this.campaignsService.activate(id);
   }
 
@@ -76,7 +77,7 @@ export class CampaignsController {
   @ApiOperation({
     summary: 'Pausar campanha',
   })
-  async pause(@Param('id') id: string) {
+  async pause(@Param('id', ParseUUIDPipe) id: string) {
     return this.campaignsService.pause(id);
   }
 }

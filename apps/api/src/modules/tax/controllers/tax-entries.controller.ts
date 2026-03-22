@@ -9,6 +9,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
@@ -68,7 +69,9 @@ export class TaxEntriesController {
   @Get(':id')
   @RequirePermission('tax', 'read')
   @ApiOperation({ summary: 'Buscar lançamento fiscal por ID' })
-  async findOne(@Param('id') id: string): Promise<TaxEntryResponseDto> {
+  async findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<TaxEntryResponseDto> {
     return await this.taxEntriesService.findOne(id);
   }
 
@@ -76,7 +79,9 @@ export class TaxEntriesController {
   @RequirePermission('tax', 'update')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Marcar lançamento fiscal como processado' })
-  async markAsProcessed(@Param('id') id: string): Promise<TaxEntryResponseDto> {
+  async markAsProcessed(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<TaxEntryResponseDto> {
     return await this.taxEntriesService.markAsProcessed(id);
   }
 }

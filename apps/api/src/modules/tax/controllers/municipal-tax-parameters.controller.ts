@@ -9,6 +9,7 @@ import {
   Post,
   Put,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -50,7 +51,7 @@ export class MunicipalTaxParametersController {
   @RequirePermission('tax', 'read')
   @ApiOperation({ summary: 'Buscar parâmetro municipal por ID' })
   @ApiParam({ name: 'id', description: 'Identificador do parâmetro' })
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.findById(id);
   }
 
@@ -59,7 +60,7 @@ export class MunicipalTaxParametersController {
   @ApiOperation({ summary: 'Atualizar parâmetro municipal' })
   @ApiParam({ name: 'id', description: 'Identificador do parâmetro' })
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateMunicipalTaxParameterDto,
   ) {
     return this.service.update(id, dto);
@@ -71,7 +72,7 @@ export class MunicipalTaxParametersController {
   @ApiOperation({ summary: 'Excluir parâmetro municipal' })
   @ApiParam({ name: 'id', description: 'Identificador do parâmetro' })
   @ApiResponse({ status: 204, description: 'Parâmetro removido.' })
-  async delete(@Param('id') id: string) {
+  async delete(@Param('id', ParseUUIDPipe) id: string) {
     await this.service.delete(id);
   }
 }

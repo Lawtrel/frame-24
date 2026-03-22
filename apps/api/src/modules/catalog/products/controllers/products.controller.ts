@@ -11,6 +11,7 @@ import {
   HttpCode,
   HttpStatus,
   UploadedFile,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
@@ -81,7 +82,9 @@ export class ProductsController {
   @Get(':id')
   @RequirePermission('products', 'read')
   @ApiOperation({ summary: 'Buscar produto por ID' })
-  async findOne(@Param('id') id: string): Promise<ProductResponseDto> {
+  async findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<ProductResponseDto> {
     return await this.productsService.findOne(id);
   }
 
@@ -90,7 +93,7 @@ export class ProductsController {
   @RequirePermission('products', 'update')
   @ApiOperation({ summary: 'Atualizar produto' })
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: UpdateProductDto,
   ): Promise<ProductResponseDto> {
@@ -101,7 +104,7 @@ export class ProductsController {
   @RequirePermission('products', 'delete')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Deletar produto (soft delete)' })
-  async delete(@Param('id') id: string): Promise<void> {
+  async delete(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return await this.productsService.delete(id, true);
   }
 }

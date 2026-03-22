@@ -12,37 +12,34 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface RegisterDto
  */
 export interface RegisterDto {
-    /**
-     * Email do novo usuário
-     * @type {string}
-     * @memberof RegisterDto
-     */
-    'email': string;
-    /**
-     * Senha (mín. 8 caracteres, maiúscula, minúscula e número)
-     * @type {string}
-     * @memberof RegisterDto
-     */
-    'password': string;
-    /**
-     * Nome completo do usuário
-     * @type {string}
-     * @memberof RegisterDto
-     */
-    'full_name': string;
-    /**
-     * ID da empresa à qual o usuário será vinculado
-     * @type {string}
-     * @memberof RegisterDto
-     */
-    'company_id': string;
+  /**
+   * Email do novo usuário
+   * @type {string}
+   * @memberof RegisterDto
+   */
+  email: string;
+  /**
+   * Senha (mín. 8 caracteres, maiúscula, minúscula e número)
+   * @type {string}
+   * @memberof RegisterDto
+   */
+  password: string;
+  /**
+   * Nome completo do usuário
+   * @type {string}
+   * @memberof RegisterDto
+   */
+  full_name: string;
+  /**
+   * ID da empresa à qual o usuário será vinculado
+   * @type {string}
+   * @memberof RegisterDto
+   */
+  company_id: string;
 }
-

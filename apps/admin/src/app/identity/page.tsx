@@ -11,20 +11,20 @@ export default function UsersPage() {
 
   useEffect(() => {
     UsersService.getAll()
-        .then(data => {
-            setData(data || []);
-        })
-        .catch(console.error)
-        .finally(() => setLoading(false));
+      .then((data) => {
+        setData(data || []);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
   const handleDelete = async (id: string) => {
-    if(!confirm("Tem certeza que deseja deletar este usuário?")) return;
+    if (!confirm("Tem certeza que deseja deletar este usuário?")) return;
     try {
-        await UsersService.delete(id);
-        setData(prev => prev.filter(i => i.id !== id));
+      await UsersService.delete(id);
+      setData((prev) => prev.filter((i) => i.id !== id));
     } catch (error) {
-        alert("Erro ao deletar usuário.");
+      alert("Erro ao deletar usuário.");
     }
   };
 
@@ -32,7 +32,10 @@ export default function UsersPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Usuários</h1>
-        <Link href="/identity/users/new" className="bg-accent-red px-4 py-2 rounded text-white flex gap-2">
+        <Link
+          href="/identity/users/new"
+          className="bg-accent-red px-4 py-2 rounded text-white flex gap-2"
+        >
           <Plus className="w-4 h-4" /> Novo Usuário
         </Link>
       </div>
@@ -49,24 +52,42 @@ export default function UsersPage() {
           </thead>
           <tbody className="divide-y divide-border">
             {loading ? (
-                <tr><td colSpan={4} className="text-center py-8 text-zinc-500">Carregando...</td></tr>
+              <tr>
+                <td colSpan={4} className="text-center py-8 text-zinc-500">
+                  Carregando...
+                </td>
+              </tr>
             ) : data.length === 0 ? (
-                <tr><td colSpan={4} className="text-center py-8 text-zinc-500">Nenhum usuário encontrado.</td></tr>
+              <tr>
+                <td colSpan={4} className="text-center py-8 text-zinc-500">
+                  Nenhum usuário encontrado.
+                </td>
+              </tr>
             ) : (
-                data.map((item) => (
-                    <tr key={item.id} className="hover:bg-zinc-800/50">
-                        <td className="px-6 py-4 font-medium flex items-center gap-2">
-                            <User className="w-4 h-4 text-zinc-500" /> {item.person?.full_name || 'N/D'}
-                        </td>
-                        <td className="px-6 py-4 text-zinc-400">{item.email}</td>
-                        {/* A API de Users deve retornar o nome da Role (custom_roles.name) */}
-                        <td className="px-6 py-4 text-zinc-400">{item.company_user?.custom_roles?.name || 'N/D'}</td> 
-                        <td className="px-6 py-4 text-right flex justify-end gap-2">
-                            <Link href={`/identity/users/${item.id}`} className="p-1"><Edit2 className="w-4 h-4 text-zinc-500 hover:text-white" /></Link>
-                            <button onClick={() => handleDelete(item.id)} className="p-1"><Trash2 className="w-4 h-4 text-zinc-500 hover:text-red-500" /></button>
-                        </td>
-                    </tr>
-                ))
+              data.map((item) => (
+                <tr key={item.id} className="hover:bg-zinc-800/50">
+                  <td className="px-6 py-4 font-medium flex items-center gap-2">
+                    <User className="w-4 h-4 text-zinc-500" />{" "}
+                    {item.person?.full_name || "N/D"}
+                  </td>
+                  <td className="px-6 py-4 text-zinc-400">{item.email}</td>
+                  {/* A API de Users deve retornar o nome da Role (custom_roles.name) */}
+                  <td className="px-6 py-4 text-zinc-400">
+                    {item.company_user?.custom_roles?.name || "N/D"}
+                  </td>
+                  <td className="px-6 py-4 text-right flex justify-end gap-2">
+                    <Link href={`/identity/users/${item.id}`} className="p-1">
+                      <Edit2 className="w-4 h-4 text-zinc-500 hover:text-white" />
+                    </Link>
+                    <button
+                      onClick={() => handleDelete(item.id)}
+                      className="p-1"
+                    >
+                      <Trash2 className="w-4 h-4 text-zinc-500 hover:text-red-500" />
+                    </button>
+                  </td>
+                </tr>
+              ))
             )}
           </tbody>
         </table>

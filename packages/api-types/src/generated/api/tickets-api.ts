@@ -12,156 +12,246 @@
  * Do not edit the class manually.
  */
 
-
-import type { Configuration } from '../configuration';
-import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from 'axios';
-import globalAxios from 'axios';
+import type { Configuration } from "../configuration";
+import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from "axios";
+import globalAxios from "axios";
 // Some imports not used depending on template conditions
 // @ts-ignore
-import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from '../common';
+import {
+  DUMMY_BASE_URL,
+  assertParamExists,
+  setApiKeyToObject,
+  setBasicAuthToObject,
+  setBearerAuthToObject,
+  setOAuthToObject,
+  setSearchParams,
+  serializeDataIfNeeded,
+  toPathString,
+  createRequestFunction,
+} from "../common";
 // @ts-ignore
-import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
+import {
+  BASE_PATH,
+  COLLECTION_FORMATS,
+  type RequestArgs,
+  BaseAPI,
+  RequiredError,
+  operationServerMap,
+} from "../base";
 /**
  * TicketsApi - axios parameter creator
  * @export
  */
-export const TicketsApiAxiosParamCreator = function (configuration?: Configuration) {
-    return {
-        /**
-         * 
-         * @summary Buscar ingresso por ID
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        ticketsControllerFindOneV1: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('ticketsControllerFindOneV1', 'id', id)
-            const localVarPath = `/v1/tickets/{id}`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+export const TicketsApiAxiosParamCreator = function (
+  configuration?: Configuration,
+) {
+  return {
+    /**
+     *
+     * @summary Buscar ingresso por ID
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    ticketsControllerFindOneV1: async (
+      id: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists("ticketsControllerFindOneV1", "id", id);
+      const localVarPath = `/v1/tickets/{id}`.replace(
+        `{${"id"}}`,
+        encodeURIComponent(String(id)),
+      );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @summary Marcar ingresso como usado
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    ticketsControllerMarkAsUsedV1: async (
+      id: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists("ticketsControllerMarkAsUsedV1", "id", id);
+      const localVarPath = `/v1/tickets/{id}/use`.replace(
+        `{${"id"}}`,
+        encodeURIComponent(String(id)),
+      );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary Marcar ingresso como usado
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        ticketsControllerMarkAsUsedV1: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('ticketsControllerMarkAsUsedV1', 'id', id)
-            const localVarPath = `/v1/tickets/{id}/use`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+      const localVarRequestOptions = {
+        method: "PUT",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-    }
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+  };
 };
 
 /**
  * TicketsApi - functional programming interface
  * @export
  */
-export const TicketsApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = TicketsApiAxiosParamCreator(configuration)
-    return {
-        /**
-         * 
-         * @summary Buscar ingresso por ID
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async ticketsControllerFindOneV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.ticketsControllerFindOneV1(id, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['TicketsApi.ticketsControllerFindOneV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @summary Marcar ingresso como usado
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async ticketsControllerMarkAsUsedV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.ticketsControllerMarkAsUsedV1(id, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['TicketsApi.ticketsControllerMarkAsUsedV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-    }
+export const TicketsApiFp = function (configuration?: Configuration) {
+  const localVarAxiosParamCreator = TicketsApiAxiosParamCreator(configuration);
+  return {
+    /**
+     *
+     * @summary Buscar ingresso por ID
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async ticketsControllerFindOneV1(
+      id: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.ticketsControllerFindOneV1(id, options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["TicketsApi.ticketsControllerFindOneV1"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     *
+     * @summary Marcar ingresso como usado
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async ticketsControllerMarkAsUsedV1(
+      id: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.ticketsControllerMarkAsUsedV1(
+          id,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["TicketsApi.ticketsControllerMarkAsUsedV1"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+  };
 };
 
 /**
  * TicketsApi - factory interface
  * @export
  */
-export const TicketsApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = TicketsApiFp(configuration)
-    return {
-        /**
-         * 
-         * @summary Buscar ingresso por ID
-         * @param {TicketsApiTicketsControllerFindOneV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        ticketsControllerFindOneV1(requestParameters: TicketsApiTicketsControllerFindOneV1Request, options?: RawAxiosRequestConfig): AxiosPromise<object> {
-            return localVarFp.ticketsControllerFindOneV1(requestParameters.id, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @summary Marcar ingresso como usado
-         * @param {TicketsApiTicketsControllerMarkAsUsedV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        ticketsControllerMarkAsUsedV1(requestParameters: TicketsApiTicketsControllerMarkAsUsedV1Request, options?: RawAxiosRequestConfig): AxiosPromise<object> {
-            return localVarFp.ticketsControllerMarkAsUsedV1(requestParameters.id, options).then((request) => request(axios, basePath));
-        },
-    };
+export const TicketsApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance,
+) {
+  const localVarFp = TicketsApiFp(configuration);
+  return {
+    /**
+     *
+     * @summary Buscar ingresso por ID
+     * @param {TicketsApiTicketsControllerFindOneV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    ticketsControllerFindOneV1(
+      requestParameters: TicketsApiTicketsControllerFindOneV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<object> {
+      return localVarFp
+        .ticketsControllerFindOneV1(requestParameters.id, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @summary Marcar ingresso como usado
+     * @param {TicketsApiTicketsControllerMarkAsUsedV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    ticketsControllerMarkAsUsedV1(
+      requestParameters: TicketsApiTicketsControllerMarkAsUsedV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<object> {
+      return localVarFp
+        .ticketsControllerMarkAsUsedV1(requestParameters.id, options)
+        .then((request) => request(axios, basePath));
+    },
+  };
 };
 
 /**
@@ -170,26 +260,31 @@ export const TicketsApiFactory = function (configuration?: Configuration, basePa
  * @interface TicketsApi
  */
 export interface TicketsApiInterface {
-    /**
-     * 
-     * @summary Buscar ingresso por ID
-     * @param {TicketsApiTicketsControllerFindOneV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof TicketsApiInterface
-     */
-    ticketsControllerFindOneV1(requestParameters: TicketsApiTicketsControllerFindOneV1Request, options?: RawAxiosRequestConfig): AxiosPromise<object>;
+  /**
+   *
+   * @summary Buscar ingresso por ID
+   * @param {TicketsApiTicketsControllerFindOneV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof TicketsApiInterface
+   */
+  ticketsControllerFindOneV1(
+    requestParameters: TicketsApiTicketsControllerFindOneV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<object>;
 
-    /**
-     * 
-     * @summary Marcar ingresso como usado
-     * @param {TicketsApiTicketsControllerMarkAsUsedV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof TicketsApiInterface
-     */
-    ticketsControllerMarkAsUsedV1(requestParameters: TicketsApiTicketsControllerMarkAsUsedV1Request, options?: RawAxiosRequestConfig): AxiosPromise<object>;
-
+  /**
+   *
+   * @summary Marcar ingresso como usado
+   * @param {TicketsApiTicketsControllerMarkAsUsedV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof TicketsApiInterface
+   */
+  ticketsControllerMarkAsUsedV1(
+    requestParameters: TicketsApiTicketsControllerMarkAsUsedV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<object>;
 }
 
 /**
@@ -198,12 +293,12 @@ export interface TicketsApiInterface {
  * @interface TicketsApiTicketsControllerFindOneV1Request
  */
 export interface TicketsApiTicketsControllerFindOneV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof TicketsApiTicketsControllerFindOneV1
-     */
-    readonly id: string
+  /**
+   *
+   * @type {string}
+   * @memberof TicketsApiTicketsControllerFindOneV1
+   */
+  readonly id: string;
 }
 
 /**
@@ -212,12 +307,12 @@ export interface TicketsApiTicketsControllerFindOneV1Request {
  * @interface TicketsApiTicketsControllerMarkAsUsedV1Request
  */
 export interface TicketsApiTicketsControllerMarkAsUsedV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof TicketsApiTicketsControllerMarkAsUsedV1
-     */
-    readonly id: string
+  /**
+   *
+   * @type {string}
+   * @memberof TicketsApiTicketsControllerMarkAsUsedV1
+   */
+  readonly id: string;
 }
 
 /**
@@ -227,28 +322,37 @@ export interface TicketsApiTicketsControllerMarkAsUsedV1Request {
  * @extends {BaseAPI}
  */
 export class TicketsApi extends BaseAPI implements TicketsApiInterface {
-    /**
-     * 
-     * @summary Buscar ingresso por ID
-     * @param {TicketsApiTicketsControllerFindOneV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof TicketsApi
-     */
-    public ticketsControllerFindOneV1(requestParameters: TicketsApiTicketsControllerFindOneV1Request, options?: RawAxiosRequestConfig) {
-        return TicketsApiFp(this.configuration).ticketsControllerFindOneV1(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   *
+   * @summary Buscar ingresso por ID
+   * @param {TicketsApiTicketsControllerFindOneV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof TicketsApi
+   */
+  public ticketsControllerFindOneV1(
+    requestParameters: TicketsApiTicketsControllerFindOneV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return TicketsApiFp(this.configuration)
+      .ticketsControllerFindOneV1(requestParameters.id, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * 
-     * @summary Marcar ingresso como usado
-     * @param {TicketsApiTicketsControllerMarkAsUsedV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof TicketsApi
-     */
-    public ticketsControllerMarkAsUsedV1(requestParameters: TicketsApiTicketsControllerMarkAsUsedV1Request, options?: RawAxiosRequestConfig) {
-        return TicketsApiFp(this.configuration).ticketsControllerMarkAsUsedV1(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   *
+   * @summary Marcar ingresso como usado
+   * @param {TicketsApiTicketsControllerMarkAsUsedV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof TicketsApi
+   */
+  public ticketsControllerMarkAsUsedV1(
+    requestParameters: TicketsApiTicketsControllerMarkAsUsedV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return TicketsApiFp(this.configuration)
+      .ticketsControllerMarkAsUsedV1(requestParameters.id, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 }
-

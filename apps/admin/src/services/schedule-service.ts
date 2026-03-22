@@ -11,7 +11,7 @@ export const ScheduleService = {
   async getShowtimes() {
     // Passamos uma data antiga para satisfazer o filtro obrigatório
     const response = await showtimesApi.showtimesControllerFindAllV1({
-        startTime: new Date(0).toISOString()
+      startTime: new Date(0).toISOString(),
     });
     return response.data;
   },
@@ -23,7 +23,7 @@ export const ScheduleService = {
       start_time: new Date(data.start_time).toISOString(),
     };
     return await showtimesApi.showtimesControllerCreateV1({
-        createShowtimeDto: payload
+      createShowtimeDto: payload,
     });
   },
 
@@ -36,7 +36,8 @@ export const ScheduleService = {
   async getRooms() {
     try {
       // 1. Busca os complexos primeiro
-      const complexesResponse = await cinemaComplexesApi.cinemaComplexesControllerFindAllV1();
+      const complexesResponse =
+        await cinemaComplexesApi.cinemaComplexesControllerFindAllV1();
       const complexes = complexesResponse.data as any[];
 
       if (!complexes || complexes.length === 0) {
@@ -46,17 +47,20 @@ export const ScheduleService = {
       // 2. Busca as salas de CADA complexo em paralelo
       const roomsPromises = complexes.map(async (complex) => {
         try {
-          const roomsResponse = await roomsApi.roomsControllerFindAllV1({ 
-            cinemaComplexId: complex.id 
+          const roomsResponse = await roomsApi.roomsControllerFindAllV1({
+            cinemaComplexId: complex.id,
           });
-          
+
           // Injetamos o objeto do complexo dentro da sala para o UI exibir o nome corretamente
-          return (roomsResponse.data as any[]).map(room => ({
+          return (roomsResponse.data as any[]).map((room) => ({
             ...room,
-            cinema_complexes: complex // Garante que {room.cinema_complexes.name} funcione no select
+            cinema_complexes: complex, // Garante que {room.cinema_complexes.name} funcione no select
           }));
         } catch (error) {
-          console.warn(`Não foi possível buscar salas do complexo ${complex.id}`, error);
+          console.warn(
+            `Não foi possível buscar salas do complexo ${complex.id}`,
+            error,
+          );
           return [];
         }
       });
@@ -64,10 +68,9 @@ export const ScheduleService = {
       // 3. Junta tudo em um array só
       const results = await Promise.all(roomsPromises);
       return results.flat();
-
     } catch (error) {
       console.error("Erro ao carregar salas:", error);
       throw error;
     }
-  }
+  },
 };

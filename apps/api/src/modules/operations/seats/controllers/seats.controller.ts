@@ -6,6 +6,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -44,7 +45,7 @@ export class SeatsController {
   @ApiNotFoundResponse({ description: 'Assento não encontrado.' })
   @ApiForbiddenResponse({ description: 'Acesso negado ao recurso.' })
   async updateSeatStatus(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateSeatStatusDto,
   ) {
     return this.service.updateStatus(id, dto.active);

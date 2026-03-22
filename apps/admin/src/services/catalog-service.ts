@@ -20,10 +20,13 @@ export const CatalogService = {
   },
 
   async updateMovie(id: string, data: any) {
-    return await moviesApi.moviesControllerUpdateV1({ id, updateMovieDto: data });
+    return await moviesApi.moviesControllerUpdateV1({
+      id,
+      updateMovieDto: data,
+    });
   },
 
   async deleteMovie(id: string) {
     return await moviesApi.moviesControllerDeleteV1(id);
-  }
+  },
 };

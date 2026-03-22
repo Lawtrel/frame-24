@@ -1,4 +1,9 @@
-import { RolesApi, PermissionsApi, CreateRoleDto, UpdateRoleDto } from "@repo/api-types";
+import {
+  RolesApi,
+  PermissionsApi,
+  CreateRoleDto,
+  UpdateRoleDto,
+} from "@repo/api-types";
 import { apiConfig } from "./api-config";
 
 const rolesApi = new RolesApi(apiConfig);
@@ -30,11 +35,11 @@ export const RolesService = {
 
   // UPDATE /v1/roles/:id
   update: async (id: string, data: UpdateRoleDto) => {
-    return await rolesApi.rolesControllerUpdateV1({ id, updateRoleDto: data }); 
+    return await rolesApi.rolesControllerUpdateV1({ id, updateRoleDto: data });
   },
 
   // DELETE /v1/roles/:id
   delete: async (id: string) => {
-    return await rolesApi.rolesControllerRemoveV1({ id }); 
-  }
+    return await rolesApi.rolesControllerRemoveV1({ id });
+  },
 };

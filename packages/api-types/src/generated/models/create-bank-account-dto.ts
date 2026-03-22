@@ -12,76 +12,73 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface CreateBankAccountDto
  */
 export interface CreateBankAccountDto {
-    /**
-     * Nome do banco
-     * @type {string}
-     * @memberof CreateBankAccountDto
-     */
-    'bank_name': string;
-    /**
-     * Código do banco
-     * @type {string}
-     * @memberof CreateBankAccountDto
-     */
-    'bank_code'?: string;
-    /**
-     * Número da agência
-     * @type {string}
-     * @memberof CreateBankAccountDto
-     */
-    'agency': string;
-    /**
-     * Dígito da agência
-     * @type {string}
-     * @memberof CreateBankAccountDto
-     */
-    'agency_digit'?: string;
-    /**
-     * Número da conta
-     * @type {string}
-     * @memberof CreateBankAccountDto
-     */
-    'account_number': string;
-    /**
-     * Dígito da conta
-     * @type {string}
-     * @memberof CreateBankAccountDto
-     */
-    'account_digit'?: string;
-    /**
-     * Tipo de conta
-     * @type {string}
-     * @memberof CreateBankAccountDto
-     */
-    'account_type': CreateBankAccountDtoAccountTypeEnum;
-    /**
-     * Saldo inicial
-     * @type {number}
-     * @memberof CreateBankAccountDto
-     */
-    'initial_balance'?: number;
-    /**
-     * Descrição da conta
-     * @type {string}
-     * @memberof CreateBankAccountDto
-     */
-    'description'?: string;
+  /**
+   * Nome do banco
+   * @type {string}
+   * @memberof CreateBankAccountDto
+   */
+  bank_name: string;
+  /**
+   * Código do banco
+   * @type {string}
+   * @memberof CreateBankAccountDto
+   */
+  bank_code?: string;
+  /**
+   * Número da agência
+   * @type {string}
+   * @memberof CreateBankAccountDto
+   */
+  agency: string;
+  /**
+   * Dígito da agência
+   * @type {string}
+   * @memberof CreateBankAccountDto
+   */
+  agency_digit?: string;
+  /**
+   * Número da conta
+   * @type {string}
+   * @memberof CreateBankAccountDto
+   */
+  account_number: string;
+  /**
+   * Dígito da conta
+   * @type {string}
+   * @memberof CreateBankAccountDto
+   */
+  account_digit?: string;
+  /**
+   * Tipo de conta
+   * @type {string}
+   * @memberof CreateBankAccountDto
+   */
+  account_type: CreateBankAccountDtoAccountTypeEnum;
+  /**
+   * Saldo inicial
+   * @type {number}
+   * @memberof CreateBankAccountDto
+   */
+  initial_balance?: number;
+  /**
+   * Descrição da conta
+   * @type {string}
+   * @memberof CreateBankAccountDto
+   */
+  description?: string;
 }
 
 export const CreateBankAccountDtoAccountTypeEnum = {
-    Checking: 'checking',
-    Savings: 'savings',
-    Investment: 'investment'
+  Checking: "checking",
+  Savings: "savings",
+  Investment: "investment",
 } as const;
 
-export type CreateBankAccountDtoAccountTypeEnum = typeof CreateBankAccountDtoAccountTypeEnum[keyof typeof CreateBankAccountDtoAccountTypeEnum];
-
-
+export type CreateBankAccountDtoAccountTypeEnum =
+  (typeof CreateBankAccountDtoAccountTypeEnum)[keyof typeof CreateBankAccountDtoAccountTypeEnum];

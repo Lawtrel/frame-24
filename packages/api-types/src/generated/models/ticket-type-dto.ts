@@ -12,31 +12,28 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface TicketTypeDto
  */
 export interface TicketTypeDto {
-    /**
-     * 
-     * @type {string}
-     * @memberof TicketTypeDto
-     */
-    'id': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof TicketTypeDto
-     */
-    'name': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof TicketTypeDto
-     */
-    'price': number;
+  /**
+   *
+   * @type {string}
+   * @memberof TicketTypeDto
+   */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof TicketTypeDto
+   */
+  name: string;
+  /**
+   *
+   * @type {number}
+   * @memberof TicketTypeDto
+   */
+  price: number;
 }
-

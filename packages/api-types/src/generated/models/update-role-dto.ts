@@ -12,37 +12,34 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface UpdateRoleDto
  */
 export interface UpdateRoleDto {
-    /**
-     * Role name
-     * @type {string}
-     * @memberof UpdateRoleDto
-     */
-    'name'?: string;
-    /**
-     * Role description
-     * @type {string}
-     * @memberof UpdateRoleDto
-     */
-    'description'?: string;
-    /**
-     * 
-     * @type {Array<Array<string>>}
-     * @memberof UpdateRoleDto
-     */
-    'permissions': Array<Array<string>>;
-    /**
-     * Hierarchy level
-     * @type {number}
-     * @memberof UpdateRoleDto
-     */
-    'hierarchy_level'?: number;
+  /**
+   * Role name
+   * @type {string}
+   * @memberof UpdateRoleDto
+   */
+  name?: string;
+  /**
+   * Role description
+   * @type {string}
+   * @memberof UpdateRoleDto
+   */
+  description?: string;
+  /**
+   *
+   * @type {Array<Array<string>>}
+   * @memberof UpdateRoleDto
+   */
+  permissions: Array<Array<string>>;
+  /**
+   * Hierarchy level
+   * @type {number}
+   * @memberof UpdateRoleDto
+   */
+  hierarchy_level?: number;
 }
-

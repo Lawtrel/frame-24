@@ -1,5 +1,12 @@
 import { apiConfig } from "./api-config";
-import { CinemaComplexesApi, RoomsApi, ProjectionTypesApi, AudioTypesApi, SessionLanguagesApi, SessionStatusApi } from "@repo/api-types";
+import {
+  CinemaComplexesApi,
+  RoomsApi,
+  ProjectionTypesApi,
+  AudioTypesApi,
+  SessionLanguagesApi,
+  SessionStatusApi,
+} from "@repo/api-types";
 
 const complexesApi = new CinemaComplexesApi(apiConfig);
 const roomsApi = new RoomsApi(apiConfig);
@@ -14,9 +21,11 @@ export const OperationsService = {
     const response = await complexesApi.cinemaComplexesControllerFindAllV1();
     return response.data;
   },
-  
+
   async createComplex(data: any) {
-    return await complexesApi.cinemaComplexesControllerCreateV1({ createCinemaComplexDto: data });
+    return await complexesApi.cinemaComplexesControllerCreateV1({
+      createCinemaComplexDto: data,
+    });
   },
 
   async getSessionLanguages() {
@@ -31,7 +40,9 @@ export const OperationsService = {
 
   // --- Salas ---
   async getRooms(complexId: string) {
-    const response = await roomsApi.roomsControllerFindAllV1({ cinemaComplexId: complexId });
+    const response = await roomsApi.roomsControllerFindAllV1({
+      cinemaComplexId: complexId,
+    });
     return response.data;
   },
 
@@ -41,21 +52,21 @@ export const OperationsService = {
     const capacity = Number(data.capacity);
     const cols = 10; // Fixo em 10 colunas por simplicidade
     const rowsCount = Math.ceil(capacity / cols);
-    
+
     const seatLayout = [];
     let seatsGenerated = 0;
 
     for (let r = 0; r < rowsCount; r++) {
       const rowCode = String.fromCharCode(65 + r); // Gera A, B, C, D...
       const seatsInThisRow = [];
-      
+
       for (let c = 1; c <= cols; c++) {
         if (seatsGenerated >= capacity) break;
-        
+
         seatsInThisRow.push({
           column_number: c,
           accessible: r === 0, // Define a primeira fileira (A) como acessível
-          seat_type_id: null   // Usa o padrão do sistema
+          seat_type_id: null, // Usa o padrão do sistema
         });
         seatsGenerated++;
       }
@@ -63,7 +74,7 @@ export const OperationsService = {
       if (seatsInThisRow.length > 0) {
         seatLayout.push({
           row_code: rowCode,
-          seats: seatsInThisRow
+          seats: seatsInThisRow,
         });
       }
     }
@@ -74,13 +85,13 @@ export const OperationsService = {
     const layoutPayload = [JSON.stringify(seatLayout)] as any;
 
     return await roomsApi.roomsControllerCreateV1({
-        cinemaComplexId,
-        complexId: cinemaComplexId,
-        roomNumber: data.room_number,
-        name: data.name,
-        capacity: capacity,
-        seatLayout: layoutPayload, // <--- Aqui vai o layout gerado e corrigido
-        active: true
+      cinemaComplexId,
+      complexId: cinemaComplexId,
+      roomNumber: data.room_number,
+      name: data.name,
+      capacity: capacity,
+      seatLayout: layoutPayload, // <--- Aqui vai o layout gerado e corrigido
+      active: true,
     });
   },
   async getProjectionTypes() {
@@ -93,5 +104,5 @@ export const OperationsService = {
     // Busca tipos de áudio (Dolby, Atmos...)
     const response = await audioApi.audioTypesControllerFindAllV1();
     return response.data;
-  }
+  },
 };

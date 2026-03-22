@@ -387,10 +387,15 @@ describe('AuthService', () => {
     });
 
     it('deve selecionar empresa com sucesso', async () => {
-      const result = await service.selectCompany('temp-token-xyz', 'company-789');
+      const result = await service.selectCompany(
+        'temp-token-xyz',
+        'company-789',
+      );
 
       expect(result).toEqual(mockToken);
-      expect(tokenGenerator.verifyTempToken).toHaveBeenCalledWith('temp-token-xyz');
+      expect(tokenGenerator.verifyTempToken).toHaveBeenCalledWith(
+        'temp-token-xyz',
+      );
     });
 
     it('deve lançar UnauthorizedException quando company_user não existir', async () => {

@@ -10,5 +10,5 @@ export const SuppliersService = {
     // Caso contrário, filtraremos no frontend por enquanto
     const response = await api.suppliersControllerFindAllV1();
     return response.data.filter((s: any) => s.is_film_distributor);
-  }
+  },
 };

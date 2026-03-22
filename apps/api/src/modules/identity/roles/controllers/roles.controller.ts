@@ -9,6 +9,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
@@ -58,7 +59,9 @@ export class RolesController {
     description:
       'Retorna os detalhes de uma role específica, incluindo suas permissões.',
   })
-  async getRole(@Param('id') id: string): Promise<RoleResponseDto> {
+  async getRole(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<RoleResponseDto> {
     return await this.rolesService.findOne(id);
   }
 
@@ -70,7 +73,7 @@ export class RolesController {
       'Atualiza uma role customizada. Roles do sistema não podem ser editadas. Ao atualizar permissões, a lista completa substitui as anteriores.',
   })
   async updateRole(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateRoleDto,
   ): Promise<RoleResponseDto> {
     return await this.rolesService.update(id, dto);
@@ -84,7 +87,7 @@ export class RolesController {
     description:
       'Deleta uma role customizada permanentemente. Roles do sistema ou que estão sendo usadas por usuários não podem ser deletadas.',
   })
-  async deleteRole(@Param('id') id: string): Promise<void> {
+  async deleteRole(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return await this.rolesService.delete(id);
   }
 }

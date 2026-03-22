@@ -12,343 +12,574 @@
  * Do not edit the class manually.
  */
 
-
-import type { Configuration } from '../configuration';
-import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from 'axios';
-import globalAxios from 'axios';
+import type { Configuration } from "../configuration";
+import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from "axios";
+import globalAxios from "axios";
 // Some imports not used depending on template conditions
 // @ts-ignore
-import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from '../common';
+import {
+  DUMMY_BASE_URL,
+  assertParamExists,
+  setApiKeyToObject,
+  setBasicAuthToObject,
+  setBearerAuthToObject,
+  setOAuthToObject,
+  setSearchParams,
+  serializeDataIfNeeded,
+  toPathString,
+  createRequestFunction,
+} from "../common";
 // @ts-ignore
-import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
+import {
+  BASE_PATH,
+  COLLECTION_FORMATS,
+  type RequestArgs,
+  BaseAPI,
+  RequiredError,
+  operationServerMap,
+} from "../base";
 // @ts-ignore
-import type { CreateBankReconciliationDto } from '../models';
+import type { CreateBankReconciliationDto } from "../models";
 // @ts-ignore
-import type { UpdateBankReconciliationDto } from '../models';
+import type { UpdateBankReconciliationDto } from "../models";
 /**
  * CashFlowReconciliationApi - axios parameter creator
  * @export
  */
-export const CashFlowReconciliationApiAxiosParamCreator = function (configuration?: Configuration) {
-    return {
-        /**
-         * 
-         * @summary Complete reconciliation
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        bankReconciliationControllerCompleteV1: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('bankReconciliationControllerCompleteV1', 'id', id)
-            const localVarPath = `/v1/finance/bank-reconciliation/{id}/complete`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+export const CashFlowReconciliationApiAxiosParamCreator = function (
+  configuration?: Configuration,
+) {
+  return {
+    /**
+     *
+     * @summary Complete reconciliation
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    bankReconciliationControllerCompleteV1: async (
+      id: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists("bankReconciliationControllerCompleteV1", "id", id);
+      const localVarPath =
+        `/v1/finance/bank-reconciliation/{id}/complete`.replace(
+          `{${"id"}}`,
+          encodeURIComponent(String(id)),
+        );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      const localVarRequestOptions = {
+        method: "POST",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @summary Start a new bank reconciliation
+     * @param {CreateBankReconciliationDto} createBankReconciliationDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    bankReconciliationControllerCreateV1: async (
+      createBankReconciliationDto: CreateBankReconciliationDto,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'createBankReconciliationDto' is not null or undefined
+      assertParamExists(
+        "bankReconciliationControllerCreateV1",
+        "createBankReconciliationDto",
+        createBankReconciliationDto,
+      );
+      const localVarPath = `/v1/finance/bank-reconciliation`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary Start a new bank reconciliation
-         * @param {CreateBankReconciliationDto} createBankReconciliationDto 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        bankReconciliationControllerCreateV1: async (createBankReconciliationDto: CreateBankReconciliationDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'createBankReconciliationDto' is not null or undefined
-            assertParamExists('bankReconciliationControllerCreateV1', 'createBankReconciliationDto', createBankReconciliationDto)
-            const localVarPath = `/v1/finance/bank-reconciliation`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+      const localVarRequestOptions = {
+        method: "POST",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      localVarHeaderParameter["Content-Type"] = "application/json";
 
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        createBankReconciliationDto,
+        localVarRequestOptions,
+        configuration,
+      );
 
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @summary List bank reconciliations
+     * @param {string} bankAccountId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    bankReconciliationControllerFindAllV1: async (
+      bankAccountId: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'bankAccountId' is not null or undefined
+      assertParamExists(
+        "bankReconciliationControllerFindAllV1",
+        "bankAccountId",
+        bankAccountId,
+      );
+      const localVarPath = `/v1/finance/bank-reconciliation`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(createBankReconciliationDto, localVarRequestOptions, configuration)
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary List bank reconciliations
-         * @param {string} bankAccountId 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        bankReconciliationControllerFindAllV1: async (bankAccountId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'bankAccountId' is not null or undefined
-            assertParamExists('bankReconciliationControllerFindAllV1', 'bankAccountId', bankAccountId)
-            const localVarPath = `/v1/finance/bank-reconciliation`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+      if (bankAccountId !== undefined) {
+        localVarQueryParameter["bank_account_id"] = bankAccountId;
+      }
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
-            if (bankAccountId !== undefined) {
-                localVarQueryParameter['bank_account_id'] = bankAccountId;
-            }
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @summary Get reconciliation details
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    bankReconciliationControllerFindOneV1: async (
+      id: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists("bankReconciliationControllerFindOneV1", "id", id);
+      const localVarPath = `/v1/finance/bank-reconciliation/{id}`.replace(
+        `{${"id"}}`,
+        encodeURIComponent(String(id)),
+      );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary Get reconciliation details
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        bankReconciliationControllerFindOneV1: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('bankReconciliationControllerFindOneV1', 'id', id)
-            const localVarPath = `/v1/finance/bank-reconciliation/{id}`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @summary Update reconciliation
+     * @param {string} id
+     * @param {UpdateBankReconciliationDto} updateBankReconciliationDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    bankReconciliationControllerUpdateV1: async (
+      id: string,
+      updateBankReconciliationDto: UpdateBankReconciliationDto,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists("bankReconciliationControllerUpdateV1", "id", id);
+      // verify required parameter 'updateBankReconciliationDto' is not null or undefined
+      assertParamExists(
+        "bankReconciliationControllerUpdateV1",
+        "updateBankReconciliationDto",
+        updateBankReconciliationDto,
+      );
+      const localVarPath = `/v1/finance/bank-reconciliation/{id}`.replace(
+        `{${"id"}}`,
+        encodeURIComponent(String(id)),
+      );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      const localVarRequestOptions = {
+        method: "PATCH",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
+      localVarHeaderParameter["Content-Type"] = "application/json";
 
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        updateBankReconciliationDto,
+        localVarRequestOptions,
+        configuration,
+      );
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary Update reconciliation
-         * @param {string} id 
-         * @param {UpdateBankReconciliationDto} updateBankReconciliationDto 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        bankReconciliationControllerUpdateV1: async (id: string, updateBankReconciliationDto: UpdateBankReconciliationDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('bankReconciliationControllerUpdateV1', 'id', id)
-            // verify required parameter 'updateBankReconciliationDto' is not null or undefined
-            assertParamExists('bankReconciliationControllerUpdateV1', 'updateBankReconciliationDto', updateBankReconciliationDto)
-            const localVarPath = `/v1/finance/bank-reconciliation/{id}`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(updateBankReconciliationDto, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-    }
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+  };
 };
 
 /**
  * CashFlowReconciliationApi - functional programming interface
  * @export
  */
-export const CashFlowReconciliationApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = CashFlowReconciliationApiAxiosParamCreator(configuration)
-    return {
-        /**
-         * 
-         * @summary Complete reconciliation
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async bankReconciliationControllerCompleteV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.bankReconciliationControllerCompleteV1(id, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CashFlowReconciliationApi.bankReconciliationControllerCompleteV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @summary Start a new bank reconciliation
-         * @param {CreateBankReconciliationDto} createBankReconciliationDto 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async bankReconciliationControllerCreateV1(createBankReconciliationDto: CreateBankReconciliationDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.bankReconciliationControllerCreateV1(createBankReconciliationDto, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CashFlowReconciliationApi.bankReconciliationControllerCreateV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @summary List bank reconciliations
-         * @param {string} bankAccountId 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async bankReconciliationControllerFindAllV1(bankAccountId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.bankReconciliationControllerFindAllV1(bankAccountId, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CashFlowReconciliationApi.bankReconciliationControllerFindAllV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @summary Get reconciliation details
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async bankReconciliationControllerFindOneV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.bankReconciliationControllerFindOneV1(id, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CashFlowReconciliationApi.bankReconciliationControllerFindOneV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @summary Update reconciliation
-         * @param {string} id 
-         * @param {UpdateBankReconciliationDto} updateBankReconciliationDto 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async bankReconciliationControllerUpdateV1(id: string, updateBankReconciliationDto: UpdateBankReconciliationDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.bankReconciliationControllerUpdateV1(id, updateBankReconciliationDto, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CashFlowReconciliationApi.bankReconciliationControllerUpdateV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-    }
+export const CashFlowReconciliationApiFp = function (
+  configuration?: Configuration,
+) {
+  const localVarAxiosParamCreator =
+    CashFlowReconciliationApiAxiosParamCreator(configuration);
+  return {
+    /**
+     *
+     * @summary Complete reconciliation
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async bankReconciliationControllerCompleteV1(
+      id: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.bankReconciliationControllerCompleteV1(
+          id,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap[
+          "CashFlowReconciliationApi.bankReconciliationControllerCompleteV1"
+        ]?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     *
+     * @summary Start a new bank reconciliation
+     * @param {CreateBankReconciliationDto} createBankReconciliationDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async bankReconciliationControllerCreateV1(
+      createBankReconciliationDto: CreateBankReconciliationDto,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.bankReconciliationControllerCreateV1(
+          createBankReconciliationDto,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap[
+          "CashFlowReconciliationApi.bankReconciliationControllerCreateV1"
+        ]?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     *
+     * @summary List bank reconciliations
+     * @param {string} bankAccountId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async bankReconciliationControllerFindAllV1(
+      bankAccountId: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.bankReconciliationControllerFindAllV1(
+          bankAccountId,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap[
+          "CashFlowReconciliationApi.bankReconciliationControllerFindAllV1"
+        ]?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     *
+     * @summary Get reconciliation details
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async bankReconciliationControllerFindOneV1(
+      id: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.bankReconciliationControllerFindOneV1(
+          id,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap[
+          "CashFlowReconciliationApi.bankReconciliationControllerFindOneV1"
+        ]?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     *
+     * @summary Update reconciliation
+     * @param {string} id
+     * @param {UpdateBankReconciliationDto} updateBankReconciliationDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async bankReconciliationControllerUpdateV1(
+      id: string,
+      updateBankReconciliationDto: UpdateBankReconciliationDto,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.bankReconciliationControllerUpdateV1(
+          id,
+          updateBankReconciliationDto,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap[
+          "CashFlowReconciliationApi.bankReconciliationControllerUpdateV1"
+        ]?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+  };
 };
 
 /**
  * CashFlowReconciliationApi - factory interface
  * @export
  */
-export const CashFlowReconciliationApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = CashFlowReconciliationApiFp(configuration)
-    return {
-        /**
-         * 
-         * @summary Complete reconciliation
-         * @param {CashFlowReconciliationApiBankReconciliationControllerCompleteV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        bankReconciliationControllerCompleteV1(requestParameters: CashFlowReconciliationApiBankReconciliationControllerCompleteV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.bankReconciliationControllerCompleteV1(requestParameters.id, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @summary Start a new bank reconciliation
-         * @param {CashFlowReconciliationApiBankReconciliationControllerCreateV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        bankReconciliationControllerCreateV1(requestParameters: CashFlowReconciliationApiBankReconciliationControllerCreateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.bankReconciliationControllerCreateV1(requestParameters.createBankReconciliationDto, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @summary List bank reconciliations
-         * @param {CashFlowReconciliationApiBankReconciliationControllerFindAllV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        bankReconciliationControllerFindAllV1(requestParameters: CashFlowReconciliationApiBankReconciliationControllerFindAllV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.bankReconciliationControllerFindAllV1(requestParameters.bankAccountId, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @summary Get reconciliation details
-         * @param {CashFlowReconciliationApiBankReconciliationControllerFindOneV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        bankReconciliationControllerFindOneV1(requestParameters: CashFlowReconciliationApiBankReconciliationControllerFindOneV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.bankReconciliationControllerFindOneV1(requestParameters.id, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @summary Update reconciliation
-         * @param {CashFlowReconciliationApiBankReconciliationControllerUpdateV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        bankReconciliationControllerUpdateV1(requestParameters: CashFlowReconciliationApiBankReconciliationControllerUpdateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.bankReconciliationControllerUpdateV1(requestParameters.id, requestParameters.updateBankReconciliationDto, options).then((request) => request(axios, basePath));
-        },
-    };
+export const CashFlowReconciliationApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance,
+) {
+  const localVarFp = CashFlowReconciliationApiFp(configuration);
+  return {
+    /**
+     *
+     * @summary Complete reconciliation
+     * @param {CashFlowReconciliationApiBankReconciliationControllerCompleteV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    bankReconciliationControllerCompleteV1(
+      requestParameters: CashFlowReconciliationApiBankReconciliationControllerCompleteV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .bankReconciliationControllerCompleteV1(requestParameters.id, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @summary Start a new bank reconciliation
+     * @param {CashFlowReconciliationApiBankReconciliationControllerCreateV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    bankReconciliationControllerCreateV1(
+      requestParameters: CashFlowReconciliationApiBankReconciliationControllerCreateV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .bankReconciliationControllerCreateV1(
+          requestParameters.createBankReconciliationDto,
+          options,
+        )
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @summary List bank reconciliations
+     * @param {CashFlowReconciliationApiBankReconciliationControllerFindAllV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    bankReconciliationControllerFindAllV1(
+      requestParameters: CashFlowReconciliationApiBankReconciliationControllerFindAllV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .bankReconciliationControllerFindAllV1(
+          requestParameters.bankAccountId,
+          options,
+        )
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @summary Get reconciliation details
+     * @param {CashFlowReconciliationApiBankReconciliationControllerFindOneV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    bankReconciliationControllerFindOneV1(
+      requestParameters: CashFlowReconciliationApiBankReconciliationControllerFindOneV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .bankReconciliationControllerFindOneV1(requestParameters.id, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @summary Update reconciliation
+     * @param {CashFlowReconciliationApiBankReconciliationControllerUpdateV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    bankReconciliationControllerUpdateV1(
+      requestParameters: CashFlowReconciliationApiBankReconciliationControllerUpdateV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .bankReconciliationControllerUpdateV1(
+          requestParameters.id,
+          requestParameters.updateBankReconciliationDto,
+          options,
+        )
+        .then((request) => request(axios, basePath));
+    },
+  };
 };
 
 /**
@@ -357,56 +588,70 @@ export const CashFlowReconciliationApiFactory = function (configuration?: Config
  * @interface CashFlowReconciliationApi
  */
 export interface CashFlowReconciliationApiInterface {
-    /**
-     * 
-     * @summary Complete reconciliation
-     * @param {CashFlowReconciliationApiBankReconciliationControllerCompleteV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CashFlowReconciliationApiInterface
-     */
-    bankReconciliationControllerCompleteV1(requestParameters: CashFlowReconciliationApiBankReconciliationControllerCompleteV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   *
+   * @summary Complete reconciliation
+   * @param {CashFlowReconciliationApiBankReconciliationControllerCompleteV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CashFlowReconciliationApiInterface
+   */
+  bankReconciliationControllerCompleteV1(
+    requestParameters: CashFlowReconciliationApiBankReconciliationControllerCompleteV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * 
-     * @summary Start a new bank reconciliation
-     * @param {CashFlowReconciliationApiBankReconciliationControllerCreateV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CashFlowReconciliationApiInterface
-     */
-    bankReconciliationControllerCreateV1(requestParameters: CashFlowReconciliationApiBankReconciliationControllerCreateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   *
+   * @summary Start a new bank reconciliation
+   * @param {CashFlowReconciliationApiBankReconciliationControllerCreateV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CashFlowReconciliationApiInterface
+   */
+  bankReconciliationControllerCreateV1(
+    requestParameters: CashFlowReconciliationApiBankReconciliationControllerCreateV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * 
-     * @summary List bank reconciliations
-     * @param {CashFlowReconciliationApiBankReconciliationControllerFindAllV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CashFlowReconciliationApiInterface
-     */
-    bankReconciliationControllerFindAllV1(requestParameters: CashFlowReconciliationApiBankReconciliationControllerFindAllV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   *
+   * @summary List bank reconciliations
+   * @param {CashFlowReconciliationApiBankReconciliationControllerFindAllV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CashFlowReconciliationApiInterface
+   */
+  bankReconciliationControllerFindAllV1(
+    requestParameters: CashFlowReconciliationApiBankReconciliationControllerFindAllV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * 
-     * @summary Get reconciliation details
-     * @param {CashFlowReconciliationApiBankReconciliationControllerFindOneV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CashFlowReconciliationApiInterface
-     */
-    bankReconciliationControllerFindOneV1(requestParameters: CashFlowReconciliationApiBankReconciliationControllerFindOneV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   *
+   * @summary Get reconciliation details
+   * @param {CashFlowReconciliationApiBankReconciliationControllerFindOneV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CashFlowReconciliationApiInterface
+   */
+  bankReconciliationControllerFindOneV1(
+    requestParameters: CashFlowReconciliationApiBankReconciliationControllerFindOneV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * 
-     * @summary Update reconciliation
-     * @param {CashFlowReconciliationApiBankReconciliationControllerUpdateV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CashFlowReconciliationApiInterface
-     */
-    bankReconciliationControllerUpdateV1(requestParameters: CashFlowReconciliationApiBankReconciliationControllerUpdateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
-
+  /**
+   *
+   * @summary Update reconciliation
+   * @param {CashFlowReconciliationApiBankReconciliationControllerUpdateV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CashFlowReconciliationApiInterface
+   */
+  bankReconciliationControllerUpdateV1(
+    requestParameters: CashFlowReconciliationApiBankReconciliationControllerUpdateV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 }
 
 /**
@@ -415,12 +660,12 @@ export interface CashFlowReconciliationApiInterface {
  * @interface CashFlowReconciliationApiBankReconciliationControllerCompleteV1Request
  */
 export interface CashFlowReconciliationApiBankReconciliationControllerCompleteV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof CashFlowReconciliationApiBankReconciliationControllerCompleteV1
-     */
-    readonly id: string
+  /**
+   *
+   * @type {string}
+   * @memberof CashFlowReconciliationApiBankReconciliationControllerCompleteV1
+   */
+  readonly id: string;
 }
 
 /**
@@ -429,12 +674,12 @@ export interface CashFlowReconciliationApiBankReconciliationControllerCompleteV1
  * @interface CashFlowReconciliationApiBankReconciliationControllerCreateV1Request
  */
 export interface CashFlowReconciliationApiBankReconciliationControllerCreateV1Request {
-    /**
-     * 
-     * @type {CreateBankReconciliationDto}
-     * @memberof CashFlowReconciliationApiBankReconciliationControllerCreateV1
-     */
-    readonly createBankReconciliationDto: CreateBankReconciliationDto
+  /**
+   *
+   * @type {CreateBankReconciliationDto}
+   * @memberof CashFlowReconciliationApiBankReconciliationControllerCreateV1
+   */
+  readonly createBankReconciliationDto: CreateBankReconciliationDto;
 }
 
 /**
@@ -443,12 +688,12 @@ export interface CashFlowReconciliationApiBankReconciliationControllerCreateV1Re
  * @interface CashFlowReconciliationApiBankReconciliationControllerFindAllV1Request
  */
 export interface CashFlowReconciliationApiBankReconciliationControllerFindAllV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof CashFlowReconciliationApiBankReconciliationControllerFindAllV1
-     */
-    readonly bankAccountId: string
+  /**
+   *
+   * @type {string}
+   * @memberof CashFlowReconciliationApiBankReconciliationControllerFindAllV1
+   */
+  readonly bankAccountId: string;
 }
 
 /**
@@ -457,12 +702,12 @@ export interface CashFlowReconciliationApiBankReconciliationControllerFindAllV1R
  * @interface CashFlowReconciliationApiBankReconciliationControllerFindOneV1Request
  */
 export interface CashFlowReconciliationApiBankReconciliationControllerFindOneV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof CashFlowReconciliationApiBankReconciliationControllerFindOneV1
-     */
-    readonly id: string
+  /**
+   *
+   * @type {string}
+   * @memberof CashFlowReconciliationApiBankReconciliationControllerFindOneV1
+   */
+  readonly id: string;
 }
 
 /**
@@ -471,19 +716,19 @@ export interface CashFlowReconciliationApiBankReconciliationControllerFindOneV1R
  * @interface CashFlowReconciliationApiBankReconciliationControllerUpdateV1Request
  */
 export interface CashFlowReconciliationApiBankReconciliationControllerUpdateV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof CashFlowReconciliationApiBankReconciliationControllerUpdateV1
-     */
-    readonly id: string
+  /**
+   *
+   * @type {string}
+   * @memberof CashFlowReconciliationApiBankReconciliationControllerUpdateV1
+   */
+  readonly id: string;
 
-    /**
-     * 
-     * @type {UpdateBankReconciliationDto}
-     * @memberof CashFlowReconciliationApiBankReconciliationControllerUpdateV1
-     */
-    readonly updateBankReconciliationDto: UpdateBankReconciliationDto
+  /**
+   *
+   * @type {UpdateBankReconciliationDto}
+   * @memberof CashFlowReconciliationApiBankReconciliationControllerUpdateV1
+   */
+  readonly updateBankReconciliationDto: UpdateBankReconciliationDto;
 }
 
 /**
@@ -492,65 +737,102 @@ export interface CashFlowReconciliationApiBankReconciliationControllerUpdateV1Re
  * @class CashFlowReconciliationApi
  * @extends {BaseAPI}
  */
-export class CashFlowReconciliationApi extends BaseAPI implements CashFlowReconciliationApiInterface {
-    /**
-     * 
-     * @summary Complete reconciliation
-     * @param {CashFlowReconciliationApiBankReconciliationControllerCompleteV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CashFlowReconciliationApi
-     */
-    public bankReconciliationControllerCompleteV1(requestParameters: CashFlowReconciliationApiBankReconciliationControllerCompleteV1Request, options?: RawAxiosRequestConfig) {
-        return CashFlowReconciliationApiFp(this.configuration).bankReconciliationControllerCompleteV1(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
-    }
+export class CashFlowReconciliationApi
+  extends BaseAPI
+  implements CashFlowReconciliationApiInterface
+{
+  /**
+   *
+   * @summary Complete reconciliation
+   * @param {CashFlowReconciliationApiBankReconciliationControllerCompleteV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CashFlowReconciliationApi
+   */
+  public bankReconciliationControllerCompleteV1(
+    requestParameters: CashFlowReconciliationApiBankReconciliationControllerCompleteV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return CashFlowReconciliationApiFp(this.configuration)
+      .bankReconciliationControllerCompleteV1(requestParameters.id, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * 
-     * @summary Start a new bank reconciliation
-     * @param {CashFlowReconciliationApiBankReconciliationControllerCreateV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CashFlowReconciliationApi
-     */
-    public bankReconciliationControllerCreateV1(requestParameters: CashFlowReconciliationApiBankReconciliationControllerCreateV1Request, options?: RawAxiosRequestConfig) {
-        return CashFlowReconciliationApiFp(this.configuration).bankReconciliationControllerCreateV1(requestParameters.createBankReconciliationDto, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   *
+   * @summary Start a new bank reconciliation
+   * @param {CashFlowReconciliationApiBankReconciliationControllerCreateV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CashFlowReconciliationApi
+   */
+  public bankReconciliationControllerCreateV1(
+    requestParameters: CashFlowReconciliationApiBankReconciliationControllerCreateV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return CashFlowReconciliationApiFp(this.configuration)
+      .bankReconciliationControllerCreateV1(
+        requestParameters.createBankReconciliationDto,
+        options,
+      )
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * 
-     * @summary List bank reconciliations
-     * @param {CashFlowReconciliationApiBankReconciliationControllerFindAllV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CashFlowReconciliationApi
-     */
-    public bankReconciliationControllerFindAllV1(requestParameters: CashFlowReconciliationApiBankReconciliationControllerFindAllV1Request, options?: RawAxiosRequestConfig) {
-        return CashFlowReconciliationApiFp(this.configuration).bankReconciliationControllerFindAllV1(requestParameters.bankAccountId, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   *
+   * @summary List bank reconciliations
+   * @param {CashFlowReconciliationApiBankReconciliationControllerFindAllV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CashFlowReconciliationApi
+   */
+  public bankReconciliationControllerFindAllV1(
+    requestParameters: CashFlowReconciliationApiBankReconciliationControllerFindAllV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return CashFlowReconciliationApiFp(this.configuration)
+      .bankReconciliationControllerFindAllV1(
+        requestParameters.bankAccountId,
+        options,
+      )
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * 
-     * @summary Get reconciliation details
-     * @param {CashFlowReconciliationApiBankReconciliationControllerFindOneV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CashFlowReconciliationApi
-     */
-    public bankReconciliationControllerFindOneV1(requestParameters: CashFlowReconciliationApiBankReconciliationControllerFindOneV1Request, options?: RawAxiosRequestConfig) {
-        return CashFlowReconciliationApiFp(this.configuration).bankReconciliationControllerFindOneV1(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   *
+   * @summary Get reconciliation details
+   * @param {CashFlowReconciliationApiBankReconciliationControllerFindOneV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CashFlowReconciliationApi
+   */
+  public bankReconciliationControllerFindOneV1(
+    requestParameters: CashFlowReconciliationApiBankReconciliationControllerFindOneV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return CashFlowReconciliationApiFp(this.configuration)
+      .bankReconciliationControllerFindOneV1(requestParameters.id, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * 
-     * @summary Update reconciliation
-     * @param {CashFlowReconciliationApiBankReconciliationControllerUpdateV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CashFlowReconciliationApi
-     */
-    public bankReconciliationControllerUpdateV1(requestParameters: CashFlowReconciliationApiBankReconciliationControllerUpdateV1Request, options?: RawAxiosRequestConfig) {
-        return CashFlowReconciliationApiFp(this.configuration).bankReconciliationControllerUpdateV1(requestParameters.id, requestParameters.updateBankReconciliationDto, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   *
+   * @summary Update reconciliation
+   * @param {CashFlowReconciliationApiBankReconciliationControllerUpdateV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CashFlowReconciliationApi
+   */
+  public bankReconciliationControllerUpdateV1(
+    requestParameters: CashFlowReconciliationApiBankReconciliationControllerUpdateV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return CashFlowReconciliationApiFp(this.configuration)
+      .bankReconciliationControllerUpdateV1(
+        requestParameters.id,
+        requestParameters.updateBankReconciliationDto,
+        options,
+      )
+      .then((request) => request(this.axios, this.basePath));
+  }
 }
-

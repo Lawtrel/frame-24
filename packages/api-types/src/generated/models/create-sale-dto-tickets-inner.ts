@@ -12,31 +12,28 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface CreateSaleDtoTicketsInner
  */
 export interface CreateSaleDtoTicketsInner {
-    /**
-     * 
-     * @type {string}
-     * @memberof CreateSaleDtoTicketsInner
-     */
-    'showtime_id'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof CreateSaleDtoTicketsInner
-     */
-    'seat_id'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof CreateSaleDtoTicketsInner
-     */
-    'ticket_type'?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateSaleDtoTicketsInner
+   */
+  showtime_id?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateSaleDtoTicketsInner
+   */
+  seat_id?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateSaleDtoTicketsInner
+   */
+  ticket_type?: string;
 }
-

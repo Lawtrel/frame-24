@@ -12,73 +12,71 @@
  * Do not edit the class manually.
  */
 
-
 // May contain unused imports in some cases
 // @ts-ignore
-import type { ConcessionSaleDto } from './concession-sale-dto';
+import type { ConcessionSaleDto } from "./concession-sale-dto";
 // May contain unused imports in some cases
 // @ts-ignore
-import type { MovieDetailsDto } from './movie-details-dto';
+import type { MovieDetailsDto } from "./movie-details-dto";
 // May contain unused imports in some cases
 // @ts-ignore
-import type { ShowtimeScheduleDto } from './showtime-schedule-dto';
+import type { ShowtimeScheduleDto } from "./showtime-schedule-dto";
 // May contain unused imports in some cases
 // @ts-ignore
-import type { TicketDto } from './ticket-dto';
+import type { TicketDto } from "./ticket-dto";
 
 /**
- * 
+ *
  * @export
  * @interface CustomerSalesResponseDto
  */
 export interface CustomerSalesResponseDto {
-    /**
-     * 
-     * @type {string}
-     * @memberof CustomerSalesResponseDto
-     */
-    'id': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof CustomerSalesResponseDto
-     */
-    'total_amount': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof CustomerSalesResponseDto
-     */
-    'sale_date': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof CustomerSalesResponseDto
-     */
-    'status': string;
-    /**
-     * 
-     * @type {Array<TicketDto>}
-     * @memberof CustomerSalesResponseDto
-     */
-    'tickets': Array<TicketDto>;
-    /**
-     * 
-     * @type {Array<ConcessionSaleDto>}
-     * @memberof CustomerSalesResponseDto
-     */
-    'concession_sales': Array<ConcessionSaleDto>;
-    /**
-     * 
-     * @type {ShowtimeScheduleDto}
-     * @memberof CustomerSalesResponseDto
-     */
-    'showtime_schedule'?: ShowtimeScheduleDto | null;
-    /**
-     * 
-     * @type {MovieDetailsDto}
-     * @memberof CustomerSalesResponseDto
-     */
-    'movie'?: MovieDetailsDto | null;
+  /**
+   *
+   * @type {string}
+   * @memberof CustomerSalesResponseDto
+   */
+  id: string;
+  /**
+   *
+   * @type {number}
+   * @memberof CustomerSalesResponseDto
+   */
+  total_amount: number;
+  /**
+   *
+   * @type {string}
+   * @memberof CustomerSalesResponseDto
+   */
+  sale_date: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CustomerSalesResponseDto
+   */
+  status: string;
+  /**
+   *
+   * @type {Array<TicketDto>}
+   * @memberof CustomerSalesResponseDto
+   */
+  tickets: Array<TicketDto>;
+  /**
+   *
+   * @type {Array<ConcessionSaleDto>}
+   * @memberof CustomerSalesResponseDto
+   */
+  concession_sales: Array<ConcessionSaleDto>;
+  /**
+   *
+   * @type {ShowtimeScheduleDto}
+   * @memberof CustomerSalesResponseDto
+   */
+  showtime_schedule?: ShowtimeScheduleDto | null;
+  /**
+   *
+   * @type {MovieDetailsDto}
+   * @memberof CustomerSalesResponseDto
+   */
+  movie?: MovieDetailsDto | null;
 }
-

@@ -12,61 +12,59 @@
  * Do not edit the class manually.
  */
 
-
 // May contain unused imports in some cases
 // @ts-ignore
-import type { SeatDto } from './seat-dto';
+import type { SeatDto } from "./seat-dto";
 // May contain unused imports in some cases
 // @ts-ignore
-import type { TicketTypeDto } from './ticket-type-dto';
+import type { TicketTypeDto } from "./ticket-type-dto";
 
 /**
- * 
+ *
  * @export
  * @interface TicketDto
  */
 export interface TicketDto {
-    /**
-     * 
-     * @type {string}
-     * @memberof TicketDto
-     */
-    'id': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof TicketDto
-     */
-    'ticket_number': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof TicketDto
-     */
-    'price': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof TicketDto
-     */
-    'seat_id': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof TicketDto
-     */
-    'showtime_id': string;
-    /**
-     * 
-     * @type {SeatDto}
-     * @memberof TicketDto
-     */
-    'seats'?: SeatDto | null;
-    /**
-     * 
-     * @type {TicketTypeDto}
-     * @memberof TicketDto
-     */
-    'ticket_types'?: TicketTypeDto | null;
+  /**
+   *
+   * @type {string}
+   * @memberof TicketDto
+   */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof TicketDto
+   */
+  ticket_number: string;
+  /**
+   *
+   * @type {number}
+   * @memberof TicketDto
+   */
+  price: number;
+  /**
+   *
+   * @type {string}
+   * @memberof TicketDto
+   */
+  seat_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof TicketDto
+   */
+  showtime_id: string;
+  /**
+   *
+   * @type {SeatDto}
+   * @memberof TicketDto
+   */
+  seats?: SeatDto | null;
+  /**
+   *
+   * @type {TicketTypeDto}
+   * @memberof TicketDto
+   */
+  ticket_types?: TicketTypeDto | null;
 }
-

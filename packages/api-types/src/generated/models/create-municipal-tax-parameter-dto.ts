@@ -12,85 +12,82 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface CreateMunicipalTaxParameterDto
  */
 export interface CreateMunicipalTaxParameterDto {
-    /**
-     * Código do município no IBGE
-     * @type {string}
-     * @memberof CreateMunicipalTaxParameterDto
-     */
-    'ibge_municipality_code': string;
-    /**
-     * Nome do município
-     * @type {string}
-     * @memberof CreateMunicipalTaxParameterDto
-     */
-    'municipality_name': string;
-    /**
-     * UF do município (sigla)
-     * @type {string}
-     * @memberof CreateMunicipalTaxParameterDto
-     */
-    'state': string;
-    /**
-     * Alíquota do ISS em percentual
-     * @type {number}
-     * @memberof CreateMunicipalTaxParameterDto
-     */
-    'iss_rate': number;
-    /**
-     * Código de serviço do ISS
-     * @type {string}
-     * @memberof CreateMunicipalTaxParameterDto
-     */
-    'iss_service_code'?: string;
-    /**
-     * Indica se há concessão específica de ISS
-     * @type {boolean}
-     * @memberof CreateMunicipalTaxParameterDto
-     */
-    'iss_concession_applicable'?: boolean;
-    /**
-     * Código de serviço para concessão de ISS
-     * @type {string}
-     * @memberof CreateMunicipalTaxParameterDto
-     */
-    'iss_concession_service_code'?: string;
-    /**
-     * Indica se o ISS é retido na fonte
-     * @type {boolean}
-     * @memberof CreateMunicipalTaxParameterDto
-     */
-    'iss_withholding'?: boolean;
-    /**
-     * Data de início da vigência (ISO 8601)
-     * @type {string}
-     * @memberof CreateMunicipalTaxParameterDto
-     */
-    'validity_start': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof CreateMunicipalTaxParameterDto
-     */
-    'validity_end'?: string | null;
-    /**
-     * Notas adicionais sobre a parametrização
-     * @type {string}
-     * @memberof CreateMunicipalTaxParameterDto
-     */
-    'notes'?: string;
-    /**
-     * Define se o parâmetro está ativo
-     * @type {boolean}
-     * @memberof CreateMunicipalTaxParameterDto
-     */
-    'active'?: boolean;
+  /**
+   * Código do município no IBGE
+   * @type {string}
+   * @memberof CreateMunicipalTaxParameterDto
+   */
+  ibge_municipality_code: string;
+  /**
+   * Nome do município
+   * @type {string}
+   * @memberof CreateMunicipalTaxParameterDto
+   */
+  municipality_name: string;
+  /**
+   * UF do município (sigla)
+   * @type {string}
+   * @memberof CreateMunicipalTaxParameterDto
+   */
+  state: string;
+  /**
+   * Alíquota do ISS em percentual
+   * @type {number}
+   * @memberof CreateMunicipalTaxParameterDto
+   */
+  iss_rate: number;
+  /**
+   * Código de serviço do ISS
+   * @type {string}
+   * @memberof CreateMunicipalTaxParameterDto
+   */
+  iss_service_code?: string;
+  /**
+   * Indica se há concessão específica de ISS
+   * @type {boolean}
+   * @memberof CreateMunicipalTaxParameterDto
+   */
+  iss_concession_applicable?: boolean;
+  /**
+   * Código de serviço para concessão de ISS
+   * @type {string}
+   * @memberof CreateMunicipalTaxParameterDto
+   */
+  iss_concession_service_code?: string;
+  /**
+   * Indica se o ISS é retido na fonte
+   * @type {boolean}
+   * @memberof CreateMunicipalTaxParameterDto
+   */
+  iss_withholding?: boolean;
+  /**
+   * Data de início da vigência (ISO 8601)
+   * @type {string}
+   * @memberof CreateMunicipalTaxParameterDto
+   */
+  validity_start: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateMunicipalTaxParameterDto
+   */
+  validity_end?: string | null;
+  /**
+   * Notas adicionais sobre a parametrização
+   * @type {string}
+   * @memberof CreateMunicipalTaxParameterDto
+   */
+  notes?: string;
+  /**
+   * Define se o parâmetro está ativo
+   * @type {boolean}
+   * @memberof CreateMunicipalTaxParameterDto
+   */
+  active?: boolean;
 }
-

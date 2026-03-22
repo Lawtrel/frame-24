@@ -148,7 +148,9 @@ async function bootstrap() {
 
   console.log('\nFrame24 API iniciada com sucesso!\n');
   console.log(`Documentação Scalar:   http://localhost:${port}/api/docs`);
-  console.log(`OpenAPI JSON:          http://localhost:${port}/api/openapi.json`);
+  console.log(
+    `OpenAPI JSON:          http://localhost:${port}/api/openapi.json`,
+  );
   console.log(`API Base:              http://localhost:${port}\n`);
 }
 

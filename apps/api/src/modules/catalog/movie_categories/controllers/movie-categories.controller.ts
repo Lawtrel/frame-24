@@ -9,6 +9,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
@@ -57,7 +58,7 @@ export class MovieCategoriesController {
   @ApiOperation({ summary: 'Buscar categoria por ID' })
   @ApiResponse({ status: 200, description: 'Categoria encontrada.' })
   @ApiNotFoundResponse({ description: 'Categoria não encontrada.' })
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.findOne(id);
   }
 
@@ -73,7 +74,10 @@ export class MovieCategoriesController {
     description: 'Categoria atualizada com sucesso.',
   })
   @ApiNotFoundResponse({ description: 'Categoria não encontrada.' })
-  async update(@Param('id') id: string, @Body() dto: UpdateMovieCategoryDto) {
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateMovieCategoryDto,
+  ) {
     return this.service.update(id, dto);
   }
 
@@ -82,7 +86,7 @@ export class MovieCategoriesController {
   @ApiOperation({ summary: 'Excluir categoria' })
   @ApiResponse({ status: 200, description: 'Categoria excluída com sucesso.' })
   @ApiNotFoundResponse({ description: 'Categoria não encontrada.' })
-  async delete(@Param('id') id: string) {
+  async delete(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.delete(id);
   }
 }

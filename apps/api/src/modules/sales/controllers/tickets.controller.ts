@@ -7,6 +7,7 @@ import {
   HttpCode,
   HttpStatus,
   NotFoundException,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
@@ -27,7 +28,7 @@ export class TicketsController {
   @RequirePermission('tickets', 'read')
   @ApiOperation({ summary: 'Buscar ingresso por ID' })
   async findOne(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
   ): Promise<Awaited<ReturnType<TicketsRepository['findById']>>> {
     const ticket = await this.ticketsRepository.findById(id);
     if (!ticket) {
@@ -41,7 +42,7 @@ export class TicketsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Marcar ingresso como usado' })
   async markAsUsed(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
   ): Promise<Awaited<ReturnType<TicketsRepository['markAsUsed']>>> {
     return this.ticketsRepository.markAsUsed(id, new Date());
   }

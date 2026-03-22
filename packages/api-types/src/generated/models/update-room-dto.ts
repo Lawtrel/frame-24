@@ -12,70 +12,68 @@
  * Do not edit the class manually.
  */
 
-
 // May contain unused imports in some cases
 // @ts-ignore
-import type { UpdateRoomDtoSeatLayoutInner } from './update-room-dto-seat-layout-inner';
+import type { UpdateRoomDtoSeatLayoutInner } from "./update-room-dto-seat-layout-inner";
 
 /**
- * 
+ *
  * @export
  * @interface UpdateRoomDto
  */
 export interface UpdateRoomDto {
-    /**
-     * 
-     * @type {string}
-     * @memberof UpdateRoomDto
-     */
-    'room_number'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof UpdateRoomDto
-     */
-    'name'?: string | null;
-    /**
-     * 
-     * @type {number}
-     * @memberof UpdateRoomDto
-     */
-    'capacity'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof UpdateRoomDto
-     */
-    'projection_type_id'?: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof UpdateRoomDto
-     */
-    'audio_type_id'?: string | null;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof UpdateRoomDto
-     */
-    'active'?: boolean;
-    /**
-     * 
-     * @type {Array<UpdateRoomDtoSeatLayoutInner>}
-     * @memberof UpdateRoomDto
-     */
-    'seat_layout'?: Array<UpdateRoomDtoSeatLayoutInner>;
-    /**
-     * 
-     * @type {string}
-     * @memberof UpdateRoomDto
-     */
-    'room_design'?: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof UpdateRoomDto
-     */
-    'layout_image'?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateRoomDto
+   */
+  room_number?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateRoomDto
+   */
+  name?: string | null;
+  /**
+   *
+   * @type {number}
+   * @memberof UpdateRoomDto
+   */
+  capacity?: number;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateRoomDto
+   */
+  projection_type_id?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateRoomDto
+   */
+  audio_type_id?: string | null;
+  /**
+   *
+   * @type {boolean}
+   * @memberof UpdateRoomDto
+   */
+  active?: boolean;
+  /**
+   *
+   * @type {Array<UpdateRoomDtoSeatLayoutInner>}
+   * @memberof UpdateRoomDto
+   */
+  seat_layout?: Array<UpdateRoomDtoSeatLayoutInner>;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateRoomDto
+   */
+  room_design?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateRoomDto
+   */
+  layout_image?: string | null;
 }
-

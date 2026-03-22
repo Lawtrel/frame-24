@@ -12,28 +12,26 @@
  * Do not edit the class manually.
  */
 
-
 // May contain unused imports in some cases
 // @ts-ignore
-import type { SeatLayoutItemDto } from './seat-layout-item-dto';
+import type { SeatLayoutItemDto } from "./seat-layout-item-dto";
 
 /**
- * 
+ *
  * @export
  * @interface SeatLayoutRowDto
  */
 export interface SeatLayoutRowDto {
-    /**
-     * 
-     * @type {string}
-     * @memberof SeatLayoutRowDto
-     */
-    'row_code': string;
-    /**
-     * 
-     * @type {Array<SeatLayoutItemDto>}
-     * @memberof SeatLayoutRowDto
-     */
-    'seats': Array<SeatLayoutItemDto>;
+  /**
+   *
+   * @type {string}
+   * @memberof SeatLayoutRowDto
+   */
+  row_code: string;
+  /**
+   *
+   * @type {Array<SeatLayoutItemDto>}
+   * @memberof SeatLayoutRowDto
+   */
+  seats: Array<SeatLayoutItemDto>;
 }
-

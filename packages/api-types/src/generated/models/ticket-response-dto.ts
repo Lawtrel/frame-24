@@ -12,67 +12,64 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface TicketResponseDto
  */
 export interface TicketResponseDto {
-    /**
-     * 
-     * @type {string}
-     * @memberof TicketResponseDto
-     */
-    'id': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof TicketResponseDto
-     */
-    'ticket_number': string;
-    /**
-     * 
-     * @type {object}
-     * @memberof TicketResponseDto
-     */
-    'seat'?: object;
-    /**
-     * 
-     * @type {string}
-     * @memberof TicketResponseDto
-     */
-    'face_value': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof TicketResponseDto
-     */
-    'service_fee'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof TicketResponseDto
-     */
-    'total_amount': string;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof TicketResponseDto
-     */
-    'used': boolean;
-    /**
-     * 
-     * @type {string}
-     * @memberof TicketResponseDto
-     */
-    'usage_date'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof TicketResponseDto
-     */
-    'ticket_type'?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof TicketResponseDto
+   */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof TicketResponseDto
+   */
+  ticket_number: string;
+  /**
+   *
+   * @type {object}
+   * @memberof TicketResponseDto
+   */
+  seat?: object;
+  /**
+   *
+   * @type {string}
+   * @memberof TicketResponseDto
+   */
+  face_value: string;
+  /**
+   *
+   * @type {string}
+   * @memberof TicketResponseDto
+   */
+  service_fee?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof TicketResponseDto
+   */
+  total_amount: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof TicketResponseDto
+   */
+  used: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof TicketResponseDto
+   */
+  usage_date?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof TicketResponseDto
+   */
+  ticket_type?: string;
 }
-

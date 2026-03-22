@@ -1,4 +1,11 @@
-import { Controller, Delete, Get, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  Param,
+  UseGuards,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
@@ -26,7 +33,7 @@ export class AdminOperationsController {
   @ApiOperation({
     summary: 'Liberar/cancelar reserva pendente',
   })
-  async cancelReservation(@Param('id') id: string) {
+  async cancelReservation(@Param('id', ParseUUIDPipe) id: string) {
     await this.adminService.cancelReservation(id);
     return { success: true };
   }
@@ -36,7 +43,7 @@ export class AdminOperationsController {
   @ApiOperation({
     summary: 'Obter QR Code de um ingresso (uso administrativo)',
   })
-  async getTicketQrCode(@Param('id') id: string) {
+  async getTicketQrCode(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminService.getTicketQrCode(id);
   }
 }

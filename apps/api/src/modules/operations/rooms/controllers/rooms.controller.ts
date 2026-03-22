@@ -8,6 +8,7 @@ import {
   HttpCode,
   HttpStatus,
   UploadedFile,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -78,7 +79,7 @@ export class RoomsController {
   @ApiOperation({ summary: 'Buscar uma sala específica por ID' })
   @ApiResponse({ status: 200, description: 'Sala encontrada.' })
   @ApiNotFoundResponse({ description: 'Sala não encontrada.' })
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.findOne(id);
   }
 
@@ -94,7 +95,7 @@ export class RoomsController {
   @ApiResponse({ status: 200, description: 'Sala atualizada com sucesso.' })
   @ApiNotFoundResponse({ description: 'Sala não encontrada.' })
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: UpdateRoomDto,
   ) {
@@ -107,7 +108,7 @@ export class RoomsController {
   @ApiOperation({ summary: 'Excluir uma sala' })
   @ApiResponse({ status: 200, description: 'Sala excluída com sucesso.' })
   @ApiNotFoundResponse({ description: 'Sala não encontrada.' })
-  async delete(@Param('id') id: string) {
+  async delete(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.delete(id);
   }
 }

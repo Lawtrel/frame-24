@@ -9,6 +9,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
@@ -64,7 +65,9 @@ export class SalesController {
   @Get(':id')
   @RequirePermission('sales', 'read')
   @ApiOperation({ summary: 'Buscar venda por ID' })
-  async findOne(@Param('id') id: string): Promise<SaleResponseDto> {
+  async findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<SaleResponseDto> {
     return await this.salesService.findOne(id);
   }
 
@@ -73,7 +76,7 @@ export class SalesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Cancelar venda' })
   async cancel(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body('reason') reason: string,
   ): Promise<void> {
     return await this.salesService.cancel(id, reason);

@@ -20,7 +20,7 @@ export interface TMDBMovie {
 export const tmdbService = {
   searchMovie: async (query: string): Promise<TMDBMovie[]> => {
     if (!TMDB_API_KEY) return [];
-    
+
     try {
       const response = await axios.get(`${TMDB_BASE_URL}/search/movie`, {
         params: {
@@ -56,5 +56,5 @@ export const tmdbService = {
 
   getImageUrl: (path: string | null) => {
     return path ? `${IMAGE_BASE_URL}${path}` : null;
-  }
+  },
 };

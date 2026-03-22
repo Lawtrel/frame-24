@@ -10,6 +10,7 @@ import {
   Put,
   Query,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -68,7 +69,7 @@ export class ExhibitionContractsController {
   @RequirePermission('contracts', 'read')
   @ApiOperation({ summary: 'Buscar contrato de exibição por ID' })
   @ApiParam({ name: 'id', description: 'Identificador do contrato' })
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.findOne(id);
   }
 
@@ -76,7 +77,7 @@ export class ExhibitionContractsController {
   @RequirePermission('contracts', 'update')
   @ApiOperation({ summary: 'Atualizar contrato de exibição' })
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateExhibitionContractDto,
   ) {
     return this.service.update(id, dto);
@@ -87,7 +88,7 @@ export class ExhibitionContractsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Desativar contrato de exibição' })
   @ApiResponse({ status: 204, description: 'Contrato desativado.' })
-  async delete(@Param('id') id: string) {
+  async delete(@Param('id', ParseUUIDPipe) id: string) {
     await this.service.delete(id);
   }
 }

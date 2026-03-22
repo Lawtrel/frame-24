@@ -9,6 +9,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
@@ -104,7 +105,7 @@ export class MoviesController {
   @ApiNotFoundResponse({
     description: 'Filme não encontrado.',
   })
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.findOne(id);
   }
 
@@ -125,7 +126,10 @@ export class MoviesController {
   @ApiNotFoundResponse({
     description: 'Filme não encontrado.',
   })
-  async update(@Param('id') id: string, @Body() dto: UpdateMovieDto) {
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateMovieDto,
+  ) {
     return this.service.update(id, dto);
   }
 
@@ -141,7 +145,7 @@ export class MoviesController {
   @ApiNotFoundResponse({
     description: 'Filme não encontrado.',
   })
-  async delete(@Param('id') id: string) {
+  async delete(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.delete(id);
   }
 }

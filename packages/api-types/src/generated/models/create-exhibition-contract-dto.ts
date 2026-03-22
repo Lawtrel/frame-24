@@ -12,112 +12,110 @@
  * Do not edit the class manually.
  */
 
-
 // May contain unused imports in some cases
 // @ts-ignore
-import type { CreateExhibitionContractDtoSlidingScaleInner } from './create-exhibition-contract-dto-sliding-scale-inner';
+import type { CreateExhibitionContractDtoSlidingScaleInner } from "./create-exhibition-contract-dto-sliding-scale-inner";
 
 /**
- * 
+ *
  * @export
  * @interface CreateExhibitionContractDto
  */
 export interface CreateExhibitionContractDto {
-    /**
-     * Filme relacionado ao contrato
-     * @type {string}
-     * @memberof CreateExhibitionContractDto
-     */
-    'movie_id': string;
-    /**
-     * Complexo onde o contrato é válido
-     * @type {string}
-     * @memberof CreateExhibitionContractDto
-     */
-    'cinema_complex_id': string;
-    /**
-     * Distribuidora responsável
-     * @type {string}
-     * @memberof CreateExhibitionContractDto
-     */
-    'distributor_id': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof CreateExhibitionContractDto
-     */
-    'contract_type_id'?: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof CreateExhibitionContractDto
-     */
-    'settlement_base_id'?: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof CreateExhibitionContractDto
-     */
-    'contract_number'?: string | null;
-    /**
-     * Data de início de vigência
-     * @type {string}
-     * @memberof CreateExhibitionContractDto
-     */
-    'start_date': string;
-    /**
-     * Data de término da vigência
-     * @type {string}
-     * @memberof CreateExhibitionContractDto
-     */
-    'end_date': string;
-    /**
-     * Percentual da distribuidora (%)
-     * @type {number}
-     * @memberof CreateExhibitionContractDto
-     */
-    'distributor_percentage': number;
-    /**
-     * Percentual do exibidor (%)
-     * @type {number}
-     * @memberof CreateExhibitionContractDto
-     */
-    'exhibitor_percentage': number;
-    /**
-     * Valor mínimo garantido
-     * @type {number}
-     * @memberof CreateExhibitionContractDto
-     */
-    'guaranteed_minimum'?: number;
-    /**
-     * Outros valores de garantia mínima (legacy)
-     * @type {number}
-     * @memberof CreateExhibitionContractDto
-     */
-    'minimum_guarantee'?: number;
-    /**
-     * Termos do contrato
-     * @type {string}
-     * @memberof CreateExhibitionContractDto
-     */
-    'contract_terms'?: string;
-    /**
-     * Observações adicionais
-     * @type {string}
-     * @memberof CreateExhibitionContractDto
-     */
-    'notes'?: string;
-    /**
-     * Ativo?
-     * @type {boolean}
-     * @memberof CreateExhibitionContractDto
-     */
-    'active'?: boolean;
-    /**
-     * Escala móvel por semana
-     * @type {Array<CreateExhibitionContractDtoSlidingScaleInner>}
-     * @memberof CreateExhibitionContractDto
-     */
-    'sliding_scale'?: Array<CreateExhibitionContractDtoSlidingScaleInner>;
+  /**
+   * Filme relacionado ao contrato
+   * @type {string}
+   * @memberof CreateExhibitionContractDto
+   */
+  movie_id: string;
+  /**
+   * Complexo onde o contrato é válido
+   * @type {string}
+   * @memberof CreateExhibitionContractDto
+   */
+  cinema_complex_id: string;
+  /**
+   * Distribuidora responsável
+   * @type {string}
+   * @memberof CreateExhibitionContractDto
+   */
+  distributor_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateExhibitionContractDto
+   */
+  contract_type_id?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateExhibitionContractDto
+   */
+  settlement_base_id?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateExhibitionContractDto
+   */
+  contract_number?: string | null;
+  /**
+   * Data de início de vigência
+   * @type {string}
+   * @memberof CreateExhibitionContractDto
+   */
+  start_date: string;
+  /**
+   * Data de término da vigência
+   * @type {string}
+   * @memberof CreateExhibitionContractDto
+   */
+  end_date: string;
+  /**
+   * Percentual da distribuidora (%)
+   * @type {number}
+   * @memberof CreateExhibitionContractDto
+   */
+  distributor_percentage: number;
+  /**
+   * Percentual do exibidor (%)
+   * @type {number}
+   * @memberof CreateExhibitionContractDto
+   */
+  exhibitor_percentage: number;
+  /**
+   * Valor mínimo garantido
+   * @type {number}
+   * @memberof CreateExhibitionContractDto
+   */
+  guaranteed_minimum?: number;
+  /**
+   * Outros valores de garantia mínima (legacy)
+   * @type {number}
+   * @memberof CreateExhibitionContractDto
+   */
+  minimum_guarantee?: number;
+  /**
+   * Termos do contrato
+   * @type {string}
+   * @memberof CreateExhibitionContractDto
+   */
+  contract_terms?: string;
+  /**
+   * Observações adicionais
+   * @type {string}
+   * @memberof CreateExhibitionContractDto
+   */
+  notes?: string;
+  /**
+   * Ativo?
+   * @type {boolean}
+   * @memberof CreateExhibitionContractDto
+   */
+  active?: boolean;
+  /**
+   * Escala móvel por semana
+   * @type {Array<CreateExhibitionContractDtoSlidingScaleInner>}
+   * @memberof CreateExhibitionContractDto
+   */
+  sliding_scale?: Array<CreateExhibitionContractDtoSlidingScaleInner>;
 }
-

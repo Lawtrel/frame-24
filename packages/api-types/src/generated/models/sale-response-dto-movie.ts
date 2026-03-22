@@ -12,43 +12,40 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface SaleResponseDtoMovie
  */
 export interface SaleResponseDtoMovie {
-    /**
-     * 
-     * @type {string}
-     * @memberof SaleResponseDtoMovie
-     */
-    'id': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof SaleResponseDtoMovie
-     */
-    'title': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof SaleResponseDtoMovie
-     */
-    'poster_url': string | null;
-    /**
-     * 
-     * @type {number}
-     * @memberof SaleResponseDtoMovie
-     */
-    'duration_minutes': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof SaleResponseDtoMovie
-     */
-    'age_rating': string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof SaleResponseDtoMovie
+   */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof SaleResponseDtoMovie
+   */
+  title: string;
+  /**
+   *
+   * @type {string}
+   * @memberof SaleResponseDtoMovie
+   */
+  poster_url: string | null;
+  /**
+   *
+   * @type {number}
+   * @memberof SaleResponseDtoMovie
+   */
+  duration_minutes: number;
+  /**
+   *
+   * @type {string}
+   * @memberof SaleResponseDtoMovie
+   */
+  age_rating: string | null;
 }
-

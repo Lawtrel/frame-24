@@ -12,37 +12,34 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface CompanySelectionDto
  */
 export interface CompanySelectionDto {
-    /**
-     * ID da empresa
-     * @type {string}
-     * @memberof CompanySelectionDto
-     */
-    'company_id': string;
-    /**
-     * Nome fantasia da empresa
-     * @type {string}
-     * @memberof CompanySelectionDto
-     */
-    'company_name': string;
-    /**
-     * Slug único da empresa
-     * @type {string}
-     * @memberof CompanySelectionDto
-     */
-    'tenant_slug': string;
-    /**
-     * Nome da role do usuário nesta empresa
-     * @type {string}
-     * @memberof CompanySelectionDto
-     */
-    'role_name': string;
+  /**
+   * ID da empresa
+   * @type {string}
+   * @memberof CompanySelectionDto
+   */
+  company_id: string;
+  /**
+   * Nome fantasia da empresa
+   * @type {string}
+   * @memberof CompanySelectionDto
+   */
+  company_name: string;
+  /**
+   * Slug único da empresa
+   * @type {string}
+   * @memberof CompanySelectionDto
+   */
+  tenant_slug: string;
+  /**
+   * Nome da role do usuário nesta empresa
+   * @type {string}
+   * @memberof CompanySelectionDto
+   */
+  role_name: string;
 }
-

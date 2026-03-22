@@ -12,31 +12,28 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface UpdateRoomDtoSeatLayoutInnerSeatsInner
  */
 export interface UpdateRoomDtoSeatLayoutInnerSeatsInner {
-    /**
-     * 
-     * @type {string}
-     * @memberof UpdateRoomDtoSeatLayoutInnerSeatsInner
-     */
-    'seat_type_id'?: string | null;
-    /**
-     * 
-     * @type {number}
-     * @memberof UpdateRoomDtoSeatLayoutInnerSeatsInner
-     */
-    'column_number': number;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof UpdateRoomDtoSeatLayoutInnerSeatsInner
-     */
-    'accessible'?: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateRoomDtoSeatLayoutInnerSeatsInner
+   */
+  seat_type_id?: string | null;
+  /**
+   *
+   * @type {number}
+   * @memberof UpdateRoomDtoSeatLayoutInnerSeatsInner
+   */
+  column_number: number;
+  /**
+   *
+   * @type {boolean}
+   * @memberof UpdateRoomDtoSeatLayoutInnerSeatsInner
+   */
+  accessible?: boolean;
 }
-

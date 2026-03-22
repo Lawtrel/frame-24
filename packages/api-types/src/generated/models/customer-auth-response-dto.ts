@@ -12,28 +12,26 @@
  * Do not edit the class manually.
  */
 
-
 // May contain unused imports in some cases
 // @ts-ignore
-import type { CustomerAuthResponseDtoCustomer } from './customer-auth-response-dto-customer';
+import type { CustomerAuthResponseDtoCustomer } from "./customer-auth-response-dto-customer";
 
 /**
- * 
+ *
  * @export
  * @interface CustomerAuthResponseDto
  */
 export interface CustomerAuthResponseDto {
-    /**
-     * Token JWT de acesso
-     * @type {string}
-     * @memberof CustomerAuthResponseDto
-     */
-    'access_token': string;
-    /**
-     * 
-     * @type {CustomerAuthResponseDtoCustomer}
-     * @memberof CustomerAuthResponseDto
-     */
-    'customer': CustomerAuthResponseDtoCustomer;
+  /**
+   * Token JWT de acesso
+   * @type {string}
+   * @memberof CustomerAuthResponseDto
+   */
+  access_token: string;
+  /**
+   *
+   * @type {CustomerAuthResponseDtoCustomer}
+   * @memberof CustomerAuthResponseDto
+   */
+  customer: CustomerAuthResponseDtoCustomer;
 }
-

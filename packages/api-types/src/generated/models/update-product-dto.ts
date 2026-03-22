@@ -12,85 +12,82 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface UpdateProductDto
  */
 export interface UpdateProductDto {
-    /**
-     * ID da categoria
-     * @type {string}
-     * @memberof UpdateProductDto
-     */
-    'category_id'?: string;
-    /**
-     * Código do produto (pode editar)
-     * @type {string}
-     * @memberof UpdateProductDto
-     */
-    'product_code'?: string;
-    /**
-     * Nome do produto
-     * @type {string}
-     * @memberof UpdateProductDto
-     */
-    'name'?: string;
-    /**
-     * Descrição do produto
-     * @type {string}
-     * @memberof UpdateProductDto
-     */
-    'description'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof UpdateProductDto
-     */
-    'image_url'?: string | null;
-    /**
-     * Código NCM
-     * @type {string}
-     * @memberof UpdateProductDto
-     */
-    'ncm_code'?: string;
-    /**
-     * Unidade de medida
-     * @type {string}
-     * @memberof UpdateProductDto
-     */
-    'unit'?: string;
-    /**
-     * Estoque mínimo
-     * @type {number}
-     * @memberof UpdateProductDto
-     */
-    'minimum_stock'?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof UpdateProductDto
-     */
-    'supplier_id'?: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof UpdateProductDto
-     */
-    'barcode'?: string | null;
-    /**
-     * Disponível online
-     * @type {boolean}
-     * @memberof UpdateProductDto
-     */
-    'is_available_online'?: boolean;
-    /**
-     * Ativo
-     * @type {boolean}
-     * @memberof UpdateProductDto
-     */
-    'active'?: boolean;
+  /**
+   * ID da categoria
+   * @type {string}
+   * @memberof UpdateProductDto
+   */
+  category_id?: string;
+  /**
+   * Código do produto (pode editar)
+   * @type {string}
+   * @memberof UpdateProductDto
+   */
+  product_code?: string;
+  /**
+   * Nome do produto
+   * @type {string}
+   * @memberof UpdateProductDto
+   */
+  name?: string;
+  /**
+   * Descrição do produto
+   * @type {string}
+   * @memberof UpdateProductDto
+   */
+  description?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateProductDto
+   */
+  image_url?: string | null;
+  /**
+   * Código NCM
+   * @type {string}
+   * @memberof UpdateProductDto
+   */
+  ncm_code?: string;
+  /**
+   * Unidade de medida
+   * @type {string}
+   * @memberof UpdateProductDto
+   */
+  unit?: string;
+  /**
+   * Estoque mínimo
+   * @type {number}
+   * @memberof UpdateProductDto
+   */
+  minimum_stock?: number;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateProductDto
+   */
+  supplier_id?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateProductDto
+   */
+  barcode?: string | null;
+  /**
+   * Disponível online
+   * @type {boolean}
+   * @memberof UpdateProductDto
+   */
+  is_available_online?: boolean;
+  /**
+   * Ativo
+   * @type {boolean}
+   * @memberof UpdateProductDto
+   */
+  active?: boolean;
 }
-

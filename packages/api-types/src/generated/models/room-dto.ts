@@ -12,25 +12,22 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface RoomDto
  */
 export interface RoomDto {
-    /**
-     * 
-     * @type {string}
-     * @memberof RoomDto
-     */
-    'id': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof RoomDto
-     */
-    'name': string;
+  /**
+   *
+   * @type {string}
+   * @memberof RoomDto
+   */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof RoomDto
+   */
+  name: string;
 }
-

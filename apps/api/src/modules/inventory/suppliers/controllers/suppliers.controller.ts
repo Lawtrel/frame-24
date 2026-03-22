@@ -10,6 +10,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
@@ -124,7 +125,7 @@ export class SuppliersController {
     status: 404,
     description: 'Fornecedor não encontrado ou não pertence à empresa.',
   })
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.suppliersService.findOne(id);
   }
 
@@ -148,7 +149,10 @@ export class SuppliersController {
     status: 404,
     description: 'Fornecedor não encontrado.',
   })
-  async update(@Param('id') id: string, @Body() dto: UpdateSupplierDto) {
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateSupplierDto,
+  ) {
     return this.suppliersService.update(id, dto);
   }
 
@@ -167,7 +171,7 @@ export class SuppliersController {
     status: 204,
     description: 'Fornecedor removido com sucesso.',
   })
-  async delete(@Param('id') id: string) {
+  async delete(@Param('id', ParseUUIDPipe) id: string) {
     return this.suppliersService.delete(id);
   }
 }

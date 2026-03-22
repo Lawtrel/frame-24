@@ -12,25 +12,22 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface LoginDto
  */
 export interface LoginDto {
-    /**
-     * Email do usuário
-     * @type {string}
-     * @memberof LoginDto
-     */
-    'email': string;
-    /**
-     * Senha do usuário
-     * @type {string}
-     * @memberof LoginDto
-     */
-    'password': string;
+  /**
+   * Email do usuário
+   * @type {string}
+   * @memberof LoginDto
+   */
+  email: string;
+  /**
+   * Senha do usuário
+   * @type {string}
+   * @memberof LoginDto
+   */
+  password: string;
 }
-

@@ -12,687 +12,1145 @@
  * Do not edit the class manually.
  */
 
-
-import type { Configuration } from '../configuration';
-import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from 'axios';
-import globalAxios from 'axios';
+import type { Configuration } from "../configuration";
+import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from "axios";
+import globalAxios from "axios";
 // Some imports not used depending on template conditions
 // @ts-ignore
-import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from '../common';
+import {
+  DUMMY_BASE_URL,
+  assertParamExists,
+  setApiKeyToObject,
+  setBasicAuthToObject,
+  setBearerAuthToObject,
+  setOAuthToObject,
+  setSearchParams,
+  serializeDataIfNeeded,
+  toPathString,
+  createRequestFunction,
+} from "../common";
 // @ts-ignore
-import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
+import {
+  BASE_PATH,
+  COLLECTION_FORMATS,
+  type RequestArgs,
+  BaseAPI,
+  RequiredError,
+  operationServerMap,
+} from "../base";
 /**
  * PublicApi - axios parameter creator
  * @export
  */
-export const PublicApiAxiosParamCreator = function (configuration?: Configuration) {
-    return {
-        /**
-         * Retorna lista de todas as empresas ativas disponíveis para compra de ingressos
-         * @summary Listar empresas públicas
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        publicControllerGetCompaniesV1: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/v1/public/companies`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+export const PublicApiAxiosParamCreator = function (
+  configuration?: Configuration,
+) {
+  return {
+    /**
+     * Retorna lista de todas as empresas ativas disponíveis para compra de ingressos
+     * @summary Listar empresas públicas
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    publicControllerGetCompaniesV1: async (
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      const localVarPath = `/v1/public/companies`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Retorna informações públicas de uma empresa específica
+     * @summary Buscar empresa por tenant slug
+     * @param {string} tenantSlug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    publicControllerGetCompanyBySlugV1: async (
+      tenantSlug: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'tenantSlug' is not null or undefined
+      assertParamExists(
+        "publicControllerGetCompanyBySlugV1",
+        "tenantSlug",
+        tenantSlug,
+      );
+      const localVarPath = `/v1/public/companies/{tenant_slug}`.replace(
+        `{${"tenant_slug"}}`,
+        encodeURIComponent(String(tenantSlug)),
+      );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Retorna informações públicas de uma empresa específica
-         * @summary Buscar empresa por tenant slug
-         * @param {string} tenantSlug 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        publicControllerGetCompanyBySlugV1: async (tenantSlug: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'tenantSlug' is not null or undefined
-            assertParamExists('publicControllerGetCompanyBySlugV1', 'tenantSlug', tenantSlug)
-            const localVarPath = `/v1/public/companies/{tenant_slug}`
-                .replace(`{${"tenant_slug"}}`, encodeURIComponent(String(tenantSlug)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Retorna todos os complexos ativos de uma empresa específica
+     * @summary Listar complexos de cinema de uma empresa
+     * @param {string} tenantSlug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    publicControllerGetComplexesV1: async (
+      tenantSlug: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'tenantSlug' is not null or undefined
+      assertParamExists(
+        "publicControllerGetComplexesV1",
+        "tenantSlug",
+        tenantSlug,
+      );
+      const localVarPath =
+        `/v1/public/companies/{tenant_slug}/complexes`.replace(
+          `{${"tenant_slug"}}`,
+          encodeURIComponent(String(tenantSlug)),
+        );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Retorna todos os complexos ativos de uma empresa específica
-         * @summary Listar complexos de cinema de uma empresa
-         * @param {string} tenantSlug 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        publicControllerGetComplexesV1: async (tenantSlug: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'tenantSlug' is not null or undefined
-            assertParamExists('publicControllerGetComplexesV1', 'tenantSlug', tenantSlug)
-            const localVarPath = `/v1/public/companies/{tenant_slug}/complexes`
-                .replace(`{${"tenant_slug"}}`, encodeURIComponent(String(tenantSlug)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Retorna os detalhes completos de um filme
+     * @summary Obter detalhes do filme
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    publicControllerGetMovieV1: async (
+      id: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists("publicControllerGetMovieV1", "id", id);
+      const localVarPath = `/v1/public/movies/{id}`.replace(
+        `{${"id"}}`,
+        encodeURIComponent(String(id)),
+      );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Retorna os detalhes completos de um filme
-         * @summary Obter detalhes do filme
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        publicControllerGetMovieV1: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('publicControllerGetMovieV1', 'id', id)
-            const localVarPath = `/v1/public/movies/{id}`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Retorna todos os filmes ativos em exibição de uma empresa
+     * @summary Listar filmes em exibição
+     * @param {string} tenantSlug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    publicControllerGetMoviesV1: async (
+      tenantSlug: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'tenantSlug' is not null or undefined
+      assertParamExists(
+        "publicControllerGetMoviesV1",
+        "tenantSlug",
+        tenantSlug,
+      );
+      const localVarPath = `/v1/public/companies/{tenant_slug}/movies`.replace(
+        `{${"tenant_slug"}}`,
+        encodeURIComponent(String(tenantSlug)),
+      );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Retorna os métodos de pagamento ativos para uma empresa
+     * @summary Listar métodos de pagamento
+     * @param {string} tenantSlug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    publicControllerGetPaymentMethodsV1: async (
+      tenantSlug: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'tenantSlug' is not null or undefined
+      assertParamExists(
+        "publicControllerGetPaymentMethodsV1",
+        "tenantSlug",
+        tenantSlug,
+      );
+      const localVarPath =
+        `/v1/public/companies/{tenant_slug}/payment-methods`.replace(
+          `{${"tenant_slug"}}`,
+          encodeURIComponent(String(tenantSlug)),
+        );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Retorna todos os filmes ativos em exibição de uma empresa
-         * @summary Listar filmes em exibição
-         * @param {string} tenantSlug 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        publicControllerGetMoviesV1: async (tenantSlug: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'tenantSlug' is not null or undefined
-            assertParamExists('publicControllerGetMoviesV1', 'tenantSlug', tenantSlug)
-            const localVarPath = `/v1/public/companies/{tenant_slug}/movies`
-                .replace(`{${"tenant_slug"}}`, encodeURIComponent(String(tenantSlug)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Retorna produtos de concessão disponíveis para venda
+     * @summary Listar produtos de concessão
+     * @param {string} tenantSlug
+     * @param {string} [complexId] ID do complexo para preços específicos
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    publicControllerGetProductsV1: async (
+      tenantSlug: string,
+      complexId?: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'tenantSlug' is not null or undefined
+      assertParamExists(
+        "publicControllerGetProductsV1",
+        "tenantSlug",
+        tenantSlug,
+      );
+      const localVarPath =
+        `/v1/public/companies/{tenant_slug}/products`.replace(
+          `{${"tenant_slug"}}`,
+          encodeURIComponent(String(tenantSlug)),
+        );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Retorna os métodos de pagamento ativos para uma empresa
-         * @summary Listar métodos de pagamento
-         * @param {string} tenantSlug 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        publicControllerGetPaymentMethodsV1: async (tenantSlug: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'tenantSlug' is not null or undefined
-            assertParamExists('publicControllerGetPaymentMethodsV1', 'tenantSlug', tenantSlug)
-            const localVarPath = `/v1/public/companies/{tenant_slug}/payment-methods`
-                .replace(`{${"tenant_slug"}}`, encodeURIComponent(String(tenantSlug)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+      if (complexId !== undefined) {
+        localVarQueryParameter["complex_id"] = complexId;
+      }
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Retorna os detalhes completos de uma venda (ingressos, produtos, sessão)
+     * @summary Obter detalhes da venda
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    publicControllerGetSaleDetailsV1: async (
+      id: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists("publicControllerGetSaleDetailsV1", "id", id);
+      const localVarPath = `/v1/public/sales/{id}`.replace(
+        `{${"id"}}`,
+        encodeURIComponent(String(id)),
+      );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Retorna produtos de concessão disponíveis para venda
-         * @summary Listar produtos de concessão
-         * @param {string} tenantSlug 
-         * @param {string} [complexId] ID do complexo para preços específicos
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        publicControllerGetProductsV1: async (tenantSlug: string, complexId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'tenantSlug' is not null or undefined
-            assertParamExists('publicControllerGetProductsV1', 'tenantSlug', tenantSlug)
-            const localVarPath = `/v1/public/companies/{tenant_slug}/products`
-                .replace(`{${"tenant_slug"}}`, encodeURIComponent(String(tenantSlug)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Retorna o mapa completo de assentos com status (disponível, reservado, vendido)
+     * @summary Obter mapa de assentos de uma sessão
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    publicControllerGetSeatsMapV1: async (
+      id: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists("publicControllerGetSeatsMapV1", "id", id);
+      const localVarPath = `/v1/public/showtimes/{id}/seats`.replace(
+        `{${"id"}}`,
+        encodeURIComponent(String(id)),
+      );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            if (complexId !== undefined) {
-                localVarQueryParameter['complex_id'] = complexId;
-            }
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Retorna sessões disponíveis de uma empresa, com filtros opcionais
+     * @summary Listar sessões disponíveis
+     * @param {string} tenantSlug
+     * @param {string} [complexId] ID do complexo
+     * @param {string} [movieId] ID do filme
+     * @param {string} [date] Data das sessões (YYYY-MM-DD)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    publicControllerGetShowtimesV1: async (
+      tenantSlug: string,
+      complexId?: string,
+      movieId?: string,
+      date?: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'tenantSlug' is not null or undefined
+      assertParamExists(
+        "publicControllerGetShowtimesV1",
+        "tenantSlug",
+        tenantSlug,
+      );
+      const localVarPath =
+        `/v1/public/companies/{tenant_slug}/showtimes`.replace(
+          `{${"tenant_slug"}}`,
+          encodeURIComponent(String(tenantSlug)),
+        );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Retorna os detalhes completos de uma venda (ingressos, produtos, sessão)
-         * @summary Obter detalhes da venda
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        publicControllerGetSaleDetailsV1: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('publicControllerGetSaleDetailsV1', 'id', id)
-            const localVarPath = `/v1/public/sales/{id}`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      if (complexId !== undefined) {
+        localVarQueryParameter["complex_id"] = complexId;
+      }
 
+      if (movieId !== undefined) {
+        localVarQueryParameter["movie_id"] = movieId;
+      }
 
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      if (date !== undefined) {
+        localVarQueryParameter["date"] = date;
+      }
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Retorna o mapa completo de assentos com status (disponível, reservado, vendido)
-         * @summary Obter mapa de assentos de uma sessão
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        publicControllerGetSeatsMapV1: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('publicControllerGetSeatsMapV1', 'id', id)
-            const localVarPath = `/v1/public/showtimes/{id}/seats`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Retorna os tipos de ingresso disponíveis para uma empresa
+     * @summary Listar tipos de ingresso
+     * @param {string} tenantSlug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    publicControllerGetTicketTypesV1: async (
+      tenantSlug: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'tenantSlug' is not null or undefined
+      assertParamExists(
+        "publicControllerGetTicketTypesV1",
+        "tenantSlug",
+        tenantSlug,
+      );
+      const localVarPath =
+        `/v1/public/companies/{tenant_slug}/ticket-types`.replace(
+          `{${"tenant_slug"}}`,
+          encodeURIComponent(String(tenantSlug)),
+        );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Retorna sessões disponíveis de uma empresa, com filtros opcionais
-         * @summary Listar sessões disponíveis
-         * @param {string} tenantSlug 
-         * @param {string} [complexId] ID do complexo
-         * @param {string} [movieId] ID do filme
-         * @param {string} [date] Data das sessões (YYYY-MM-DD)
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        publicControllerGetShowtimesV1: async (tenantSlug: string, complexId?: string, movieId?: string, date?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'tenantSlug' is not null or undefined
-            assertParamExists('publicControllerGetShowtimesV1', 'tenantSlug', tenantSlug)
-            const localVarPath = `/v1/public/companies/{tenant_slug}/showtimes`
-                .replace(`{${"tenant_slug"}}`, encodeURIComponent(String(tenantSlug)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            if (complexId !== undefined) {
-                localVarQueryParameter['complex_id'] = complexId;
-            }
-
-            if (movieId !== undefined) {
-                localVarQueryParameter['movie_id'] = movieId;
-            }
-
-            if (date !== undefined) {
-                localVarQueryParameter['date'] = date;
-            }
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Retorna os tipos de ingresso disponíveis para uma empresa
-         * @summary Listar tipos de ingresso
-         * @param {string} tenantSlug 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        publicControllerGetTicketTypesV1: async (tenantSlug: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'tenantSlug' is not null or undefined
-            assertParamExists('publicControllerGetTicketTypesV1', 'tenantSlug', tenantSlug)
-            const localVarPath = `/v1/public/companies/{tenant_slug}/ticket-types`
-                .replace(`{${"tenant_slug"}}`, encodeURIComponent(String(tenantSlug)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-    }
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+  };
 };
 
 /**
  * PublicApi - functional programming interface
  * @export
  */
-export const PublicApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = PublicApiAxiosParamCreator(configuration)
-    return {
-        /**
-         * Retorna lista de todas as empresas ativas disponíveis para compra de ingressos
-         * @summary Listar empresas públicas
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async publicControllerGetCompaniesV1(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.publicControllerGetCompaniesV1(options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['PublicApi.publicControllerGetCompaniesV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Retorna informações públicas de uma empresa específica
-         * @summary Buscar empresa por tenant slug
-         * @param {string} tenantSlug 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async publicControllerGetCompanyBySlugV1(tenantSlug: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.publicControllerGetCompanyBySlugV1(tenantSlug, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['PublicApi.publicControllerGetCompanyBySlugV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Retorna todos os complexos ativos de uma empresa específica
-         * @summary Listar complexos de cinema de uma empresa
-         * @param {string} tenantSlug 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async publicControllerGetComplexesV1(tenantSlug: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.publicControllerGetComplexesV1(tenantSlug, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['PublicApi.publicControllerGetComplexesV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Retorna os detalhes completos de um filme
-         * @summary Obter detalhes do filme
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async publicControllerGetMovieV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.publicControllerGetMovieV1(id, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['PublicApi.publicControllerGetMovieV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Retorna todos os filmes ativos em exibição de uma empresa
-         * @summary Listar filmes em exibição
-         * @param {string} tenantSlug 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async publicControllerGetMoviesV1(tenantSlug: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.publicControllerGetMoviesV1(tenantSlug, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['PublicApi.publicControllerGetMoviesV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Retorna os métodos de pagamento ativos para uma empresa
-         * @summary Listar métodos de pagamento
-         * @param {string} tenantSlug 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async publicControllerGetPaymentMethodsV1(tenantSlug: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.publicControllerGetPaymentMethodsV1(tenantSlug, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['PublicApi.publicControllerGetPaymentMethodsV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Retorna produtos de concessão disponíveis para venda
-         * @summary Listar produtos de concessão
-         * @param {string} tenantSlug 
-         * @param {string} [complexId] ID do complexo para preços específicos
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async publicControllerGetProductsV1(tenantSlug: string, complexId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.publicControllerGetProductsV1(tenantSlug, complexId, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['PublicApi.publicControllerGetProductsV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Retorna os detalhes completos de uma venda (ingressos, produtos, sessão)
-         * @summary Obter detalhes da venda
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async publicControllerGetSaleDetailsV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.publicControllerGetSaleDetailsV1(id, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['PublicApi.publicControllerGetSaleDetailsV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Retorna o mapa completo de assentos com status (disponível, reservado, vendido)
-         * @summary Obter mapa de assentos de uma sessão
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async publicControllerGetSeatsMapV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.publicControllerGetSeatsMapV1(id, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['PublicApi.publicControllerGetSeatsMapV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Retorna sessões disponíveis de uma empresa, com filtros opcionais
-         * @summary Listar sessões disponíveis
-         * @param {string} tenantSlug 
-         * @param {string} [complexId] ID do complexo
-         * @param {string} [movieId] ID do filme
-         * @param {string} [date] Data das sessões (YYYY-MM-DD)
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async publicControllerGetShowtimesV1(tenantSlug: string, complexId?: string, movieId?: string, date?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.publicControllerGetShowtimesV1(tenantSlug, complexId, movieId, date, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['PublicApi.publicControllerGetShowtimesV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Retorna os tipos de ingresso disponíveis para uma empresa
-         * @summary Listar tipos de ingresso
-         * @param {string} tenantSlug 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async publicControllerGetTicketTypesV1(tenantSlug: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.publicControllerGetTicketTypesV1(tenantSlug, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['PublicApi.publicControllerGetTicketTypesV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-    }
+export const PublicApiFp = function (configuration?: Configuration) {
+  const localVarAxiosParamCreator = PublicApiAxiosParamCreator(configuration);
+  return {
+    /**
+     * Retorna lista de todas as empresas ativas disponíveis para compra de ingressos
+     * @summary Listar empresas públicas
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async publicControllerGetCompaniesV1(
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.publicControllerGetCompaniesV1(options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["PublicApi.publicControllerGetCompaniesV1"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     * Retorna informações públicas de uma empresa específica
+     * @summary Buscar empresa por tenant slug
+     * @param {string} tenantSlug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async publicControllerGetCompanyBySlugV1(
+      tenantSlug: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.publicControllerGetCompanyBySlugV1(
+          tenantSlug,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["PublicApi.publicControllerGetCompanyBySlugV1"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     * Retorna todos os complexos ativos de uma empresa específica
+     * @summary Listar complexos de cinema de uma empresa
+     * @param {string} tenantSlug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async publicControllerGetComplexesV1(
+      tenantSlug: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.publicControllerGetComplexesV1(
+          tenantSlug,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["PublicApi.publicControllerGetComplexesV1"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     * Retorna os detalhes completos de um filme
+     * @summary Obter detalhes do filme
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async publicControllerGetMovieV1(
+      id: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.publicControllerGetMovieV1(id, options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["PublicApi.publicControllerGetMovieV1"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     * Retorna todos os filmes ativos em exibição de uma empresa
+     * @summary Listar filmes em exibição
+     * @param {string} tenantSlug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async publicControllerGetMoviesV1(
+      tenantSlug: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.publicControllerGetMoviesV1(
+          tenantSlug,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["PublicApi.publicControllerGetMoviesV1"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     * Retorna os métodos de pagamento ativos para uma empresa
+     * @summary Listar métodos de pagamento
+     * @param {string} tenantSlug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async publicControllerGetPaymentMethodsV1(
+      tenantSlug: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.publicControllerGetPaymentMethodsV1(
+          tenantSlug,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["PublicApi.publicControllerGetPaymentMethodsV1"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     * Retorna produtos de concessão disponíveis para venda
+     * @summary Listar produtos de concessão
+     * @param {string} tenantSlug
+     * @param {string} [complexId] ID do complexo para preços específicos
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async publicControllerGetProductsV1(
+      tenantSlug: string,
+      complexId?: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.publicControllerGetProductsV1(
+          tenantSlug,
+          complexId,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["PublicApi.publicControllerGetProductsV1"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     * Retorna os detalhes completos de uma venda (ingressos, produtos, sessão)
+     * @summary Obter detalhes da venda
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async publicControllerGetSaleDetailsV1(
+      id: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.publicControllerGetSaleDetailsV1(
+          id,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["PublicApi.publicControllerGetSaleDetailsV1"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     * Retorna o mapa completo de assentos com status (disponível, reservado, vendido)
+     * @summary Obter mapa de assentos de uma sessão
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async publicControllerGetSeatsMapV1(
+      id: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.publicControllerGetSeatsMapV1(
+          id,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["PublicApi.publicControllerGetSeatsMapV1"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     * Retorna sessões disponíveis de uma empresa, com filtros opcionais
+     * @summary Listar sessões disponíveis
+     * @param {string} tenantSlug
+     * @param {string} [complexId] ID do complexo
+     * @param {string} [movieId] ID do filme
+     * @param {string} [date] Data das sessões (YYYY-MM-DD)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async publicControllerGetShowtimesV1(
+      tenantSlug: string,
+      complexId?: string,
+      movieId?: string,
+      date?: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.publicControllerGetShowtimesV1(
+          tenantSlug,
+          complexId,
+          movieId,
+          date,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["PublicApi.publicControllerGetShowtimesV1"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     * Retorna os tipos de ingresso disponíveis para uma empresa
+     * @summary Listar tipos de ingresso
+     * @param {string} tenantSlug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async publicControllerGetTicketTypesV1(
+      tenantSlug: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.publicControllerGetTicketTypesV1(
+          tenantSlug,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["PublicApi.publicControllerGetTicketTypesV1"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+  };
 };
 
 /**
  * PublicApi - factory interface
  * @export
  */
-export const PublicApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = PublicApiFp(configuration)
-    return {
-        /**
-         * Retorna lista de todas as empresas ativas disponíveis para compra de ingressos
-         * @summary Listar empresas públicas
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        publicControllerGetCompaniesV1(options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.publicControllerGetCompaniesV1(options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Retorna informações públicas de uma empresa específica
-         * @summary Buscar empresa por tenant slug
-         * @param {PublicApiPublicControllerGetCompanyBySlugV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        publicControllerGetCompanyBySlugV1(requestParameters: PublicApiPublicControllerGetCompanyBySlugV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.publicControllerGetCompanyBySlugV1(requestParameters.tenantSlug, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Retorna todos os complexos ativos de uma empresa específica
-         * @summary Listar complexos de cinema de uma empresa
-         * @param {PublicApiPublicControllerGetComplexesV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        publicControllerGetComplexesV1(requestParameters: PublicApiPublicControllerGetComplexesV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.publicControllerGetComplexesV1(requestParameters.tenantSlug, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Retorna os detalhes completos de um filme
-         * @summary Obter detalhes do filme
-         * @param {PublicApiPublicControllerGetMovieV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        publicControllerGetMovieV1(requestParameters: PublicApiPublicControllerGetMovieV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.publicControllerGetMovieV1(requestParameters.id, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Retorna todos os filmes ativos em exibição de uma empresa
-         * @summary Listar filmes em exibição
-         * @param {PublicApiPublicControllerGetMoviesV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        publicControllerGetMoviesV1(requestParameters: PublicApiPublicControllerGetMoviesV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.publicControllerGetMoviesV1(requestParameters.tenantSlug, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Retorna os métodos de pagamento ativos para uma empresa
-         * @summary Listar métodos de pagamento
-         * @param {PublicApiPublicControllerGetPaymentMethodsV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        publicControllerGetPaymentMethodsV1(requestParameters: PublicApiPublicControllerGetPaymentMethodsV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.publicControllerGetPaymentMethodsV1(requestParameters.tenantSlug, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Retorna produtos de concessão disponíveis para venda
-         * @summary Listar produtos de concessão
-         * @param {PublicApiPublicControllerGetProductsV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        publicControllerGetProductsV1(requestParameters: PublicApiPublicControllerGetProductsV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.publicControllerGetProductsV1(requestParameters.tenantSlug, requestParameters.complexId, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Retorna os detalhes completos de uma venda (ingressos, produtos, sessão)
-         * @summary Obter detalhes da venda
-         * @param {PublicApiPublicControllerGetSaleDetailsV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        publicControllerGetSaleDetailsV1(requestParameters: PublicApiPublicControllerGetSaleDetailsV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.publicControllerGetSaleDetailsV1(requestParameters.id, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Retorna o mapa completo de assentos com status (disponível, reservado, vendido)
-         * @summary Obter mapa de assentos de uma sessão
-         * @param {PublicApiPublicControllerGetSeatsMapV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        publicControllerGetSeatsMapV1(requestParameters: PublicApiPublicControllerGetSeatsMapV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.publicControllerGetSeatsMapV1(requestParameters.id, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Retorna sessões disponíveis de uma empresa, com filtros opcionais
-         * @summary Listar sessões disponíveis
-         * @param {PublicApiPublicControllerGetShowtimesV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        publicControllerGetShowtimesV1(requestParameters: PublicApiPublicControllerGetShowtimesV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.publicControllerGetShowtimesV1(requestParameters.tenantSlug, requestParameters.complexId, requestParameters.movieId, requestParameters.date, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Retorna os tipos de ingresso disponíveis para uma empresa
-         * @summary Listar tipos de ingresso
-         * @param {PublicApiPublicControllerGetTicketTypesV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        publicControllerGetTicketTypesV1(requestParameters: PublicApiPublicControllerGetTicketTypesV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.publicControllerGetTicketTypesV1(requestParameters.tenantSlug, options).then((request) => request(axios, basePath));
-        },
-    };
+export const PublicApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance,
+) {
+  const localVarFp = PublicApiFp(configuration);
+  return {
+    /**
+     * Retorna lista de todas as empresas ativas disponíveis para compra de ingressos
+     * @summary Listar empresas públicas
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    publicControllerGetCompaniesV1(
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .publicControllerGetCompaniesV1(options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     * Retorna informações públicas de uma empresa específica
+     * @summary Buscar empresa por tenant slug
+     * @param {PublicApiPublicControllerGetCompanyBySlugV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    publicControllerGetCompanyBySlugV1(
+      requestParameters: PublicApiPublicControllerGetCompanyBySlugV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .publicControllerGetCompanyBySlugV1(
+          requestParameters.tenantSlug,
+          options,
+        )
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     * Retorna todos os complexos ativos de uma empresa específica
+     * @summary Listar complexos de cinema de uma empresa
+     * @param {PublicApiPublicControllerGetComplexesV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    publicControllerGetComplexesV1(
+      requestParameters: PublicApiPublicControllerGetComplexesV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .publicControllerGetComplexesV1(requestParameters.tenantSlug, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     * Retorna os detalhes completos de um filme
+     * @summary Obter detalhes do filme
+     * @param {PublicApiPublicControllerGetMovieV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    publicControllerGetMovieV1(
+      requestParameters: PublicApiPublicControllerGetMovieV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .publicControllerGetMovieV1(requestParameters.id, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     * Retorna todos os filmes ativos em exibição de uma empresa
+     * @summary Listar filmes em exibição
+     * @param {PublicApiPublicControllerGetMoviesV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    publicControllerGetMoviesV1(
+      requestParameters: PublicApiPublicControllerGetMoviesV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .publicControllerGetMoviesV1(requestParameters.tenantSlug, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     * Retorna os métodos de pagamento ativos para uma empresa
+     * @summary Listar métodos de pagamento
+     * @param {PublicApiPublicControllerGetPaymentMethodsV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    publicControllerGetPaymentMethodsV1(
+      requestParameters: PublicApiPublicControllerGetPaymentMethodsV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .publicControllerGetPaymentMethodsV1(
+          requestParameters.tenantSlug,
+          options,
+        )
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     * Retorna produtos de concessão disponíveis para venda
+     * @summary Listar produtos de concessão
+     * @param {PublicApiPublicControllerGetProductsV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    publicControllerGetProductsV1(
+      requestParameters: PublicApiPublicControllerGetProductsV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .publicControllerGetProductsV1(
+          requestParameters.tenantSlug,
+          requestParameters.complexId,
+          options,
+        )
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     * Retorna os detalhes completos de uma venda (ingressos, produtos, sessão)
+     * @summary Obter detalhes da venda
+     * @param {PublicApiPublicControllerGetSaleDetailsV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    publicControllerGetSaleDetailsV1(
+      requestParameters: PublicApiPublicControllerGetSaleDetailsV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .publicControllerGetSaleDetailsV1(requestParameters.id, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     * Retorna o mapa completo de assentos com status (disponível, reservado, vendido)
+     * @summary Obter mapa de assentos de uma sessão
+     * @param {PublicApiPublicControllerGetSeatsMapV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    publicControllerGetSeatsMapV1(
+      requestParameters: PublicApiPublicControllerGetSeatsMapV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .publicControllerGetSeatsMapV1(requestParameters.id, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     * Retorna sessões disponíveis de uma empresa, com filtros opcionais
+     * @summary Listar sessões disponíveis
+     * @param {PublicApiPublicControllerGetShowtimesV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    publicControllerGetShowtimesV1(
+      requestParameters: PublicApiPublicControllerGetShowtimesV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .publicControllerGetShowtimesV1(
+          requestParameters.tenantSlug,
+          requestParameters.complexId,
+          requestParameters.movieId,
+          requestParameters.date,
+          options,
+        )
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     * Retorna os tipos de ingresso disponíveis para uma empresa
+     * @summary Listar tipos de ingresso
+     * @param {PublicApiPublicControllerGetTicketTypesV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    publicControllerGetTicketTypesV1(
+      requestParameters: PublicApiPublicControllerGetTicketTypesV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .publicControllerGetTicketTypesV1(requestParameters.tenantSlug, options)
+        .then((request) => request(axios, basePath));
+    },
+  };
 };
 
 /**
@@ -701,115 +1159,146 @@ export const PublicApiFactory = function (configuration?: Configuration, basePat
  * @interface PublicApi
  */
 export interface PublicApiInterface {
-    /**
-     * Retorna lista de todas as empresas ativas disponíveis para compra de ingressos
-     * @summary Listar empresas públicas
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PublicApiInterface
-     */
-    publicControllerGetCompaniesV1(options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   * Retorna lista de todas as empresas ativas disponíveis para compra de ingressos
+   * @summary Listar empresas públicas
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof PublicApiInterface
+   */
+  publicControllerGetCompaniesV1(
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * Retorna informações públicas de uma empresa específica
-     * @summary Buscar empresa por tenant slug
-     * @param {PublicApiPublicControllerGetCompanyBySlugV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PublicApiInterface
-     */
-    publicControllerGetCompanyBySlugV1(requestParameters: PublicApiPublicControllerGetCompanyBySlugV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   * Retorna informações públicas de uma empresa específica
+   * @summary Buscar empresa por tenant slug
+   * @param {PublicApiPublicControllerGetCompanyBySlugV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof PublicApiInterface
+   */
+  publicControllerGetCompanyBySlugV1(
+    requestParameters: PublicApiPublicControllerGetCompanyBySlugV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * Retorna todos os complexos ativos de uma empresa específica
-     * @summary Listar complexos de cinema de uma empresa
-     * @param {PublicApiPublicControllerGetComplexesV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PublicApiInterface
-     */
-    publicControllerGetComplexesV1(requestParameters: PublicApiPublicControllerGetComplexesV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   * Retorna todos os complexos ativos de uma empresa específica
+   * @summary Listar complexos de cinema de uma empresa
+   * @param {PublicApiPublicControllerGetComplexesV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof PublicApiInterface
+   */
+  publicControllerGetComplexesV1(
+    requestParameters: PublicApiPublicControllerGetComplexesV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * Retorna os detalhes completos de um filme
-     * @summary Obter detalhes do filme
-     * @param {PublicApiPublicControllerGetMovieV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PublicApiInterface
-     */
-    publicControllerGetMovieV1(requestParameters: PublicApiPublicControllerGetMovieV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   * Retorna os detalhes completos de um filme
+   * @summary Obter detalhes do filme
+   * @param {PublicApiPublicControllerGetMovieV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof PublicApiInterface
+   */
+  publicControllerGetMovieV1(
+    requestParameters: PublicApiPublicControllerGetMovieV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * Retorna todos os filmes ativos em exibição de uma empresa
-     * @summary Listar filmes em exibição
-     * @param {PublicApiPublicControllerGetMoviesV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PublicApiInterface
-     */
-    publicControllerGetMoviesV1(requestParameters: PublicApiPublicControllerGetMoviesV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   * Retorna todos os filmes ativos em exibição de uma empresa
+   * @summary Listar filmes em exibição
+   * @param {PublicApiPublicControllerGetMoviesV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof PublicApiInterface
+   */
+  publicControllerGetMoviesV1(
+    requestParameters: PublicApiPublicControllerGetMoviesV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * Retorna os métodos de pagamento ativos para uma empresa
-     * @summary Listar métodos de pagamento
-     * @param {PublicApiPublicControllerGetPaymentMethodsV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PublicApiInterface
-     */
-    publicControllerGetPaymentMethodsV1(requestParameters: PublicApiPublicControllerGetPaymentMethodsV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   * Retorna os métodos de pagamento ativos para uma empresa
+   * @summary Listar métodos de pagamento
+   * @param {PublicApiPublicControllerGetPaymentMethodsV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof PublicApiInterface
+   */
+  publicControllerGetPaymentMethodsV1(
+    requestParameters: PublicApiPublicControllerGetPaymentMethodsV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * Retorna produtos de concessão disponíveis para venda
-     * @summary Listar produtos de concessão
-     * @param {PublicApiPublicControllerGetProductsV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PublicApiInterface
-     */
-    publicControllerGetProductsV1(requestParameters: PublicApiPublicControllerGetProductsV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   * Retorna produtos de concessão disponíveis para venda
+   * @summary Listar produtos de concessão
+   * @param {PublicApiPublicControllerGetProductsV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof PublicApiInterface
+   */
+  publicControllerGetProductsV1(
+    requestParameters: PublicApiPublicControllerGetProductsV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * Retorna os detalhes completos de uma venda (ingressos, produtos, sessão)
-     * @summary Obter detalhes da venda
-     * @param {PublicApiPublicControllerGetSaleDetailsV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PublicApiInterface
-     */
-    publicControllerGetSaleDetailsV1(requestParameters: PublicApiPublicControllerGetSaleDetailsV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   * Retorna os detalhes completos de uma venda (ingressos, produtos, sessão)
+   * @summary Obter detalhes da venda
+   * @param {PublicApiPublicControllerGetSaleDetailsV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof PublicApiInterface
+   */
+  publicControllerGetSaleDetailsV1(
+    requestParameters: PublicApiPublicControllerGetSaleDetailsV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * Retorna o mapa completo de assentos com status (disponível, reservado, vendido)
-     * @summary Obter mapa de assentos de uma sessão
-     * @param {PublicApiPublicControllerGetSeatsMapV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PublicApiInterface
-     */
-    publicControllerGetSeatsMapV1(requestParameters: PublicApiPublicControllerGetSeatsMapV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   * Retorna o mapa completo de assentos com status (disponível, reservado, vendido)
+   * @summary Obter mapa de assentos de uma sessão
+   * @param {PublicApiPublicControllerGetSeatsMapV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof PublicApiInterface
+   */
+  publicControllerGetSeatsMapV1(
+    requestParameters: PublicApiPublicControllerGetSeatsMapV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * Retorna sessões disponíveis de uma empresa, com filtros opcionais
-     * @summary Listar sessões disponíveis
-     * @param {PublicApiPublicControllerGetShowtimesV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PublicApiInterface
-     */
-    publicControllerGetShowtimesV1(requestParameters: PublicApiPublicControllerGetShowtimesV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   * Retorna sessões disponíveis de uma empresa, com filtros opcionais
+   * @summary Listar sessões disponíveis
+   * @param {PublicApiPublicControllerGetShowtimesV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof PublicApiInterface
+   */
+  publicControllerGetShowtimesV1(
+    requestParameters: PublicApiPublicControllerGetShowtimesV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * Retorna os tipos de ingresso disponíveis para uma empresa
-     * @summary Listar tipos de ingresso
-     * @param {PublicApiPublicControllerGetTicketTypesV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PublicApiInterface
-     */
-    publicControllerGetTicketTypesV1(requestParameters: PublicApiPublicControllerGetTicketTypesV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
-
+  /**
+   * Retorna os tipos de ingresso disponíveis para uma empresa
+   * @summary Listar tipos de ingresso
+   * @param {PublicApiPublicControllerGetTicketTypesV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof PublicApiInterface
+   */
+  publicControllerGetTicketTypesV1(
+    requestParameters: PublicApiPublicControllerGetTicketTypesV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 }
 
 /**
@@ -818,12 +1307,12 @@ export interface PublicApiInterface {
  * @interface PublicApiPublicControllerGetCompanyBySlugV1Request
  */
 export interface PublicApiPublicControllerGetCompanyBySlugV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof PublicApiPublicControllerGetCompanyBySlugV1
-     */
-    readonly tenantSlug: string
+  /**
+   *
+   * @type {string}
+   * @memberof PublicApiPublicControllerGetCompanyBySlugV1
+   */
+  readonly tenantSlug: string;
 }
 
 /**
@@ -832,12 +1321,12 @@ export interface PublicApiPublicControllerGetCompanyBySlugV1Request {
  * @interface PublicApiPublicControllerGetComplexesV1Request
  */
 export interface PublicApiPublicControllerGetComplexesV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof PublicApiPublicControllerGetComplexesV1
-     */
-    readonly tenantSlug: string
+  /**
+   *
+   * @type {string}
+   * @memberof PublicApiPublicControllerGetComplexesV1
+   */
+  readonly tenantSlug: string;
 }
 
 /**
@@ -846,12 +1335,12 @@ export interface PublicApiPublicControllerGetComplexesV1Request {
  * @interface PublicApiPublicControllerGetMovieV1Request
  */
 export interface PublicApiPublicControllerGetMovieV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof PublicApiPublicControllerGetMovieV1
-     */
-    readonly id: string
+  /**
+   *
+   * @type {string}
+   * @memberof PublicApiPublicControllerGetMovieV1
+   */
+  readonly id: string;
 }
 
 /**
@@ -860,12 +1349,12 @@ export interface PublicApiPublicControllerGetMovieV1Request {
  * @interface PublicApiPublicControllerGetMoviesV1Request
  */
 export interface PublicApiPublicControllerGetMoviesV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof PublicApiPublicControllerGetMoviesV1
-     */
-    readonly tenantSlug: string
+  /**
+   *
+   * @type {string}
+   * @memberof PublicApiPublicControllerGetMoviesV1
+   */
+  readonly tenantSlug: string;
 }
 
 /**
@@ -874,12 +1363,12 @@ export interface PublicApiPublicControllerGetMoviesV1Request {
  * @interface PublicApiPublicControllerGetPaymentMethodsV1Request
  */
 export interface PublicApiPublicControllerGetPaymentMethodsV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof PublicApiPublicControllerGetPaymentMethodsV1
-     */
-    readonly tenantSlug: string
+  /**
+   *
+   * @type {string}
+   * @memberof PublicApiPublicControllerGetPaymentMethodsV1
+   */
+  readonly tenantSlug: string;
 }
 
 /**
@@ -888,19 +1377,19 @@ export interface PublicApiPublicControllerGetPaymentMethodsV1Request {
  * @interface PublicApiPublicControllerGetProductsV1Request
  */
 export interface PublicApiPublicControllerGetProductsV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof PublicApiPublicControllerGetProductsV1
-     */
-    readonly tenantSlug: string
+  /**
+   *
+   * @type {string}
+   * @memberof PublicApiPublicControllerGetProductsV1
+   */
+  readonly tenantSlug: string;
 
-    /**
-     * ID do complexo para preços específicos
-     * @type {string}
-     * @memberof PublicApiPublicControllerGetProductsV1
-     */
-    readonly complexId?: string
+  /**
+   * ID do complexo para preços específicos
+   * @type {string}
+   * @memberof PublicApiPublicControllerGetProductsV1
+   */
+  readonly complexId?: string;
 }
 
 /**
@@ -909,12 +1398,12 @@ export interface PublicApiPublicControllerGetProductsV1Request {
  * @interface PublicApiPublicControllerGetSaleDetailsV1Request
  */
 export interface PublicApiPublicControllerGetSaleDetailsV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof PublicApiPublicControllerGetSaleDetailsV1
-     */
-    readonly id: string
+  /**
+   *
+   * @type {string}
+   * @memberof PublicApiPublicControllerGetSaleDetailsV1
+   */
+  readonly id: string;
 }
 
 /**
@@ -923,12 +1412,12 @@ export interface PublicApiPublicControllerGetSaleDetailsV1Request {
  * @interface PublicApiPublicControllerGetSeatsMapV1Request
  */
 export interface PublicApiPublicControllerGetSeatsMapV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof PublicApiPublicControllerGetSeatsMapV1
-     */
-    readonly id: string
+  /**
+   *
+   * @type {string}
+   * @memberof PublicApiPublicControllerGetSeatsMapV1
+   */
+  readonly id: string;
 }
 
 /**
@@ -937,33 +1426,33 @@ export interface PublicApiPublicControllerGetSeatsMapV1Request {
  * @interface PublicApiPublicControllerGetShowtimesV1Request
  */
 export interface PublicApiPublicControllerGetShowtimesV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof PublicApiPublicControllerGetShowtimesV1
-     */
-    readonly tenantSlug: string
+  /**
+   *
+   * @type {string}
+   * @memberof PublicApiPublicControllerGetShowtimesV1
+   */
+  readonly tenantSlug: string;
 
-    /**
-     * ID do complexo
-     * @type {string}
-     * @memberof PublicApiPublicControllerGetShowtimesV1
-     */
-    readonly complexId?: string
+  /**
+   * ID do complexo
+   * @type {string}
+   * @memberof PublicApiPublicControllerGetShowtimesV1
+   */
+  readonly complexId?: string;
 
-    /**
-     * ID do filme
-     * @type {string}
-     * @memberof PublicApiPublicControllerGetShowtimesV1
-     */
-    readonly movieId?: string
+  /**
+   * ID do filme
+   * @type {string}
+   * @memberof PublicApiPublicControllerGetShowtimesV1
+   */
+  readonly movieId?: string;
 
-    /**
-     * Data das sessões (YYYY-MM-DD)
-     * @type {string}
-     * @memberof PublicApiPublicControllerGetShowtimesV1
-     */
-    readonly date?: string
+  /**
+   * Data das sessões (YYYY-MM-DD)
+   * @type {string}
+   * @memberof PublicApiPublicControllerGetShowtimesV1
+   */
+  readonly date?: string;
 }
 
 /**
@@ -972,12 +1461,12 @@ export interface PublicApiPublicControllerGetShowtimesV1Request {
  * @interface PublicApiPublicControllerGetTicketTypesV1Request
  */
 export interface PublicApiPublicControllerGetTicketTypesV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof PublicApiPublicControllerGetTicketTypesV1
-     */
-    readonly tenantSlug: string
+  /**
+   *
+   * @type {string}
+   * @memberof PublicApiPublicControllerGetTicketTypesV1
+   */
+  readonly tenantSlug: string;
 }
 
 /**
@@ -987,135 +1476,199 @@ export interface PublicApiPublicControllerGetTicketTypesV1Request {
  * @extends {BaseAPI}
  */
 export class PublicApi extends BaseAPI implements PublicApiInterface {
-    /**
-     * Retorna lista de todas as empresas ativas disponíveis para compra de ingressos
-     * @summary Listar empresas públicas
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PublicApi
-     */
-    public publicControllerGetCompaniesV1(options?: RawAxiosRequestConfig) {
-        return PublicApiFp(this.configuration).publicControllerGetCompaniesV1(options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   * Retorna lista de todas as empresas ativas disponíveis para compra de ingressos
+   * @summary Listar empresas públicas
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof PublicApi
+   */
+  public publicControllerGetCompaniesV1(options?: RawAxiosRequestConfig) {
+    return PublicApiFp(this.configuration)
+      .publicControllerGetCompaniesV1(options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * Retorna informações públicas de uma empresa específica
-     * @summary Buscar empresa por tenant slug
-     * @param {PublicApiPublicControllerGetCompanyBySlugV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PublicApi
-     */
-    public publicControllerGetCompanyBySlugV1(requestParameters: PublicApiPublicControllerGetCompanyBySlugV1Request, options?: RawAxiosRequestConfig) {
-        return PublicApiFp(this.configuration).publicControllerGetCompanyBySlugV1(requestParameters.tenantSlug, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   * Retorna informações públicas de uma empresa específica
+   * @summary Buscar empresa por tenant slug
+   * @param {PublicApiPublicControllerGetCompanyBySlugV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof PublicApi
+   */
+  public publicControllerGetCompanyBySlugV1(
+    requestParameters: PublicApiPublicControllerGetCompanyBySlugV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return PublicApiFp(this.configuration)
+      .publicControllerGetCompanyBySlugV1(requestParameters.tenantSlug, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * Retorna todos os complexos ativos de uma empresa específica
-     * @summary Listar complexos de cinema de uma empresa
-     * @param {PublicApiPublicControllerGetComplexesV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PublicApi
-     */
-    public publicControllerGetComplexesV1(requestParameters: PublicApiPublicControllerGetComplexesV1Request, options?: RawAxiosRequestConfig) {
-        return PublicApiFp(this.configuration).publicControllerGetComplexesV1(requestParameters.tenantSlug, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   * Retorna todos os complexos ativos de uma empresa específica
+   * @summary Listar complexos de cinema de uma empresa
+   * @param {PublicApiPublicControllerGetComplexesV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof PublicApi
+   */
+  public publicControllerGetComplexesV1(
+    requestParameters: PublicApiPublicControllerGetComplexesV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return PublicApiFp(this.configuration)
+      .publicControllerGetComplexesV1(requestParameters.tenantSlug, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * Retorna os detalhes completos de um filme
-     * @summary Obter detalhes do filme
-     * @param {PublicApiPublicControllerGetMovieV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PublicApi
-     */
-    public publicControllerGetMovieV1(requestParameters: PublicApiPublicControllerGetMovieV1Request, options?: RawAxiosRequestConfig) {
-        return PublicApiFp(this.configuration).publicControllerGetMovieV1(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   * Retorna os detalhes completos de um filme
+   * @summary Obter detalhes do filme
+   * @param {PublicApiPublicControllerGetMovieV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof PublicApi
+   */
+  public publicControllerGetMovieV1(
+    requestParameters: PublicApiPublicControllerGetMovieV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return PublicApiFp(this.configuration)
+      .publicControllerGetMovieV1(requestParameters.id, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * Retorna todos os filmes ativos em exibição de uma empresa
-     * @summary Listar filmes em exibição
-     * @param {PublicApiPublicControllerGetMoviesV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PublicApi
-     */
-    public publicControllerGetMoviesV1(requestParameters: PublicApiPublicControllerGetMoviesV1Request, options?: RawAxiosRequestConfig) {
-        return PublicApiFp(this.configuration).publicControllerGetMoviesV1(requestParameters.tenantSlug, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   * Retorna todos os filmes ativos em exibição de uma empresa
+   * @summary Listar filmes em exibição
+   * @param {PublicApiPublicControllerGetMoviesV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof PublicApi
+   */
+  public publicControllerGetMoviesV1(
+    requestParameters: PublicApiPublicControllerGetMoviesV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return PublicApiFp(this.configuration)
+      .publicControllerGetMoviesV1(requestParameters.tenantSlug, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * Retorna os métodos de pagamento ativos para uma empresa
-     * @summary Listar métodos de pagamento
-     * @param {PublicApiPublicControllerGetPaymentMethodsV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PublicApi
-     */
-    public publicControllerGetPaymentMethodsV1(requestParameters: PublicApiPublicControllerGetPaymentMethodsV1Request, options?: RawAxiosRequestConfig) {
-        return PublicApiFp(this.configuration).publicControllerGetPaymentMethodsV1(requestParameters.tenantSlug, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   * Retorna os métodos de pagamento ativos para uma empresa
+   * @summary Listar métodos de pagamento
+   * @param {PublicApiPublicControllerGetPaymentMethodsV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof PublicApi
+   */
+  public publicControllerGetPaymentMethodsV1(
+    requestParameters: PublicApiPublicControllerGetPaymentMethodsV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return PublicApiFp(this.configuration)
+      .publicControllerGetPaymentMethodsV1(
+        requestParameters.tenantSlug,
+        options,
+      )
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * Retorna produtos de concessão disponíveis para venda
-     * @summary Listar produtos de concessão
-     * @param {PublicApiPublicControllerGetProductsV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PublicApi
-     */
-    public publicControllerGetProductsV1(requestParameters: PublicApiPublicControllerGetProductsV1Request, options?: RawAxiosRequestConfig) {
-        return PublicApiFp(this.configuration).publicControllerGetProductsV1(requestParameters.tenantSlug, requestParameters.complexId, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   * Retorna produtos de concessão disponíveis para venda
+   * @summary Listar produtos de concessão
+   * @param {PublicApiPublicControllerGetProductsV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof PublicApi
+   */
+  public publicControllerGetProductsV1(
+    requestParameters: PublicApiPublicControllerGetProductsV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return PublicApiFp(this.configuration)
+      .publicControllerGetProductsV1(
+        requestParameters.tenantSlug,
+        requestParameters.complexId,
+        options,
+      )
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * Retorna os detalhes completos de uma venda (ingressos, produtos, sessão)
-     * @summary Obter detalhes da venda
-     * @param {PublicApiPublicControllerGetSaleDetailsV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PublicApi
-     */
-    public publicControllerGetSaleDetailsV1(requestParameters: PublicApiPublicControllerGetSaleDetailsV1Request, options?: RawAxiosRequestConfig) {
-        return PublicApiFp(this.configuration).publicControllerGetSaleDetailsV1(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   * Retorna os detalhes completos de uma venda (ingressos, produtos, sessão)
+   * @summary Obter detalhes da venda
+   * @param {PublicApiPublicControllerGetSaleDetailsV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof PublicApi
+   */
+  public publicControllerGetSaleDetailsV1(
+    requestParameters: PublicApiPublicControllerGetSaleDetailsV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return PublicApiFp(this.configuration)
+      .publicControllerGetSaleDetailsV1(requestParameters.id, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * Retorna o mapa completo de assentos com status (disponível, reservado, vendido)
-     * @summary Obter mapa de assentos de uma sessão
-     * @param {PublicApiPublicControllerGetSeatsMapV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PublicApi
-     */
-    public publicControllerGetSeatsMapV1(requestParameters: PublicApiPublicControllerGetSeatsMapV1Request, options?: RawAxiosRequestConfig) {
-        return PublicApiFp(this.configuration).publicControllerGetSeatsMapV1(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   * Retorna o mapa completo de assentos com status (disponível, reservado, vendido)
+   * @summary Obter mapa de assentos de uma sessão
+   * @param {PublicApiPublicControllerGetSeatsMapV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof PublicApi
+   */
+  public publicControllerGetSeatsMapV1(
+    requestParameters: PublicApiPublicControllerGetSeatsMapV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return PublicApiFp(this.configuration)
+      .publicControllerGetSeatsMapV1(requestParameters.id, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * Retorna sessões disponíveis de uma empresa, com filtros opcionais
-     * @summary Listar sessões disponíveis
-     * @param {PublicApiPublicControllerGetShowtimesV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PublicApi
-     */
-    public publicControllerGetShowtimesV1(requestParameters: PublicApiPublicControllerGetShowtimesV1Request, options?: RawAxiosRequestConfig) {
-        return PublicApiFp(this.configuration).publicControllerGetShowtimesV1(requestParameters.tenantSlug, requestParameters.complexId, requestParameters.movieId, requestParameters.date, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   * Retorna sessões disponíveis de uma empresa, com filtros opcionais
+   * @summary Listar sessões disponíveis
+   * @param {PublicApiPublicControllerGetShowtimesV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof PublicApi
+   */
+  public publicControllerGetShowtimesV1(
+    requestParameters: PublicApiPublicControllerGetShowtimesV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return PublicApiFp(this.configuration)
+      .publicControllerGetShowtimesV1(
+        requestParameters.tenantSlug,
+        requestParameters.complexId,
+        requestParameters.movieId,
+        requestParameters.date,
+        options,
+      )
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * Retorna os tipos de ingresso disponíveis para uma empresa
-     * @summary Listar tipos de ingresso
-     * @param {PublicApiPublicControllerGetTicketTypesV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PublicApi
-     */
-    public publicControllerGetTicketTypesV1(requestParameters: PublicApiPublicControllerGetTicketTypesV1Request, options?: RawAxiosRequestConfig) {
-        return PublicApiFp(this.configuration).publicControllerGetTicketTypesV1(requestParameters.tenantSlug, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   * Retorna os tipos de ingresso disponíveis para uma empresa
+   * @summary Listar tipos de ingresso
+   * @param {PublicApiPublicControllerGetTicketTypesV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof PublicApi
+   */
+  public publicControllerGetTicketTypesV1(
+    requestParameters: PublicApiPublicControllerGetTicketTypesV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return PublicApiFp(this.configuration)
+      .publicControllerGetTicketTypesV1(requestParameters.tenantSlug, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 }
-

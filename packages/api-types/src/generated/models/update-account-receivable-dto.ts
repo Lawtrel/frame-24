@@ -12,61 +12,58 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface UpdateAccountReceivableDto
  */
 export interface UpdateAccountReceivableDto {
-    /**
-     * 
-     * @type {string}
-     * @memberof UpdateAccountReceivableDto
-     */
-    'document_number'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof UpdateAccountReceivableDto
-     */
-    'description'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof UpdateAccountReceivableDto
-     */
-    'issue_date'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof UpdateAccountReceivableDto
-     */
-    'due_date'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof UpdateAccountReceivableDto
-     */
-    'competence_date'?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof UpdateAccountReceivableDto
-     */
-    'interest_amount'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof UpdateAccountReceivableDto
-     */
-    'penalty_amount'?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof UpdateAccountReceivableDto
-     */
-    'discount_amount'?: number;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateAccountReceivableDto
+   */
+  document_number?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateAccountReceivableDto
+   */
+  description?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateAccountReceivableDto
+   */
+  issue_date?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateAccountReceivableDto
+   */
+  due_date?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateAccountReceivableDto
+   */
+  competence_date?: string;
+  /**
+   *
+   * @type {number}
+   * @memberof UpdateAccountReceivableDto
+   */
+  interest_amount?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof UpdateAccountReceivableDto
+   */
+  penalty_amount?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof UpdateAccountReceivableDto
+   */
+  discount_amount?: number;
 }
-

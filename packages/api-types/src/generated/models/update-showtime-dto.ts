@@ -12,61 +12,58 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface UpdateShowtimeDto
  */
 export interface UpdateShowtimeDto {
-    /**
-     * Data e hora de início da sessão no formato ISO 8601 (em UTC)
-     * @type {string}
-     * @memberof UpdateShowtimeDto
-     */
-    'start_time'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof UpdateShowtimeDto
-     */
-    'projection_type'?: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof UpdateShowtimeDto
-     */
-    'audio_type'?: string | null;
-    /**
-     * Novo idioma da sessão
-     * @type {string}
-     * @memberof UpdateShowtimeDto
-     */
-    'session_language'?: string;
-    /**
-     * Novo preço base do ingresso
-     * @type {number}
-     * @memberof UpdateShowtimeDto
-     */
-    'base_ticket_price'?: number;
-    /**
-     * Novo status da sessão
-     * @type {string}
-     * @memberof UpdateShowtimeDto
-     */
-    'status'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof UpdateShowtimeDto
-     */
-    'movie_id'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof UpdateShowtimeDto
-     */
-    'room_id'?: string;
+  /**
+   * Data e hora de início da sessão no formato ISO 8601 (em UTC)
+   * @type {string}
+   * @memberof UpdateShowtimeDto
+   */
+  start_time?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateShowtimeDto
+   */
+  projection_type?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateShowtimeDto
+   */
+  audio_type?: string | null;
+  /**
+   * Novo idioma da sessão
+   * @type {string}
+   * @memberof UpdateShowtimeDto
+   */
+  session_language?: string;
+  /**
+   * Novo preço base do ingresso
+   * @type {number}
+   * @memberof UpdateShowtimeDto
+   */
+  base_ticket_price?: number;
+  /**
+   * Novo status da sessão
+   * @type {string}
+   * @memberof UpdateShowtimeDto
+   */
+  status?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateShowtimeDto
+   */
+  movie_id?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateShowtimeDto
+   */
+  room_id?: string;
 }
-

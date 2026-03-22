@@ -85,7 +85,10 @@ export class CinemaComplexesService {
   }
 
   @Transactional()
-  async update(id: string, dto: UpdateCinemaComplexDto): Promise<CinemaComplex> {
+  async update(
+    id: string,
+    dto: UpdateCinemaComplexDto,
+  ): Promise<CinemaComplex> {
     const companyId = this.getCompanyId();
     const userId = this.getUserId();
     const existingComplex = await this.findOne(id);

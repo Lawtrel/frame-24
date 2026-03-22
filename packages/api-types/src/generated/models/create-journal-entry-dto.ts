@@ -12,52 +12,50 @@
  * Do not edit the class manually.
  */
 
-
 // May contain unused imports in some cases
 // @ts-ignore
-import type { CreateJournalEntryDtoItemsInner } from './create-journal-entry-dto-items-inner';
+import type { CreateJournalEntryDtoItemsInner } from "./create-journal-entry-dto-items-inner";
 
 /**
- * 
+ *
  * @export
  * @interface CreateJournalEntryDto
  */
 export interface CreateJournalEntryDto {
-    /**
-     * ID do complexo de cinema
-     * @type {string}
-     * @memberof CreateJournalEntryDto
-     */
-    'cinema_complex_id': string;
-    /**
-     * Data do lançamento
-     * @type {string}
-     * @memberof CreateJournalEntryDto
-     */
-    'entry_date': string;
-    /**
-     * Descrição do lançamento
-     * @type {string}
-     * @memberof CreateJournalEntryDto
-     */
-    'description': string;
-    /**
-     * Itens do lançamento (débito/crédito)
-     * @type {Array<CreateJournalEntryDtoItemsInner>}
-     * @memberof CreateJournalEntryDto
-     */
-    'items': Array<CreateJournalEntryDtoItemsInner>;
-    /**
-     * Tipo de origem (ex: venda, pagamento)
-     * @type {string}
-     * @memberof CreateJournalEntryDto
-     */
-    'origin_type'?: string;
-    /**
-     * ID de referência da origem
-     * @type {string}
-     * @memberof CreateJournalEntryDto
-     */
-    'origin_id'?: string;
+  /**
+   * ID do complexo de cinema
+   * @type {string}
+   * @memberof CreateJournalEntryDto
+   */
+  cinema_complex_id: string;
+  /**
+   * Data do lançamento
+   * @type {string}
+   * @memberof CreateJournalEntryDto
+   */
+  entry_date: string;
+  /**
+   * Descrição do lançamento
+   * @type {string}
+   * @memberof CreateJournalEntryDto
+   */
+  description: string;
+  /**
+   * Itens do lançamento (débito/crédito)
+   * @type {Array<CreateJournalEntryDtoItemsInner>}
+   * @memberof CreateJournalEntryDto
+   */
+  items: Array<CreateJournalEntryDtoItemsInner>;
+  /**
+   * Tipo de origem (ex: venda, pagamento)
+   * @type {string}
+   * @memberof CreateJournalEntryDto
+   */
+  origin_type?: string;
+  /**
+   * ID de referência da origem
+   * @type {string}
+   * @memberof CreateJournalEntryDto
+   */
+  origin_id?: string;
 }
-
