@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { ClsService } from 'nestjs-cls';
 import { CampaignsRepository } from '../repositories/campaigns.repository';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
@@ -30,19 +31,11 @@ export class CampaignsService {
   constructor(
     private readonly campaignsRepository: CampaignsRepository,
     private readonly snowflake: SnowflakeService,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
-
   async create(input: CreateCampaignDto) {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     if (input.end_date <= input.start_date) {
       throw new BadRequestException(
         'Data de término deve ser maior que a data de início',
@@ -73,12 +66,12 @@ export class CampaignsService {
   }
 
   async findAll() {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     return this.campaignsRepository.findAllByCompany(companyId);
   }
 
   async findOne(id: string) {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const campaign = await this.campaignsRepository.findById(id);
     if (!campaign || campaign.company_id !== companyId) {
       throw new NotFoundException('Campanha não encontrada');

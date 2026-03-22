@@ -4,6 +4,7 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { Prisma } from '@repo/db';
 import { ClsService } from 'nestjs-cls';
 
@@ -17,19 +18,11 @@ export class SuppliersService {
   constructor(
     private readonly repository: SupplierRepository,
     private readonly logger: LoggerService,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
-
   async create(dto: CreateSupplierDto) {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     this.logger.log(
       `Creating supplier: ${dto.corporate_name}`,
       SuppliersService.name,
@@ -75,7 +68,7 @@ export class SuppliersService {
   }
 
   async findAll(onlyDistributors = false) {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     this.logger.log(
       `Listing suppliers: company=${companyId}, onlyDistributors=${onlyDistributors}`,
       SuppliersService.name,
@@ -85,7 +78,7 @@ export class SuppliersService {
   }
 
   async findOne(id: string) {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const supplier = await this.repository.findById(id);
 
     if (!supplier || supplier.company_id !== companyId) {
@@ -154,7 +147,7 @@ export class SuppliersService {
   }
 
   async findDistributors() {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     this.logger.log(
       `Listing film distributors: company=${companyId}`,
       SuppliersService.name,
@@ -164,7 +157,7 @@ export class SuppliersService {
   }
 
   async findTypes() {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     this.logger.log(
       `Listing supplier types: company=${companyId}`,
       SuppliersService.name,

@@ -1,5 +1,5 @@
 import { ForbiddenException } from '@nestjs/common';
-import { ClsService } from 'nestjs-cls';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { RabbitMQPublisherService } from 'src/common/rabbitmq/rabbitmq-publisher.service';
 import { CinemaComplexesRepository } from '../../cinema-complexes/repositories/cinema-complexes.repository';
 import { RoomsRepository } from '../../rooms/repositories/rooms.repository';
@@ -35,8 +35,12 @@ describe('SeatsService', () => {
   } as unknown as jest.Mocked<RabbitMQPublisherService>;
 
   const cls = {
-    get: jest.fn(),
-  } as unknown as jest.Mocked<ClsService>;
+    getCompanyId: jest.fn(),
+    getUserId: jest.fn(),
+    getRequiredUserId: jest.fn(),
+    getCustomerId: jest.fn(),
+    getSessionContext: jest.fn(),
+  } as unknown as jest.Mocked<TenantContextService>;
 
   const service = new SeatsService(
     seatsRepository,
@@ -48,11 +52,9 @@ describe('SeatsService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    cls.get.mockImplementation((key?: string | symbol) => {
-      if (key === 'companyId') return 'company-123';
-      if (key === 'userId') return 'employee-123';
-      return undefined;
-    });
+    cls.getCompanyId.mockReturnValue('company-123');
+    cls.getUserId.mockReturnValue('employee-123');
+    cls.getRequiredUserId.mockReturnValue('employee-123');
   });
 
   it('deve atualizar um assento com metadados do funcionario autenticado', async () => {

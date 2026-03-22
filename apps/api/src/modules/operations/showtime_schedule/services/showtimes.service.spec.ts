@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
-import { ClsService } from 'nestjs-cls';
-import { ShowtimesService } from './shotimes.service';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
+import { ShowtimesService } from './showtimes.service';
 import { ShowtimesRepository } from '../repositories/showtime.repository';
 import { SessionSeatStatusRepository } from 'src/modules/operations/session_seat_status/repositories/session-seat-status.repository';
 import { SessionStatusRepository } from 'src/modules/operations/session-status/repositories/session-status.repository';
@@ -32,7 +32,7 @@ describe('ShowtimesService', () => {
   let seatTypesRepository: jest.Mocked<SeatTypesRepository>;
   let projectionTypesRepository: jest.Mocked<ProjectionTypesRepository>;
   let audioTypesRepository: jest.Mocked<AudioTypesRepository>;
-  let cls: jest.Mocked<ClsService>;
+  let cls: jest.Mocked<TenantContextService>;
   const COMPANY_ID = 'company-123';
   const USER_ID = 'user-123';
 
@@ -163,15 +163,23 @@ describe('ShowtimesService', () => {
           provide: CacheService,
           useValue: {
             wrap: jest.fn((_key: string, fn: () => unknown) => fn()),
-            get: jest.fn(),
+            getCompanyId: jest.fn(),
+            getUserId: jest.fn(),
+            getRequiredUserId: jest.fn(),
+            getCustomerId: jest.fn(),
+            getSessionContext: jest.fn(),
             set: jest.fn(),
             del: jest.fn(),
           },
         },
         {
-          provide: ClsService,
+          provide: TenantContextService,
           useValue: {
-            get: jest.fn(),
+            getCompanyId: jest.fn(),
+            getUserId: jest.fn(),
+            getRequiredUserId: jest.fn(),
+            getCustomerId: jest.fn(),
+            getSessionContext: jest.fn(),
           },
         },
       ],
@@ -190,13 +198,11 @@ describe('ShowtimesService', () => {
     seatTypesRepository = module.get(SeatTypesRepository);
     projectionTypesRepository = module.get(ProjectionTypesRepository);
     audioTypesRepository = module.get(AudioTypesRepository);
-    cls = module.get(ClsService);
+    cls = module.get(TenantContextService);
 
-    cls.get.mockImplementation((key?: string | symbol) => {
-      if (key === 'companyId') return COMPANY_ID;
-      if (key === 'userId') return USER_ID;
-      return undefined;
-    });
+    cls.getCompanyId.mockReturnValue(COMPANY_ID);
+    cls.getUserId.mockReturnValue(USER_ID);
+    cls.getRequiredUserId.mockReturnValue(USER_ID);
   });
 
   afterEach(() => {

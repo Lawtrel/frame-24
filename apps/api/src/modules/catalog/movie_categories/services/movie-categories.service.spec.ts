@@ -1,5 +1,5 @@
 import { ForbiddenException } from '@nestjs/common';
-import { ClsService } from 'nestjs-cls';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { RabbitMQPublisherService } from 'src/common/rabbitmq/rabbitmq-publisher.service';
 import { CreateMovieCategoryDto } from '../dto/create-movie-category.dto';
 import { MovieCategoryRepository } from '../repositories/movie-category.repository';
@@ -20,18 +20,20 @@ describe('MovieCategoriesService', () => {
   } as unknown as jest.Mocked<RabbitMQPublisherService>;
 
   const cls = {
-    get: jest.fn(),
-  } as unknown as jest.Mocked<ClsService>;
+    getCompanyId: jest.fn(),
+    getUserId: jest.fn(),
+    getRequiredUserId: jest.fn(),
+    getCustomerId: jest.fn(),
+    getSessionContext: jest.fn(),
+  } as unknown as jest.Mocked<TenantContextService>;
 
   const service = new MovieCategoriesService(repository, rabbitmq, cls);
 
   beforeEach(() => {
     jest.clearAllMocks();
-    cls.get.mockImplementation((key?: string | symbol) => {
-      if (key === 'companyId') return 'company-123';
-      if (key === 'userId') return 'user-123';
-      return undefined;
-    });
+    cls.getCompanyId.mockReturnValue('company-123');
+    cls.getUserId.mockReturnValue('user-123');
+    cls.getRequiredUserId.mockReturnValue('user-123');
   });
 
   it('deve criar categoria usando company_id e userId do contexto', async () => {
@@ -71,7 +73,7 @@ describe('MovieCategoriesService', () => {
   });
 
   it('deve lançar erro quando company_id não existe no contexto', async () => {
-    cls.get.mockReturnValue(undefined);
+    cls.getCompanyId.mockReturnValue(undefined as any);
 
     await expect(service.findAll()).rejects.toBeInstanceOf(ForbiddenException);
   });

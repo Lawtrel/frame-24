@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { Prisma } from '@repo/db';
 import { ClsService } from 'nestjs-cls';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -19,16 +20,8 @@ export class JournalEntriesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly snowflake: SnowflakeService,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
-
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
 
   private async getCompanyComplexIds(companyId: string): Promise<string[]> {
     const complexes = await this.prisma.cinema_complexes.findMany({
@@ -93,7 +86,7 @@ export class JournalEntriesService {
   async create(
     dto: CreateJournalEntryDto,
   ): Promise<JournalEntryWithItems | null> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     await this.ensureComplexBelongsToCompany(dto.cinema_complex_id, companyId);
     await this.ensureAccountsBelongToCompany(companyId, dto.items);
 
@@ -146,7 +139,7 @@ export class JournalEntriesService {
     start_date?: string;
     end_date?: string;
   }): Promise<JournalEntryWithItems[]> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const complexIds = await this.getCompanyComplexIds(companyId);
 
     const where: Prisma.journal_entriesWhereInput = {

@@ -1,5 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
-import { ClsService } from 'nestjs-cls';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { CreateMunicipalTaxParameterDto } from '../dto/create-municipal-tax-parameter.dto';
 import { MunicipalTaxParametersRepository } from '../repositories/municipal-tax-parameters.repository';
@@ -19,18 +19,19 @@ describe('MunicipalTaxParametersService', () => {
   } as unknown as jest.Mocked<SnowflakeService>;
 
   const cls = {
-    get: jest.fn(),
-  } as unknown as jest.Mocked<ClsService>;
+    getCompanyId: jest.fn(),
+    getUserId: jest.fn(),
+    getRequiredUserId: jest.fn(),
+    getCustomerId: jest.fn(),
+    getSessionContext: jest.fn(),
+  } as unknown as jest.Mocked<TenantContextService>;
 
   const service = new MunicipalTaxParametersService(repository, snowflake, cls);
 
   beforeEach(() => {
     jest.clearAllMocks();
     snowflake.generate.mockReturnValue('municipal-id-1');
-    cls.get.mockImplementation((key?: string | symbol) => {
-      if (key === 'companyId') return 'company-123';
-      return undefined;
-    });
+    cls.getCompanyId.mockReturnValue('company-123');
   });
 
   it('deve criar parâmetro usando company_id do contexto', async () => {

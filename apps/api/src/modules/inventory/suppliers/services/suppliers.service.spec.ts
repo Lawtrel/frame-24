@@ -1,5 +1,5 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
-import { ClsService } from 'nestjs-cls';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { LoggerService } from 'src/common/services/logger.service';
 import { CreateSupplierDto } from '../dto/create-supplier.dto';
 import { SupplierRepository } from '../repositories/supplier.repository';
@@ -22,17 +22,20 @@ describe('SuppliersService', () => {
   } as unknown as jest.Mocked<LoggerService>;
 
   const cls = {
-    get: jest.fn(),
-  } as unknown as jest.Mocked<ClsService>;
+    getCompanyId: jest.fn(),
+    getUserId: jest.fn(),
+    getRequiredUserId: jest.fn(),
+    getCustomerId: jest.fn(),
+    getSessionContext: jest.fn(),
+    getIdentityId: jest.fn(),
+    getRoleHierarchy: jest.fn(),
+  } as unknown as jest.Mocked<TenantContextService>;
 
   const service = new SuppliersService(repository, logger, cls);
 
   beforeEach(() => {
     jest.clearAllMocks();
-    cls.get.mockImplementation((key?: string | symbol) => {
-      if (key === 'companyId') return 'company-123';
-      return undefined;
-    });
+    cls.getCompanyId.mockReturnValue('company-123');
   });
 
   it('deve criar fornecedor usando company_id do contexto', async () => {
@@ -81,7 +84,11 @@ describe('SuppliersService', () => {
   });
 
   it('deve lançar erro quando company_id não existe no contexto', async () => {
-    cls.get.mockReturnValue(undefined);
+    cls.getCompanyId.mockReturnValue(undefined as any);
+    cls.getUserId.mockReturnValue(undefined as any);
+    cls.getRequiredUserId.mockReturnValue(undefined as any);
+    cls.getIdentityId.mockReturnValue(undefined as any);
+    cls.getRoleHierarchy.mockReturnValue(undefined as any);
 
     await expect(service.findAll()).rejects.toBeInstanceOf(ForbiddenException);
   });

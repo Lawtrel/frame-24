@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { ClsService } from 'nestjs-cls';
 import { MunicipalTaxParametersRepository } from '../repositories/municipal-tax-parameters.repository';
 import { FederalTaxRatesRepository } from '../repositories/federal-tax-rates.repository';
@@ -48,22 +49,14 @@ export class TaxCalculationService {
     private readonly municipalTaxParametersRepository: MunicipalTaxParametersRepository,
     private readonly federalTaxRatesRepository: FederalTaxRatesRepository,
     private readonly cinemaComplexesRepository: CinemaComplexesRepository,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
-
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
 
   async calculateTaxes(
     input: TaxCalculationInput,
     context?: TaxCalculationContext,
   ): Promise<TaxCalculationResult> {
-    const companyId = context?.companyId ?? this.getCompanyId();
+    const companyId = context?.companyId ?? this.tenantContext.getCompanyId();
 
     // Buscar complexo para obter IBGE code
     const complex = await this.cinemaComplexesRepository.findById(

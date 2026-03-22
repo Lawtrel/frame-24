@@ -4,6 +4,8 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
+import { todayISO } from 'src/common/utils/date.util';
 import { Transactional } from '@nestjs-cls/transactional';
 import { tax_entries } from '@repo/db';
 import { ClsService } from 'nestjs-cls';
@@ -31,24 +33,8 @@ export class TaxEntriesService {
     private readonly rabbitmq: RabbitMQPublisherService,
     private readonly cashFlowEntriesService: CashFlowEntriesService,
     private readonly bankAccountsRepository: BankAccountsRepository,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
-
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
-
-  private getUserId(): string {
-    const userId = this.cls.get<string>('userId');
-    if (!userId) {
-      throw new ForbiddenException('Contexto do usuário não encontrado.');
-    }
-    return userId;
-  }
 
   async findAll(filters?: {
     cinema_complex_id?: string;
@@ -59,7 +45,7 @@ export class TaxEntriesService {
     processed?: boolean;
   }): Promise<TaxEntryResponseDto[]> {
     const entries = await this.taxEntriesRepository.findAll(
-      this.getCompanyId(),
+      this.tenantContext.getCompanyId(),
       filters,
     );
 
@@ -67,7 +53,7 @@ export class TaxEntriesService {
   }
 
   async findOne(id: string): Promise<TaxEntryResponseDto> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const entry = await this.taxEntriesRepository.findById(id);
 
     if (!entry) {
@@ -87,8 +73,8 @@ export class TaxEntriesService {
 
   @Transactional()
   async create(dto: CreateTaxEntryDto): Promise<TaxEntryResponseDto> {
-    const companyId = this.getCompanyId();
-    const userId = this.getUserId();
+    const companyId = this.tenantContext.getCompanyId();
+    const userId = this.tenantContext.getRequiredUserId();
 
     await this.ensureComplexBelongsToCompany(companyId, dto.cinema_complex_id);
     await this.ensureSourceUniqueness(dto);
@@ -125,7 +111,7 @@ export class TaxEntriesService {
 
   @Transactional()
   async markAsProcessed(id: string): Promise<TaxEntryResponseDto> {
-    const userId = this.getUserId();
+    const userId = this.tenantContext.getRequiredUserId();
     const entry = await this.findOne(id);
 
     if (entry.processed) {
@@ -287,7 +273,7 @@ export class TaxEntriesService {
           entry_type: 'payment',
           category: 'tax',
           amount: totalTaxes,
-          entry_date: new Date().toISOString().split('T')[0],
+          entry_date: todayISO(),
           competence_date: dto.competence_date.toISOString().split('T')[0],
           description: `Impostos (ISS/PIS/COFINS) - Ref. ${entry.id}`,
           document_number: entry.id,

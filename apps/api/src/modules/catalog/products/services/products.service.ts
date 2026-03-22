@@ -6,6 +6,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Transactional } from '@nestjs-cls/transactional';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { products } from '@repo/db';
 import { ClsService } from 'nestjs-cls';
 import { ProductRepository } from '../repositories/product.repository';
@@ -23,23 +24,15 @@ export class ProductsService {
     private readonly categoryRepo: ProductCategoryRepository,
     private readonly logger: LoggerService,
     private readonly storageService: StorageService,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
-
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
 
   @Transactional()
   async create(
     dto: CreateProductDto,
     file?: Express.Multer.File,
   ): Promise<ProductResponseDto> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
 
     const category = await this.categoryRepo.findById(
       dto.category_id,
@@ -95,7 +88,7 @@ export class ProductsService {
   }
 
   async findAll(active?: boolean): Promise<ProductResponseDto[]> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const products = await this.productRepo.findAll(companyId, active);
 
     return products.map((product) =>
@@ -104,7 +97,7 @@ export class ProductsService {
   }
 
   async findOne(id: string): Promise<ProductResponseDto> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const product = await this.productRepo.findById(id, companyId);
 
     if (!product) {
@@ -118,7 +111,7 @@ export class ProductsService {
     category_id: string,
     active?: boolean,
   ): Promise<ProductResponseDto[]> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const category = await this.categoryRepo.findById(category_id, companyId);
     if (!category) {
       throw new NotFoundException('Product category not found');
@@ -137,7 +130,7 @@ export class ProductsService {
     searchTerm: string,
     active?: boolean,
   ): Promise<ProductResponseDto[]> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const products = await this.productRepo.search(
       companyId,
       searchTerm,
@@ -155,7 +148,7 @@ export class ProductsService {
     dto: UpdateProductDto,
     file?: Express.Multer.File,
   ): Promise<ProductResponseDto> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const product = await this.productRepo.findById(id, companyId);
 
     if (!product) {
@@ -236,7 +229,7 @@ export class ProductsService {
 
   @Transactional()
   async delete(id: string, soft = true): Promise<void> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const product = await this.productRepo.findById(id, companyId);
 
     if (!product) {

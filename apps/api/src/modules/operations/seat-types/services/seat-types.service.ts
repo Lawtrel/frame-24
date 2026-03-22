@@ -1,4 +1,5 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { ClsService } from 'nestjs-cls';
 import type { OperationTypeResponse } from '../../shared/dto/operation-type-response.dto';
 import { SeatTypesRepository } from '../repositories/seat-types.repository';
@@ -7,18 +8,10 @@ import { SeatTypesRepository } from '../repositories/seat-types.repository';
 export class SeatTypesService {
   constructor(
     private readonly repository: SeatTypesRepository,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
-
   async findAll(): Promise<OperationTypeResponse[]> {
-    return this.repository.findAllByCompany(this.getCompanyId());
+    return this.repository.findAllByCompany(this.tenantContext.getCompanyId());
   }
 }

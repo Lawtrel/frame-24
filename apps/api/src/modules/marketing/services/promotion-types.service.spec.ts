@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
-import { ClsService } from 'nestjs-cls';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { CreatePromotionTypeDto } from '../dto/create-promotion-type.dto';
 import { PromotionTypesRepository } from '../repositories/promotion-types.repository';
@@ -17,8 +17,14 @@ describe('PromotionTypesService', () => {
   } as unknown as jest.Mocked<SnowflakeService>;
 
   const cls = {
-    get: jest.fn(),
-  } as unknown as jest.Mocked<ClsService>;
+    getCompanyId: jest.fn(),
+    getUserId: jest.fn(),
+    getRequiredUserId: jest.fn(),
+    getCustomerId: jest.fn(),
+    getSessionContext: jest.fn(),
+    getIdentityId: jest.fn(),
+    getRoleHierarchy: jest.fn(),
+  } as unknown as jest.Mocked<TenantContextService>;
 
   const service = new PromotionTypesService(
     promotionTypesRepository,
@@ -29,10 +35,7 @@ describe('PromotionTypesService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     snowflake.generate.mockReturnValue('pt-1');
-    cls.get.mockImplementation((key?: string | symbol) => {
-      if (key === 'companyId') return 'company-123';
-      return undefined;
-    });
+    cls.getCompanyId.mockReturnValue('company-123');
   });
 
   it('deve listar tipos da empresa do contexto', async () => {
@@ -91,7 +94,11 @@ describe('PromotionTypesService', () => {
   });
 
   it('deve lançar erro quando company_id não existe no contexto', async () => {
-    cls.get.mockReturnValue(undefined);
+    cls.getCompanyId.mockReturnValue(undefined as any);
+    cls.getUserId.mockReturnValue(undefined as any);
+    cls.getRequiredUserId.mockReturnValue(undefined as any);
+    cls.getIdentityId.mockReturnValue(undefined as any);
+    cls.getRoleHierarchy.mockReturnValue(undefined as any);
 
     await expect(service.findAll()).rejects.toBeInstanceOf(ForbiddenException);
   });

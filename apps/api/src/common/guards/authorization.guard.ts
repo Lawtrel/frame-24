@@ -43,7 +43,7 @@ export class AuthorizationGuard implements CanActivate {
         `Acesso negado: ${user.email} (context: ${user.session_context}) tentou acessar endpoint restrito a funcionários`,
         AuthorizationGuard.name,
       );
-      throw new ForbiddenException('Acesso permitido apenas para funcionários');
+      throw new ForbiddenException('Acesso negado');
     }
 
     const employeeUser = user;

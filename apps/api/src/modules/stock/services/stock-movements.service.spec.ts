@@ -6,7 +6,7 @@ jest.mock('@nestjs-cls/transactional', () => ({
 }));
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { ClsService } from 'nestjs-cls';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { StockMovementsService } from './stock-movements.service';
 import { StockMovementsRepository } from '../repositories/stock-movements.repository';
 import { ProductStockRepository } from '../repositories/product-stock.repository';
@@ -34,7 +34,7 @@ describe('StockMovementsService', () => {
       providers: [
         StockMovementsService,
         {
-          provide: ClsService,
+          provide: TenantContextService,
           useValue: {
             get: jest.fn((key: string) => {
               if (key === 'companyId') return 'company-1';

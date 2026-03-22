@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Transactional } from '@nestjs-cls/transactional';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { stock_movements } from '@repo/db';
 import { ClsService } from 'nestjs-cls';
 import { StockMovementsRepository } from '../repositories/stock-movements.repository';
@@ -31,24 +32,8 @@ export class StockMovementsService {
     private readonly cinemaComplexesRepository: CinemaComplexesRepository,
     private readonly logger: LoggerService,
     private readonly rabbitmq: RabbitMQPublisherService,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
-
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
-
-  private getUserId(): string {
-    const userId = this.cls.get<string>('userId');
-    if (!userId) {
-      throw new ForbiddenException('Contexto do usuário não encontrado.');
-    }
-    return userId;
-  }
 
   async findAll(filters?: {
     product_id?: string;
@@ -58,7 +43,7 @@ export class StockMovementsService {
     end_date?: Date;
   }): Promise<StockMovementResponseDto[]> {
     const movements = await this.stockMovementsRepository.findAll(
-      this.getCompanyId(),
+      this.tenantContext.getCompanyId(),
       filters,
     );
 
@@ -66,7 +51,7 @@ export class StockMovementsService {
   }
 
   async findOne(id: string): Promise<StockMovementResponseDto> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const movement = await this.stockMovementsRepository.findById(id);
 
     if (!movement) {
@@ -87,8 +72,8 @@ export class StockMovementsService {
 
   @Transactional()
   async create(dto: CreateStockMovementDto): Promise<StockMovementResponseDto> {
-    const company_id = this.getCompanyId();
-    const userId = this.getUserId();
+    const company_id = this.tenantContext.getCompanyId();
+    const userId = this.tenantContext.getUserId();
 
     // Validar produto
     const product = await this.productsRepository.findById(

@@ -4,9 +4,12 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { ClsService } from 'nestjs-cls';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { RabbitMQPublisherService } from 'src/common/rabbitmq/rabbitmq-publisher.service';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
+import { todayISO } from 'src/common/utils/date.util';
 import { CreateDistributorSettlementDto } from '../dto/create-distributor-settlement.dto';
 
 import { AccountsPayableService } from '../accounts-payable/services/accounts-payable.service';
@@ -29,16 +32,8 @@ export class DistributorSettlementsService {
     private readonly prisma: PrismaService,
     private readonly snowflake: SnowflakeService,
     private readonly accountsPayableService: AccountsPayableService,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
-
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
 
   private async ensureComplexBelongsToCompany(
     cinemaComplexId: string,
@@ -113,7 +108,7 @@ export class DistributorSettlementsService {
 
   async findAll(cinemaComplexId?: string) {
     return this.findAllForCompany({
-      companyId: this.getCompanyId(),
+      companyId: this.tenantContext.getCompanyId(),
       cinemaComplexId,
     });
   }
@@ -135,7 +130,10 @@ export class DistributorSettlementsService {
   }
 
   async create(dto: CreateDistributorSettlementDto) {
-    return this.createForCompany({ companyId: this.getCompanyId(), dto });
+    return this.createForCompany({
+      companyId: this.tenantContext.getCompanyId(),
+      dto,
+    });
   }
 
   async createForCompany(input: CreateDistributorSettlementForCompanyInput) {
@@ -186,7 +184,7 @@ export class DistributorSettlementsService {
             source_id: settlement.id,
             document_number: `SETT-${settlement.id.substring(0, 8)}`,
             description: `Acerto Distribuidor - Contrato ${dto.contract_id}`,
-            issue_date: new Date().toISOString().split('T')[0],
+            issue_date: todayISO(),
             due_date: new Date(dto.competence_end_date)
               .toISOString()
               .split('T')[0], // Assuming due date is end of competence

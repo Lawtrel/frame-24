@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { ClsService } from 'nestjs-cls';
 import { municipal_tax_parameters, Prisma } from '@repo/db';
 import { MunicipalTaxParametersRepository } from '../repositories/municipal-tax-parameters.repository';
@@ -15,21 +16,13 @@ export class MunicipalTaxParametersService {
   constructor(
     private readonly repository: MunicipalTaxParametersRepository,
     private readonly snowflake: SnowflakeService,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
-
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
 
   async create(
     data: CreateMunicipalTaxParameterDto,
   ): Promise<municipal_tax_parameters> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const payload: Prisma.municipal_tax_parametersCreateInput = {
       id: this.snowflake.generate(),
       company_id: companyId,
@@ -55,11 +48,11 @@ export class MunicipalTaxParametersService {
   }
 
   async listByCompany(): Promise<municipal_tax_parameters[]> {
-    return this.repository.findAllByCompany(this.getCompanyId());
+    return this.repository.findAllByCompany(this.tenantContext.getCompanyId());
   }
 
   async findById(id: string): Promise<municipal_tax_parameters> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const record = await this.repository.findById(id);
 
     if (!record || record.company_id !== companyId) {

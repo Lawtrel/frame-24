@@ -5,6 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { Transactional } from '@nestjs-cls/transactional';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { payable_transactions, receivable_transactions } from '@repo/db';
 import { ClsService } from 'nestjs-cls';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -35,32 +36,16 @@ export class TransactionsService {
     private readonly receivablesRepository: AccountsReceivableRepository,
     private readonly payablesRepository: AccountsPayableRepository,
     private readonly cashFlowService: CashFlowEntriesService,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
-
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
-
-  private getUserId(): string {
-    const userId = this.cls.get<string>('userId');
-    if (!userId) {
-      throw new ForbiddenException('Contexto do usuário não encontrado.');
-    }
-    return userId;
-  }
 
   @Transactional()
   async settleReceivable(
     dto: CreateReceivableTransactionDto,
   ): Promise<receivable_transactions> {
     return this.settleReceivableForCompany({
-      companyId: this.getCompanyId(),
-      userId: this.getUserId(),
+      companyId: this.tenantContext.getCompanyId(),
+      userId: this.tenantContext.getRequiredUserId(),
       dto,
     });
   }
@@ -144,8 +129,8 @@ export class TransactionsService {
     dto: CreatePayableTransactionDto,
   ): Promise<payable_transactions> {
     return this.settlePayableForCompany({
-      companyId: this.getCompanyId(),
-      userId: this.getUserId(),
+      companyId: this.tenantContext.getCompanyId(),
+      userId: this.tenantContext.getRequiredUserId(),
       dto,
     });
   }

@@ -5,6 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { ClsService } from 'nestjs-cls';
 import {
   movies,
@@ -156,23 +157,11 @@ export class ShowtimesService {
     private readonly projectionTypesRepository: ProjectionTypesRepository,
     private readonly audioTypesRepository: AudioTypesRepository,
     private readonly cacheService: CacheService,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
-
-  private getUserId(): string | undefined {
-    return this.cls.get<string>('userId');
-  }
-
   async findOne(id: string): Promise<ShowtimeDetailsDto> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const showtime = await this.showtimesRepository.findById(id);
 
     if (!showtime) {
@@ -213,7 +202,7 @@ export class ShowtimesService {
     start_time?: Date;
     status?: string;
   }): Promise<Awaited<ReturnType<ShowtimesRepository['findAll']>>> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
 
     const where: Prisma.showtime_scheduleWhereInput = {
       cinema_complexes: { company_id: companyId },
@@ -230,7 +219,7 @@ export class ShowtimesService {
   }
 
   async preview(dto: CreateShowtimeDto): Promise<ShowtimeFinancialBreakdown> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
 
     // Validar filme e sala em paralelo
     const [movie, room] = await Promise.all([
@@ -602,8 +591,8 @@ export class ShowtimesService {
 
   @Transactional()
   async create(dto: CreateShowtimeDto): Promise<Showtime> {
-    const companyId = this.getCompanyId();
-    const userId = this.getUserId();
+    const companyId = this.tenantContext.getCompanyId();
+    const userId = this.tenantContext.getUserId();
 
     if (dto.start_time < new Date()) {
       throw new ConflictException(
@@ -749,8 +738,8 @@ export class ShowtimesService {
 
   @Transactional()
   async update(id: string, dto: UpdateShowtimeDto): Promise<Showtime> {
-    const companyId = this.getCompanyId();
-    const userId = this.getUserId();
+    const companyId = this.tenantContext.getCompanyId();
+    const userId = this.tenantContext.getUserId();
 
     const existingShowtime = await this.findOne(id);
     let newStartTime = new Date(existingShowtime.start_time);
@@ -853,8 +842,8 @@ export class ShowtimesService {
 
   @Transactional()
   async remove(id: string): Promise<{ message: string }> {
-    const companyId = this.getCompanyId();
-    const userId = this.getUserId();
+    const companyId = this.tenantContext.getCompanyId();
+    const userId = this.tenantContext.getUserId();
     const showtime = await this.findOne(id);
 
     const cancelledStatus =
@@ -887,7 +876,7 @@ export class ShowtimesService {
     seat_id: string,
     status: 'Bloqueado' | 'Disponível',
   ): Promise<void> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const showtime = await this.showtimesRepository.findById(showtime_id);
 
     if (!showtime || showtime.cinema_complexes?.company_id !== companyId) {

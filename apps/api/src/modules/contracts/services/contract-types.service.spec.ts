@@ -1,5 +1,5 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
-import { ClsService } from 'nestjs-cls';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { CreateContractTypeDto } from '../dto/create-contract-type.dto';
 import { ContractTypesRepository } from '../repositories/contract-types.repository';
@@ -19,18 +19,19 @@ describe('ContractTypesService', () => {
   } as unknown as jest.Mocked<SnowflakeService>;
 
   const cls = {
-    get: jest.fn(),
-  } as unknown as jest.Mocked<ClsService>;
+    getCompanyId: jest.fn(),
+    getUserId: jest.fn(),
+    getRequiredUserId: jest.fn(),
+    getCustomerId: jest.fn(),
+    getSessionContext: jest.fn(),
+  } as unknown as jest.Mocked<TenantContextService>;
 
   const service = new ContractTypesService(repository, snowflake, cls);
 
   beforeEach(() => {
     jest.clearAllMocks();
     snowflake.generate.mockReturnValue('ct-1');
-    cls.get.mockImplementation((key?: string | symbol) => {
-      if (key === 'companyId') return 'company-123';
-      return undefined;
-    });
+    cls.getCompanyId.mockReturnValue('company-123');
   });
 
   it('deve criar tipo com company_id do contexto', async () => {
@@ -68,7 +69,7 @@ describe('ContractTypesService', () => {
   });
 
   it('deve lançar erro quando contexto da empresa não existir', async () => {
-    cls.get.mockReturnValue(undefined);
+    cls.getCompanyId.mockReturnValue(undefined as any);
 
     await expect(service.findAll()).rejects.toBeInstanceOf(ForbiddenException);
   });

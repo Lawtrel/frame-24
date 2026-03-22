@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { ClsService } from 'nestjs-cls';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
@@ -15,23 +16,15 @@ export class ChartOfAccountsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly snowflake: SnowflakeService,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
-
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
 
   private getLevelFromCode(accountCode: string): number {
     return accountCode.split('.').length;
   }
 
   async create(dto: CreateChartAccountDto) {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const existing = await this.prisma.chart_of_accounts.findFirst({
       where: { company_id: companyId, account_code: dto.account_code },
     });
@@ -64,7 +57,7 @@ export class ChartOfAccountsService {
   }
 
   async findAll() {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     return this.prisma.chart_of_accounts.findMany({
       where: { company_id: companyId, active: true },
       orderBy: [{ level: 'asc' }, { account_code: 'asc' }],
@@ -72,7 +65,7 @@ export class ChartOfAccountsService {
   }
 
   async update(id: string, dto: UpdateChartAccountDto) {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     await this.ensureAccountBelongsToCompany(companyId, id);
 
     if (dto.parent_account_id) {
@@ -99,7 +92,7 @@ export class ChartOfAccountsService {
   }
 
   async remove(id: string) {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     await this.ensureAccountBelongsToCompany(companyId, id);
     return this.prisma.chart_of_accounts.update({
       where: { id },

@@ -4,6 +4,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { accounts_receivable, Prisma } from '@repo/db';
 import { ClsService } from 'nestjs-cls';
 import { AccountsReceivableRepository } from '../repositories/accounts-receivable.repository';
@@ -29,19 +30,14 @@ type CreateAccountReceivableForCompanyInput = {
 export class AccountsReceivableService {
   constructor(
     private readonly repository: AccountsReceivableRepository,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
-
   async create(dto: CreateAccountReceivableDto): Promise<accounts_receivable> {
-    return this.createForCompany({ companyId: this.getCompanyId(), dto });
+    return this.createForCompany({
+      companyId: this.tenantContext.getCompanyId(),
+      dto,
+    });
   }
 
   async createForCompany(
@@ -54,7 +50,7 @@ export class AccountsReceivableService {
   async findAll(
     query: AccountReceivableQueryDto,
   ): Promise<AccountsReceivableListResponse> {
-    return this.repository.findAll(this.getCompanyId(), query);
+    return this.repository.findAll(this.tenantContext.getCompanyId(), query);
   }
 
   private async findOneByCompany(
@@ -69,14 +65,14 @@ export class AccountsReceivableService {
   }
 
   async findOne(id: string): Promise<AccountsReceivableWithTransactions> {
-    return this.findOneByCompany(this.getCompanyId(), id);
+    return this.findOneByCompany(this.tenantContext.getCompanyId(), id);
   }
 
   async update(
     id: string,
     payload: UpdateAccountReceivableDto,
   ): Promise<accounts_receivable> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const account = await this.findOneByCompany(companyId, id);
 
     if (account.status === 'paid' || account.status === 'cancelled') {

@@ -1,4 +1,5 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { Prisma } from '@repo/db';
 import { ClsService } from 'nestjs-cls';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -72,19 +73,14 @@ type SupplierPositionItem = {
 export class PositionReportsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
-
   async getCustomerPosition(query: CustomerPositionQueryDto) {
-    return this.getCustomerPositionForCompany(this.getCompanyId(), query);
+    return this.getCustomerPositionForCompany(
+      this.tenantContext.getCompanyId(),
+      query,
+    );
   }
 
   async getCustomerPositionForCompany(
@@ -238,7 +234,7 @@ export class PositionReportsService {
 
   async getCustomerPositionById(customerId: string) {
     return this.getCustomerPositionByIdForCompany(
-      this.getCompanyId(),
+      this.tenantContext.getCompanyId(),
       customerId,
     );
   }
@@ -254,7 +250,10 @@ export class PositionReportsService {
   }
 
   async getSupplierPosition(query: SupplierPositionQueryDto) {
-    return this.getSupplierPositionForCompany(this.getCompanyId(), query);
+    return this.getSupplierPositionForCompany(
+      this.tenantContext.getCompanyId(),
+      query,
+    );
   }
 
   async getSupplierPositionForCompany(
@@ -384,7 +383,7 @@ export class PositionReportsService {
 
   async getSupplierPositionById(supplierId: string) {
     return this.getSupplierPositionByIdForCompany(
-      this.getCompanyId(),
+      this.tenantContext.getCompanyId(),
       supplierId,
     );
   }

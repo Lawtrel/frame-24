@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { product_stock } from '@repo/db';
 import { ClsService } from 'nestjs-cls';
 import { ProductStockRepository } from '../repositories/product-stock.repository';
@@ -14,19 +15,11 @@ export class ProductStockService {
   constructor(
     private readonly productStockRepository: ProductStockRepository,
     private readonly productsRepository: ProductRepository,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
-
   async findAll(complex_id?: string): Promise<ProductStockResponseDto[]> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const stocks = complex_id
       ? await this.productStockRepository.findByComplexId(complex_id, companyId)
       : [];
@@ -38,7 +31,7 @@ export class ProductStockService {
     product_id: string,
     complex_id: string,
   ): Promise<ProductStockResponseDto> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const stock = await this.productStockRepository.findById(
       product_id,
       complex_id,
@@ -75,7 +68,7 @@ export class ProductStockService {
 
   async findLowStock(complex_id?: string): Promise<ProductStockResponseDto[]> {
     const stocks = await this.productStockRepository.findLowStock(
-      this.getCompanyId(),
+      this.tenantContext.getCompanyId(),
       complex_id,
     );
 

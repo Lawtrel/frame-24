@@ -1,4 +1,5 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CashFlowReportQueryDto } from '../dto/cash-flow-report.dto';
 import { Prisma } from '@repo/db';
@@ -8,19 +9,11 @@ import { ClsService } from 'nestjs-cls';
 export class CashFlowReportsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
-
   async getDailyReport(query: CashFlowReportQueryDto) {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const date = query.date ? new Date(query.date) : new Date();
     const startOfDay = new Date(date.setHours(0, 0, 0, 0));
     const endOfDay = new Date(date.setHours(23, 59, 59, 999));
@@ -78,7 +71,7 @@ export class CashFlowReportsService {
   }
 
   async getPeriodReport(query: CashFlowReportQueryDto) {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const startDate = query.start_date
       ? new Date(query.start_date)
       : new Date();
@@ -127,7 +120,7 @@ export class CashFlowReportsService {
   }
 
   async getProjection(query: CashFlowReportQueryDto) {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const days = Number(query.days) || 30;
     const today = new Date();
     const futureDate = new Date();
@@ -182,7 +175,7 @@ export class CashFlowReportsService {
   }
 
   async getCategorySummary(query: CashFlowReportQueryDto) {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const month = query.month || new Date().toISOString().slice(0, 7);
     const [year, monthNum] = month.split('-');
     const startDate = new Date(Number(year), Number(monthNum) - 1, 1);

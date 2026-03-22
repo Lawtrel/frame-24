@@ -5,6 +5,7 @@ import {
   BadRequestException,
   ConflictException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { ProductPriceNotFoundException } from '../exceptions/sales.exceptions';
 import { Transactional } from '@nestjs-cls/transactional';
 import {
@@ -30,6 +31,9 @@ import {
   PromotionApplicationResult,
 } from 'src/modules/marketing/services/campaigns.service';
 import { ClsService } from 'nestjs-cls';
+
+import { toErrorMessage } from 'src/common/utils/error.util';
+import { todayISO } from 'src/common/utils/date.util';
 
 import { AccountsReceivableService } from 'src/modules/finance/accounts-receivable/services/accounts-receivable.service';
 import { TransactionsService } from 'src/modules/finance/transactions/services/transactions.service';
@@ -81,27 +85,15 @@ export class SalesService {
     private readonly accountsReceivableService: AccountsReceivableService,
     private readonly transactionsService: TransactionsService,
     private readonly bankAccountsRepository: BankAccountsRepository,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
-
-  private getUserId(): string | undefined {
-    return this.cls.get<string>('userId');
-  }
-
   private getCustomerId(): string | undefined {
-    return this.cls.get<string>('customerId');
+    return this.tenantContext.getCustomerId();
   }
 
   private getSessionContext(): 'EMPLOYEE' | 'CUSTOMER' | undefined {
-    return this.cls.get<'EMPLOYEE' | 'CUSTOMER'>('sessionContext');
+    return this.tenantContext.getSessionContext();
   }
 
   async findAll(filters?: {
@@ -112,7 +104,7 @@ export class SalesService {
     status?: string;
   }): Promise<SaleResponseDto[]> {
     const sales = await this.salesRepository.findAll(
-      this.getCompanyId(),
+      this.tenantContext.getCompanyId(),
       filters,
     );
 
@@ -120,7 +112,10 @@ export class SalesService {
   }
 
   async findOne(id: string): Promise<SaleResponseDto> {
-    const sale = await this.salesRepository.findById(id, this.getCompanyId());
+    const sale = await this.salesRepository.findById(
+      id,
+      this.tenantContext.getCompanyId(),
+    );
 
     if (!sale) {
       throw new NotFoundException('Venda não encontrada');
@@ -134,8 +129,8 @@ export class SalesService {
     dto: CreateSaleDto,
     context?: SalesExecutionContext,
   ): Promise<SaleResponseDto> {
-    const company_id = context?.companyId ?? this.getCompanyId();
-    const user_id = context?.userId ?? this.getUserId();
+    const company_id = context?.companyId ?? this.tenantContext.getCompanyId();
+    const user_id = context?.userId ?? this.tenantContext.getUserId();
     const sessionContext = context?.sessionContext ?? this.getSessionContext();
     const contextCustomerId = context?.customerId ?? this.getCustomerId();
     const resolvedCustomerId = dto.customer_id || contextCustomerId;
@@ -479,7 +474,7 @@ export class SalesService {
             })
             .catch((error) => {
               this.logger.error(
-                `Erro ao criar lançamento fiscal de bilheteria para venda ${sale.id}: ${this.toErrorMessage(error)}`,
+                `Erro ao criar lançamento fiscal de bilheteria para venda ${sale.id}: ${toErrorMessage(error)}`,
                 SalesService.name,
               );
               // Não propaga o erro para não causar rollback
@@ -531,7 +526,7 @@ export class SalesService {
             })
             .catch((error) => {
               this.logger.error(
-                `Erro ao criar lançamento fiscal de concessão para venda ${sale.id}: ${this.toErrorMessage(error)}`,
+                `Erro ao criar lançamento fiscal de concessão para venda ${sale.id}: ${toErrorMessage(error)}`,
                 SalesService.name,
               );
               // Não propaga o erro para não causar rollback
@@ -543,7 +538,7 @@ export class SalesService {
     } catch (error) {
       // Este catch não deve ser atingido pois cada Promise tem seu próprio catch
       this.logger.error(
-        `Erro inesperado no processamento fiscal da venda ${sale.id}: ${this.toErrorMessage(error)}`,
+        `Erro inesperado no processamento fiscal da venda ${sale.id}: ${toErrorMessage(error)}`,
         SalesService.name,
       );
     }
@@ -595,9 +590,9 @@ export class SalesService {
           sale_id: sale.id,
           document_number: sale_number,
           description: `Venda - Pedido ${sale_number}`,
-          issue_date: new Date().toISOString().split('T')[0],
-          due_date: new Date().toISOString().split('T')[0], // Vencimento hoje (ajustar se for crédito)
-          competence_date: new Date().toISOString().split('T')[0],
+          issue_date: todayISO(),
+          due_date: todayISO(), // Vencimento hoje (ajustar se for crédito)
+          competence_date: todayISO(),
           original_amount: net_amount,
           interest_amount: 0,
           penalty_amount: 0,
@@ -632,7 +627,7 @@ export class SalesService {
           dto: {
             account_receivable_id: receivable.id,
             amount: net_amount,
-            transaction_date: new Date().toISOString().split('T')[0],
+            transaction_date: todayISO(),
             bank_account_id: defaultAccount.id,
             payment_method: paymentMethodName || dto.payment_method || 'CASH',
             notes: `Baixa automática - Venda ${sale_number}`,
@@ -649,7 +644,7 @@ export class SalesService {
       }
     } catch (error) {
       this.logger.error(
-        `Erro ao criar conta a receber para venda ${sale.id}: ${this.toErrorMessage(error)}`,
+        `Erro ao criar conta a receber para venda ${sale.id}: ${toErrorMessage(error)}`,
         SalesService.name,
       );
     }
@@ -663,10 +658,10 @@ export class SalesService {
     reason: string,
     context?: SalesExecutionContext,
   ): Promise<void> {
-    const companyId = context?.companyId ?? this.getCompanyId();
+    const companyId = context?.companyId ?? this.tenantContext.getCompanyId();
     const userId =
       context?.userId ??
-      this.getUserId() ??
+      this.tenantContext.getUserId() ??
       context?.customerId ??
       this.getCustomerId();
 
@@ -768,13 +763,6 @@ export class SalesService {
       ),
       created_at: sale.created_at?.toISOString() || new Date().toISOString(),
     };
-  }
-
-  private toErrorMessage(error: unknown): string {
-    if (error instanceof Error) {
-      return error.message;
-    }
-    return 'Erro desconhecido';
   }
 
   private isImmediatePaymentMethod(paymentMethodName?: string | null): boolean {

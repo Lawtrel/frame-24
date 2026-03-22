@@ -4,6 +4,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { accounts_payable, Prisma } from '@repo/db';
 import { ClsService } from 'nestjs-cls';
 import { AccountsPayableRepository } from '../repositories/accounts-payable.repository';
@@ -29,19 +30,14 @@ type CreateAccountPayableForCompanyInput = {
 export class AccountsPayableService {
   constructor(
     private readonly repository: AccountsPayableRepository,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
-
   async create(dto: CreateAccountPayableDto): Promise<accounts_payable> {
-    return this.createForCompany({ companyId: this.getCompanyId(), dto });
+    return this.createForCompany({
+      companyId: this.tenantContext.getCompanyId(),
+      dto,
+    });
   }
 
   async createForCompany(
@@ -54,7 +50,7 @@ export class AccountsPayableService {
   async findAll(
     query: AccountPayableQueryDto,
   ): Promise<AccountsPayableListResponse> {
-    return this.repository.findAll(this.getCompanyId(), query);
+    return this.repository.findAll(this.tenantContext.getCompanyId(), query);
   }
 
   private async findOneByCompany(
@@ -69,14 +65,14 @@ export class AccountsPayableService {
   }
 
   async findOne(id: string): Promise<AccountsPayableWithTransactions> {
-    return this.findOneByCompany(this.getCompanyId(), id);
+    return this.findOneByCompany(this.tenantContext.getCompanyId(), id);
   }
 
   async update(
     id: string,
     dto: UpdateAccountPayableDto,
   ): Promise<accounts_payable> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const account = await this.findOneByCompany(companyId, id);
 
     if (account.status === 'paid' || account.status === 'cancelled') {

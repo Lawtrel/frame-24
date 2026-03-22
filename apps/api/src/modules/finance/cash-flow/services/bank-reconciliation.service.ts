@@ -4,6 +4,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { bank_reconciliations } from '@repo/db';
 import { ClsService } from 'nestjs-cls';
 import { BankReconciliationRepository } from '../repositories/bank-reconciliation.repository';
@@ -26,31 +27,15 @@ export class BankReconciliationService {
     private readonly repository: BankReconciliationRepository,
     private readonly bankAccountsRepository: BankAccountsRepository,
     private readonly snowflake: SnowflakeService,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
-
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
-
-  private getUserId(): string {
-    const userId = this.cls.get<string>('userId');
-    if (!userId) {
-      throw new ForbiddenException('Contexto do usuário não encontrado.');
-    }
-    return userId;
-  }
 
   async create(
     dto: CreateBankReconciliationDto,
   ): Promise<bank_reconciliations> {
     return this.createForCompany({
-      companyId: this.getCompanyId(),
-      createdBy: this.getUserId(),
+      companyId: this.tenantContext.getCompanyId(),
+      createdBy: this.tenantContext.getRequiredUserId(),
       dto,
     });
   }
@@ -129,7 +114,7 @@ export class BankReconciliationService {
   }
 
   async findAll(bankAccountId?: string): Promise<bank_reconciliations[]> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     return this.repository.findAll(companyId, bankAccountId);
   }
 

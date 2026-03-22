@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { ClsService } from 'nestjs-cls';
 import { Prisma } from '@repo/db';
 import { MovieRepository } from '../repositories/movie.repository';
@@ -16,16 +17,8 @@ export class MoviesService {
   constructor(
     private readonly repository: MovieRepository,
     private readonly suppliers: SupplierRepository,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
-
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
 
   private async validateDistributor(
     distributorId: string,
@@ -42,10 +35,13 @@ export class MoviesService {
   }
 
   async create(dto: CreateMovieDto) {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     await this.validateDistributor(dto.distributor_id, companyId);
 
-    const slug = await this.repository.uniqueSlugForTitle(dto.original_title);
+    const slug = await this.repository.uniqueSlugForTitle(
+      dto.original_title,
+      companyId,
+    );
 
     const data: Prisma.moviesCreateInput = {
       company_id: companyId,
@@ -90,7 +86,7 @@ export class MoviesService {
   }
 
   async findAll() {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     return this.repository.findByCompanyLite(companyId);
   }
 
@@ -101,7 +97,7 @@ export class MoviesService {
   }
 
   async update(id: string, dto: UpdateMovieDto) {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const existing = await this.repository.findByIdLite(id);
     if (!existing || existing.company_id !== companyId) {
       throw new NotFoundException('Filme não encontrado.');
@@ -118,6 +114,7 @@ export class MoviesService {
     ) {
       slugUpdate = await this.repository.uniqueSlugForTitle(
         dto.original_title,
+        companyId,
         id,
       );
     }
@@ -185,17 +182,17 @@ export class MoviesService {
   }
 
   async getCastTypes() {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     return this.repository.findCastTypes(companyId);
   }
 
   async getMediaTypes() {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     return this.repository.findMediaTypes(companyId);
   }
 
   async getAgeRatings() {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     return this.repository.findAgeRatings(companyId);
   }
 }

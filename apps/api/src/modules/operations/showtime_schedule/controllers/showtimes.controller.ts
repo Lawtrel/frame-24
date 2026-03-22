@@ -34,7 +34,7 @@ import { UpdateShowtimeSeatStatusDto } from '../dto/update-showtime-seat-status.
 import {
   ShowtimeDetailsDto,
   ShowtimesService,
-} from 'src/modules/operations/showtime_schedule/services/shotimes.service';
+} from 'src/modules/operations/showtime_schedule/services/showtimes.service';
 
 @ApiTags('Showtimes')
 @ApiBearerAuth()

@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { ClsService } from 'nestjs-cls';
 import { SessionSeatStatusRepository } from 'src/modules/operations/session_seat_status/repositories/session-seat-status.repository';
 import { SeatStatusRepository } from 'src/modules/operations/seat-status/repositories/seat-status.repository';
@@ -16,19 +17,11 @@ export class AdminOperationsService {
     private readonly seatStatusRepository: SeatStatusRepository,
     private readonly ticketsRepository: TicketsRepository,
     private readonly prisma: PrismaService,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
-
   async listActiveReservations() {
-    const company_id = this.getCompanyId();
+    const company_id = this.tenantContext.getCompanyId();
     const reservations =
       await this.sessionSeatStatusRepository.findActiveReservationsByCompany(
         company_id,
@@ -51,7 +44,7 @@ export class AdminOperationsService {
   }
 
   async cancelReservation(id: string) {
-    const company_id = this.getCompanyId();
+    const company_id = this.tenantContext.getCompanyId();
     const reservation =
       await this.sessionSeatStatusRepository.findByIdWithRelations(id);
 
@@ -81,7 +74,7 @@ export class AdminOperationsService {
   }
 
   async getTicketQrCode(ticket_id: string) {
-    const company_id = this.getCompanyId();
+    const company_id = this.tenantContext.getCompanyId();
     const ticket = await this.ticketsRepository.findById(ticket_id);
 
     if (!ticket || !ticket.sales) {

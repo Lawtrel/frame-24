@@ -1,5 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
-import { ClsService } from 'nestjs-cls';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { LoggerService } from 'src/common/services/logger.service';
 import { CompanyUserRepository } from 'src/modules/identity/auth/repositories/company-user.repository';
 import { CustomRoleRepository } from 'src/modules/identity/auth/repositories/custom-role.repository';
@@ -37,8 +37,12 @@ describe('UsersService', () => {
   } as unknown as jest.Mocked<LoggerService>;
 
   const cls = {
-    get: jest.fn(),
-  } as unknown as jest.Mocked<ClsService>;
+    getCompanyId: jest.fn(),
+    getUserId: jest.fn(),
+    getRequiredUserId: jest.fn(),
+    getCustomerId: jest.fn(),
+    getSessionContext: jest.fn(),
+  } as unknown as jest.Mocked<TenantContextService>;
 
   const service = new UsersService(
     identityRepository,
@@ -53,10 +57,7 @@ describe('UsersService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    cls.get.mockImplementation((key?: string | symbol) => {
-      if (key === 'companyId') return 'company-123';
-      return undefined;
-    });
+    cls.getCompanyId.mockReturnValue('company-123');
   });
 
   it('deve listar usuários usando company_id do contexto', async () => {

@@ -1,5 +1,5 @@
 import { ForbiddenException } from '@nestjs/common';
-import { ClsService } from 'nestjs-cls';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { SupplierRepository } from 'src/modules/inventory/suppliers/repositories/supplier.repository';
 import { MovieRepository } from '../repositories/movie.repository';
 import { MoviesService } from './movies.service';
@@ -17,17 +17,18 @@ describe('MoviesService', () => {
   } as unknown as jest.Mocked<SupplierRepository>;
 
   const cls = {
-    get: jest.fn(),
-  } as unknown as jest.Mocked<ClsService>;
+    getCompanyId: jest.fn(),
+    getUserId: jest.fn(),
+    getRequiredUserId: jest.fn(),
+    getCustomerId: jest.fn(),
+    getSessionContext: jest.fn(),
+  } as unknown as jest.Mocked<TenantContextService>;
 
   const service = new MoviesService(repository, suppliers, cls);
 
   beforeEach(() => {
     jest.clearAllMocks();
-    cls.get.mockImplementation((key?: string | symbol) => {
-      if (key === 'companyId') return 'company-123';
-      return undefined;
-    });
+    cls.getCompanyId.mockReturnValue('company-123');
   });
 
   it('deve listar filmes da empresa do contexto', async () => {
@@ -54,7 +55,7 @@ describe('MoviesService', () => {
   });
 
   it('deve lançar erro quando company_id não existe no contexto', async () => {
-    cls.get.mockReturnValue(undefined);
+    cls.getCompanyId.mockReturnValue(undefined as any);
 
     await expect(service.findAll()).rejects.toBeInstanceOf(ForbiddenException);
   });

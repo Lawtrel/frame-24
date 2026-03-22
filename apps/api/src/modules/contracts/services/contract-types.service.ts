@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { ClsService } from 'nestjs-cls';
 import { ContractTypesRepository } from '../repositories/contract-types.repository';
 import { CreateContractTypeDto } from '../dto/create-contract-type.dto';
@@ -15,19 +16,11 @@ export class ContractTypesService {
   constructor(
     private readonly repository: ContractTypesRepository,
     private readonly snowflake: SnowflakeService,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
-
   async create(dto: CreateContractTypeDto): Promise<contract_types> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     return this.repository.create({
       id: this.snowflake.generate(),
       company_id: companyId,
@@ -38,12 +31,12 @@ export class ContractTypesService {
   }
 
   async findAll(): Promise<contract_types[]> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     return this.repository.findAllByCompany(companyId);
   }
 
   async findOne(id: string): Promise<contract_types> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const type = await this.repository.findById(id);
     if (!type || type.company_id !== companyId) {
       throw new NotFoundException('Tipo de contrato não encontrado.');

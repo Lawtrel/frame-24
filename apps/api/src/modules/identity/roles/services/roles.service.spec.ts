@@ -1,5 +1,5 @@
 import { ForbiddenException } from '@nestjs/common';
-import { ClsService } from 'nestjs-cls';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { LoggerService } from 'src/common/services/logger.service';
 import { CreateRoleDto } from '../dto/create-role.dto';
@@ -46,20 +46,21 @@ describe('RolesService', () => {
   } as unknown as jest.Mocked<SnowflakeService>;
 
   const cls = {
-    get: jest.fn(),
-  } as unknown as jest.Mocked<ClsService>;
+    getCompanyId: jest.fn(),
+    getUserId: jest.fn(),
+    getRequiredUserId: jest.fn(),
+    getCustomerId: jest.fn(),
+    getSessionContext: jest.fn(),
+    getIdentityId: jest.fn(),
+    getRoleHierarchy: jest.fn(),
+  } as unknown as jest.Mocked<TenantContextService>;
 
   const service = new RolesService(prisma, roleRepo, logger, snowflake, cls);
 
   beforeEach(() => {
     jest.clearAllMocks();
     snowflake.generate.mockReturnValue('rp-1');
-    cls.get.mockImplementation((key?: string | symbol) => {
-      if (key === 'companyId') return 'company-123';
-      if (key === 'identityId') return 'identity-1';
-      if (key === 'roleHierarchy') return 5;
-      return undefined;
-    });
+    cls.getCompanyId.mockReturnValue('company-123');
   });
 
   it('deve criar role usando company_id do contexto', async () => {
@@ -116,7 +117,11 @@ describe('RolesService', () => {
   });
 
   it('deve lançar erro quando company_id não existe no contexto', async () => {
-    cls.get.mockReturnValue(undefined);
+    cls.getCompanyId.mockReturnValue(undefined as any);
+    cls.getUserId.mockReturnValue(undefined as any);
+    cls.getRequiredUserId.mockReturnValue(undefined as any);
+    cls.getIdentityId.mockReturnValue(undefined as any);
+    cls.getRoleHierarchy.mockReturnValue(undefined as any);
 
     await expect(service.findAll()).rejects.toBeInstanceOf(ForbiddenException);
   });

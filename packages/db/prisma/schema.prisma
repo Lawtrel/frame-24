@@ -1137,6 +1137,8 @@ model suppliers {
   supplier_type_id    String?
   supplier_type       supplier_types? @relation(fields: [supplier_type_id], references: [id])
 
+  exhibition_contracts exhibition_contracts[]
+
   @@unique([company_id, cnpj])
   @@index([company_id])
   @@index([supplier_type_id])
@@ -1415,6 +1417,8 @@ model cinema_complexes {
   updated_at             DateTime?           @updatedAt @db.Timestamp(0)
   rooms                  rooms[]
   showtime_schedule      showtime_schedule[]
+
+  exhibition_contracts   exhibition_contracts[]
 
   @@index([code])
   @@index([company_id])
@@ -2235,6 +2239,7 @@ model movies {
   age_rating             age_ratings?           @relation(fields: [age_rating_id], references: [id])
   movie_categories       movie_categories?      @relation(fields: [movie_categoriesId], references: [id])
   category_links         movies_on_categories[]
+  exhibition_contracts   exhibition_contracts[]
 
   @@index([company_id])
   @@index([distributor_id])
@@ -2339,6 +2344,9 @@ model exhibition_contracts {
   active                 Boolean?                             @default(true)
   created_at             DateTime?                            @default(now()) @db.Timestamp(0)
   sliding_scales         exhibition_contract_sliding_scales[]
+  movies                 movies?                              @relation(fields: [movie_id], references: [id])
+  cinema_complexes       cinema_complexes?                    @relation(fields: [cinema_complex_id], references: [id])
+  distributors           suppliers?                           @relation(fields: [distributor_id], references: [id])
   contract_types         contract_types?                      @relation(fields: [contract_type], references: [id])
 
   @@index([movie_id])

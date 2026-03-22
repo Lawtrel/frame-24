@@ -5,6 +5,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { ClsService } from 'nestjs-cls';
 import { Transactional } from '@nestjs-cls/transactional';
 import { LoggerService } from 'src/common/services/logger.service';
@@ -34,20 +35,12 @@ export class UsersService {
     private readonly userCreator: UserCreatorService,
     private readonly userMapper: UserMapperService,
     private readonly logger: LoggerService,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
-
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
 
   @Transactional()
   async create(dto: CreateUserDto): Promise<UserResponseDto> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     this.logger.log(
       `Criando usuário: ${dto.email} @ ${companyId}`,
       UsersService.name,
@@ -71,14 +64,14 @@ export class UsersService {
   }
 
   async findAll(): Promise<UserResponseDto[]> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const companyUsers =
       await this.companyUserRepository.findAllByCompanyWithRelations(companyId);
     return companyUsers.map((cu) => this.userMapper.toResponseDto(cu));
   }
 
   async findOne(employeeId: string): Promise<UserResponseDto> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const companyUser = await this.findCompanyUserWithRelationsOrFail(
       employeeId,
       companyId,
@@ -91,7 +84,7 @@ export class UsersService {
     employeeId: string,
     dto: UpdateUserDto,
   ): Promise<UserResponseDto> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const companyUser = await this.findCompanyUserWithRelationsOrFail(
       employeeId,
       companyId,
@@ -115,7 +108,7 @@ export class UsersService {
   }
 
   async softDelete(employeeId: string): Promise<void> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const companyUser = await this.findCompanyUserWithRelationsOrFail(
       employeeId,
       companyId,

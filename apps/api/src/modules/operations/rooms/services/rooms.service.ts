@@ -5,6 +5,7 @@ import {
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { Prisma, rooms as Room } from '@repo/db';
 import { Transactional } from '@nestjs-cls/transactional';
 import { ClsService } from 'nestjs-cls';
@@ -34,20 +35,8 @@ export class RoomsService {
     private readonly snowflake: SnowflakeService,
     private readonly rabbitmq: RabbitMQPublisherService,
     private readonly storageService: StorageService,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
-
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
-
-  private getUserId(): string | undefined {
-    return this.cls.get<string>('userId');
-  }
 
   @Transactional()
   async create(
@@ -55,8 +44,8 @@ export class RoomsService {
     dto: CreateRoomDto,
     file?: Express.Multer.File,
   ): Promise<Room> {
-    const companyId = this.getCompanyId();
-    const userId = this.getUserId();
+    const companyId = this.tenantContext.getCompanyId();
+    const userId = this.tenantContext.getUserId();
     await this.validateDependencies(dto, cinemaComplexId, companyId);
 
     const roomId = this.snowflake.generate();
@@ -197,7 +186,7 @@ export class RoomsService {
   }
 
   async findAll(cinemaComplexId: string): Promise<Room[]> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const complex =
       await this.cinemaComplexesRepository.findById(cinemaComplexId);
     if (!complex || complex.company_id !== companyId) {
@@ -207,7 +196,7 @@ export class RoomsService {
   }
 
   async findOne(id: string): Promise<Room> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const room = await this.roomsRepository.findById(id);
     if (!room) {
       throw new NotFoundException('Sala não encontrada.');
@@ -227,8 +216,8 @@ export class RoomsService {
     dto: UpdateRoomDto,
     file?: Express.Multer.File,
   ): Promise<Room> {
-    const companyId = this.getCompanyId();
-    const userId = this.getUserId();
+    const companyId = this.tenantContext.getCompanyId();
+    const userId = this.tenantContext.getUserId();
     const existingRoom = await this.findOne(id);
 
     if (dto.room_number && dto.room_number !== existingRoom.room_number) {
@@ -325,8 +314,8 @@ export class RoomsService {
 
   @Transactional()
   async delete(id: string): Promise<{ message: string }> {
-    const companyId = this.getCompanyId();
-    const userId = this.getUserId();
+    const companyId = this.tenantContext.getCompanyId();
+    const userId = this.tenantContext.getUserId();
     const existingRoom = await this.findOne(id); // Valida a posse
 
     await this.roomsRepository.remove(id);

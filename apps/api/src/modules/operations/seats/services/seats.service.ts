@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { ClsService } from 'nestjs-cls';
 import { seats as Seat } from '@repo/db';
 
@@ -21,24 +22,12 @@ export class SeatsService {
     private readonly roomsRepository: RoomsRepository,
     private readonly cinemaComplexesRepository: CinemaComplexesRepository,
     private readonly rabbitmq: RabbitMQPublisherService,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
-
-  private getUserId(): string | undefined {
-    return this.cls.get<string>('userId');
-  }
-
   async updateStatus(seatId: string, active: boolean): Promise<Seat> {
-    const companyId = this.getCompanyId();
-    const userId = this.getUserId();
+    const companyId = this.tenantContext.getCompanyId();
+    const userId = this.tenantContext.getUserId();
     const existingSeat = await this.validateSeatOwnership(seatId, companyId);
 
     const updatedSeat = await this.seatsRepository.update(seatId, { active });
@@ -84,8 +73,8 @@ export class SeatsService {
   async updateStatusBatch(dto: UpdateSeatsStatusBatchDto): Promise<{
     updated: number;
   }> {
-    const companyId = this.getCompanyId();
-    const userId = this.getUserId();
+    const companyId = this.tenantContext.getCompanyId();
+    const userId = this.tenantContext.getUserId();
     const seatIds = dto.seats.map((s) => s.seat_id);
 
     await this.validateMultipleSeatsOwnership(seatIds, companyId);

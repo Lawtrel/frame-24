@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { ClsService } from 'nestjs-cls';
 import { Prisma, federal_tax_rates } from '@repo/db';
 import { FederalTaxRatesRepository } from '../repositories/federal-tax-rates.repository';
@@ -15,19 +16,11 @@ export class FederalTaxRatesService {
   constructor(
     private readonly repository: FederalTaxRatesRepository,
     private readonly snowflake: SnowflakeService,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
-
   async create(dto: CreateFederalTaxRateDto): Promise<federal_tax_rates> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const payload: Prisma.federal_tax_ratesCreateInput = {
       id: this.snowflake.generate(),
       company_id: companyId,
@@ -51,11 +44,11 @@ export class FederalTaxRatesService {
   }
 
   async list(): Promise<federal_tax_rates[]> {
-    return this.repository.findAllByCompany(this.getCompanyId());
+    return this.repository.findAllByCompany(this.tenantContext.getCompanyId());
   }
 
   async findById(id: string): Promise<federal_tax_rates> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const record = await this.repository.findById(id);
 
     if (!record || record.company_id !== companyId) {

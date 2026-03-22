@@ -1,5 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
-import { ClsService } from 'nestjs-cls';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { RabbitMQPublisherService } from 'src/common/rabbitmq/rabbitmq-publisher.service';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { StorageService } from 'src/modules/storage/storage.service';
@@ -64,8 +64,12 @@ describe('RoomsService', () => {
   } as unknown as jest.Mocked<StorageService>;
 
   const cls = {
-    get: jest.fn(),
-  } as unknown as jest.Mocked<ClsService>;
+    getCompanyId: jest.fn(),
+    getUserId: jest.fn(),
+    getRequiredUserId: jest.fn(),
+    getCustomerId: jest.fn(),
+    getSessionContext: jest.fn(),
+  } as unknown as jest.Mocked<TenantContextService>;
 
   const service = new RoomsService(
     roomsRepository,
@@ -82,11 +86,9 @@ describe('RoomsService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    cls.get.mockImplementation((key?: string | symbol) => {
-      if (key === 'companyId') return 'company-123';
-      if (key === 'userId') return 'employee-123';
-      return undefined;
-    });
+    cls.getCompanyId.mockReturnValue('company-123');
+    cls.getUserId.mockReturnValue('employee-123');
+    cls.getRequiredUserId.mockReturnValue('employee-123');
   });
 
   it('deve criar sala com metadados do funcionario autenticado', async () => {

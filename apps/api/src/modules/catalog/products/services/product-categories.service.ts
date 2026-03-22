@@ -6,6 +6,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Transactional } from '@nestjs-cls/transactional';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { Prisma, product_categories } from '@repo/db';
 import { ClsService } from 'nestjs-cls';
 import { ProductCategoryRepository } from '../repositories/product-category.repository';
@@ -19,21 +20,13 @@ export class ProductCategoriesService {
   constructor(
     private readonly categoryRepo: ProductCategoryRepository,
     private readonly logger: LoggerService,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
-
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
 
   async create(
     dto: CreateProductCategoryDto,
   ): Promise<ProductCategoryResponseDto> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
 
     const existing = await this.categoryRepo.findByName(companyId, dto.name);
     if (existing) {
@@ -57,7 +50,7 @@ export class ProductCategoriesService {
   async findAll(
     includeProductCount = false,
   ): Promise<ProductCategoryResponseDto[]> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
 
     if (includeProductCount) {
       const categories =
@@ -70,7 +63,7 @@ export class ProductCategoriesService {
   }
 
   async findOne(id: string): Promise<ProductCategoryResponseDto> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const category = await this.categoryRepo.findById(id, companyId);
 
     if (!category) {
@@ -87,7 +80,7 @@ export class ProductCategoriesService {
     id: string,
     dto: UpdateProductCategoryDto,
   ): Promise<ProductCategoryResponseDto> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const category = await this.categoryRepo.findById(id, companyId);
 
     if (!category) {
@@ -116,7 +109,7 @@ export class ProductCategoriesService {
 
   @Transactional()
   async delete(id: string): Promise<void> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const category = await this.categoryRepo.findById(id, companyId);
 
     if (!category) {

@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { ClsService } from 'nestjs-cls';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { PromotionTypesRepository } from '../repositories/promotion-types.repository';
@@ -13,24 +14,16 @@ export class PromotionTypesService {
   constructor(
     private readonly promotionTypesRepository: PromotionTypesRepository,
     private readonly snowflake: SnowflakeService,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
-
   async findAll() {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     return this.promotionTypesRepository.findAllByCompany(companyId);
   }
 
   async create(dto: CreatePromotionTypeDto) {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const normalizedCode = dto.code.trim().toUpperCase();
     const existing = await this.promotionTypesRepository.findByCode(
       companyId,

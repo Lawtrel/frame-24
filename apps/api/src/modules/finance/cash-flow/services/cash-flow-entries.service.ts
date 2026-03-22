@@ -5,6 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { Transactional } from '@nestjs-cls/transactional';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { cash_flow_entries, Prisma } from '@repo/db';
 import { ClsService } from 'nestjs-cls';
 import { CashFlowEntriesRepository } from '../repositories/cash-flow-entries.repository';
@@ -47,30 +48,14 @@ export class CashFlowEntriesService {
     private readonly repository: CashFlowEntriesRepository,
     private readonly bankAccountsRepository: BankAccountsRepository,
     private readonly snowflake: SnowflakeService,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
-
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
-
-  private getUserId(): string {
-    const userId = this.cls.get<string>('userId');
-    if (!userId) {
-      throw new ForbiddenException('Contexto do usuário não encontrado.');
-    }
-    return userId;
-  }
 
   @Transactional()
   async create(dto: CreateCashFlowEntryDto): Promise<cash_flow_entries> {
     return this.createForCompany({
-      companyId: this.getCompanyId(),
-      createdBy: this.getUserId(),
+      companyId: this.tenantContext.getCompanyId(),
+      createdBy: this.tenantContext.getRequiredUserId(),
       dto,
     });
   }
@@ -133,7 +118,7 @@ export class CashFlowEntriesService {
   async findAll(
     query: CashFlowQueryType,
   ): Promise<CashFlowEntriesListResponse> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const entries = await this.repository.findAll(companyId, {
       bank_account_id: query.bank_account_id,
       entry_type: query.entry_type,
@@ -167,12 +152,12 @@ export class CashFlowEntriesService {
   }
 
   async findOne(id: string): Promise<CashFlowEntryWithBankAccount> {
-    return this.findOneByCompany(this.getCompanyId(), id);
+    return this.findOneByCompany(this.tenantContext.getCompanyId(), id);
   }
 
   @Transactional()
   async delete(id: string): Promise<{ message: string }> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const entry = await this.findOneByCompany(companyId, id);
 
     if (entry.reconciled) {
@@ -190,7 +175,7 @@ export class CashFlowEntriesService {
 
   @Transactional()
   async reconcile(id: string): Promise<{ message: string }> {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const entry = await this.findOneByCompany(companyId, id);
 
     if (entry.reconciled) {

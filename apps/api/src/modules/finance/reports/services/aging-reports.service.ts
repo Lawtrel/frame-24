@@ -1,4 +1,5 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { Prisma } from '@repo/db';
 import { ClsService } from 'nestjs-cls';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -41,19 +42,11 @@ type AgingBuckets = {
 export class AgingReportsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
-
   async getReceivablesAging(query: AgingReportQueryDto) {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const baseDate = query.base_date ? new Date(query.base_date) : new Date();
     const where: Prisma.accounts_receivableWhereInput = {
       company_id: companyId,
@@ -82,7 +75,7 @@ export class AgingReportsService {
   }
 
   async getPayablesAging(query: AgingReportQueryDto) {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const baseDate = query.base_date ? new Date(query.base_date) : new Date();
     const where: Prisma.accounts_payableWhereInput = {
       company_id: companyId,

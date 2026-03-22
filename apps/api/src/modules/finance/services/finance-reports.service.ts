@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { ClsService } from 'nestjs-cls';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -10,16 +11,8 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class FinanceReportsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly cls: ClsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
-
-  private getCompanyId(): string {
-    const companyId = this.cls.get<string>('companyId');
-    if (!companyId) {
-      throw new ForbiddenException('Contexto da empresa não encontrado.');
-    }
-    return companyId;
-  }
 
   private parseMonth(month: string): {
     start: Date;
@@ -52,7 +45,7 @@ export class FinanceReportsService {
   }
 
   async getIncomeStatement(month: string) {
-    const companyId = this.getCompanyId();
+    const companyId = this.tenantContext.getCompanyId();
     const { start, end, year, monthNumber } = this.parseMonth(month);
     const complexIds = await this.getCompanyComplexIds(companyId);
 
