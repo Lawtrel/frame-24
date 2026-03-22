@@ -41,7 +41,11 @@ export class TenantContextService {
     return this.cls.get<number>('roleHierarchy');
   }
 
-  setContext(user: any): void {
+  setContext(user: unknown): void {
+    if (!user || typeof user !== 'object') {
+      return;
+    }
+
     const fieldMap: Array<{
       field: string;
       clsKey: string;

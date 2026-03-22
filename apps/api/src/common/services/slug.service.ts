@@ -1,5 +1,12 @@
 import { Injectable } from '@nestjs/common';
 
+interface SlugModelDelegate {
+  findFirst(args: {
+    where: Record<string, unknown>;
+    select: { id: true };
+  }): Promise<{ id: string } | null>;
+}
+
 @Injectable()
 export class SlugService {
   /**
@@ -24,11 +31,11 @@ export class SlugService {
    * @param extraCriteria Critérios extras para a busca (ex: { company_id: '...' })
    */
   async createUniqueSlug(
-    model: any,
+    model: SlugModelDelegate,
     text: string,
     excludeId?: string,
     slugField: string = 'slug',
-    extraCriteria?: Record<string, any>,
+    extraCriteria?: Record<string, unknown>,
   ): Promise<string> {
     const base = this.generateBase(text);
 

@@ -11,6 +11,7 @@
   "dependencies": {
     "@repo/api-types": "workspace:*",
     "@tanstack/react-query": "^5.90.21",
+    "axios": "^1.13.6",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.577.0",
     "next": "16.1.6",
@@ -20,6 +21,8 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
     "@tailwindcss/postcss": "^4.2.1",
     "@types/node": "^25.5.0",
     "@types/react": "^19.2.14",

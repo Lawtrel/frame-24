@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
@@ -32,6 +32,7 @@ const menuItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
 
   const handleLogout = async () => {
     try {
@@ -46,8 +47,8 @@ export function Sidebar() {
       // Limpa o cookie forçando a expiração
       document.cookie = "admin_token=; path=/; max-age=0; SameSite=Strict";
 
-      // Força o redirecionamento via window para garantir o reset do estado da aplicação
-      window.location.href = "/login";
+      router.replace("/login");
+      router.refresh();
     }
   };
 

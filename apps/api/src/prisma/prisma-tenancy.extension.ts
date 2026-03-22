@@ -80,6 +80,29 @@ const WHERE_SCOPED_OPERATIONS = new Set<string>([
 
 const CREATE_SCOPED_OPERATIONS = new Set<string>(['create', 'createMany']);
 
+type TenancyWhere = Record<string, unknown>;
+type TenancyData = Record<string, unknown> | Array<Record<string, unknown>>;
+
+interface TenancyArgs {
+  where?: TenancyWhere;
+  data?: TenancyData;
+  [key: string]: unknown;
+}
+
+interface TenancyParams {
+  model: string;
+  operation: string;
+  args?: TenancyArgs;
+  query: (args: TenancyArgs) => unknown | Promise<unknown>;
+}
+
+function ensureRecord(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return {};
+  }
+  return value as Record<string, unknown>;
+}
+
 function objectHasCompanyId(value: unknown): boolean {
   if (value === null || value === undefined) return false;
   if (Array.isArray(value))
@@ -95,24 +118,17 @@ function objectHasCompanyId(value: unknown): boolean {
 
 export const tenancyLogic = async (
   cls: ClsService,
-  {
-    model,
-    operation,
-    args,
-    query,
-  }: { model: string; operation: string; args: any; query: any },
+  { model, operation, args, query }: TenancyParams,
 ) => {
   const companyId = cls.get<string>('companyId');
   const modelIsCompanyScoped = COMPANY_SCOPED_MODELS.has(model);
-
-  if (!args) {
-    args = {} as any;
-  }
+  const normalizedArgs: TenancyArgs = args ?? {};
 
   if (!companyId) {
     if (modelIsCompanyScoped) {
       const hasExplicitCompanyScope =
-        objectHasCompanyId(args.where) || objectHasCompanyId(args.data);
+        objectHasCompanyId(normalizedArgs.where) ||
+        objectHasCompanyId(normalizedArgs.data);
 
       if (
         (WHERE_SCOPED_OPERATIONS.has(operation) ||
@@ -124,50 +140,51 @@ export const tenancyLogic = async (
         );
       }
     }
-    return query(args);
+    return query(normalizedArgs);
   }
 
   if (model === 'companies' && WHERE_SCOPED_OPERATIONS.has(operation)) {
-    if (!args.where) {
-      args.where = {};
-    }
-    if (args.where.id === undefined) {
-      args.where.id = companyId;
+    const where = ensureRecord(normalizedArgs.where);
+    normalizedArgs.where = where;
+    if (where.id === undefined) {
+      where.id = companyId;
     }
   }
 
   if (modelIsCompanyScoped && WHERE_SCOPED_OPERATIONS.has(operation)) {
-    if (!args.where) {
-      args.where = {};
-    }
-    if (args.where.company_id === undefined) {
-      args.where.company_id = companyId;
+    const where = ensureRecord(normalizedArgs.where);
+    normalizedArgs.where = where;
+    if (where.company_id === undefined) {
+      where.company_id = companyId;
     }
   }
 
   if (modelIsCompanyScoped && CREATE_SCOPED_OPERATIONS.has(operation)) {
     if (operation === 'create') {
-      if (!args.data) args.data = {};
-      if (!args.data.company_id) {
-        args.data.company_id = companyId;
+      const data = ensureRecord(normalizedArgs.data);
+      normalizedArgs.data = data;
+      if (!data.company_id) {
+        data.company_id = companyId;
       }
     }
     if (operation === 'createMany') {
-      if (Array.isArray(args.data)) {
-        args.data.forEach((item: any) => {
+      if (Array.isArray(normalizedArgs.data)) {
+        normalizedArgs.data.forEach((item) => {
           if (!item.company_id) {
             item.company_id = companyId;
           }
         });
-      } else if (args.data && typeof args.data === 'object') {
-        if (!args.data.company_id) {
-          args.data.company_id = companyId;
+      } else {
+        const data = ensureRecord(normalizedArgs.data);
+        normalizedArgs.data = data;
+        if (!data.company_id) {
+          data.company_id = companyId;
         }
       }
     }
   }
 
-  return query(args);
+  return query(normalizedArgs);
 };
 
 export const tenancyExtension = (cls: ClsService) => {
@@ -176,7 +193,7 @@ export const tenancyExtension = (cls: ClsService) => {
     query: {
       $allModels: {
         async $allOperations(params) {
-          return tenancyLogic(cls, params as any);
+          return tenancyLogic(cls, params as TenancyParams);
         },
       },
     },

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@repo/api-types": "workspace:*",
+    "axios": "^1.13.6",
     "framer-motion": "^12.37.0",
     "lucide-react": "^0.577.0",
     "next": "16.1.6",

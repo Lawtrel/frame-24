@@ -37,6 +37,19 @@ interface MunicipalityData {
   };
 }
 
+interface MunicipalityApiItem {
+  id?: string;
+  nome?: string;
+  name?: string;
+  codigo_ibge?: string;
+  codigoIbge?: string;
+  estado?: {
+    sigla?: string;
+    nome?: string;
+  };
+  [key: string]: unknown;
+}
+
 @Injectable()
 export class BrasilApiService {
   private readonly logger = new Logger(BrasilApiService.name);
@@ -127,7 +140,7 @@ export class BrasilApiService {
       this.logger.log(`Querying BrasilAPI for municipality: ${city}, ${state}`);
 
       // A API de municípios da BrasilAPI usa o formato: /ibge/municipios/v1/{sigla_estado}
-      const response = await this.client.get<any[]>(
+      const response = await this.client.get<MunicipalityApiItem[]>(
         `/ibge/municipios/v1/${state}`,
       );
 
@@ -150,7 +163,7 @@ export class BrasilApiService {
         .toLowerCase()
         .trim();
 
-      const municipality = response.data.find((m: any) => {
+      const municipality = response.data.find((m) => {
         const normalizedName = (m.nome || m.name || '')
           .normalize('NFD')
           .replace(/[\u0300-\u036f]/g, '')

@@ -4,7 +4,7 @@ import { LoggerService } from '../services/logger.service';
 import { requireEnv } from 'src/config/env.util';
 import { ClsService } from 'nestjs-cls';
 
-export interface RabbitMQMessage<T = any> {
+export interface RabbitMQMessage<T = unknown> {
   pattern: string;
   data: T;
   metadata?: {
@@ -144,7 +144,7 @@ export class RabbitMQPublisherService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async publish<T = any>(message: RabbitMQMessage<T>): Promise<void> {
+  async publish<T = unknown>(message: RabbitMQMessage<T>): Promise<void> {
     if (!this.channel) {
       this.loggerService.warn(
         'Channel not ready, attempting to reconnect...',

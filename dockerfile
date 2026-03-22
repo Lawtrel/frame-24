@@ -18,7 +18,7 @@ RUN pnpm install
 COPY . .
 
 # Gera o Prisma Client para que a aplicação possa comunicar com o banco de dados
-WORKDIR /app/apps/backend
+WORKDIR /app/apps/api
 RUN pnpm exec prisma generate
 
 # Expõe a porta em que a aplicação irá correr
