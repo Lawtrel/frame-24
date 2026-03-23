@@ -1,8 +1,12 @@
 import {
+  ForbiddenException,
   Injectable,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
+import { bank_reconciliations } from '@repo/db';
+import { ClsService } from 'nestjs-cls';
 import { BankReconciliationRepository } from '../repositories/bank-reconciliation.repository';
 import { BankAccountsRepository } from '../repositories/bank-accounts.repository';
 import {
@@ -11,19 +15,36 @@ import {
 } from '../dto/bank-reconciliation.dto';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 
+type CreateBankReconciliationForCompanyInput = {
+  companyId: string;
+  createdBy: string;
+  dto: CreateBankReconciliationDto;
+};
+
 @Injectable()
 export class BankReconciliationService {
   constructor(
     private readonly repository: BankReconciliationRepository,
     private readonly bankAccountsRepository: BankAccountsRepository,
     private readonly snowflake: SnowflakeService,
-  ) { }
+    private readonly tenantContext: TenantContextService,
+  ) {}
 
   async create(
-    companyId: string,
-    createdBy: string,
     dto: CreateBankReconciliationDto,
-  ) {
+  ): Promise<bank_reconciliations> {
+    return this.createForCompany({
+      companyId: this.tenantContext.getCompanyId(),
+      createdBy: this.tenantContext.getRequiredUserId(),
+      dto,
+    });
+  }
+
+  async createForCompany(
+    input: CreateBankReconciliationForCompanyInput,
+  ): Promise<bank_reconciliations> {
+    const { companyId, createdBy, dto } = input;
+
     const account = await this.bankAccountsRepository.findById(
       dto.bank_account_id,
       companyId,
@@ -92,11 +113,12 @@ export class BankReconciliationService {
     });
   }
 
-  async findAll(companyId: string, bankAccountId?: string) {
+  async findAll(bankAccountId?: string): Promise<bank_reconciliations[]> {
+    const companyId = this.tenantContext.getCompanyId();
     return this.repository.findAll(companyId, bankAccountId);
   }
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<bank_reconciliations> {
     const reconciliation = await this.repository.findById(id);
 
     if (!reconciliation) {
@@ -106,7 +128,10 @@ export class BankReconciliationService {
     return reconciliation;
   }
 
-  async update(id: string, dto: UpdateBankReconciliationDto) {
+  async update(
+    id: string,
+    dto: UpdateBankReconciliationDto,
+  ): Promise<bank_reconciliations> {
     const reconciliation = await this.findOne(id);
 
     if (reconciliation.status === 'completed') {
@@ -134,7 +159,7 @@ export class BankReconciliationService {
     });
   }
 
-  async complete(id: string) {
+  async complete(id: string): Promise<bank_reconciliations> {
     const reconciliation = await this.findOne(id);
 
     if (Number(reconciliation.difference) !== 0) {

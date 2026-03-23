@@ -3,9 +3,12 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { Transactional } from '@nestjs-cls/transactional';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { products } from '@repo/db';
+import { ClsService } from 'nestjs-cls';
 import { ProductRepository } from '../repositories/product.repository';
 import { ProductCategoryRepository } from '../repositories/product-category.repository';
 import { CreateProductDto } from '../dto/create-product.dto';
@@ -21,17 +24,19 @@ export class ProductsService {
     private readonly categoryRepo: ProductCategoryRepository,
     private readonly logger: LoggerService,
     private readonly storageService: StorageService,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
   @Transactional()
   async create(
     dto: CreateProductDto,
-    company_id: string,
     file?: Express.Multer.File,
   ): Promise<ProductResponseDto> {
+    const companyId = this.tenantContext.getCompanyId();
+
     const category = await this.categoryRepo.findById(
       dto.category_id,
-      company_id,
+      companyId,
     );
     if (!category) {
       throw new BadRequestException('Product category not found');
@@ -39,13 +44,13 @@ export class ProductsService {
 
     const product_code = await this.generateProductCode(
       dto.category_id,
-      company_id,
+      companyId,
     );
 
     if (dto.barcode) {
       const existingBarcode = await this.productRepo.findByBarcode(
         dto.barcode,
-        company_id,
+        companyId,
       );
       if (existingBarcode) {
         throw new ConflictException('Barcode already exists');
@@ -59,7 +64,7 @@ export class ProductsService {
     }
 
     const product = await this.productRepo.create({
-      company_id,
+      company_id: companyId,
       product_categories: { connect: { id: dto.category_id } },
       product_code,
       name: dto.name,
@@ -82,19 +87,18 @@ export class ProductsService {
     return this.mapToDto(product, category.name);
   }
 
-  async findAll(
-    company_id: string,
-    active?: boolean,
-  ): Promise<ProductResponseDto[]> {
-    const products = await this.productRepo.findAll(company_id, active);
+  async findAll(active?: boolean): Promise<ProductResponseDto[]> {
+    const companyId = this.tenantContext.getCompanyId();
+    const products = await this.productRepo.findAll(companyId, active);
 
     return products.map((product) =>
       this.mapToDto(product, product.product_categories?.name),
     );
   }
 
-  async findOne(id: string, company_id: string): Promise<ProductResponseDto> {
-    const product = await this.productRepo.findById(id, company_id);
+  async findOne(id: string): Promise<ProductResponseDto> {
+    const companyId = this.tenantContext.getCompanyId();
+    const product = await this.productRepo.findById(id, companyId);
 
     if (!product) {
       throw new NotFoundException('Product not found');
@@ -105,17 +109,17 @@ export class ProductsService {
 
   async findByCategory(
     category_id: string,
-    company_id: string,
     active?: boolean,
   ): Promise<ProductResponseDto[]> {
-    const category = await this.categoryRepo.findById(category_id, company_id);
+    const companyId = this.tenantContext.getCompanyId();
+    const category = await this.categoryRepo.findById(category_id, companyId);
     if (!category) {
       throw new NotFoundException('Product category not found');
     }
 
     const products = await this.productRepo.findByCategory(
       category_id,
-      company_id,
+      companyId,
       active,
     );
 
@@ -123,12 +127,12 @@ export class ProductsService {
   }
 
   async search(
-    company_id: string,
     searchTerm: string,
     active?: boolean,
   ): Promise<ProductResponseDto[]> {
+    const companyId = this.tenantContext.getCompanyId();
     const products = await this.productRepo.search(
-      company_id,
+      companyId,
       searchTerm,
       active,
     );
@@ -142,10 +146,10 @@ export class ProductsService {
   async update(
     id: string,
     dto: UpdateProductDto,
-    company_id: string,
     file?: Express.Multer.File,
   ): Promise<ProductResponseDto> {
-    const product = await this.productRepo.findById(id, company_id);
+    const companyId = this.tenantContext.getCompanyId();
+    const product = await this.productRepo.findById(id, companyId);
 
     if (!product) {
       throw new NotFoundException('Product not found');
@@ -154,7 +158,7 @@ export class ProductsService {
     if (dto.category_id && dto.category_id !== product.category_id) {
       const category = await this.categoryRepo.findById(
         dto.category_id,
-        company_id,
+        companyId,
       );
       if (!category) {
         throw new BadRequestException('Product category not found');
@@ -164,7 +168,7 @@ export class ProductsService {
     if (dto.product_code && dto.product_code !== product.product_code) {
       const existingCode = await this.productRepo.findByProductCode(
         dto.product_code,
-        company_id,
+        companyId,
       );
       if (existingCode) {
         throw new ConflictException('Product code already exists');
@@ -174,7 +178,7 @@ export class ProductsService {
     if (dto.barcode && dto.barcode !== product.barcode) {
       const existingBarcode = await this.productRepo.findByBarcode(
         dto.barcode,
-        company_id,
+        companyId,
       );
       if (existingBarcode) {
         throw new ConflictException('Barcode already exists');
@@ -217,15 +221,16 @@ export class ProductsService {
 
     const categoryName =
       dto.category_id && dto.category_id !== product.category_id
-        ? (await this.categoryRepo.findById(dto.category_id, company_id))?.name
+        ? (await this.categoryRepo.findById(dto.category_id, companyId))?.name
         : product.product_categories?.name;
 
     return this.mapToDto(updated, categoryName);
   }
 
   @Transactional()
-  async delete(id: string, company_id: string, soft = true): Promise<void> {
-    const product = await this.productRepo.findById(id, company_id);
+  async delete(id: string, soft = true): Promise<void> {
+    const companyId = this.tenantContext.getCompanyId();
+    const product = await this.productRepo.findById(id, companyId);
 
     if (!product) {
       throw new NotFoundException('Product not found');

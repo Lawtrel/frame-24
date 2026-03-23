@@ -12,43 +12,40 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface ProductDto
  */
 export interface ProductDto {
-    /**
-     * 
-     * @type {string}
-     * @memberof ProductDto
-     */
-    'id': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ProductDto
-     */
-    'name': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ProductDto
-     */
-    'description': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof ProductDto
-     */
-    'price': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof ProductDto
-     */
-    'image_url'?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof ProductDto
+   */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ProductDto
+   */
+  name: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ProductDto
+   */
+  description: string;
+  /**
+   *
+   * @type {number}
+   * @memberof ProductDto
+   */
+  price: number;
+  /**
+   *
+   * @type {string}
+   * @memberof ProductDto
+   */
+  image_url?: string | null;
 }
-

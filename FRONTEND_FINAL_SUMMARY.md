@@ -4,17 +4,17 @@ O frontend do Frame-24 foi completamente reestruturado e expandido para incluir 
 
 ## 🚀 Funcionalidades Implementadas
 
-| Módulo | Funcionalidades | Status |
-| :--- | :--- | :--- |
-| **CRUD Completo** | Páginas de Criação/Edição (`create-edit/[id]/page.tsx`) para **TODOS** os módulos: Usuários, Roles, Filmes, Produtos, Categorias, Complexos, Salas, Sessões, Fornecedores. | ✅ Completo |
-| **Paginação** | Implementação de um `usePaginationAndFilter` hook e componente `Pagination` em **TODAS** as listagens. | ✅ Completo |
-| **Filtros Avançados** | Implementação de campo de busca (`searchTerm`) em **TODAS** as listagens, integrado ao hook de paginação. | ✅ Completo |
-| **Upload de Imagens** | Criação do componente `ImageUpload.tsx` para Filmes e Produtos (integração simulada com backend). | ✅ Completo |
-| **Sistema de Vendas** | Módulo de Vendas completo: **Ponto de Venda (PDV)** e **Histórico de Transações**. | ✅ Completo |
-| **Gestão Financeira** | Módulo Financeiro completo: **Contas a Pagar**, **Contas a Receber** e **Fluxo de Caixa** (com filtros de data). | ✅ Completo |
-| **Relatórios e Gráficos** | **Dashboard** atualizado com novas métricas (Vendas, Fluxo Líquido) e placeholders para gráficos de vendas e fluxo de caixa. | ✅ Completo |
-| **Componentes Reutilizáveis** | `FormInput.tsx`, `Pagination.tsx`, `FormLayout.tsx`, `usePaginationAndFilter.ts`, `ImageUpload.tsx`. | ✅ Completo |
-| **Navegação** | Menu de navegação (`navigation.tsx`) atualizado para incluir todos os novos módulos e sub-módulos (Vendas, Financeiro). | ✅ Completo |
+| Módulo                        | Funcionalidades                                                                                                                                                            | Status      |
+| :---------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------- |
+| **CRUD Completo**             | Páginas de Criação/Edição (`create-edit/[id]/page.tsx`) para **TODOS** os módulos: Usuários, Roles, Filmes, Produtos, Categorias, Complexos, Salas, Sessões, Fornecedores. | ✅ Completo |
+| **Paginação**                 | Implementação de um `usePaginationAndFilter` hook e componente `Pagination` em **TODAS** as listagens.                                                                     | ✅ Completo |
+| **Filtros Avançados**         | Implementação de campo de busca (`searchTerm`) em **TODAS** as listagens, integrado ao hook de paginação.                                                                  | ✅ Completo |
+| **Upload de Imagens**         | Criação do componente `ImageUpload.tsx` para Filmes e Produtos (integração simulada com backend).                                                                          | ✅ Completo |
+| **Sistema de Vendas**         | Módulo de Vendas completo: **Ponto de Venda (PDV)** e **Histórico de Transações**.                                                                                         | ✅ Completo |
+| **Gestão Financeira**         | Módulo Financeiro completo: **Contas a Pagar**, **Contas a Receber** e **Fluxo de Caixa** (com filtros de data).                                                           | ✅ Completo |
+| **Relatórios e Gráficos**     | **Dashboard** atualizado com novas métricas (Vendas, Fluxo Líquido) e placeholders para gráficos de vendas e fluxo de caixa.                                               | ✅ Completo |
+| **Componentes Reutilizáveis** | `FormInput.tsx`, `Pagination.tsx`, `FormLayout.tsx`, `usePaginationAndFilter.ts`, `ImageUpload.tsx`.                                                                       | ✅ Completo |
+| **Navegação**                 | Menu de navegação (`navigation.tsx`) atualizado para incluir todos os novos módulos e sub-módulos (Vendas, Financeiro).                                                    | ✅ Completo |
 
 ## 💾 Arquivos Chave Criados/Modificados
 

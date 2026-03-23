@@ -18,6 +18,10 @@ jest.mock('crypto', () => ({
   randomBytes: jest.fn().mockReturnValue({
     toString: jest.fn().mockReturnValue('verification-token-abc123'),
   }),
+  createHash: jest.fn().mockReturnValue({
+    update: jest.fn().mockReturnThis(),
+    digest: jest.fn().mockReturnValue('hashed-token'),
+  }),
 }));
 
 describe('EmailVerificationService', () => {
@@ -31,7 +35,7 @@ describe('EmailVerificationService', () => {
     personId: 'person-123',
     email: 'usuario@example.com',
     emailVerified: false,
-    emailVerificationToken: 'valid-token',
+    emailVerificationToken: 'hashed-token',
     emailVerificationExpiresAt: new Date(Date.now() + 86400000),
   } as Identity;
 
@@ -126,6 +130,9 @@ describe('EmailVerificationService', () => {
         identity: mockIdentity,
         person: mockPerson,
       });
+      expect(identityRepository.findByVerificationToken).toHaveBeenCalledWith(
+        'hashed-token',
+      );
     });
 
     it('deve lançar BadRequestException quando token for inválido', async () => {

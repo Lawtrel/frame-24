@@ -12,58 +12,56 @@
  * Do not edit the class manually.
  */
 
-
 // May contain unused imports in some cases
 // @ts-ignore
-import type { ProductDto } from './product-dto';
+import type { ProductDto } from "./product-dto";
 
 /**
- * 
+ *
  * @export
  * @interface ConcessionSaleItemDto
  */
 export interface ConcessionSaleItemDto {
-    /**
-     * 
-     * @type {string}
-     * @memberof ConcessionSaleItemDto
-     */
-    'id': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConcessionSaleItemDto
-     */
-    'quantity': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConcessionSaleItemDto
-     */
-    'unit_price': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof ConcessionSaleItemDto
-     */
-    'item_type': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ConcessionSaleItemDto
-     */
-    'item_id': string;
-    /**
-     * 
-     * @type {ProductDto}
-     * @memberof ConcessionSaleItemDto
-     */
-    'products'?: ProductDto | null;
-    /**
-     * 
-     * @type {number}
-     * @memberof ConcessionSaleItemDto
-     */
-    'price': number;
+  /**
+   *
+   * @type {string}
+   * @memberof ConcessionSaleItemDto
+   */
+  id: string;
+  /**
+   *
+   * @type {number}
+   * @memberof ConcessionSaleItemDto
+   */
+  quantity: number;
+  /**
+   *
+   * @type {number}
+   * @memberof ConcessionSaleItemDto
+   */
+  unit_price: number;
+  /**
+   *
+   * @type {string}
+   * @memberof ConcessionSaleItemDto
+   */
+  item_type: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ConcessionSaleItemDto
+   */
+  item_id: string;
+  /**
+   *
+   * @type {ProductDto}
+   * @memberof ConcessionSaleItemDto
+   */
+  products?: ProductDto | null;
+  /**
+   *
+   * @type {number}
+   * @memberof ConcessionSaleItemDto
+   */
+  price: number;
 }
-

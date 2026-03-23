@@ -3,14 +3,46 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { Transactional } from '@nestjs-cls/transactional';
+import { ClsService } from 'nestjs-cls';
 import { TicketsRepository } from '../repositories/tickets.repository';
 import { ShowtimesRepository } from 'src/modules/operations/showtime_schedule/repositories/showtime.repository';
 import { SessionSeatStatusRepository } from 'src/modules/operations/session_seat_status/repositories/session-seat-status.repository';
 import { SeatStatusRepository } from 'src/modules/operations/seat-status/repositories/seat-status.repository';
 import { SeatsRepository } from 'src/modules/operations/seats/repositories/seats.repository';
 import { LoggerService } from 'src/common/services/logger.service';
+
+type TicketsExecutionContext = {
+  companyId?: string;
+};
+
+type ValidateAndReserveSeatsInput = {
+  showtimeId: string;
+  seatIds: string[];
+  context?: TicketsExecutionContext;
+};
+
+type ReserveSeatsInput = {
+  showtimeId: string;
+  seatIds: string[];
+  saleId: string;
+  context?: TicketsExecutionContext;
+};
+
+type ReleaseSeatsInput = {
+  showtimeId: string;
+  seatIds: string[];
+  context?: TicketsExecutionContext;
+};
+
+type CalculateTicketPriceInput = {
+  showtimeId: string;
+  seatId?: string;
+  ticketTypeId?: string;
+  context?: TicketsExecutionContext;
+};
 
 @Injectable()
 export class TicketsService {
@@ -21,21 +53,31 @@ export class TicketsService {
     private readonly seatStatusRepository: SeatStatusRepository,
     public readonly seatsRepository: SeatsRepository,
     private readonly logger: LoggerService,
+    private readonly cls: ClsService,
   ) {}
 
+  private resolveCompanyId(context?: TicketsExecutionContext): string {
+    const companyId = context?.companyId ?? this.cls.get<string>('companyId');
+    if (!companyId) {
+      throw new ForbiddenException('Contexto da empresa não encontrado.');
+    }
+    return companyId;
+  }
+
   async validateAndReserveSeats(
-    showtime_id: string,
-    seat_ids: string[],
-    company_id: string,
+    input: ValidateAndReserveSeatsInput,
   ): Promise<void> {
+    const { showtimeId, seatIds, context } = input;
+    const companyId = this.resolveCompanyId(context);
+
     // Validar sessão
-    const showtime = await this.showtimesRepository.findById(showtime_id);
+    const showtime = await this.showtimesRepository.findById(showtimeId);
     if (!showtime) {
       throw new NotFoundException('Sessão não encontrada');
     }
 
     // Validar que a sessão pertence à empresa
-    if (showtime.cinema_complexes?.company_id !== company_id) {
+    if (showtime.cinema_complexes?.company_id !== companyId) {
       throw new BadRequestException('A sessão não pertence à sua empresa');
     }
 
@@ -47,11 +89,11 @@ export class TicketsService {
     // Buscar status "vendido" ou "ocupado"
     const soldStatus = await this.seatStatusRepository.findByNameAndCompany(
       'Vendido',
-      company_id,
+      companyId,
     );
     const occupiedStatus = await this.seatStatusRepository.findByNameAndCompany(
       'Ocupado',
-      company_id,
+      companyId,
     );
 
     if (!soldStatus && !occupiedStatus) {
@@ -63,21 +105,21 @@ export class TicketsService {
     const reservedStatusId = soldStatus?.id || occupiedStatus?.id;
 
     // Validar cada assento
-    for (const seat_id of seat_ids) {
-      const seat = await this.seatsRepository.findById(seat_id);
+    for (const seatId of seatIds) {
+      const seat = await this.seatsRepository.findById(seatId);
       if (!seat) {
         throw new NotFoundException(`Assento não encontrado`);
       }
 
       const sessionSeatStatus =
         await this.sessionSeatStatusRepository.findBySeatAndShowtime(
-          showtime_id,
-          seat_id,
+          showtimeId,
+          seatId,
         );
 
       if (!sessionSeatStatus) {
         throw new NotFoundException(
-          `Assento ${seat_id} não está disponível nesta sessão`,
+          `Assento ${seatId} não está disponível nesta sessão`,
         );
       }
 
@@ -94,16 +136,14 @@ export class TicketsService {
   }
 
   @Transactional()
-  async reserveSeats(
-    showtime_id: string,
-    seat_ids: string[],
-    sale_id: string,
-    company_id: string,
-  ): Promise<void> {
+  async reserveSeats(input: ReserveSeatsInput): Promise<void> {
+    const { showtimeId, seatIds, saleId, context } = input;
+    const companyId = this.resolveCompanyId(context);
+
     // Buscar status "vendido"
     const soldStatus = await this.seatStatusRepository.findByNameAndCompany(
       'Vendido',
-      company_id,
+      companyId,
     );
 
     if (!soldStatus) {
@@ -113,61 +153,117 @@ export class TicketsService {
     }
 
     // Atualizar status dos assentos diretamente no banco
-    for (const seat_id of seat_ids) {
-      await this.sessionSeatStatusRepository[
-        'prisma'
-      ].session_seat_status.updateMany({
-        where: {
-          showtime_id,
-          seat_id,
+    for (const seatId of seatIds) {
+      await this.sessionSeatStatusRepository.updateMany(
+        {
+          showtime_id: showtimeId,
+          seat_id: seatId,
         },
-        data: {
+        {
           status: soldStatus.id,
-          sale_id,
+          sale_id: saleId,
           // IMPORTANTE: Limpar campos de reserva ao vender
           reservation_uuid: null,
           reservation_date: null,
           expiration_date: null,
         },
-      });
+      );
     }
 
-    // Atualizar contadores da sessão
-    const showtime = await this.showtimesRepository.findById(showtime_id);
-    if (showtime) {
-      const currentSold = showtime.sold_seats || 0;
-      const currentAvailable = showtime.available_seats || 0;
+    // Atualização atômica com guarda de limite evita contadores negativos.
+    const countersUpdated =
+      await this.showtimesRepository.reserveSeatsCountersAtomically(
+        showtimeId,
+        seatIds.length,
+      );
 
-      await this.showtimesRepository.update(showtime_id, {
-        sold_seats: currentSold + seat_ids.length,
-        available_seats: Math.max(0, currentAvailable - seat_ids.length),
-      });
+    if (!countersUpdated) {
+      throw new ConflictException(
+        'Não foi possível atualizar lotação da sessão de forma segura',
+      );
     }
   }
 
-  async calculateTicketPrice(
-    showtime_id: string,
-    seat_id: string | undefined,
-    ticket_type_id: string | undefined,
-    company_id: string,
-  ): Promise<{
+  @Transactional()
+  async releaseSeats(input: ReleaseSeatsInput): Promise<void> {
+    const { showtimeId, seatIds, context } = input;
+    const companyId = this.resolveCompanyId(context);
+
+    if (seatIds.length === 0) {
+      return;
+    }
+
+    const availableStatus = await this.getAvailableSeatStatus(companyId);
+
+    let releasedCount = 0;
+    for (const seatId of seatIds) {
+      const sessionSeatStatus =
+        await this.sessionSeatStatusRepository.findBySeatAndShowtime(
+          showtimeId,
+          seatId,
+        );
+
+      if (!sessionSeatStatus?.sale_id) {
+        continue;
+      }
+
+      await this.sessionSeatStatusRepository.updateStatus(showtimeId, seatId, {
+        seat_status: { connect: { id: availableStatus.id } },
+        sale_id: null,
+        reservation_uuid: null,
+        reservation_date: null,
+        expiration_date: null,
+      });
+
+      releasedCount += 1;
+    }
+
+    if (releasedCount === 0) {
+      return;
+    }
+
+    const countersUpdated =
+      await this.showtimesRepository.releaseSeatsCountersSafely(
+        showtimeId,
+        releasedCount,
+      );
+
+    if (!countersUpdated) {
+      this.logger.warn(
+        `Falha ao atualizar contadores da sessão ${showtimeId} na liberação de assentos`,
+        TicketsService.name,
+      );
+      return;
+    }
+
+    this.logger.log(
+      `Assentos liberados na sessão ${showtimeId}: ${releasedCount}`,
+      TicketsService.name,
+    );
+  }
+
+  async calculateTicketPrice(input: CalculateTicketPriceInput): Promise<{
     face_value: number;
     service_fee: number;
     total_amount: number;
   }> {
-    const showtime = await this.showtimesRepository.findById(showtime_id);
+    const { showtimeId, seatId, ticketTypeId, context } = input;
+    const companyId = this.resolveCompanyId(context);
+
+    const showtime = await this.showtimesRepository.findById(showtimeId);
     if (!showtime) {
       throw new NotFoundException('Sessão não encontrada');
+    }
+
+    if (showtime.cinema_complexes?.company_id !== companyId) {
+      throw new BadRequestException('A sessão não pertence à sua empresa');
     }
 
     let basePrice = Number(showtime.base_ticket_price);
 
     // Adicionar valor adicional do tipo de assento (se houver)
-    if (seat_id) {
-      const seat = await this.seatsRepository['prisma'].seats.findUnique({
-        where: { id: seat_id },
-        include: { seat_types: true },
-      });
+    if (seatId) {
+      const seat = await this.seatsRepository.findByIdWithSeatType(seatId);
 
       if (seat?.seat_types?.additional_value) {
         const additionalValue = Number(seat.seat_types.additional_value);
@@ -177,12 +273,9 @@ export class TicketsService {
 
     // Aplicar desconto do tipo de ingresso (se houver)
     let multiplier = 1;
-    if (ticket_type_id) {
-      const ticketType = await this.ticketsRepository[
-        'prisma'
-      ].ticket_types.findUnique({
-        where: { id: ticket_type_id },
-      });
+    if (ticketTypeId) {
+      const ticketType =
+        await this.ticketsRepository.findTicketTypeById(ticketTypeId);
 
       if (ticketType?.discount_percentage) {
         multiplier = 1 - Number(ticketType.discount_percentage) / 100;
@@ -190,7 +283,7 @@ export class TicketsService {
     }
 
     const face_value = basePrice * multiplier;
-    const service_fee = 0; // TODO: Calcular taxa de serviço se houver
+    const service_fee = 0; // Fee não configurada para o tenant no momento
     const total_amount = face_value + service_fee;
 
     return {
@@ -198,5 +291,26 @@ export class TicketsService {
       service_fee,
       total_amount,
     };
+  }
+
+  private async getAvailableSeatStatus(companyId: string): Promise<{
+    id: string;
+  }> {
+    const statusCandidates = ['Disponível', 'Disponivel', 'Livre'];
+
+    for (const statusName of statusCandidates) {
+      const status = await this.seatStatusRepository.findByNameAndCompany(
+        statusName,
+        companyId,
+      );
+
+      if (status) {
+        return status;
+      }
+    }
+
+    throw new NotFoundException(
+      'Status de assento "Disponível" não configurado',
+    );
   }
 }

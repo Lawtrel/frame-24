@@ -1,16 +1,21 @@
-import { Controller, Delete, Get, Param, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import {
+  Controller,
+  Delete,
+  Get,
+  Param,
+  UseGuards,
+} from '@nestjs/common';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import { AdminOperationsService } from '../services/admin-operations.service';
 
 @ApiTags('Admin')
 @ApiBearerAuth()
 @Controller({ path: 'admin', version: '1' })
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class AdminOperationsController {
   constructor(private readonly adminService: AdminOperationsService) {}
 
@@ -19,8 +24,8 @@ export class AdminOperationsController {
   @ApiOperation({
     summary: 'Listar reservas pendentes de assentos',
   })
-  async listReservations(@CurrentUser() user: RequestUser) {
-    return this.adminService.listActiveReservations(user.company_id);
+  async listReservations() {
+    return this.adminService.listActiveReservations();
   }
 
   @Delete('reservations/:id')
@@ -28,11 +33,8 @@ export class AdminOperationsController {
   @ApiOperation({
     summary: 'Liberar/cancelar reserva pendente',
   })
-  async cancelReservation(
-    @Param('id') id: string,
-    @CurrentUser() user: RequestUser,
-  ) {
-    await this.adminService.cancelReservation(user.company_id, id);
+  async cancelReservation(@Param('id', ParseEntityIdPipe) id: string) {
+    await this.adminService.cancelReservation(id);
     return { success: true };
   }
 
@@ -41,10 +43,7 @@ export class AdminOperationsController {
   @ApiOperation({
     summary: 'Obter QR Code de um ingresso (uso administrativo)',
   })
-  async getTicketQrCode(
-    @Param('id') id: string,
-    @CurrentUser() user: RequestUser,
-  ) {
-    return this.adminService.getTicketQrCode(user.company_id, id);
+  async getTicketQrCode(@Param('id', ParseEntityIdPipe) id: string) {
+    return this.adminService.getTicketQrCode(id);
   }
 }

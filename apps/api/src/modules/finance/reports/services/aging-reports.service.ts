@@ -1,15 +1,55 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
+import { Prisma } from '@repo/db';
+import { ClsService } from 'nestjs-cls';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AgingReportQueryDto } from '../dto/aging-report-query.dto';
 
+type AgingItem = {
+  id: string;
+  document_number: string;
+  issue_date: Date;
+  due_date: Date;
+  original_amount: Prisma.Decimal;
+  remaining_amount: Prisma.Decimal;
+  status: string;
+  customer_id?: string | null;
+  supplier_id?: string | null;
+};
+
+type AgingBucketItem = AgingItem & { days_diff: number };
+
+type AgingBucket = {
+  label: string;
+  amount: number;
+  count: number;
+  items: AgingBucketItem[];
+};
+
+type AgingBuckets = {
+  overdue_90_plus: AgingBucket;
+  overdue_61_90: AgingBucket;
+  overdue_31_60: AgingBucket;
+  overdue_1_30: AgingBucket;
+  due_today: AgingBucket;
+  coming_1_30: AgingBucket;
+  coming_31_60: AgingBucket;
+  coming_61_90: AgingBucket;
+  coming_90_plus: AgingBucket;
+};
+
 @Injectable()
 export class AgingReportsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly tenantContext: TenantContextService,
+  ) {}
 
-  async getReceivablesAging(company_id: string, query: AgingReportQueryDto) {
+  async getReceivablesAging(query: AgingReportQueryDto) {
+    const companyId = this.tenantContext.getCompanyId();
     const baseDate = query.base_date ? new Date(query.base_date) : new Date();
-    const where: any = {
-      company_id,
+    const where: Prisma.accounts_receivableWhereInput = {
+      company_id: companyId,
       status: { in: ['pending', 'partially_paid', 'overdue'] },
     };
 
@@ -34,10 +74,11 @@ export class AgingReportsService {
     return this.calculateAging(receivables, baseDate);
   }
 
-  async getPayablesAging(company_id: string, query: AgingReportQueryDto) {
+  async getPayablesAging(query: AgingReportQueryDto) {
+    const companyId = this.tenantContext.getCompanyId();
     const baseDate = query.base_date ? new Date(query.base_date) : new Date();
-    const where: any = {
-      company_id,
+    const where: Prisma.accounts_payableWhereInput = {
+      company_id: companyId,
       status: { in: ['pending', 'partially_paid', 'overdue'] },
     };
 
@@ -62,61 +103,64 @@ export class AgingReportsService {
     return this.calculateAging(payables, baseDate);
   }
 
-  private calculateAging(items: any[], baseDate: Date) {
-    const buckets = {
+  private calculateAging(
+    items: AgingItem[],
+    baseDate: Date,
+  ): { base_date: string; total_amount: number; buckets: AgingBuckets } {
+    const buckets: AgingBuckets = {
       overdue_90_plus: {
         label: 'Overdue > 90 days',
         amount: 0,
         count: 0,
-        items: [] as any[],
+        items: [],
       },
       overdue_61_90: {
         label: 'Overdue 61-90 days',
         amount: 0,
         count: 0,
-        items: [] as any[],
+        items: [],
       },
       overdue_31_60: {
         label: 'Overdue 31-60 days',
         amount: 0,
         count: 0,
-        items: [] as any[],
+        items: [],
       },
       overdue_1_30: {
         label: 'Overdue 1-30 days',
         amount: 0,
         count: 0,
-        items: [] as any[],
+        items: [],
       },
       due_today: {
         label: 'Due Today',
         amount: 0,
         count: 0,
-        items: [] as any[],
+        items: [],
       },
       coming_1_30: {
         label: 'Coming 1-30 days',
         amount: 0,
         count: 0,
-        items: [] as any[],
+        items: [],
       },
       coming_31_60: {
         label: 'Coming 31-60 days',
         amount: 0,
         count: 0,
-        items: [] as any[],
+        items: [],
       },
       coming_61_90: {
         label: 'Coming 61-90 days',
         amount: 0,
         count: 0,
-        items: [] as any[],
+        items: [],
       },
       coming_90_plus: {
         label: 'Coming > 90 days',
         amount: 0,
         count: 0,
-        items: [] as any[],
+        items: [],
       },
     };
 

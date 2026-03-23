@@ -1,19 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { 
-  LayoutDashboard, 
-  Users, 
-  Film, 
-  DollarSign, 
-  Settings, 
+import { usePathname, useRouter } from "next/navigation";
+import {
+  LayoutDashboard,
+  Users,
+  Film,
+  DollarSign,
+  Settings,
   Package,
   LogOut,
   CalendarClock,
   Ticket,
   Popcorn,
-  Truck
+  Truck,
 } from "lucide-react";
 import { AuthService } from "@/services/auth-service";
 
@@ -32,6 +32,7 @@ const menuItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
 
   const handleLogout = async () => {
     try {
@@ -42,12 +43,12 @@ export function Sidebar() {
     } finally {
       // Limpeza local obrigatória
       localStorage.removeItem("admin_token");
-      
+
       // Limpa o cookie forçando a expiração
       document.cookie = "admin_token=; path=/; max-age=0; SameSite=Strict";
-      
-      // Força o redirecionamento via window para garantir o reset do estado da aplicação
-      window.location.href = "/login";
+
+      router.replace("/login");
+      router.refresh();
     }
   };
 
@@ -59,18 +60,19 @@ export function Sidebar() {
           Frame24 <span className="text-accent-red">Admin</span>
         </h1>
       </div>
-      
+
       {/* Navegação Principal */}
       <nav className="flex-1 px-4 space-y-2">
         {menuItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+          const isActive =
+            pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
             <Link
               key={item.href}
               href={item.href}
               className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                isActive 
-                  ? "bg-accent-red/10 text-accent-red" 
+                isActive
+                  ? "bg-accent-red/10 text-accent-red"
                   : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
               }`}
             >

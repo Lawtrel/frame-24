@@ -1,4 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
+import { ClsService } from 'nestjs-cls';
 import { MunicipalTaxParametersRepository } from '../repositories/municipal-tax-parameters.repository';
 import { FederalTaxRatesRepository } from '../repositories/federal-tax-rates.repository';
 import { CinemaComplexesRepository } from 'src/modules/operations/cinema-complexes/repositories/cinema-complexes.repository';
@@ -7,11 +13,14 @@ export interface TaxCalculationInput {
   gross_amount: number;
   deductions_amount?: number;
   cinema_complex_id: string;
-  company_id: string;
   competence_date: Date;
   revenue_type?: string;
   pis_cofins_regime?: string;
 }
+
+type TaxCalculationContext = {
+  companyId?: string;
+};
 
 export interface TaxCalculationResult {
   gross_amount: number;
@@ -40,37 +49,43 @@ export class TaxCalculationService {
     private readonly municipalTaxParametersRepository: MunicipalTaxParametersRepository,
     private readonly federalTaxRatesRepository: FederalTaxRatesRepository,
     private readonly cinemaComplexesRepository: CinemaComplexesRepository,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
   async calculateTaxes(
     input: TaxCalculationInput,
+    context?: TaxCalculationContext,
   ): Promise<TaxCalculationResult> {
+    const companyId = context?.companyId ?? this.tenantContext.getCompanyId();
+
     // Buscar complexo para obter IBGE code
     const complex = await this.cinemaComplexesRepository.findById(
       input.cinema_complex_id,
     );
-    if (!complex) {
-      throw new Error('Complexo de cinema não encontrado');
+    if (!complex || complex.company_id !== companyId) {
+      throw new NotFoundException('Complexo de cinema não encontrado');
     }
 
     // Buscar impostos municipais
     const municipalTax =
       await this.municipalTaxParametersRepository.findActiveByCompanyAndIbge(
-        input.company_id,
+        companyId,
         complex.ibge_municipality_code,
         input.competence_date,
       );
 
     // Buscar impostos federais
     const federalTax = await this.federalTaxRatesRepository.findActiveByCompany(
-      input.company_id,
+      companyId,
       input.competence_date,
       input.revenue_type,
       input.pis_cofins_regime,
     );
 
     if (!federalTax) {
-      throw new Error('Parâmetros fiscais federais não encontrados');
+      throw new NotFoundException(
+        'Parâmetros fiscais federais não encontrados',
+      );
     }
 
     // Calcular base de cálculo

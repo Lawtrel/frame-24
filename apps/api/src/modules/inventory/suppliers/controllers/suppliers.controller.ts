@@ -11,11 +11,10 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import * as jwtStrategy from '../../../identity/auth/strategies/jwt.strategy';
 import { SuppliersService } from '../services/suppliers.service';
 import { CreateSupplierDto } from '../dto/create-supplier.dto';
 import { UpdateSupplierDto } from '../dto/update-supplier.dto';
@@ -31,7 +30,7 @@ import {
 
 @ApiTags('Suppliers')
 @Controller({ path: 'suppliers', version: '1' })
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class SuppliersController {
   constructor(private readonly suppliersService: SuppliersService) {}
 
@@ -53,11 +52,8 @@ export class SuppliersController {
   @ApiBadRequestResponse({
     description: 'Erro de validação no payload enviado.',
   })
-  async create(
-    @Body() dto: CreateSupplierDto,
-    @CurrentUser() user: jwtStrategy.RequestUser,
-  ) {
-    return this.suppliersService.create(dto, user.company_id);
+  async create(@Body() dto: CreateSupplierDto) {
+    return this.suppliersService.create(dto);
   }
 
   @Get()
@@ -77,14 +73,8 @@ export class SuppliersController {
     status: 200,
     description: 'Lista de fornecedores retornada com sucesso.',
   })
-  async findAll(
-    @CurrentUser() user: jwtStrategy.RequestUser,
-    @Query('distributors') onlyDistributors?: string,
-  ) {
-    return this.suppliersService.findAll(
-      user.company_id,
-      onlyDistributors === 'true',
-    );
+  async findAll(@Query('distributors') onlyDistributors?: string) {
+    return this.suppliersService.findAll(onlyDistributors === 'true');
   }
 
   @Get('types')
@@ -98,8 +88,8 @@ export class SuppliersController {
     status: 200,
     description: 'Tipos de fornecedores retornados com sucesso.',
   })
-  async findTypes(@CurrentUser() user: jwtStrategy.RequestUser) {
-    return this.suppliersService.findTypes(user.company_id);
+  async findTypes() {
+    return this.suppliersService.findTypes();
   }
 
   @Get('distributors')
@@ -112,8 +102,8 @@ export class SuppliersController {
     status: 200,
     description: 'Distribuidores retornados com sucesso.',
   })
-  async findDistributors(@CurrentUser() user: jwtStrategy.RequestUser) {
-    return this.suppliersService.findDistributors(user.company_id);
+  async findDistributors() {
+    return this.suppliersService.findDistributors();
   }
 
   @Get(':id')
@@ -135,11 +125,8 @@ export class SuppliersController {
     status: 404,
     description: 'Fornecedor não encontrado ou não pertence à empresa.',
   })
-  async findOne(
-    @Param('id') id: string,
-    @CurrentUser() user: jwtStrategy.RequestUser,
-  ) {
-    return this.suppliersService.findOne(id, user.company_id);
+  async findOne(@Param('id', ParseEntityIdPipe) id: string) {
+    return this.suppliersService.findOne(id);
   }
 
   @Put(':id')
@@ -163,11 +150,10 @@ export class SuppliersController {
     description: 'Fornecedor não encontrado.',
   })
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
     @Body() dto: UpdateSupplierDto,
-    @CurrentUser() user: jwtStrategy.RequestUser,
   ) {
-    return this.suppliersService.update(id, dto, user.company_id);
+    return this.suppliersService.update(id, dto);
   }
 
   @Delete(':id')
@@ -185,10 +171,7 @@ export class SuppliersController {
     status: 204,
     description: 'Fornecedor removido com sucesso.',
   })
-  async delete(
-    @Param('id') id: string,
-    @CurrentUser() user: jwtStrategy.RequestUser,
-  ) {
-    return this.suppliersService.delete(id, user.company_id);
+  async delete(@Param('id', ParseEntityIdPipe) id: string) {
+    return this.suppliersService.delete(id);
   }
 }

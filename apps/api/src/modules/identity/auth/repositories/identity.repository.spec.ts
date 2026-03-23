@@ -4,6 +4,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { Identity } from '../domain/entities/identity.entity';
 import { IdentityMapper } from '../infraestructure/mappers/indentity.mapper';
 import { identities, $Enums } from '@repo/db';
+import { SnowflakeService } from 'src/common/services/snowflake.service';
 
 type MockPrismaService = {
   identities: {
@@ -95,6 +96,12 @@ describe('IdentityRepository', () => {
               update: jest.fn(),
               delete: jest.fn(),
             },
+          },
+        },
+        {
+          provide: SnowflakeService,
+          useValue: {
+            generate: jest.fn().mockReturnValue('snowflake-id'),
           },
         },
       ],
@@ -273,12 +280,13 @@ describe('IdentityRepository', () => {
       expect(result).toEqual(mockDomainIdentity);
       expect(prismaService.identities.create).toHaveBeenCalledWith({
         data: {
+          id: 'snowflake-id',
           persons: { connect: { id: 'person-123' } },
           email: 'novo@example.com',
           identity_type: 'EMPLOYEE',
           password_hash: 'hashed',
           active: true,
-          email_verified: false,
+          email_verified: true,
           email_verification_token: 'token123',
           email_verification_expires_at: verificationDate,
         },
@@ -300,6 +308,7 @@ describe('IdentityRepository', () => {
       expect(result).toEqual(mockDomainIdentity);
       expect(prismaService.identities.create).toHaveBeenCalledWith({
         data: {
+          id: 'snowflake-id',
           persons: { connect: { id: 'person-123' } },
           email: 'employee@example.com',
           identity_type: 'EMPLOYEE',

@@ -53,6 +53,7 @@ configuration.ts
 git_push.sh
 index.ts
 models/audit-log-response-dto.ts
+models/audit-logs-list-response-dto-logs-inner.ts
 models/audit-logs-list-response-dto.ts
 models/company-selection-dto.ts
 models/create-account-payable-dto.ts
@@ -71,6 +72,8 @@ models/create-federal-tax-rate-dto.ts
 models/create-journal-entry-dto-items-inner.ts
 models/create-journal-entry-dto.ts
 models/create-movie-category-dto.ts
+models/create-movie-dto-cast-inner.ts
+models/create-movie-dto-media-inner.ts
 models/create-movie-dto.ts
 models/create-municipal-tax-parameter-dto.ts
 models/create-payable-transaction-dto.ts
@@ -79,6 +82,8 @@ models/create-promotion-type-dto.ts
 models/create-purchase-dto.ts
 models/create-receivable-transaction-dto.ts
 models/create-role-dto.ts
+models/create-room-dto-seat-layout-inner-seats-inner.ts
+models/create-room-dto-seat-layout-inner.ts
 models/create-sale-dto-concession-items-inner.ts
 models/create-sale-dto-tickets-inner.ts
 models/create-sale-dto.ts
@@ -86,6 +91,7 @@ models/create-showtime-dto.ts
 models/create-stock-movement-dto.ts
 models/create-supplier-dto.ts
 models/create-tax-entry-dto.ts
+models/create-user-dto-ip-whitelist-inner.ts
 models/create-user-dto.ts
 models/customer-auth-response-dto-customer.ts
 models/customer-auth-response-dto.ts
@@ -93,8 +99,10 @@ models/forgot-password-dto.ts
 models/index.ts
 models/login-customer-dto.ts
 models/login-dto.ts
+models/login-response-dto-companies-inner.ts
 models/login-response-dto-user.ts
 models/login-response-dto.ts
+models/operation-type-response-dto.ts
 models/product-category-response-dto.ts
 models/product-response-dto.ts
 models/product-stock-response-dto.ts
@@ -109,6 +117,11 @@ models/sale-response-dto-showtime.ts
 models/sale-response-dto.ts
 models/seat-layout-item-dto.ts
 models/seat-layout-row-dto.ts
+models/seat-status-response-dto.ts
+models/select-company-dto.ts
+models/select-company-response-dto.ts
+models/session-language-response-dto.ts
+models/session-status-response-dto.ts
 models/signup-dto.ts
 models/stock-movement-response-dto.ts
 models/tax-entry-response-dto.ts
@@ -128,10 +141,9 @@ models/update-movie-dto.ts
 models/update-municipal-tax-parameter-dto.ts
 models/update-product-category-dto.ts
 models/update-role-dto.ts
-models/update-room-dto-seat-layout-inner-seats-inner.ts
-models/update-room-dto-seat-layout-inner.ts
 models/update-seat-status-batch-item-dto.ts
 models/update-seat-status-dto.ts
+models/update-seats-status-batch-dto-seats-inner.ts
 models/update-seats-status-batch-dto.ts
 models/update-showtime-dto.ts
 models/update-showtime-seat-status-dto.ts

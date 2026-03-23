@@ -13,6 +13,9 @@
  */
 
 
+// May contain unused imports in some cases
+// @ts-ignore
+import type { CreateUserDtoIpWhitelistInner } from './create-user-dto-ip-whitelist-inner';
 
 /**
  * 
@@ -142,10 +145,10 @@ export interface CreateUserDto {
     'allowed_complexes'?: Array<string>;
     /**
      * Lista de IPs permitidos
-     * @type {Array<string>}
+     * @type {Array<CreateUserDtoIpWhitelistInner>}
      * @memberof CreateUserDto
      */
-    'ip_whitelist'?: Array<string>;
+    'ip_whitelist'?: Array<CreateUserDtoIpWhitelistInner>;
     /**
      * Data de início do vínculo (ISO 8601)
      * @type {string}

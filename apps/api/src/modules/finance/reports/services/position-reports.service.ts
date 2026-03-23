@@ -1,20 +1,94 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
+import { Prisma } from '@repo/db';
+import { ClsService } from 'nestjs-cls';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
   CustomerPositionQueryDto,
   SupplierPositionQueryDto,
 } from '../dto/position-report-query.dto';
 
+type CustomerTitle = {
+  id: string;
+  document_number: string;
+  due_date: Date;
+  days_overdue: number;
+  original_amount: number;
+  remaining_amount: number;
+  status: string;
+};
+
+type SupplierTitle = {
+  id: string;
+  document_number: string;
+  due_date: Date;
+  days_until_due: number;
+  original_amount: number;
+  remaining_amount: number;
+  status: string;
+};
+
+type PaymentHistoryItem = {
+  date: Date;
+  amount: number;
+  document_number: string;
+};
+
+type UpcomingPayment = {
+  id: string;
+  document_number: string;
+  due_date: Date;
+  amount: number;
+  days_until_due: number;
+};
+
+type CustomerPositionItem = {
+  customer_id: string;
+  titles: CustomerTitle[];
+  total_open_amount: number;
+  total_overdue_amount: number;
+  overdue_days_max: number;
+  open_titles_count: number;
+  payment_history: PaymentHistoryItem[];
+  paid_titles_count: number;
+  avg_ticket: number;
+  default_rate: number;
+};
+
+type SupplierPositionItem = {
+  supplier_id: string;
+  titles: SupplierTitle[];
+  total_open_amount: number;
+  total_overdue_amount: number;
+  upcoming_7days_amount: number;
+  upcoming_15days_amount: number;
+  upcoming_30days_amount: number;
+  open_titles_count: number;
+  payment_history: PaymentHistoryItem[];
+  upcoming_payments: UpcomingPayment[];
+  avg_title_amount: number;
+};
+
 @Injectable()
 export class PositionReportsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly tenantContext: TenantContextService,
+  ) {}
 
-  async getCustomerPosition(
-    company_id: string,
+  async getCustomerPosition(query: CustomerPositionQueryDto) {
+    return this.getCustomerPositionForCompany(
+      this.tenantContext.getCompanyId(),
+      query,
+    );
+  }
+
+  async getCustomerPositionForCompany(
+    companyId: string,
     query: CustomerPositionQueryDto,
   ) {
-    const whereClause: any = {
-      company_id,
+    const whereClause: Prisma.accounts_receivableWhereInput = {
+      company_id: companyId,
       status: { in: ['pending', 'partially_paid', 'overdue'] },
     };
 
@@ -37,7 +111,7 @@ export class PositionReportsService {
     });
 
     // Agrupar por cliente
-    const customerMap = new Map<string, any>();
+    const customerMap = new Map<string, CustomerPositionItem>();
 
     for (const title of openTitles) {
       const customerId = title.customer_id || 'unknown';
@@ -51,10 +125,13 @@ export class PositionReportsService {
           overdue_days_max: 0,
           open_titles_count: 0,
           payment_history: [],
+          paid_titles_count: 0,
+          avg_ticket: 0,
+          default_rate: 0,
         });
       }
 
-      const customer = customerMap.get(customerId);
+      const customer = customerMap.get(customerId)!;
       const remaining = Number(title.remaining_amount);
       customer.total_open_amount += remaining;
       customer.open_titles_count++;
@@ -90,44 +167,60 @@ export class PositionReportsService {
       // Adicionar histórico de transações
       if (title.transactions && title.transactions.length > 0) {
         customer.payment_history.push(
-          ...title.transactions.map((t: any) => ({
-            date: t.transaction_date,
-            amount: Number(t.amount),
+          ...title.transactions.map((transaction) => ({
+            date: transaction.transaction_date,
+            amount: Number(transaction.amount),
             document_number: title.document_number,
           })),
         );
       }
     }
 
-    // Buscar títulos pagos para calcular taxa de inadimplência e ticket médio
+    // Buscar títulos pagos de TODOS os clientes em uma única query (batch)
+    const customerIds = [...customerMap.keys()].filter(
+      (id) => id !== 'unknown',
+    );
+
+    const allPaidTitles = await this.prisma.accounts_receivable.findMany({
+      where: {
+        company_id: companyId,
+        customer_id: { in: customerIds },
+        status: 'paid',
+      },
+      select: {
+        customer_id: true,
+        original_amount: true,
+      },
+    });
+
+    // Agrupar títulos pagos por cliente em memória
+    const paidByCustomer = new Map<
+      string,
+      { count: number; total: number }
+    >();
+    for (const t of allPaidTitles) {
+      const cid = t.customer_id ?? 'unknown';
+      const entry = paidByCustomer.get(cid) ?? { count: 0, total: 0 };
+      entry.count++;
+      entry.total += Number(t.original_amount);
+      paidByCustomer.set(cid, entry);
+    }
+
     for (const [customerId, customer] of customerMap.entries()) {
       if (customerId === 'unknown') continue;
 
-      const paidTitles = await this.prisma.accounts_receivable.findMany({
-        where: {
-          company_id,
-          customer_id: customerId,
-          status: 'paid',
-        },
-        select: {
-          original_amount: true,
-        },
-      });
+      const paid = paidByCustomer.get(customerId) ?? { count: 0, total: 0 };
+      const totalTitles = customer.open_titles_count + paid.count;
+      const totalAmount = customer.total_open_amount + paid.total;
 
-      const totalTitles = customer.open_titles_count + paidTitles.length;
-      const totalAmount =
-        customer.total_open_amount +
-        paidTitles.reduce((sum, t) => sum + Number(t.original_amount), 0);
-
-      customer.paid_titles_count = paidTitles.length;
+      customer.paid_titles_count = paid.count;
       customer.avg_ticket = totalTitles > 0 ? totalAmount / totalTitles : 0;
       customer.default_rate =
         totalTitles > 0 ? (customer.open_titles_count / totalTitles) * 100 : 0;
 
       // Ordenar transações por data
       customer.payment_history.sort(
-        (a: any, b: any) =>
-          new Date(b.date).getTime() - new Date(a.date).getTime(),
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
       );
       customer.payment_history = customer.payment_history.slice(0, 10); // Últimas 10
     }
@@ -137,13 +230,13 @@ export class PositionReportsService {
 
     if (query.min_overdue_days) {
       results = results.filter(
-        (c) => c.overdue_days_max >= query.min_overdue_days!,
+        (customer) => customer.overdue_days_max >= query.min_overdue_days!,
       );
     }
 
     if (query.min_open_amount) {
       results = results.filter(
-        (c) => c.total_open_amount >= query.min_open_amount!,
+        (customer) => customer.total_open_amount >= query.min_open_amount!,
       );
     }
 
@@ -153,17 +246,36 @@ export class PositionReportsService {
     return results;
   }
 
-  async getCustomerPositionById(company_id: string, customer_id: string) {
-    const result = await this.getCustomerPosition(company_id, { customer_id });
+  async getCustomerPositionById(customerId: string) {
+    return this.getCustomerPositionByIdForCompany(
+      this.tenantContext.getCompanyId(),
+      customerId,
+    );
+  }
+
+  async getCustomerPositionByIdForCompany(
+    companyId: string,
+    customerId: string,
+  ) {
+    const result = await this.getCustomerPositionForCompany(companyId, {
+      customer_id: customerId,
+    });
     return result[0] || null;
   }
 
-  async getSupplierPosition(
-    company_id: string,
+  async getSupplierPosition(query: SupplierPositionQueryDto) {
+    return this.getSupplierPositionForCompany(
+      this.tenantContext.getCompanyId(),
+      query,
+    );
+  }
+
+  async getSupplierPositionForCompany(
+    companyId: string,
     query: SupplierPositionQueryDto,
   ) {
-    const whereClause: any = {
-      company_id,
+    const whereClause: Prisma.accounts_payableWhereInput = {
+      company_id: companyId,
       status: { in: ['pending', 'partially_paid', 'overdue'] },
     };
 
@@ -184,10 +296,8 @@ export class PositionReportsService {
       },
     });
 
-    const supplierMap = new Map<string, any>();
+    const supplierMap = new Map<string, SupplierPositionItem>();
     const today = new Date();
-    const upcomingDate = new Date(today);
-    upcomingDate.setDate(upcomingDate.getDate() + (query.upcoming_days || 30));
 
     for (const title of openTitles) {
       const supplierId = title.supplier_id || 'unknown';
@@ -204,10 +314,11 @@ export class PositionReportsService {
           open_titles_count: 0,
           payment_history: [],
           upcoming_payments: [],
+          avg_title_amount: 0,
         });
       }
 
-      const supplier = supplierMap.get(supplierId);
+      const supplier = supplierMap.get(supplierId)!;
       const remaining = Number(title.remaining_amount);
       supplier.total_open_amount += remaining;
       supplier.open_titles_count++;
@@ -252,9 +363,9 @@ export class PositionReportsService {
 
       if (title.transactions && title.transactions.length > 0) {
         supplier.payment_history.push(
-          ...title.transactions.map((t: any) => ({
-            date: t.transaction_date,
-            amount: Number(t.amount),
+          ...title.transactions.map((transaction) => ({
+            date: transaction.transaction_date,
+            amount: Number(transaction.amount),
             document_number: title.document_number,
           })),
         );
@@ -269,13 +380,12 @@ export class PositionReportsService {
           : 0;
 
       supplier.payment_history.sort(
-        (a: any, b: any) =>
-          new Date(b.date).getTime() - new Date(a.date).getTime(),
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
       );
       supplier.payment_history = supplier.payment_history.slice(0, 10);
 
       supplier.upcoming_payments.sort(
-        (a: any, b: any) => a.days_until_due - b.days_until_due,
+        (a, b) => a.days_until_due - b.days_until_due,
       );
     }
 
@@ -285,9 +395,19 @@ export class PositionReportsService {
     return results;
   }
 
-  async getSupplierPositionById(company_id: string, supplier_id: string) {
-    const result = await this.getSupplierPosition(company_id, {
-      supplier_id,
+  async getSupplierPositionById(supplierId: string) {
+    return this.getSupplierPositionByIdForCompany(
+      this.tenantContext.getCompanyId(),
+      supplierId,
+    );
+  }
+
+  async getSupplierPositionByIdForCompany(
+    companyId: string,
+    supplierId: string,
+  ) {
+    const result = await this.getSupplierPositionForCompany(companyId, {
+      supplier_id: supplierId,
       upcoming_days: 30,
     });
     return result[0] || null;

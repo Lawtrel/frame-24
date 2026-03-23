@@ -12,43 +12,41 @@
  * Do not edit the class manually.
  */
 
-
 // May contain unused imports in some cases
 // @ts-ignore
-import type { CinemaComplexDto } from './cinema-complex-dto';
+import type { CinemaComplexDto } from "./cinema-complex-dto";
 // May contain unused imports in some cases
 // @ts-ignore
-import type { RoomDto } from './room-dto';
+import type { RoomDto } from "./room-dto";
 
 /**
- * 
+ *
  * @export
  * @interface ShowtimeScheduleDto
  */
 export interface ShowtimeScheduleDto {
-    /**
-     * 
-     * @type {string}
-     * @memberof ShowtimeScheduleDto
-     */
-    'id': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ShowtimeScheduleDto
-     */
-    'start_time': string;
-    /**
-     * 
-     * @type {CinemaComplexDto}
-     * @memberof ShowtimeScheduleDto
-     */
-    'cinema_complexes': CinemaComplexDto;
-    /**
-     * 
-     * @type {RoomDto}
-     * @memberof ShowtimeScheduleDto
-     */
-    'rooms': RoomDto;
+  /**
+   *
+   * @type {string}
+   * @memberof ShowtimeScheduleDto
+   */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ShowtimeScheduleDto
+   */
+  start_time: string;
+  /**
+   *
+   * @type {CinemaComplexDto}
+   * @memberof ShowtimeScheduleDto
+   */
+  cinema_complexes: CinemaComplexDto;
+  /**
+   *
+   * @type {RoomDto}
+   * @memberof ShowtimeScheduleDto
+   */
+  rooms: RoomDto;
 }
-

@@ -5,6 +5,7 @@ import {
   ConflictException,
   ForbiddenException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { Transactional } from '@nestjs-cls/transactional';
 import { Prisma, custom_roles } from '@repo/db';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -22,15 +23,23 @@ export class RolesService {
     private readonly roleRepo: CustomRoleRepository,
     private readonly logger: LoggerService,
     private readonly snowflake: SnowflakeService,
-  ) { }
+    private readonly tenantContext: TenantContextService,
+  ) {}
+
+  private getIdentityId(): string | undefined {
+    return this.tenantContext.getIdentityId();
+  }
+
+  private getRoleHierarchy(): number | undefined {
+    return this.tenantContext.getRoleHierarchy();
+  }
 
   @Transactional()
-  async create(
-    dto: CreateRoleDto,
-    company_id: string,
-    granted_by?: string,
-    currentUserHierarchy?: number,
-  ): Promise<RoleResponseDto> {
+  async create(dto: CreateRoleDto): Promise<RoleResponseDto> {
+    const companyId = this.tenantContext.getCompanyId();
+    const granted_by = this.getIdentityId();
+    const currentUserHierarchy = this.getRoleHierarchy();
+    const company_id = companyId;
     const existing = await this.roleRepo.findByName(company_id, dto.name);
     if (existing) {
       throw new ConflictException('Role with this name already exists');
@@ -39,9 +48,7 @@ export class RolesService {
     const hierarchyLevel = dto.hierarchy_level ?? 50;
 
     if (hierarchyLevel < 0 || hierarchyLevel > 99) {
-      throw new BadRequestException(
-        'Hierarchy level deve estar entre 0 e 99',
-      );
+      throw new BadRequestException('Hierarchy level deve estar entre 0 e 99');
     }
 
     if (hierarchyLevel <= 1) {
@@ -87,7 +94,8 @@ export class RolesService {
     return this.mapToDto(role, dto.permissions);
   }
 
-  async findAll(company_id: string): Promise<RoleResponseDto[]> {
+  async findAll(): Promise<RoleResponseDto[]> {
+    const company_id = this.tenantContext.getCompanyId();
     const roles = await this.roleRepo.findAllByCompany(company_id);
 
     const result: RoleResponseDto[] = [];
@@ -99,7 +107,8 @@ export class RolesService {
     return result;
   }
 
-  async findOne(id: string, company_id: string): Promise<RoleResponseDto> {
+  async findOne(id: string): Promise<RoleResponseDto> {
+    const company_id = this.tenantContext.getCompanyId();
     const role = await this.roleRepo.findByIdAndCompany(id, company_id);
 
     if (!role) {
@@ -112,13 +121,10 @@ export class RolesService {
   }
 
   @Transactional()
-  async update(
-    id: string,
-    dto: UpdateRoleDto,
-    company_id: string,
-    granted_by?: string,
-    currentUserHierarchy?: number,
-  ): Promise<RoleResponseDto> {
+  async update(id: string, dto: UpdateRoleDto): Promise<RoleResponseDto> {
+    const company_id = this.tenantContext.getCompanyId();
+    const granted_by = this.getIdentityId();
+    const currentUserHierarchy = this.getRoleHierarchy();
     const role = await this.roleRepo.findByIdAndCompany(id, company_id);
 
     if (!role) {
@@ -212,7 +218,8 @@ export class RolesService {
   }
 
   @Transactional()
-  async delete(id: string, company_id: string): Promise<void> {
+  async delete(id: string): Promise<void> {
+    const company_id = this.tenantContext.getCompanyId();
     const role = await this.roleRepo.findByIdAndCompany(id, company_id);
 
     if (!role) {

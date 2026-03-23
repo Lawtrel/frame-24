@@ -15,7 +15,7 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
-import type { CompanySelectionDto } from './company-selection-dto';
+import type { LoginResponseDtoCompaniesInner } from './login-response-dto-companies-inner';
 // May contain unused imports in some cases
 // @ts-ignore
 import type { LoginResponseDtoUser } from './login-response-dto-user';
@@ -33,6 +33,12 @@ export interface LoginResponseDto {
      */
     'access_token'?: string;
     /**
+     * JWT temporário (retornado quando usuário tem múltiplas empresas)
+     * @type {string}
+     * @memberof LoginResponseDto
+     */
+    'temp_token'?: string;
+    /**
      * 
      * @type {LoginResponseDtoUser}
      * @memberof LoginResponseDto
@@ -40,9 +46,9 @@ export interface LoginResponseDto {
     'user': LoginResponseDtoUser;
     /**
      * Lista de empresas (retornado quando usuário tem múltiplas empresas)
-     * @type {Array<CompanySelectionDto>}
+     * @type {Array<LoginResponseDtoCompaniesInner>}
      * @memberof LoginResponseDto
      */
-    'companies'?: Array<CompanySelectionDto>;
+    'companies'?: Array<LoginResponseDtoCompaniesInner>;
 }
 

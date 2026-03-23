@@ -10,14 +10,13 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { MovieCategoriesService } from '../services/movie-categories.service';
 import { CreateMovieCategoryDto } from '../dto/create-movie-category.dto';
 import { UpdateMovieCategoryDto } from '../dto/update-movie-category.dto';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import {
   ApiTags,
   ApiOperation,
@@ -28,7 +27,7 @@ import {
 
 @ApiTags('Movie Categories')
 @Controller({ path: 'movie-categories', version: '1' })
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class MovieCategoriesController {
   constructor(private readonly service: MovieCategoriesService) {}
 
@@ -42,19 +41,16 @@ export class MovieCategoriesController {
   })
   @ApiResponse({ status: 201, description: 'Categoria criada com sucesso.' })
   @ApiBadRequestResponse({ description: 'Dados inválidos.' })
-  async create(
-    @Body() dto: CreateMovieCategoryDto,
-    @CurrentUser() user: RequestUser,
-  ) {
-    return this.service.create(dto, user);
+  async create(@Body() dto: CreateMovieCategoryDto) {
+    return this.service.create(dto);
   }
 
   @Get()
   @RequirePermission('movie_categories', 'read')
   @ApiOperation({ summary: 'Listar categorias de filmes' })
   @ApiResponse({ status: 200, description: 'Lista retornada com sucesso.' })
-  async findAll(@CurrentUser() user: RequestUser) {
-    return this.service.findAll(user.company_id);
+  async findAll() {
+    return this.service.findAll();
   }
 
   @Get(':id')
@@ -62,8 +58,8 @@ export class MovieCategoriesController {
   @ApiOperation({ summary: 'Buscar categoria por ID' })
   @ApiResponse({ status: 200, description: 'Categoria encontrada.' })
   @ApiNotFoundResponse({ description: 'Categoria não encontrada.' })
-  async findOne(@Param('id') id: string, @CurrentUser() user: RequestUser) {
-    return this.service.findOne(id, user.company_id);
+  async findOne(@Param('id', ParseEntityIdPipe) id: string) {
+    return this.service.findOne(id);
   }
 
   @Put(':id')
@@ -79,11 +75,10 @@ export class MovieCategoriesController {
   })
   @ApiNotFoundResponse({ description: 'Categoria não encontrada.' })
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
     @Body() dto: UpdateMovieCategoryDto,
-    @CurrentUser() user: RequestUser,
   ) {
-    return this.service.update(id, dto, user);
+    return this.service.update(id, dto);
   }
 
   @Delete(':id')
@@ -91,7 +86,7 @@ export class MovieCategoriesController {
   @ApiOperation({ summary: 'Excluir categoria' })
   @ApiResponse({ status: 200, description: 'Categoria excluída com sucesso.' })
   @ApiNotFoundResponse({ description: 'Categoria não encontrada.' })
-  async delete(@Param('id') id: string, @CurrentUser() user: RequestUser) {
-    return this.service.delete(id, user);
+  async delete(@Param('id', ParseEntityIdPipe) id: string) {
+    return this.service.delete(id);
   }
 }

@@ -12,43 +12,40 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface MovieDetailsDto
  */
 export interface MovieDetailsDto {
-    /**
-     * 
-     * @type {string}
-     * @memberof MovieDetailsDto
-     */
-    'id': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof MovieDetailsDto
-     */
-    'title': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof MovieDetailsDto
-     */
-    'poster_url'?: string | null;
-    /**
-     * 
-     * @type {number}
-     * @memberof MovieDetailsDto
-     */
-    'duration_minutes': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof MovieDetailsDto
-     */
-    'age_rating'?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof MovieDetailsDto
+   */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof MovieDetailsDto
+   */
+  title: string;
+  /**
+   *
+   * @type {string}
+   * @memberof MovieDetailsDto
+   */
+  poster_url?: string | null;
+  /**
+   *
+   * @type {number}
+   * @memberof MovieDetailsDto
+   */
+  duration_minutes: number;
+  /**
+   *
+   * @type {string}
+   * @memberof MovieDetailsDto
+   */
+  age_rating?: string | null;
 }
-

@@ -2,29 +2,30 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  ForbiddenException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { cinema_complexes as CinemaComplex } from '@repo/db';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 
 import { CinemaComplexesRepository } from '../repositories/cinema-complexes.repository';
 import { CreateCinemaComplexDto } from '../dto/create-cinema-complex.dto';
 import { UpdateCinemaComplexDto } from '../dto/update-cinema-complex.dto';
 import { RabbitMQPublisherService } from 'src/common/rabbitmq/rabbitmq-publisher.service';
 import { Transactional } from '@nestjs-cls/transactional';
+import { ClsService } from 'nestjs-cls';
 
 @Injectable()
 export class CinemaComplexesService {
   constructor(
     private readonly repository: CinemaComplexesRepository,
     private readonly rabbitmq: RabbitMQPublisherService,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
   @Transactional()
-  async create(
-    dto: CreateCinemaComplexDto,
-    user: RequestUser,
-  ): Promise<CinemaComplex> {
-    const companyId = user.company_id;
+  async create(dto: CreateCinemaComplexDto): Promise<CinemaComplex> {
+    const companyId = this.tenantContext.getCompanyId();
+    const userId = this.tenantContext.getUserId();
 
     const existingByCode = await this.repository.findByCode(
       dto.code,
@@ -36,7 +37,7 @@ export class CinemaComplexesService {
       );
     }
 
-    const dataToCreate: CreateCinemaComplexDto = {
+    const dataToCreate: CreateCinemaComplexDto & { company_id: string } = {
       ...dto,
       company_id: companyId,
     };
@@ -50,22 +51,23 @@ export class CinemaComplexesService {
         new_values: createdComplex,
       },
       metadata: {
-        companyId: companyId,
-        userId: user.company_user_id,
+        companyId,
+        userId,
       },
     });
 
     return createdComplex;
   }
 
-  async findAll(company_id: string): Promise<CinemaComplex[]> {
-    return this.repository.findAllByCompany(company_id);
+  async findAll(): Promise<CinemaComplex[]> {
+    return this.repository.findAllByCompany(this.tenantContext.getCompanyId());
   }
 
-  async findOne(id: string, company_id: string): Promise<CinemaComplex> {
+  async findOne(id: string): Promise<CinemaComplex> {
+    const companyId = this.tenantContext.getCompanyId();
     const complex = await this.repository.findById(id);
 
-    if (!complex || complex.company_id !== company_id) {
+    if (!complex || complex.company_id !== companyId) {
       throw new NotFoundException('Complexo de cinema não encontrado.');
     }
     return complex;
@@ -75,10 +77,10 @@ export class CinemaComplexesService {
   async update(
     id: string,
     dto: UpdateCinemaComplexDto,
-    user: RequestUser,
   ): Promise<CinemaComplex> {
-    const companyId = user.company_id;
-    const existingComplex = await this.findOne(id, companyId);
+    const companyId = this.tenantContext.getCompanyId();
+    const userId = this.tenantContext.getUserId();
+    const existingComplex = await this.findOne(id);
 
     if (dto.code && dto.code !== existingComplex.code) {
       const existingByCode = await this.repository.findByCode(
@@ -102,17 +104,18 @@ export class CinemaComplexesService {
         old_values: existingComplex,
       },
       metadata: {
-        companyId: companyId,
-        userId: user.company_user_id,
+        companyId,
+        userId,
       },
     });
 
     return updatedComplex;
   }
 
-  async delete(id: string, user: RequestUser): Promise<{ message: string }> {
-    const companyId = user.company_id;
-    const existingComplex = await this.findOne(id, companyId);
+  async delete(id: string): Promise<{ message: string }> {
+    const companyId = this.tenantContext.getCompanyId();
+    const userId = this.tenantContext.getUserId();
+    const existingComplex = await this.findOne(id);
 
     await this.repository.remove(id);
 
@@ -123,8 +126,8 @@ export class CinemaComplexesService {
         old_values: existingComplex,
       },
       metadata: {
-        companyId: companyId,
-        userId: user.company_user_id,
+        companyId,
+        userId,
       },
     });
 

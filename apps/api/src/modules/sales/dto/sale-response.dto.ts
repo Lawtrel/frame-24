@@ -100,4 +100,3 @@ export class SaleResponseDto {
     age_rating: string | null;
   } | null;
 }
-

@@ -19,7 +19,7 @@ async function main() {
       description: 'Ingresso gratuito promocional',
       discount_percentage: 100, // 100% OFF
       // price_modifier foi removido para corrigir o TSError
-    }
+    },
   });
 
   console.log('✅ Cortesia criada com sucesso!');

@@ -269,15 +269,19 @@ export const PublicApiAxiosParamCreator = function (configuration?: Configuratio
         /**
          * Retorna os detalhes completos de uma venda (ingressos, produtos, sessão)
          * @summary Obter detalhes da venda
-         * @param {string} id 
+         * @param {string} tenantSlug 
+         * @param {string} reference 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        publicControllerGetSaleDetailsV1: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('publicControllerGetSaleDetailsV1', 'id', id)
-            const localVarPath = `/v1/public/sales/{id}`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+        publicControllerGetSaleDetailsV1: async (tenantSlug: string, reference: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenantSlug' is not null or undefined
+            assertParamExists('publicControllerGetSaleDetailsV1', 'tenantSlug', tenantSlug)
+            // verify required parameter 'reference' is not null or undefined
+            assertParamExists('publicControllerGetSaleDetailsV1', 'reference', reference)
+            const localVarPath = `/v1/public/companies/{tenant_slug}/sales/{reference}`
+                .replace(`{${"tenant_slug"}}`, encodeURIComponent(String(tenantSlug)))
+                .replace(`{${"reference"}}`, encodeURIComponent(String(reference)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -521,12 +525,13 @@ export const PublicApiFp = function(configuration?: Configuration) {
         /**
          * Retorna os detalhes completos de uma venda (ingressos, produtos, sessão)
          * @summary Obter detalhes da venda
-         * @param {string} id 
+         * @param {string} tenantSlug 
+         * @param {string} reference 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async publicControllerGetSaleDetailsV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.publicControllerGetSaleDetailsV1(id, options);
+        async publicControllerGetSaleDetailsV1(tenantSlug: string, reference: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.publicControllerGetSaleDetailsV1(tenantSlug, reference, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['PublicApi.publicControllerGetSaleDetailsV1']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -660,7 +665,7 @@ export const PublicApiFactory = function (configuration?: Configuration, basePat
          * @throws {RequiredError}
          */
         publicControllerGetSaleDetailsV1(requestParameters: PublicApiPublicControllerGetSaleDetailsV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.publicControllerGetSaleDetailsV1(requestParameters.id, options).then((request) => request(axios, basePath));
+            return localVarFp.publicControllerGetSaleDetailsV1(requestParameters.tenantSlug, requestParameters.reference, options).then((request) => request(axios, basePath));
         },
         /**
          * Retorna o mapa completo de assentos com status (disponível, reservado, vendido)
@@ -914,7 +919,14 @@ export interface PublicApiPublicControllerGetSaleDetailsV1Request {
      * @type {string}
      * @memberof PublicApiPublicControllerGetSaleDetailsV1
      */
-    readonly id: string
+    readonly tenantSlug: string
+
+    /**
+     * 
+     * @type {string}
+     * @memberof PublicApiPublicControllerGetSaleDetailsV1
+     */
+    readonly reference: string
 }
 
 /**
@@ -1079,7 +1091,7 @@ export class PublicApi extends BaseAPI implements PublicApiInterface {
      * @memberof PublicApi
      */
     public publicControllerGetSaleDetailsV1(requestParameters: PublicApiPublicControllerGetSaleDetailsV1Request, options?: RawAxiosRequestConfig) {
-        return PublicApiFp(this.configuration).publicControllerGetSaleDetailsV1(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
+        return PublicApiFp(this.configuration).publicControllerGetSaleDetailsV1(requestParameters.tenantSlug, requestParameters.reference, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

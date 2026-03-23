@@ -3,16 +3,17 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
+import { ClsService } from 'nestjs-cls';
 import { seats as Seat } from '@repo/db';
 
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import { RabbitMQPublisherService } from 'src/common/rabbitmq/rabbitmq-publisher.service';
 
 import { SeatsRepository } from '../repositories/seats.repository';
 import { RoomsRepository } from '../../rooms/repositories/rooms.repository';
 import { CinemaComplexesRepository } from '../../cinema-complexes/repositories/cinema-complexes.repository';
 import { Transactional } from '@nestjs-cls/transactional';
-import { UpdateSeatsStatusBatchDto } from 'src/modules/operations/seats/dto/update-seats-status-batch.dto';
+import { UpdateSeatsStatusBatchDto } from '../dto/update-seats-status-batch.dto';
 
 @Injectable()
 export class SeatsService {
@@ -21,15 +22,12 @@ export class SeatsService {
     private readonly roomsRepository: RoomsRepository,
     private readonly cinemaComplexesRepository: CinemaComplexesRepository,
     private readonly rabbitmq: RabbitMQPublisherService,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
-  async updateStatus(
-    seatId: string,
-    active: boolean,
-    user: RequestUser,
-  ): Promise<Seat> {
-    const companyId = user.company_id;
-
+  async updateStatus(seatId: string, active: boolean): Promise<Seat> {
+    const companyId = this.tenantContext.getCompanyId();
+    const userId = this.tenantContext.getUserId();
     const existingSeat = await this.validateSeatOwnership(seatId, companyId);
 
     const updatedSeat = await this.seatsRepository.update(seatId, { active });
@@ -41,7 +39,7 @@ export class SeatsService {
         new_values: updatedSeat,
         old_values: existingSeat,
       },
-      metadata: { companyId, userId: user.company_user_id },
+      metadata: { companyId, userId },
     });
 
     return updatedSeat;
@@ -72,11 +70,11 @@ export class SeatsService {
   }
 
   @Transactional()
-  async updateStatusBatch(
-    dto: UpdateSeatsStatusBatchDto,
-    user: RequestUser,
-  ): Promise<{ updated: number }> {
-    const companyId = user.company_id;
+  async updateStatusBatch(dto: UpdateSeatsStatusBatchDto): Promise<{
+    updated: number;
+  }> {
+    const companyId = this.tenantContext.getCompanyId();
+    const userId = this.tenantContext.getUserId();
     const seatIds = dto.seats.map((s) => s.seat_id);
 
     await this.validateMultipleSeatsOwnership(seatIds, companyId);
@@ -113,7 +111,7 @@ export class SeatsService {
         changes: dto.seats,
         total_affected: totalUpdated,
       },
-      metadata: { companyId, userId: user.company_user_id },
+      metadata: { companyId, userId },
     });
 
     return { updated: totalUpdated };

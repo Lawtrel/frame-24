@@ -20,7 +20,6 @@ const SeatLayoutRowSchema = z.object({
 });
 
 export const CreateRoomSchema = z.object({
-  complex_id: z.string().min(1, 'ID do complexo é obrigatório'),
   room_number: z
     .string()
     .min(1, 'Número da sala é obrigatório')
@@ -39,13 +38,14 @@ export const CreateRoomSchema = z.object({
   active: z.coerce.boolean().default(true).optional(),
 
   seat_layout: z.preprocess(
-    (val) => {
+    (val: unknown): unknown => {
       // Se já é array, retorna
       if (Array.isArray(val)) return val;
       // Se é string, tenta fazer parse
       if (typeof val === 'string') {
         try {
-          return JSON.parse(val);
+          const parsed: unknown = JSON.parse(val);
+          return parsed;
         } catch {
           return val; // Deixa o Zod rejeitar
         }

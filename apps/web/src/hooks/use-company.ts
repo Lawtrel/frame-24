@@ -1,15 +1,15 @@
-import { useQuery } from '@tanstack/react-query';
-import { publicApi } from '@/lib/api-client';
+import { useQuery } from "@tanstack/react-query";
+import { publicApi } from "@/lib/api-client";
 
 export const useCompany = (tenantSlug: string) => {
-    return useQuery({
-        queryKey: ['company', tenantSlug],
-        queryFn: async () => {
-            const response = await publicApi.publicControllerGetCompanyBySlugV1({
-                tenantSlug,
-            });
-            return response.data;
-        },
-        enabled: !!tenantSlug,
-    });
+  return useQuery({
+    queryKey: ["company", tenantSlug],
+    queryFn: async () => {
+      const response = await publicApi.publicControllerGetCompanyBySlugV1({
+        tenantSlug,
+      });
+      return response.data;
+    },
+    enabled: !!tenantSlug,
+  });
 };

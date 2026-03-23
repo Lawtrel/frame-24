@@ -4,7 +4,7 @@ import { StorageService } from './storage.service';
 
 @Global()
 @Module({
-  imports: [ClsModule],
+  imports: [ClsModule.forFeature()],
   providers: [StorageService],
   exports: [StorageService],
 })

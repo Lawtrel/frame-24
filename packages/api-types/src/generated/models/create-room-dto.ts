@@ -12,70 +12,68 @@
  * Do not edit the class manually.
  */
 
-
 // May contain unused imports in some cases
 // @ts-ignore
-import type { SeatLayoutRowDto } from './seat-layout-row-dto';
+import type { SeatLayoutRowDto } from "./seat-layout-row-dto";
 
 /**
- * 
+ *
  * @export
  * @interface CreateRoomDto
  */
 export interface CreateRoomDto {
-    /**
-     * Número/identificador da sala
-     * @type {string}
-     * @memberof CreateRoomDto
-     */
-    'room_number': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof CreateRoomDto
-     */
-    'name'?: string | null;
-    /**
-     * Capacidade total de assentos da sala
-     * @type {number}
-     * @memberof CreateRoomDto
-     */
-    'capacity': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof CreateRoomDto
-     */
-    'projection_type_id'?: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof CreateRoomDto
-     */
-    'audio_type_id'?: string | null;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof CreateRoomDto
-     */
-    'active'?: boolean;
-    /**
-     * Array com as fileiras e assentos da sala
-     * @type {Array<SeatLayoutRowDto>}
-     * @memberof CreateRoomDto
-     */
-    'seat_layout': Array<SeatLayoutRowDto>;
-    /**
-     * 
-     * @type {string}
-     * @memberof CreateRoomDto
-     */
-    'room_design'?: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof CreateRoomDto
-     */
-    'layout_image'?: string | null;
+  /**
+   * Número/identificador da sala
+   * @type {string}
+   * @memberof CreateRoomDto
+   */
+  room_number: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateRoomDto
+   */
+  name?: string | null;
+  /**
+   * Capacidade total de assentos da sala
+   * @type {number}
+   * @memberof CreateRoomDto
+   */
+  capacity: number;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateRoomDto
+   */
+  projection_type_id?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateRoomDto
+   */
+  audio_type_id?: string | null;
+  /**
+   *
+   * @type {boolean}
+   * @memberof CreateRoomDto
+   */
+  active?: boolean;
+  /**
+   * Array com as fileiras e assentos da sala
+   * @type {Array<SeatLayoutRowDto>}
+   * @memberof CreateRoomDto
+   */
+  seat_layout: Array<SeatLayoutRowDto>;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateRoomDto
+   */
+  room_design?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateRoomDto
+   */
+  layout_image?: string | null;
 }
-

@@ -13,6 +13,9 @@
  */
 
 
+// May contain unused imports in some cases
+// @ts-ignore
+import type { CreateUserDtoIpWhitelistInner } from './create-user-dto-ip-whitelist-inner';
 
 /**
  * 
@@ -136,10 +139,10 @@ export interface UpdateUserDto {
     'allowed_complexes'?: Array<string>;
     /**
      * IPs permitidos
-     * @type {Array<string>}
+     * @type {Array<CreateUserDtoIpWhitelistInner>}
      * @memberof UpdateUserDto
      */
-    'ip_whitelist'?: Array<string>;
+    'ip_whitelist'?: Array<CreateUserDtoIpWhitelistInner>;
     /**
      * Status
      * @type {boolean}

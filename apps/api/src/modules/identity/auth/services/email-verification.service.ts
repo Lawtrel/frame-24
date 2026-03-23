@@ -32,12 +32,17 @@ export class EmailVerificationService {
     return { token, expiresAt };
   }
 
+  private hashToken(token: string): string {
+    return crypto.createHash('sha256').update(token).digest('hex');
+  }
+
   @Transactional()
   async verifyEmail(
     token: string,
   ): Promise<{ identity: Identity; person: Person }> {
-    const identity =
-      await this.identityRepository.findByVerificationToken(token);
+    const identity = await this.identityRepository.findByVerificationToken(
+      this.hashToken(token),
+    );
 
     if (
       !identity ||

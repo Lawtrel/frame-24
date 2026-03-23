@@ -21,6 +21,8 @@ import globalAxios from 'axios';
 import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from '../common';
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
+// @ts-ignore
+import type { SessionStatusResponseDto } from '../models';
 /**
  * SessionStatusApi - axios parameter creator
  * @export
@@ -73,7 +75,7 @@ export const SessionStatusApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async sessionStatusControllerFindAllV1(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async sessionStatusControllerFindAllV1(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<SessionStatusResponseDto>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.sessionStatusControllerFindAllV1(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['SessionStatusApi.sessionStatusControllerFindAllV1']?.[localVarOperationServerIndex]?.url;
@@ -95,7 +97,7 @@ export const SessionStatusApiFactory = function (configuration?: Configuration, 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        sessionStatusControllerFindAllV1(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        sessionStatusControllerFindAllV1(options?: RawAxiosRequestConfig): AxiosPromise<Array<SessionStatusResponseDto>> {
             return localVarFp.sessionStatusControllerFindAllV1(options).then((request) => request(axios, basePath));
         },
     };
@@ -114,7 +116,7 @@ export interface SessionStatusApiInterface {
      * @throws {RequiredError}
      * @memberof SessionStatusApiInterface
      */
-    sessionStatusControllerFindAllV1(options?: RawAxiosRequestConfig): AxiosPromise<void>;
+    sessionStatusControllerFindAllV1(options?: RawAxiosRequestConfig): AxiosPromise<Array<SessionStatusResponseDto>>;
 
 }
 

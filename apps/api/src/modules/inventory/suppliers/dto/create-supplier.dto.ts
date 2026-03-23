@@ -1,39 +1,6 @@
-import { z } from 'zod';
 import { createZodDto } from 'nestjs-zod';
-import { ApiProperty } from '@nestjs/swagger';
-
-const CreateSupplierSchema = z.object({
-  supplier_type_id: z.string().optional(),
-
-  corporate_name: z
-    .string()
-    .min(3, 'Razão social deve ter no mínimo 3 caracteres'),
-  trade_name: z.string().optional(),
-
-  cnpj: z
-    .string()
-    .transform((val) => val.replace(/\D/g, ''))
-    .refine((val) => /^\d{14}$/.test(val), 'CNPJ inválido'),
-
-  phone: z
-    .string()
-    .transform((val) => val.replace(/\D/g, ''))
-    .refine((val) => /^\d{10,11}$/.test(val), 'Telefone inválido'),
-
-  email: z.string().email().optional(),
-  address: z.string().optional(),
-
-  contact_name: z.string().optional(),
-  contact_phone: z
-    .string()
-    .transform((val) => val.replace(/\D/g, ''))
-    .refine((val) => /^\d{10,11}$/.test(val), 'Telefone de contato inválido')
-    .optional(),
-
-  delivery_days: z.number().int().min(0).default(7),
-  is_film_distributor: z.boolean().default(false),
-  active: z.boolean().default(true),
-});
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { CreateSupplierSchema } from './create-supplier.schema';
 
 export class CreateSupplierDto extends createZodDto(CreateSupplierSchema) {
   @ApiProperty({
@@ -42,10 +9,9 @@ export class CreateSupplierDto extends createZodDto(CreateSupplierSchema) {
   })
   corporate_name!: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Nome fantasia (como o fornecedor é conhecido comercialmente)',
     example: 'Paris Filmes',
-    required: false,
   })
   trade_name?: string;
 
@@ -61,59 +27,54 @@ export class CreateSupplierDto extends createZodDto(CreateSupplierSchema) {
   })
   phone!: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Email de contato principal do fornecedor',
     example: 'contato@parisfilmes.com',
-    required: false,
   })
   email?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Endereço comercial completo',
     example: 'Av. Paulista, 1000 - São Paulo/SP',
-    required: false,
   })
   address?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Nome do responsável ou pessoa de contato',
     example: 'João Silva',
-    required: false,
   })
   contact_name?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Telefone do contato (DDD + número)',
     example: '11987654321',
-    required: false,
   })
   contact_phone?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Dias médios para entrega',
     example: 7,
     default: 7,
   })
-  delivery_days!: number;
+  delivery_days?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Indica se o fornecedor atua como distribuidor de filmes',
     example: true,
     default: false,
   })
-  is_film_distributor!: boolean;
+  is_film_distributor?: boolean;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Identificador do tipo de fornecedor (chave estrangeira)',
     example: '212121323242442',
-    required: false,
   })
   supplier_type_id?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Status do fornecedor',
     example: true,
     default: true,
   })
-  active!: boolean;
+  active?: boolean;
 }

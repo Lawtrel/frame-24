@@ -34,6 +34,10 @@ import type { RegisterResponseDto } from '../models';
 // @ts-ignore
 import type { ResetPasswordDto } from '../models';
 // @ts-ignore
+import type { SelectCompanyDto } from '../models';
+// @ts-ignore
+import type { SelectCompanyResponseDto } from '../models';
+// @ts-ignore
 import type { SignupDto } from '../models';
 // @ts-ignore
 import type { VerifyEmailDto } from '../models';
@@ -146,7 +150,7 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Adiciona um novo usuário a uma empresa já cadastrada. Use para funcionários convidados.
+         * Adiciona um novo usuário a uma empresa já cadastrada. Apenas para funcionários autenticados.
          * @summary Registro de usuário em empresa existente
          * @param {RegisterDto} registerDto 
          * @param {*} [options] Override http request option.
@@ -211,6 +215,42 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(resetPasswordDto, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Quando o usuário pertence a múltiplas empresas, este endpoint recebe o token temporário para emitir o token definitivo.
+         * @summary Selecionar empresa após login
+         * @param {SelectCompanyDto} selectCompanyDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authControllerSelectCompanyV1: async (selectCompanyDto: SelectCompanyDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'selectCompanyDto' is not null or undefined
+            assertParamExists('authControllerSelectCompanyV1', 'selectCompanyDto', selectCompanyDto)
+            const localVarPath = `/v1/auth/select-company`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(selectCompanyDto, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -338,7 +378,7 @@ export const AuthApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Adiciona um novo usuário a uma empresa já cadastrada. Use para funcionários convidados.
+         * Adiciona um novo usuário a uma empresa já cadastrada. Apenas para funcionários autenticados.
          * @summary Registro de usuário em empresa existente
          * @param {RegisterDto} registerDto 
          * @param {*} [options] Override http request option.
@@ -361,6 +401,19 @@ export const AuthApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.authControllerResetPasswordV1(resetPasswordDto, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AuthApi.authControllerResetPasswordV1']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Quando o usuário pertence a múltiplas empresas, este endpoint recebe o token temporário para emitir o token definitivo.
+         * @summary Selecionar empresa após login
+         * @param {SelectCompanyDto} selectCompanyDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async authControllerSelectCompanyV1(selectCompanyDto: SelectCompanyDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SelectCompanyResponseDto>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.authControllerSelectCompanyV1(selectCompanyDto, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.authControllerSelectCompanyV1']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -429,7 +482,7 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.authControllerLogoutV1(options).then((request) => request(axios, basePath));
         },
         /**
-         * Adiciona um novo usuário a uma empresa já cadastrada. Use para funcionários convidados.
+         * Adiciona um novo usuário a uma empresa já cadastrada. Apenas para funcionários autenticados.
          * @summary Registro de usuário em empresa existente
          * @param {AuthApiAuthControllerRegisterV1Request} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
@@ -447,6 +500,16 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
          */
         authControllerResetPasswordV1(requestParameters: AuthApiAuthControllerResetPasswordV1Request, options?: RawAxiosRequestConfig): AxiosPromise<any> {
             return localVarFp.authControllerResetPasswordV1(requestParameters.resetPasswordDto, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Quando o usuário pertence a múltiplas empresas, este endpoint recebe o token temporário para emitir o token definitivo.
+         * @summary Selecionar empresa após login
+         * @param {AuthApiAuthControllerSelectCompanyV1Request} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authControllerSelectCompanyV1(requestParameters: AuthApiAuthControllerSelectCompanyV1Request, options?: RawAxiosRequestConfig): AxiosPromise<SelectCompanyResponseDto> {
+            return localVarFp.authControllerSelectCompanyV1(requestParameters.selectCompanyDto, options).then((request) => request(axios, basePath));
         },
         /**
          * Cria uma nova empresa e um usuário administrador. Use este endpoint para novos clientes se cadastrarem.
@@ -507,7 +570,7 @@ export interface AuthApiInterface {
     authControllerLogoutV1(options?: RawAxiosRequestConfig): AxiosPromise<void>;
 
     /**
-     * Adiciona um novo usuário a uma empresa já cadastrada. Use para funcionários convidados.
+     * Adiciona um novo usuário a uma empresa já cadastrada. Apenas para funcionários autenticados.
      * @summary Registro de usuário em empresa existente
      * @param {AuthApiAuthControllerRegisterV1Request} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
@@ -525,6 +588,16 @@ export interface AuthApiInterface {
      * @memberof AuthApiInterface
      */
     authControllerResetPasswordV1(requestParameters: AuthApiAuthControllerResetPasswordV1Request, options?: RawAxiosRequestConfig): AxiosPromise<any>;
+
+    /**
+     * Quando o usuário pertence a múltiplas empresas, este endpoint recebe o token temporário para emitir o token definitivo.
+     * @summary Selecionar empresa após login
+     * @param {AuthApiAuthControllerSelectCompanyV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AuthApiInterface
+     */
+    authControllerSelectCompanyV1(requestParameters: AuthApiAuthControllerSelectCompanyV1Request, options?: RawAxiosRequestConfig): AxiosPromise<SelectCompanyResponseDto>;
 
     /**
      * Cria uma nova empresa e um usuário administrador. Use este endpoint para novos clientes se cadastrarem.
@@ -605,6 +678,20 @@ export interface AuthApiAuthControllerResetPasswordV1Request {
 }
 
 /**
+ * Request parameters for authControllerSelectCompanyV1 operation in AuthApi.
+ * @export
+ * @interface AuthApiAuthControllerSelectCompanyV1Request
+ */
+export interface AuthApiAuthControllerSelectCompanyV1Request {
+    /**
+     * 
+     * @type {SelectCompanyDto}
+     * @memberof AuthApiAuthControllerSelectCompanyV1
+     */
+    readonly selectCompanyDto: SelectCompanyDto
+}
+
+/**
  * Request parameters for authControllerSignupV1 operation in AuthApi.
  * @export
  * @interface AuthApiAuthControllerSignupV1Request
@@ -675,7 +762,7 @@ export class AuthApi extends BaseAPI implements AuthApiInterface {
     }
 
     /**
-     * Adiciona um novo usuário a uma empresa já cadastrada. Use para funcionários convidados.
+     * Adiciona um novo usuário a uma empresa já cadastrada. Apenas para funcionários autenticados.
      * @summary Registro de usuário em empresa existente
      * @param {AuthApiAuthControllerRegisterV1Request} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
@@ -696,6 +783,18 @@ export class AuthApi extends BaseAPI implements AuthApiInterface {
      */
     public authControllerResetPasswordV1(requestParameters: AuthApiAuthControllerResetPasswordV1Request, options?: RawAxiosRequestConfig) {
         return AuthApiFp(this.configuration).authControllerResetPasswordV1(requestParameters.resetPasswordDto, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Quando o usuário pertence a múltiplas empresas, este endpoint recebe o token temporário para emitir o token definitivo.
+     * @summary Selecionar empresa após login
+     * @param {AuthApiAuthControllerSelectCompanyV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AuthApi
+     */
+    public authControllerSelectCompanyV1(requestParameters: AuthApiAuthControllerSelectCompanyV1Request, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).authControllerSelectCompanyV1(requestParameters.selectCompanyDto, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

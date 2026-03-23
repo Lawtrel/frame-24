@@ -1,45 +1,83 @@
 import { apiConfig } from "./api-config";
-import { TicketsApi, ProductsApi, ProductCategoriesApi } from "@repo/api-types";
+import axios from "axios";
+import { ProductsApi, ProductCategoriesApi } from "@repo/api-types";
 
-const ticketTypesApi = new TicketsApi(apiConfig);
 const productsApi = new ProductsApi(apiConfig);
 const categoriesApi = new ProductCategoriesApi(apiConfig);
+
+function getAuthHeaders() {
+  return {
+    Authorization:
+      typeof window !== "undefined"
+        ? `Bearer ${localStorage.getItem("admin_token") || ""}`
+        : "",
+  };
+}
 
 export const SalesService = {
   // --- Tipos de Ingresso ---
   async getTicketTypes() {
-    const response = await ticketTypesApi.ticketsControllerFindOneV1({ id: 'someId' }); // Replace 'someId' with the actual ID you want to use
+    const response = await axios.get(`${apiConfig.basePath}/v1/ticket-types`, {
+      headers: getAuthHeaders(),
+    });
+    return (response.data ?? []) as any[];
+  },
+
+  async getTicketTypeById(id: string) {
+    const response = await axios.get(
+      `${apiConfig.basePath}/v1/ticket-types/${id}`,
+      {
+        headers: getAuthHeaders(),
+      },
+    );
     return response.data;
   },
 
   async createTicketType(data: any) {
-    // Converte porcentagem para decimal se necessário (ex: 50% -> 0.5) ou mantém int dependendo do back
-    return await ticketTypesApi.ticketTypesControllerCreateV1({ 
-      createContractTypeDto: data // O gerador pode ter nomeado errado o DTO, verifique se é CreateTicketTypeDto
-    } as any);
+    return await axios.post(
+      `${apiConfig.basePath}/v1/ticket-types`,
+      data,
+      {
+        headers: getAuthHeaders(),
+      },
+    );
+  },
+
+  async updateTicketType(id: string, data: any) {
+    return await axios.put(
+      `${apiConfig.basePath}/v1/ticket-types/${id}`,
+      data,
+      {
+        headers: getAuthHeaders(),
+      },
+    );
   },
 
   async deleteTicketType(id: string) {
-    return await ticketTypesApi.ticketTypesControllerRemoveV1(id);
+    return await axios.delete(`${apiConfig.basePath}/v1/ticket-types/${id}`, {
+      headers: getAuthHeaders(),
+    });
   },
 
   // --- Produtos (Bombonière) ---
   async getProducts() {
-    const response = await productsApi.productsControllerFindAllV1({});
+    const response = await productsApi.productsControllerFindAllV1({
+      active: "true",
+    });
     return response.data;
   },
 
   async createProduct(data: any) {
-    return await productsApi.productsControllerCreateV1({ 
-      createProductDto: {
-        ...data,
-        active: true
-      } 
+    return await axios.post(`${apiConfig.basePath}/v1/products`, {
+      ...data,
+      active: true,
+    }, {
+      headers: getAuthHeaders(),
     });
   },
 
   async getProductCategories() {
     const response = await categoriesApi.productCategoriesControllerFindAllV1();
     return response.data;
-  }
+  },
 };

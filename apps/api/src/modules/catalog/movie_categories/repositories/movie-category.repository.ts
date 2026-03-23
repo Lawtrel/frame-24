@@ -2,17 +2,19 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { movie_categories, Prisma } from '@repo/db';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
+import { SlugService } from 'src/common/services/slug.service';
 
 @Injectable()
 export class MovieCategoryRepository {
   constructor(
     private readonly prisma: PrismaService,
     private readonly snowflake: SnowflakeService,
+    private readonly slugService: SlugService,
   ) {}
 
-  async findAll(company_id: string): Promise<movie_categories[]> {
+  async findAll(companyId: string): Promise<movie_categories[]> {
     return this.prisma.movie_categories.findMany({
-      where: { company_id, active: true },
+      where: { company_id: companyId, active: true },
       orderBy: { name: 'asc' },
     });
   }
@@ -44,51 +46,23 @@ export class MovieCategoryRepository {
     });
   }
 
-  async delete(id: string): Promise<movie_categories> {
-    return this.prisma.movie_categories.delete({
+  async delete(id: string): Promise<void> {
+    await this.prisma.movie_categories.delete({
       where: { id },
     });
   }
 
   async uniqueSlugForName(
     name: string,
-    company_id: string,
+    companyId: string,
     excludeId?: string,
   ): Promise<string> {
-    const base = toSlugBase(name);
-
-    const existsBase = await this.prisma.movie_categories.findFirst({
-      where: {
-        slug: base,
-        company_id,
-        ...(excludeId && { id: { not: excludeId } }),
-      },
-      select: { id: true },
-    });
-    if (!existsBase) return base;
-
-    for (let i = 1; i <= 1000; i++) {
-      const candidate = `${base}-${i}`;
-      const exists = await this.prisma.movie_categories.findFirst({
-        where: {
-          slug: candidate,
-          company_id,
-          ...(excludeId && { id: { not: excludeId } }),
-        },
-        select: { id: true },
-      });
-      if (!exists) return candidate;
-    }
-    throw new Error('Não foi possível gerar slug único para categoria.');
+    return this.slugService.createUniqueSlug(
+      this.prisma.movie_categories,
+      name,
+      excludeId,
+      'slug',
+      { company_id: companyId },
+    );
   }
-}
-
-function toSlugBase(text: string): string {
-  return text
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
 }

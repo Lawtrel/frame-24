@@ -3,9 +3,12 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { Transactional } from '@nestjs-cls/transactional';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { Prisma, product_categories } from '@repo/db';
+import { ClsService } from 'nestjs-cls';
 import { ProductCategoryRepository } from '../repositories/product-category.repository';
 import { CreateProductCategoryDto } from '../dto/create-product-category.dto';
 import { UpdateProductCategoryDto } from '../dto/update-product-category.dto';
@@ -17,19 +20,21 @@ export class ProductCategoriesService {
   constructor(
     private readonly categoryRepo: ProductCategoryRepository,
     private readonly logger: LoggerService,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
   async create(
     dto: CreateProductCategoryDto,
-    company_id: string,
   ): Promise<ProductCategoryResponseDto> {
-    const existing = await this.categoryRepo.findByName(company_id, dto.name);
+    const companyId = this.tenantContext.getCompanyId();
+
+    const existing = await this.categoryRepo.findByName(companyId, dto.name);
     if (existing) {
       throw new ConflictException('Category with this name already exists');
     }
 
     const category = await this.categoryRepo.create({
-      company_id,
+      company_id: companyId,
       name: dto.name,
       description: dto.description,
     } as Prisma.product_categoriesCreateInput);
@@ -43,24 +48,23 @@ export class ProductCategoriesService {
   }
 
   async findAll(
-    company_id: string,
     includeProductCount = false,
   ): Promise<ProductCategoryResponseDto[]> {
+    const companyId = this.tenantContext.getCompanyId();
+
     if (includeProductCount) {
       const categories =
-        await this.categoryRepo.findAllWithProductCount(company_id);
+        await this.categoryRepo.findAllWithProductCount(companyId);
       return categories.map((cat) => this.mapToDto(cat, cat.product_count));
     }
 
-    const categories = await this.categoryRepo.findAll(company_id);
+    const categories = await this.categoryRepo.findAll(companyId);
     return categories.map((cat) => this.mapToDto(cat));
   }
 
-  async findOne(
-    id: string,
-    company_id: string,
-  ): Promise<ProductCategoryResponseDto> {
-    const category = await this.categoryRepo.findById(id, company_id);
+  async findOne(id: string): Promise<ProductCategoryResponseDto> {
+    const companyId = this.tenantContext.getCompanyId();
+    const category = await this.categoryRepo.findById(id, companyId);
 
     if (!category) {
       throw new NotFoundException('Product category not found');
@@ -75,16 +79,16 @@ export class ProductCategoriesService {
   async update(
     id: string,
     dto: UpdateProductCategoryDto,
-    company_id: string,
   ): Promise<ProductCategoryResponseDto> {
-    const category = await this.categoryRepo.findById(id, company_id);
+    const companyId = this.tenantContext.getCompanyId();
+    const category = await this.categoryRepo.findById(id, companyId);
 
     if (!category) {
       throw new NotFoundException('Product category not found');
     }
 
     if (dto.name && dto.name !== category.name) {
-      const existing = await this.categoryRepo.findByName(company_id, dto.name);
+      const existing = await this.categoryRepo.findByName(companyId, dto.name);
       if (existing) {
         throw new ConflictException('Category with this name already exists');
       }
@@ -104,8 +108,9 @@ export class ProductCategoriesService {
   }
 
   @Transactional()
-  async delete(id: string, company_id: string): Promise<void> {
-    const category = await this.categoryRepo.findById(id, company_id);
+  async delete(id: string): Promise<void> {
+    const companyId = this.tenantContext.getCompanyId();
+    const category = await this.categoryRepo.findById(id, companyId);
 
     if (!category) {
       throw new NotFoundException('Product category not found');

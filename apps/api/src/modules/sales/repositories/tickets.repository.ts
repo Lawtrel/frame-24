@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, tickets } from '@repo/db';
+import { Prisma, ticket_types, tickets } from '@repo/db';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 
@@ -39,6 +39,12 @@ export class TicketsRepository {
   async findByShowtimeId(showtime_id: string): Promise<tickets[]> {
     return this.prisma.tickets.findMany({
       where: { showtime_id },
+    });
+  }
+
+  async findTicketTypeById(id: string): Promise<ticket_types | null> {
+    return this.prisma.ticket_types.findUnique({
+      where: { id },
     });
   }
 

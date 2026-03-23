@@ -125,7 +125,7 @@ export const TicketsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async ticketsControllerMarkAsUsedV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>> {
+        async ticketsControllerMarkAsUsedV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.ticketsControllerMarkAsUsedV1(id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['TicketsApi.ticketsControllerMarkAsUsedV1']?.[localVarOperationServerIndex]?.url;
@@ -158,7 +158,7 @@ export const TicketsApiFactory = function (configuration?: Configuration, basePa
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        ticketsControllerMarkAsUsedV1(requestParameters: TicketsApiTicketsControllerMarkAsUsedV1Request, options?: RawAxiosRequestConfig): AxiosPromise<object> {
+        ticketsControllerMarkAsUsedV1(requestParameters: TicketsApiTicketsControllerMarkAsUsedV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.ticketsControllerMarkAsUsedV1(requestParameters.id, options).then((request) => request(axios, basePath));
         },
     };
@@ -188,7 +188,7 @@ export interface TicketsApiInterface {
      * @throws {RequiredError}
      * @memberof TicketsApiInterface
      */
-    ticketsControllerMarkAsUsedV1(requestParameters: TicketsApiTicketsControllerMarkAsUsedV1Request, options?: RawAxiosRequestConfig): AxiosPromise<object>;
+    ticketsControllerMarkAsUsedV1(requestParameters: TicketsApiTicketsControllerMarkAsUsedV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
 
 }
 

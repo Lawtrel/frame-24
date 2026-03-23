@@ -16,7 +16,10 @@ export default function ProductsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Produtos</h1>
-        <Link href="/products/new" className="bg-accent-red px-4 py-2 rounded text-white flex gap-2">
+        <Link
+          href="/products/new"
+          className="bg-accent-red px-4 py-2 rounded text-white flex gap-2"
+        >
           <Plus className="w-4 h-4" /> Novo Produto
         </Link>
       </div>

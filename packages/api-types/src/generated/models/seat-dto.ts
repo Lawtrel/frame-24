@@ -12,37 +12,34 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface SeatDto
  */
 export interface SeatDto {
-    /**
-     * 
-     * @type {string}
-     * @memberof SeatDto
-     */
-    'id': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof SeatDto
-     */
-    'row': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof SeatDto
-     */
-    'column': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof SeatDto
-     */
-    'room_id': string;
+  /**
+   *
+   * @type {string}
+   * @memberof SeatDto
+   */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof SeatDto
+   */
+  row: string;
+  /**
+   *
+   * @type {string}
+   * @memberof SeatDto
+   */
+  column: string;
+  /**
+   *
+   * @type {string}
+   * @memberof SeatDto
+   */
+  room_id: string;
 }
-

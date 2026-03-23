@@ -1,39 +1,33 @@
 import {
-  Controller,
   Get,
   Post,
   Put,
   Delete,
   Body,
   Param,
-  UseGuards,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
+  ApiOkResponse,
   ApiBadRequestResponse,
   ApiNotFoundResponse,
-  ApiBearerAuth,
   ApiConflictResponse,
 } from '@nestjs/swagger';
 
-import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
+import { SecuredController } from 'src/common/decorators/secured-controller.decorator';
 
 import { CreateCinemaComplexDto } from '../dto/create-cinema-complex.dto';
 import { UpdateCinemaComplexDto } from '../dto/update-cinema-complex.dto';
-import { CinemaComplexesService } from 'src/modules/operations/cinema-complexes/service/cinema-complexes.service';
+import { CinemaComplexesService } from '../service/cinema-complexes.service';
 
 @ApiTags('Cinema Complexes')
-@ApiBearerAuth()
-@Controller({ path: 'cinema-complexes', version: '1' })
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@SecuredController({ path: 'cinema-complexes', version: '1' })
 export class CinemaComplexesController {
   constructor(private readonly service: CinemaComplexesService) {}
 
@@ -50,22 +44,18 @@ export class CinemaComplexesController {
   @ApiConflictResponse({
     description: 'Um complexo com o mesmo código já existe.',
   })
-  async create(
-    @Body() dto: CreateCinemaComplexDto,
-    @CurrentUser() user: RequestUser,
-  ) {
-    return this.service.create(dto, user);
+  async create(@Body() dto: CreateCinemaComplexDto) {
+    return this.service.create(dto);
   }
 
   @Get()
   @RequirePermission('cinema_complexes', 'read')
   @ApiOperation({ summary: 'Listar todos os complexos de cinema da empresa' })
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     description: 'Lista de complexos retornada com sucesso.',
   })
-  async findAll(@CurrentUser() user: RequestUser) {
-    return this.service.findAll(user.company_id);
+  async findAll() {
+    return this.service.findAll();
   }
 
   @Get(':id')
@@ -73,8 +63,8 @@ export class CinemaComplexesController {
   @ApiOperation({ summary: 'Buscar um complexo de cinema por ID' })
   @ApiResponse({ status: 200, description: 'Complexo encontrado.' })
   @ApiNotFoundResponse({ description: 'Complexo não encontrado.' })
-  async findOne(@Param('id') id: string, @CurrentUser() user: RequestUser) {
-    return this.service.findOne(id, user.company_id);
+  async findOne(@Param('id', ParseEntityIdPipe) id: string) {
+    return this.service.findOne(id);
   }
 
   @Put(':id')
@@ -84,11 +74,10 @@ export class CinemaComplexesController {
   @ApiNotFoundResponse({ description: 'Complexo não encontrado.' })
   @ApiConflictResponse({ description: 'O código fornecido já está em uso.' })
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
     @Body() dto: UpdateCinemaComplexDto,
-    @CurrentUser() user: RequestUser,
   ) {
-    return this.service.update(id, dto, user);
+    return this.service.update(id, dto);
   }
 
   @Delete(':id')
@@ -97,7 +86,7 @@ export class CinemaComplexesController {
   @ApiOperation({ summary: 'Excluir um complexo de cinema' })
   @ApiResponse({ status: 200, description: 'Complexo excluído com sucesso.' })
   @ApiNotFoundResponse({ description: 'Complexo não encontrado.' })
-  async delete(@Param('id') id: string, @CurrentUser() user: RequestUser) {
-    return this.service.delete(id, user);
+  async delete(@Param('id', ParseEntityIdPipe) id: string) {
+    return this.service.delete(id);
   }
 }

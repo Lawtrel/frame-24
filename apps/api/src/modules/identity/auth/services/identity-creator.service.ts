@@ -6,6 +6,7 @@ import { PersonRepository } from '../repositories/person.repository';
 import { Email } from '../domain/value-objects/email.value-object';
 import { Password } from '../domain/value-objects/password.value-object';
 import { Mobile } from '../domain/value-objects/mobile.value-object';
+import { createHash } from 'crypto';
 import {
   EmailVerificationService,
   VerificationToken,
@@ -49,7 +50,9 @@ export class IdentityCreatorService {
       personId: person.id,
       email: email.value,
       passwordHash: password.hash,
-      verificationToken: verification.token,
+      verificationToken: createHash('sha256')
+        .update(verification.token)
+        .digest('hex'),
       verificationExpiresAt: verification.expiresAt,
     });
 

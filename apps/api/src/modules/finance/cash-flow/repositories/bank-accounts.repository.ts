@@ -1,16 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Prisma } from '@repo/db';
+import { bank_accounts, Prisma } from '@repo/db';
 
 @Injectable()
 export class BankAccountsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: Prisma.bank_accountsCreateInput) {
+  async create(data: Prisma.bank_accountsCreateInput): Promise<bank_accounts> {
     return this.prisma.bank_accounts.create({ data });
   }
 
-  async findAll(companyId: string, activeOnly = true) {
+  async findAll(
+    companyId: string,
+    activeOnly = true,
+  ): Promise<bank_accounts[]> {
     return this.prisma.bank_accounts.findMany({
       where: {
         company_id: companyId,
@@ -20,7 +23,7 @@ export class BankAccountsRepository {
     });
   }
 
-  async findById(id: string, companyId: string) {
+  async findById(id: string, companyId: string): Promise<bank_accounts | null> {
     return this.prisma.bank_accounts.findFirst({
       where: {
         id,
@@ -33,7 +36,7 @@ export class BankAccountsRepository {
     id: string,
     companyId: string,
     data: Prisma.bank_accountsUpdateInput,
-  ) {
+  ): Promise<Prisma.BatchPayload> {
     return this.prisma.bank_accounts.updateMany({
       where: {
         id,
@@ -43,18 +46,18 @@ export class BankAccountsRepository {
     });
   }
 
-  async updateBalance(id: string, newBalance: number) {
+  async updateBalance(id: string, newBalance: number): Promise<bank_accounts> {
     return this.prisma.bank_accounts.update({
       where: { id },
       data: { current_balance: newBalance },
     });
   }
 
-  async getBalance(id: string) {
+  async getBalance(id: string): Promise<number> {
     const account = await this.prisma.bank_accounts.findUnique({
       where: { id },
       select: { current_balance: true },
     });
-    return account?.current_balance || 0;
+    return Number(account?.current_balance || 0);
   }
 }

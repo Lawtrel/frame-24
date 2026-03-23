@@ -15,7 +15,7 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
-import type { UpdateSeatStatusBatchItemDto } from './update-seat-status-batch-item-dto';
+import type { UpdateSeatsStatusBatchDtoSeatsInner } from './update-seats-status-batch-dto-seats-inner';
 
 /**
  * 
@@ -25,9 +25,9 @@ import type { UpdateSeatStatusBatchItemDto } from './update-seat-status-batch-it
 export interface UpdateSeatsStatusBatchDto {
     /**
      * 
-     * @type {Array<UpdateSeatStatusBatchItemDto>}
+     * @type {Array<UpdateSeatsStatusBatchDtoSeatsInner>}
      * @memberof UpdateSeatsStatusBatchDto
      */
-    'seats': Array<UpdateSeatStatusBatchItemDto>;
+    'seats': Array<UpdateSeatsStatusBatchDtoSeatsInner>;
 }
 

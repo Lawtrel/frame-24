@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const CinemaComplexSchema = z.object({
-  company_id: z.string().min(1, 'O ID da empresa é obrigatório.'),
+  company_id: z.string().min(1, 'O ID da empresa é obrigatório.').optional(),
 
   name: z
     .string()

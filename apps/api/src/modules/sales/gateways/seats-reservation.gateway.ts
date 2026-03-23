@@ -13,6 +13,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { SessionSeatStatusRepository } from 'src/modules/operations/session_seat_status/repositories/session-seat-status.repository';
 import { SeatStatusRepository } from 'src/modules/operations/seat-status/repositories/seat-status.repository';
 import { OnModuleInit } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 
 interface SeatReservation {
   showtime_id: string;
@@ -24,11 +25,45 @@ interface SeatReservation {
   company_id: string;
 }
 
-@WebSocketGateway({
-  cors: {
-    origin: '*',
-    credentials: true,
+interface SocketAuthContext {
+  userId: string;
+  companyId: string;
+}
+
+const isDev = process.env.NODE_ENV !== 'production';
+const wsFrontendUrls = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.split(',').map((url) => url.trim())
+  : [];
+const wsDevOrigins = isDev
+  ? [
+      'http://localhost:3000',
+      'http://localhost:3002',
+      'http://localhost:3004',
+      'http://localhost:4000',
+    ]
+  : [];
+const wsAllowedOrigins = [...wsDevOrigins, ...wsFrontendUrls].filter(Boolean);
+
+const websocketCorsConfig = {
+  origin: (
+    origin: string | undefined,
+    callback: (err: Error | null, allow?: boolean) => void,
+  ) => {
+    // Allow non-browser clients without origin.
+    if (!origin) return callback(null, true);
+
+    if (wsAllowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error('Not allowed by CORS'));
   },
+  credentials: true,
+};
+
+@WebSocketGateway({
+  cors: websocketCorsConfig,
   namespace: '/seats',
 })
 export class SeatsReservationGateway
@@ -45,6 +80,7 @@ export class SeatsReservationGateway
     private readonly prisma: PrismaService,
     private readonly sessionSeatStatusRepository: SessionSeatStatusRepository,
     private readonly seatStatusRepository: SeatStatusRepository,
+    private readonly jwtService: JwtService,
   ) {
     // Limpar reservas expiradas a cada minuto
     setInterval(() => {
@@ -122,10 +158,30 @@ export class SeatsReservationGateway
   }
 
   handleConnection(client: Socket) {
-    this.logger.log(
-      `WebSocket client connected: ${client.id}`,
-      'SeatsReservationGateway',
-    );
+    try {
+      // Allow passing auth via token or headers
+      const token =
+        client.handshake.auth?.token ||
+        client.handshake.headers['authorization']?.split(' ')[1];
+
+      if (!token) {
+        throw new Error('Unauthorized - Token not provided');
+      }
+
+      const payload = this.jwtService.verify(token);
+      client.data.user = payload; // Attach user to socket connection
+
+      this.logger.log(
+        `WebSocket client connected: ${client.id} (User: ${payload.sub || 'guest'})`,
+        'SeatsReservationGateway',
+      );
+    } catch (error) {
+      this.logger.error(
+        `Unauthorized connection attempt: ${client.id} - ${error instanceof Error ? error.message : 'Unknown error'}`,
+        'SeatsReservationGateway',
+      );
+      client.disconnect(true);
+    }
   }
 
   handleDisconnect(client: Socket) {
@@ -137,23 +193,55 @@ export class SeatsReservationGateway
     // A limpeza automática cuidará das expirações
   }
 
+  private getSocketAuthContext(client: Socket): SocketAuthContext {
+    const user = client.data.user as
+      | { sub?: string; company_id?: string }
+      | undefined;
+
+    if (!user?.sub || !user.company_id) {
+      throw new Error('Socket não autenticado para operação de reserva');
+    }
+
+    return {
+      userId: user.sub,
+      companyId: user.company_id,
+    };
+  }
+
+  private ensureReservationOwnership(
+    reservation: SeatReservation,
+    auth: SocketAuthContext,
+    client: Socket,
+  ): void {
+    if (reservation.company_id !== auth.companyId) {
+      throw new Error('Reserva pertence a outra empresa');
+    }
+
+    if (reservation.user_id && reservation.user_id !== auth.userId) {
+      throw new Error('Reserva pertence a outro usuário');
+    }
+
+    if (!reservation.user_id && reservation.socket_id !== client.id) {
+      throw new Error('Não foi possível validar ownership da reserva');
+    }
+  }
+
   @SubscribeMessage('join-showtime')
   handleJoinShowtime(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { showtime_id: string; user_id?: string },
+    @MessageBody() payload: { showtime_id: string },
   ) {
-    const { showtime_id, user_id } = payload;
+    const { showtime_id } = payload;
+    const auth = this.getSocketAuthContext(client);
+
     client.join(`showtime:${showtime_id}`);
     this.logger.debug(
-      `Client ${client.id} joined showtime ${showtime_id} (User: ${user_id || 'Guest'})`,
+      `Client ${client.id} joined showtime ${showtime_id} (User: ${auth.userId})`,
       'SeatsReservationGateway',
     );
     client.emit('joined-showtime', { showtime_id });
 
-    // Tentar restaurar reserva se tiver user_id
-    if (user_id) {
-      this.restoreUserReservation(client, user_id, showtime_id);
-    }
+    this.restoreUserReservation(client, auth.userId, showtime_id);
   }
 
   private restoreUserReservation(
@@ -193,18 +281,44 @@ export class SeatsReservationGateway
     payload: {
       showtime_id: string;
       seat_ids: string[];
-      company_id: string;
-      user_id?: string;
     },
   ) {
-    const { showtime_id, seat_ids, company_id, user_id } = payload;
+    const { showtime_id, seat_ids } = payload;
 
     try {
+      const auth = this.getSocketAuthContext(client);
+
+      const showtime = await this.prisma.showtime_schedule.findUnique({
+        where: { id: showtime_id },
+        select: {
+          id: true,
+          cinema_complexes: {
+            select: {
+              company_id: true,
+            },
+          },
+        },
+      });
+
+      if (!showtime) {
+        client.emit('reservation-error', {
+          message: 'Sessão não encontrada',
+        });
+        return;
+      }
+
+      if (showtime.cinema_complexes?.company_id !== auth.companyId) {
+        client.emit('reservation-error', {
+          message: 'Sessão não pertence à empresa autenticada',
+        });
+        return;
+      }
+
       // Buscar status "Reservado"
       const reservedStatus =
         await this.seatStatusRepository.findByNameAndCompany(
           'Reservado',
-          company_id,
+          auth.companyId,
         );
 
       if (!reservedStatus) {
@@ -290,8 +404,8 @@ export class SeatsReservationGateway
         expires_at: expiresAt,
         socket_id: client.id,
         reservation_uuid: reservationUuid,
-        user_id,
-        company_id,
+        user_id: auth.userId,
+        company_id: auth.companyId,
       });
 
       // Notificar outros clientes na mesma sessão
@@ -326,11 +440,30 @@ export class SeatsReservationGateway
   async handleReleaseSeats(
     @ConnectedSocket() client: Socket,
     @MessageBody()
-    payload: { reservation_uuid: string; company_id: string },
+    payload: { reservation_uuid: string },
   ) {
-    const { reservation_uuid, company_id } = payload;
-    await this.expireReservation(reservation_uuid, company_id);
-    client.emit('seats-released', { reservation_uuid });
+    const { reservation_uuid } = payload;
+
+    try {
+      const auth = this.getSocketAuthContext(client);
+      const reservation = this.reservations.get(reservation_uuid);
+
+      if (!reservation) {
+        client.emit('reservation-error', {
+          message: 'Reserva não encontrada para liberação',
+        });
+        return;
+      }
+
+      this.ensureReservationOwnership(reservation, auth, client);
+
+      await this.expireReservation(reservation_uuid, auth.companyId);
+      client.emit('seats-released', { reservation_uuid });
+    } catch (error) {
+      client.emit('reservation-error', {
+        message: (error as Error).message || 'Erro ao liberar assentos',
+      });
+    }
   }
 
   @SubscribeMessage('confirm-reservation')
@@ -350,6 +483,9 @@ export class SeatsReservationGateway
     }
 
     try {
+      const auth = this.getSocketAuthContext(client);
+      this.ensureReservationOwnership(reservation, auth, client);
+
       // Atualizar reservas no banco com sale_id atomicamente
       await this.prisma.session_seat_status.updateMany({
         where: {

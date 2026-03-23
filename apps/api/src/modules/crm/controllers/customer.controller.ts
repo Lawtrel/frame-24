@@ -1,14 +1,21 @@
-import { Controller, Get, Put, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Put,
+  Body,
+  UseGuards,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiBearerAuth,
   ApiResponse,
 } from '@nestjs/swagger';
+import { ClsService } from 'nestjs-cls';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { CustomerGuard } from 'src/common/guards/customer.guard';
-import { CurrentCustomer } from 'src/common/decorators/current-customer.decorator';
-import type { CustomerUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import { CustomersRepository } from '../repositories/customers.repository';
 import { CompanyCustomersRepository } from '../repositories/company-customers.repository';
 import { UpdateCustomerProfileDto } from '../dto/update-customer-profile.dto';
@@ -21,26 +28,44 @@ export class CustomerController {
   constructor(
     private readonly customersRepository: CustomersRepository,
     private readonly companyCustomersRepository: CompanyCustomersRepository,
+    private readonly cls: ClsService,
   ) {}
+
+  private getContext(): {
+    companyId: string;
+    customerId: string;
+    tenantSlug?: string;
+  } {
+    const companyId = this.cls.get<string>('companyId');
+    const customerId = this.cls.get<string>('customerId');
+    const tenantSlug = this.cls.get<string>('tenantSlug');
+
+    if (!companyId || !customerId) {
+      throw new ForbiddenException('Contexto do cliente não encontrado.');
+    }
+
+    return { companyId, customerId, tenantSlug };
+  }
 
   @Get('profile')
   @ApiOperation({
     summary: 'Obter perfil do cliente',
     description: 'Retorna os dados do cliente autenticado',
   })
-  async getProfile(@CurrentCustomer() customer: CustomerUser) {
+  async getProfile() {
+    const context = this.getContext();
     const customerData = await this.customersRepository.findById(
-      customer.customer_id,
+      context.customerId,
     );
 
     if (!customerData) {
-      throw new Error('Cliente não encontrado');
+      throw new NotFoundException('Cliente não encontrado');
     }
 
     const companyCustomer =
       await this.companyCustomersRepository.findByCompanyAndCustomer(
-        customer.company_id,
-        customer.customer_id,
+        context.companyId,
+        context.customerId,
       );
 
     return {
@@ -51,8 +76,8 @@ export class CustomerController {
       birth_date: customerData.birth_date,
       loyalty_level: companyCustomer?.loyalty_level || 'BRONZE',
       accumulated_points: companyCustomer?.accumulated_points || 0,
-      company_id: customer.company_id,
-      tenant_slug: customer.tenant_slug,
+      company_id: context.companyId,
+      tenant_slug: context.tenantSlug,
     };
   }
 
@@ -61,11 +86,12 @@ export class CustomerController {
     summary: 'Obter pontos de fidelidade',
     description: 'Retorna os pontos acumulados do cliente',
   })
-  async getPoints(@CurrentCustomer() customer: CustomerUser) {
+  async getPoints() {
+    const context = this.getContext();
     const companyCustomer =
       await this.companyCustomersRepository.findByCompanyAndCustomer(
-        customer.company_id,
-        customer.customer_id,
+        context.companyId,
+        context.customerId,
       );
 
     return {
@@ -83,19 +109,21 @@ export class CustomerController {
     status: 200,
     description: 'Perfil atualizado com sucesso',
   })
-  async updateProfile(
-    @CurrentCustomer() customer: CustomerUser,
-    @Body() dto: UpdateCustomerProfileDto,
-  ) {
+  async updateProfile(@Body() dto: UpdateCustomerProfileDto) {
+    const context = this.getContext();
     const customerData = await this.customersRepository.findById(
-      customer.customer_id,
+      context.customerId,
     );
 
     if (!customerData) {
-      throw new Error('Cliente não encontrado');
+      throw new NotFoundException('Cliente não encontrado');
     }
 
-    const updateData: any = {};
+    const updateData: {
+      full_name?: string;
+      phone?: string;
+      birth_date?: Date | null;
+    } = {};
 
     if (dto.full_name !== undefined) {
       updateData.full_name = dto.full_name;
@@ -110,7 +138,7 @@ export class CustomerController {
     }
 
     const updated = await this.customersRepository.update(
-      customer.customer_id,
+      context.customerId,
       updateData,
     );
 

@@ -10,7 +10,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -18,9 +18,8 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { BankReconciliationService } from '../services/bank-reconciliation.service';
 import {
@@ -31,9 +30,9 @@ import {
 @ApiTags('Fluxo de Caixa - Conciliação Bancária')
 @ApiBearerAuth()
 @Controller({ path: 'finance/bank-reconciliation', version: '1' })
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class BankReconciliationController {
-  constructor(private readonly service: BankReconciliationService) { }
+  constructor(private readonly service: BankReconciliationService) {}
 
   @Post()
   @RequirePermission('cash_flow', 'reconcile')
@@ -44,10 +43,9 @@ export class BankReconciliationController {
     description: 'Reconciliation created successfully',
   })
   async create(
-    @CurrentUser() user: RequestUser,
     @Body(new ZodValidationPipe()) dto: CreateBankReconciliationDto,
   ) {
-    return this.service.create(user.company_id, user.company_user_id, dto);
+    return this.service.create(dto);
   }
 
   @Get()
@@ -58,11 +56,8 @@ export class BankReconciliationController {
     status: 200,
     description: 'Reconciliations retrieved successfully',
   })
-  async findAll(
-    @CurrentUser() user: RequestUser,
-    @Query('bank_account_id') bankAccountId?: string,
-  ) {
-    return this.service.findAll(user.company_id, bankAccountId);
+  async findAll(@Query('bank_account_id') bankAccountId?: string) {
+    return this.service.findAll(bankAccountId);
   }
 
   @Get(':id')
@@ -73,7 +68,7 @@ export class BankReconciliationController {
     status: 200,
     description: 'Reconciliation retrieved successfully',
   })
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id', ParseEntityIdPipe) id: string) {
     return this.service.findOne(id);
   }
 
@@ -86,7 +81,7 @@ export class BankReconciliationController {
     description: 'Reconciliation updated successfully',
   })
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
     @Body(new ZodValidationPipe()) dto: UpdateBankReconciliationDto,
   ) {
     return this.service.update(id, dto);
@@ -100,7 +95,7 @@ export class BankReconciliationController {
     status: 200,
     description: 'Reconciliation completed successfully',
   })
-  async complete(@Param('id') id: string) {
+  async complete(@Param('id', ParseEntityIdPipe) id: string) {
     return this.service.complete(id);
   }
 }

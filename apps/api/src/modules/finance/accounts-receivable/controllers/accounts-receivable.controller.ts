@@ -8,15 +8,14 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import { AccountsReceivableService } from '../services/accounts-receivable.service';
 import { CreateAccountReceivableDto } from '../dto/create-account-receivable.dto';
 import { UpdateAccountReceivableDto } from '../dto/update-account-receivable.dto';
 import { AccountReceivableQueryDto } from '../dto/account-receivable-query.dto';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 
 import {
   ApiTags,
@@ -28,9 +27,9 @@ import {
 @ApiTags('Contas a Receber')
 @ApiBearerAuth()
 @Controller('finance/receivables')
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class AccountsReceivableController {
-  constructor(private readonly service: AccountsReceivableService) { }
+  constructor(private readonly service: AccountsReceivableService) {}
 
   @Post()
   @RequirePermission('finance_receivables', 'create')
@@ -43,11 +42,8 @@ export class AccountsReceivableController {
     status: 201,
     description: 'Conta a receber criada com sucesso.',
   })
-  create(
-    @CurrentUser() user: RequestUser,
-    @Body() dto: CreateAccountReceivableDto,
-  ) {
-    return this.service.create(user.company_id, dto);
+  create(@Body() dto: CreateAccountReceivableDto) {
+    return this.service.create(dto);
   }
 
   @Get()
@@ -61,11 +57,8 @@ export class AccountsReceivableController {
     status: 200,
     description: 'Lista de contas a receber retornada com sucesso.',
   })
-  findAll(
-    @CurrentUser() user: RequestUser,
-    @Query() query: AccountReceivableQueryDto,
-  ) {
-    return this.service.findAll(user.company_id, query);
+  findAll(@Query() query: AccountReceivableQueryDto) {
+    return this.service.findAll(query);
   }
 
   @Get(':id')
@@ -76,8 +69,8 @@ export class AccountsReceivableController {
   })
   @ApiResponse({ status: 200, description: 'Detalhes da conta a receber.' })
   @ApiResponse({ status: 404, description: 'Conta a receber não encontrada.' })
-  findOne(@CurrentUser() user: RequestUser, @Param('id') id: string) {
-    return this.service.findOne(id, user.company_id);
+  findOne(@Param('id', ParseEntityIdPipe) id: string) {
+    return this.service.findOne(id);
   }
 
   @Patch(':id')
@@ -93,10 +86,9 @@ export class AccountsReceivableController {
   })
   @ApiResponse({ status: 404, description: 'Conta a receber não encontrada.' })
   update(
-    @CurrentUser() user: RequestUser,
-    @Param('id') id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
     @Body() dto: UpdateAccountReceivableDto,
   ) {
-    return this.service.update(id, user.company_id, dto);
+    return this.service.update(id, dto);
   }
 }

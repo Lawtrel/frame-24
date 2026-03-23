@@ -10,7 +10,6 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import {
   ApiTags,
   ApiOperation,
@@ -21,9 +20,8 @@ import {
 } from '@nestjs/swagger';
 
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 
 import { UsersService } from '../services/users.service';
 import { CreateUserDto } from '../dto/create-user.dto';
@@ -33,7 +31,7 @@ import { UserResponseDto } from '../dto/user-response.dto';
 @ApiTags('User Management')
 @ApiBearerAuth()
 @Controller({ path: 'users', version: '1' })
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class UserManagementController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -56,11 +54,8 @@ export class UserManagementController {
   @ApiConflictResponse({
     description: 'Email ou CPF já cadastrado nesta empresa',
   })
-  async createUser(
-    @Body() dto: CreateUserDto,
-    @CurrentUser() user: RequestUser,
-  ): Promise<UserResponseDto> {
-    return await this.usersService.create(dto, user.company_id);
+  async createUser(@Body() dto: CreateUserDto): Promise<UserResponseDto> {
+    return await this.usersService.create(dto);
   }
 
   @Get()
@@ -74,10 +69,8 @@ export class UserManagementController {
     description: 'Lista de usuários retornada com sucesso',
     type: [UserResponseDto],
   })
-  async listUsers(
-    @CurrentUser() user: RequestUser,
-  ): Promise<UserResponseDto[]> {
-    return await this.usersService.findAll(user.company_id);
+  async listUsers(): Promise<UserResponseDto[]> {
+    return await this.usersService.findAll();
   }
 
   @Get(':employee_id')
@@ -89,9 +82,8 @@ export class UserManagementController {
   })
   async getUser(
     @Param('employee_id') employee_id: string,
-    @CurrentUser() user: RequestUser,
   ): Promise<UserResponseDto> {
-    return await this.usersService.findOne(employee_id, user.company_id);
+    return await this.usersService.findOne(employee_id);
   }
 
   @Put(':employee_id')
@@ -104,9 +96,8 @@ export class UserManagementController {
   async updateUser(
     @Param('employee_id') employee_id: string,
     @Body() dto: UpdateUserDto,
-    @CurrentUser() user: RequestUser,
   ): Promise<UserResponseDto> {
-    return await this.usersService.update(employee_id, dto, user.company_id);
+    return await this.usersService.update(employee_id, dto);
   }
 
   @Delete(':employee_id')
@@ -116,10 +107,7 @@ export class UserManagementController {
     description:
       'Desativa um usuário (soft delete). O usuário permanece no banco mas fica inativo e não pode mais fazer login.',
   })
-  async deleteUser(
-    @Param('employee_id') employee_id: string,
-    @CurrentUser() user: RequestUser,
-  ): Promise<void> {
-    return await this.usersService.softDelete(employee_id, user.company_id);
+  async deleteUser(@Param('employee_id') employee_id: string): Promise<void> {
+    return await this.usersService.softDelete(employee_id);
   }
 }

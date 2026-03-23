@@ -1,21 +1,14 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
+import { ClsService } from 'nestjs-cls';
 import { CampaignsRepository } from '../repositories/campaigns.repository';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
-
-export interface CreateCampaignInput {
-  company_id: string;
-  promotion_type_id: string;
-  campaign_code: string;
-  name: string;
-  description?: string;
-  start_date: Date;
-  end_date: Date;
-}
+import { CreateCampaignDto } from '../dto/create-campaign.dto';
 
 export interface PromotionApplicationParams {
   company_id: string;
@@ -37,11 +30,12 @@ export interface PromotionApplicationResult {
 export class CampaignsService {
   constructor(
     private readonly campaignsRepository: CampaignsRepository,
-    private readonly prisma: PrismaService,
     private readonly snowflake: SnowflakeService,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
-  async create(input: CreateCampaignInput) {
+  async create(input: CreateCampaignDto) {
+    const companyId = this.tenantContext.getCompanyId();
     if (input.end_date <= input.start_date) {
       throw new BadRequestException(
         'Data de término deve ser maior que a data de início',
@@ -49,7 +43,7 @@ export class CampaignsService {
     }
 
     const existing = await this.campaignsRepository.findByCode(
-      input.company_id,
+      companyId,
       input.campaign_code,
     );
     if (existing) {
@@ -58,7 +52,7 @@ export class CampaignsService {
 
     const data = {
       id: this.snowflake.generate(),
-      company_id: input.company_id,
+      company_id: companyId,
       promotion_type_id: input.promotion_type_id,
       campaign_code: input.campaign_code,
       name: input.name,
@@ -71,28 +65,30 @@ export class CampaignsService {
     return this.campaignsRepository.createCampaign(data);
   }
 
-  async findAll(company_id: string) {
-    return this.campaignsRepository.findAllByCompany(company_id);
+  async findAll() {
+    const companyId = this.tenantContext.getCompanyId();
+    return this.campaignsRepository.findAllByCompany(companyId);
   }
 
-  async findOne(company_id: string, id: string) {
+  async findOne(id: string) {
+    const companyId = this.tenantContext.getCompanyId();
     const campaign = await this.campaignsRepository.findById(id);
-    if (!campaign || campaign.company_id !== company_id) {
+    if (!campaign || campaign.company_id !== companyId) {
       throw new NotFoundException('Campanha não encontrada');
     }
     return campaign;
   }
 
-  async activate(company_id: string, id: string) {
-    const campaign = await this.findOne(company_id, id);
+  async activate(id: string) {
+    const campaign = await this.findOne(id);
     if (campaign.active) {
       return campaign;
     }
     return this.campaignsRepository.updateCampaign(id, { active: true });
   }
 
-  async pause(company_id: string, id: string) {
-    const campaign = await this.findOne(company_id, id);
+  async pause(id: string) {
+    const campaign = await this.findOne(id);
     if (!campaign.active) {
       return campaign;
     }

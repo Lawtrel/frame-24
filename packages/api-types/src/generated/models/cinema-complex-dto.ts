@@ -12,25 +12,22 @@
  * Do not edit the class manually.
  */
 
-
-
 /**
- * 
+ *
  * @export
  * @interface CinemaComplexDto
  */
 export interface CinemaComplexDto {
-    /**
-     * 
-     * @type {string}
-     * @memberof CinemaComplexDto
-     */
-    'id': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof CinemaComplexDto
-     */
-    'name': string;
+  /**
+   *
+   * @type {string}
+   * @memberof CinemaComplexDto
+   */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CinemaComplexDto
+   */
+  name: string;
 }
-

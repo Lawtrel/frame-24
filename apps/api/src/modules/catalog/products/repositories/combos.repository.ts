@@ -1,6 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { combos } from '@repo/db';
+import { combos, Prisma } from '@repo/db';
 import { PrismaService } from 'src/prisma/prisma.service';
+
+type ComboWithProducts = Prisma.combosGetPayload<{
+  include: {
+    combo_products: {
+      include: {
+        products: true;
+      };
+    };
+  };
+}>;
 
 @Injectable()
 export class CombosRepository {
@@ -9,7 +19,7 @@ export class CombosRepository {
   async findById(
     id: string,
     company_id: string,
-  ): Promise<(combos & { combo_products: any[] }) | null> {
+  ): Promise<ComboWithProducts | null> {
     return this.prisma.combos.findFirst({
       where: {
         id,

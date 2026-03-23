@@ -14,7 +14,7 @@ async function main() {
     { name: 'Esgotada', description: 'Sem assentos disponíveis' },
     { name: 'Cancelada', description: 'Sessão cancelada' },
     { name: 'Fechada', description: 'Vendas encerradas' },
-    { name: 'Em Breve', description: 'Vendas futuras' }
+    { name: 'Em Breve', description: 'Vendas futuras' },
   ];
 
   for (const status of statuses) {
@@ -26,8 +26,8 @@ async function main() {
         company_id: company.id,
         name: status.name,
         description: status.description,
-        allows_modification: true
-      }
+        allows_modification: true,
+      },
     });
   }
   console.log('✅ Status criados com sucesso!');

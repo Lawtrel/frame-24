@@ -6,6 +6,14 @@ import { BrasilApiService } from 'src/common/services/brasil-api.service';
 import { FederalTaxRatesRepository } from '../repositories/federal-tax-rates.repository';
 import { MunicipalTaxParametersRepository } from '../repositories/municipal-tax-parameters.repository';
 
+type SetupCompanyTaxesInput = {
+  companyId: string;
+  taxRegime: tax_regime_type;
+  zipCode?: string;
+  city?: string;
+  state?: string;
+};
+
 @Injectable()
 export class TaxSetupService {
   constructor(
@@ -19,13 +27,8 @@ export class TaxSetupService {
   /**
    * Configura os impostos iniciais para uma empresa recém-criada
    */
-  async setupCompanyTaxes(
-    companyId: string,
-    taxRegime: tax_regime_type,
-    zipCode?: string,
-    city?: string,
-    state?: string,
-  ): Promise<void> {
+  async setupCompanyTaxes(input: SetupCompanyTaxesInput): Promise<void> {
+    const { companyId, taxRegime, zipCode, city, state } = input;
     this.logger.log(
       `Configurando impostos para empresa ${companyId} (regime: ${taxRegime})`,
       TaxSetupService.name,

@@ -1,5 +1,4 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -8,17 +7,16 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import { FinanceReportsService } from '../services/finance-reports.service';
 
 @ApiTags('Relatórios Financeiros')
 @ApiBearerAuth()
 @Controller({ path: 'finance', version: '1' })
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class FinanceReportsController {
-  constructor(private readonly financeReports: FinanceReportsService) { }
+  constructor(private readonly financeReports: FinanceReportsService) {}
 
   @Get('income-statement')
   @RequirePermission('finance_reports', 'read')
@@ -41,10 +39,7 @@ export class FinanceReportsController {
     status: 400,
     description: 'Formato de mês inválido',
   })
-  async getIncomeStatement(
-    @CurrentUser() user: RequestUser,
-    @Query('month') month: string,
-  ) {
-    return this.financeReports.getIncomeStatement(user.company_id, month);
+  async getIncomeStatement(@Query('month') month: string) {
+    return this.financeReports.getIncomeStatement(month);
   }
 }

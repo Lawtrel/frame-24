@@ -5,6 +5,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
+import { ClsService } from 'nestjs-cls';
 import { Prisma } from '@repo/db';
 import {
   ExhibitionContractWithRelations,
@@ -35,18 +37,22 @@ export class ExhibitionContractsService {
     private readonly supplierRepository: SupplierRepository,
     private readonly contractTypesRepository: ContractTypesRepository,
     private readonly snowflake: SnowflakeService,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
   async create(
     dto: CreateExhibitionContractDto,
-    companyId: string,
   ): Promise<ExhibitionContractWithRelations> {
-    await this.validateMovie(dto.movie_id, companyId);
-    await this.validateCinemaComplex(dto.cinema_complex_id, companyId);
-    await this.validateDistributor(dto.distributor_id, companyId);
-    if (dto.contract_type_id) {
-      await this.validateContractType(dto.contract_type_id, companyId);
-    }
+    const companyId = this.tenantContext.getCompanyId();
+
+    await Promise.all([
+      this.validateMovie(dto.movie_id, companyId),
+      this.validateCinemaComplex(dto.cinema_complex_id, companyId),
+      this.validateDistributor(dto.distributor_id, companyId),
+      dto.contract_type_id
+        ? this.validateContractType(dto.contract_type_id, companyId)
+        : Promise.resolve(),
+    ]);
 
     this.ensureDateRange(dto.start_date, dto.end_date);
     this.ensurePercentages(
@@ -67,9 +73,9 @@ export class ExhibitionContractsService {
 
     const data: Prisma.exhibition_contractsCreateInput = {
       id: contractId,
-      movie_id: dto.movie_id,
-      cinema_complex_id: dto.cinema_complex_id,
-      distributor_id: dto.distributor_id,
+      movies: { connect: { id: dto.movie_id } },
+      cinema_complexes: { connect: { id: dto.cinema_complex_id } },
+      distributors: { connect: { id: dto.distributor_id } },
       contract_number: dto.contract_number ?? undefined,
       start_date: dto.start_date,
       end_date: dto.end_date,
@@ -101,16 +107,12 @@ export class ExhibitionContractsService {
   }
 
   async findAll(
-    companyId: string,
     filters: ExhibitionContractFilters,
   ): Promise<ExhibitionContractWithRelations[]> {
-    const allowedComplexes = await this.getCompanyComplexIds(companyId);
-    if (allowedComplexes.length === 0) {
-      return [];
-    }
+    const companyId = this.tenantContext.getCompanyId();
 
     const where: Prisma.exhibition_contractsWhereInput = {
-      cinema_complex_id: { in: allowedComplexes },
+      cinema_complexes: { company_id: companyId },
       ...(filters.movie_id && { movie_id: filters.movie_id }),
       ...(filters.cinema_complex_id && {
         cinema_complex_id: filters.cinema_complex_id,
@@ -122,10 +124,8 @@ export class ExhibitionContractsService {
     return this.repository.findAll(where);
   }
 
-  async findOne(
-    companyId: string,
-    id: string,
-  ): Promise<ExhibitionContractWithRelations> {
+  async findOne(id: string): Promise<ExhibitionContractWithRelations> {
+    const companyId = this.tenantContext.getCompanyId();
     const contract = await this.repository.findById(id);
     if (!contract) {
       throw new NotFoundException('Contrato não encontrado.');
@@ -136,25 +136,32 @@ export class ExhibitionContractsService {
   }
 
   async update(
-    companyId: string,
     id: string,
     dto: UpdateExhibitionContractDto,
   ): Promise<ExhibitionContractWithRelations> {
-    const existing = await this.findOne(companyId, id);
+    const companyId = this.tenantContext.getCompanyId();
+    const existing = await this.findOne(id);
 
-    if (dto.movie_id) {
-      await this.validateMovie(dto.movie_id, companyId);
-    }
-    if (dto.cinema_complex_id) {
-      await this.validateCinemaComplex(dto.cinema_complex_id, companyId);
-    }
-    if (dto.distributor_id) {
-      await this.validateDistributor(dto.distributor_id, companyId);
-    }
-    if (dto.contract_type_id !== undefined) {
-      if (dto.contract_type_id) {
-        await this.validateContractType(dto.contract_type_id, companyId);
-      }
+    if (
+      dto.movie_id ||
+      dto.cinema_complex_id ||
+      dto.distributor_id ||
+      dto.contract_type_id !== undefined
+    ) {
+      await Promise.all([
+        dto.movie_id
+          ? this.validateMovie(dto.movie_id, companyId)
+          : Promise.resolve(),
+        dto.cinema_complex_id
+          ? this.validateCinemaComplex(dto.cinema_complex_id, companyId)
+          : Promise.resolve(),
+        dto.distributor_id
+          ? this.validateDistributor(dto.distributor_id, companyId)
+          : Promise.resolve(),
+        dto.contract_type_id
+          ? this.validateContractType(dto.contract_type_id, companyId)
+          : Promise.resolve(),
+      ]);
     }
 
     const startDate = dto.start_date ?? existing.start_date;
@@ -240,8 +247,8 @@ export class ExhibitionContractsService {
     return this.repository.update(id, data);
   }
 
-  async delete(companyId: string, id: string): Promise<void> {
-    await this.findOne(companyId, id);
+  async delete(id: string): Promise<void> {
+    await this.findOne(id);
     await this.repository.deactivate(id);
   }
 

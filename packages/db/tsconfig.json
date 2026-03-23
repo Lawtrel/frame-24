@@ -9,7 +9,8 @@
     "emitDeclarationOnly": false,
     "module": "CommonJS",
     "target": "ES2020",
-    "ignoreDeprecations": "6.0"
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]

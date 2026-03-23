@@ -1,12 +1,17 @@
-import { Injectable } from '@nestjs/common';
-import { projection_types as ProjectionType } from '@repo/db';
+import { ForbiddenException, Injectable } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
+import { ClsService } from 'nestjs-cls';
+import type { OperationTypeResponse } from '../../shared/dto/operation-type-response.dto';
 import { ProjectionTypesRepository } from '../repositories/projection-types.repository';
 
 @Injectable()
 export class ProjectionTypesService {
-  constructor(private readonly repository: ProjectionTypesRepository) {}
+  constructor(
+    private readonly repository: ProjectionTypesRepository,
+    private readonly tenantContext: TenantContextService,
+  ) {}
 
-  async findAll(company_id: string): Promise<ProjectionType[]> {
-    return this.repository.findAllByCompany(company_id);
+  async findAll(): Promise<OperationTypeResponse[]> {
+    return this.repository.findAllByCompany(this.tenantContext.getCompanyId());
   }
 }

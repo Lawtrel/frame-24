@@ -1,5 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Transactional } from '@nestjs-cls/transactional';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
+import { stock_movements } from '@repo/db';
+import { ClsService } from 'nestjs-cls';
 import { StockMovementsRepository } from '../repositories/stock-movements.repository';
 import { ProductStockRepository } from '../repositories/product-stock.repository';
 import { StockMovementTypesRepository } from '../repositories/stock-movement-types.repository';
@@ -9,7 +16,6 @@ import { ProductRepository } from 'src/modules/catalog/products/repositories/pro
 import { CinemaComplexesRepository } from 'src/modules/operations/cinema-complexes/repositories/cinema-complexes.repository';
 import { LoggerService } from 'src/common/services/logger.service';
 import { RabbitMQPublisherService } from 'src/common/rabbitmq/rabbitmq-publisher.service';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import {
   InsufficientStockException,
   ProductNotFoundException,
@@ -26,30 +32,26 @@ export class StockMovementsService {
     private readonly cinemaComplexesRepository: CinemaComplexesRepository,
     private readonly logger: LoggerService,
     private readonly rabbitmq: RabbitMQPublisherService,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
-  async findAll(
-    user: RequestUser,
-    filters?: {
-      product_id?: string;
-      complex_id?: string;
-      movement_type?: string;
-      start_date?: Date;
-      end_date?: Date;
-    },
-  ): Promise<StockMovementResponseDto[]> {
+  async findAll(filters?: {
+    product_id?: string;
+    complex_id?: string;
+    movement_type?: string;
+    start_date?: Date;
+    end_date?: Date;
+  }): Promise<StockMovementResponseDto[]> {
     const movements = await this.stockMovementsRepository.findAll(
-      user.company_id,
+      this.tenantContext.getCompanyId(),
       filters,
     );
 
     return movements.map((movement) => this.mapToDto(movement));
   }
 
-  async findOne(
-    id: string,
-    user: RequestUser,
-  ): Promise<StockMovementResponseDto> {
+  async findOne(id: string): Promise<StockMovementResponseDto> {
+    const companyId = this.tenantContext.getCompanyId();
     const movement = await this.stockMovementsRepository.findById(id);
 
     if (!movement) {
@@ -59,7 +61,7 @@ export class StockMovementsService {
     // Validar que o produto pertence à empresa
     const product = await this.productsRepository.findById(
       movement.product_id,
-      user.company_id,
+      companyId,
     );
     if (!product) {
       throw new NotFoundException('Produto não encontrado');
@@ -69,11 +71,9 @@ export class StockMovementsService {
   }
 
   @Transactional()
-  async create(
-    dto: CreateStockMovementDto,
-    user: RequestUser,
-  ): Promise<StockMovementResponseDto> {
-    const company_id = user.company_id;
+  async create(dto: CreateStockMovementDto): Promise<StockMovementResponseDto> {
+    const company_id = this.tenantContext.getCompanyId();
+    const userId = this.tenantContext.getUserId();
 
     // Validar produto
     const product = await this.productsRepository.findById(
@@ -115,7 +115,7 @@ export class StockMovementsService {
         ...(dto.unit_value && { unit_value: dto.unit_value }),
         ...(dto.origin_type && { origin_type: dto.origin_type }),
         ...(dto.origin_id && { origin_id: dto.origin_id }),
-        user_id: user.company_user_id,
+        user_id: userId,
         observations: dto.observations,
         movement_date: new Date(),
       });
@@ -189,7 +189,7 @@ export class StockMovementsService {
       ...(totalValue && { total_value: totalValue }),
       ...(dto.origin_type && { origin_type: dto.origin_type }),
       ...(dto.origin_id && { origin_id: dto.origin_id }),
-      user_id: user.company_user_id,
+      user_id: userId,
       observations: dto.observations,
       movement_date: new Date(),
     });
@@ -225,7 +225,7 @@ export class StockMovementsService {
         id: movement.id,
         values: movement,
       },
-      metadata: { companyId: company_id, userId: user.company_user_id },
+      metadata: { companyId: company_id, userId },
     });
 
     this.logger.log(
@@ -236,7 +236,7 @@ export class StockMovementsService {
     return this.mapToDto(movement);
   }
 
-  private mapToDto(movement: any): StockMovementResponseDto {
+  private mapToDto(movement: stock_movements): StockMovementResponseDto {
     return {
       id: movement.id,
       product_id: movement.product_id,
@@ -249,7 +249,8 @@ export class StockMovementsService {
       total_value: movement.total_value?.toString(),
       origin_type: movement.origin_type ?? undefined,
       origin_id: movement.origin_id ?? undefined,
-      movement_date: movement.movement_date.toISOString(),
+      movement_date:
+        movement.movement_date?.toISOString() || new Date().toISOString(),
       created_at:
         movement.created_at?.toISOString() || new Date().toISOString(),
     };

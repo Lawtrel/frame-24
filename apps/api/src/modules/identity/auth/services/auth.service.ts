@@ -57,7 +57,7 @@ export class AuthService {
     private readonly masterDataSetup: MasterDataSetupService,
     private readonly taxSetup: TaxSetupService,
     private readonly logger: LoggerService,
-  ) { }
+  ) {}
 
   async login(email: string, password: string): Promise<LoginResponseDto> {
     this.logger.log(`Login: ${email}`, AuthService.name);
@@ -104,6 +104,8 @@ export class AuthService {
         AuthService.name,
       );
 
+      const temp_token = this.tokenGenerator.generateTempToken(identity.id);
+
       return {
         user: {
           id: identity.id,
@@ -113,6 +115,7 @@ export class AuthService {
           employee_id: '',
         },
         companies,
+        temp_token,
       };
     } catch (error) {
       if (error instanceof UnauthorizedException) {
@@ -126,9 +129,16 @@ export class AuthService {
   }
 
   async selectCompany(
-    identityId: string,
+    tempToken: string,
     companyId: string,
   ): Promise<LoginResponseDto> {
+    let identityId: string;
+    try {
+      identityId = this.tokenGenerator.verifyTempToken(tempToken);
+    } catch {
+      throw new UnauthorizedException('Token temporário inválido ou expirado.');
+    }
+
     this.logger.log(
       `Seleção de empresa: ${identityId} @ ${companyId}`,
       AuthService.name,
@@ -205,13 +215,13 @@ export class AuthService {
     await this.masterDataSetup.setupCompanyMasterData(company.id);
 
     // Configurar impostos baseados no regime tributário e município
-    await this.taxSetup.setupCompanyTaxes(
-      company.id,
-      company.tax_regime,
-      dto.company_zip_code,
-      dto.company_city,
-      dto.company_state,
-    );
+    await this.taxSetup.setupCompanyTaxes({
+      companyId: company.id,
+      taxRegime: company.tax_regime,
+      zipCode: dto.company_zip_code,
+      city: dto.company_city,
+      state: dto.company_state,
+    });
 
     await this.eventPublisher.publishCreated({
       identityId: identity.id,
@@ -220,20 +230,16 @@ export class AuthService {
       verificationToken: verification.token,
     });
 
-    // Auto-verify: Publish verified event immediately
-    await this.eventPublisher.publishVerified({
-      identityId: identity.id,
-      email: identity.email,
-      fullName: person.fullName,
-    });
-
-    this.logger.log(`Signup concluído: ${identity.email}`, AuthService.name);
+    this.logger.log(
+      `Signup concluído aguardando verificação: ${identity.email}`,
+      AuthService.name,
+    );
 
     return {
       success: true,
       user_id: identity.id,
       email: identity.email,
-      message: 'Conta criada com sucesso! Bem-vindo ao Frame 24.',
+      message: 'Conta criada com sucesso! Verifique seu email para ativar.',
     };
   }
 
@@ -278,20 +284,17 @@ export class AuthService {
       verificationToken: verification.token,
     });
 
-    // Auto-verify: Publish verified event immediately
-    await this.eventPublisher.publishVerified({
-      identityId: identity.id,
-      email: identity.email,
-      fullName: person.fullName,
-    });
-
-    this.logger.log(`Register concluído: ${identity.email}`, AuthService.name);
+    this.logger.log(
+      `Register concluído aguardando verificação: ${identity.email}`,
+      AuthService.name,
+    );
 
     return {
       success: true,
       user_id: identity.id,
       email: identity.email,
-      message: 'Usuário criado com sucesso. Acesso liberado.',
+      message:
+        'Usuário cadastrado com sucesso. Verifique o email para ativar o acesso.',
     };
   }
 
@@ -339,7 +342,6 @@ export class AuthService {
     return { message: 'Sua senha foi redefinida com sucesso!' };
   }
 
-
   @Transactional()
   async logout(identityId: string, companyId?: string): Promise<void> {
     await this.identityRepository.revokeUserSessions(identityId, companyId);
@@ -355,7 +357,6 @@ export class AuthService {
     );
   }
 
-
   @Transactional()
   async revokeSession(sessionId: string): Promise<void> {
     await this.identityRepository.revokeSessionById(sessionId);
@@ -368,21 +369,21 @@ export class AuthService {
   private async getCompanyList(
     companyUsers: CompanyUser[],
   ): Promise<CompanySelectionDto[]> {
-    return Promise.all(
-      companyUsers
-        .filter((cu) => cu.active)
-        .map(async (cu) => {
-          const company = await this.companyRepository.findById(cu.companyId);
+    const activeUsers = companyUsers.filter((cu) => cu.active);
+    const companyIds = activeUsers.map((cu) => cu.companyId);
+    const companies = await this.companyRepository.findByIds(companyIds);
+    const companyMap = new Map(companies.map((c) => [c.id, c]));
 
-          return {
-            company_id: cu.companyId,
-            company_name:
-              company?.tradeName || company?.corporateName || 'Empresa',
-            tenant_slug: company?.tenantSlug || '',
-            role_name: '',
-          };
-        }),
-    );
+    return activeUsers.map((cu) => {
+      const company = companyMap.get(cu.companyId);
+      return {
+        company_id: cu.companyId,
+        company_name:
+          company?.tradeName || company?.corporateName || 'Empresa',
+        tenant_slug: company?.tenantSlug || '',
+        role_name: '',
+      };
+    });
   }
 
   private async validateSignupUniqueness(dto: SignupDto): Promise<void> {

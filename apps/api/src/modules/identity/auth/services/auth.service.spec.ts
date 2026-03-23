@@ -23,6 +23,7 @@ import { IdentityCreatorService } from './identity-creator.service';
 import { CompanyUserLinkerService } from './company-user-linker.service';
 import { IdentityEventPublisherService } from './identity-event-publisher.service';
 import { MasterDataSetupService } from 'src/modules/setup/services/master-data-setup.service';
+import { TaxSetupService } from 'src/modules/tax/services/tax-setup.service';
 import { LoggerService } from 'src/common/services/logger.service';
 import { Identity } from '../domain/entities/identity.entity';
 import { CompanyUser } from '../domain/entities/company-user.entity';
@@ -51,6 +52,7 @@ describe('AuthService', () => {
   let companyUserLinker: jest.Mocked<CompanyUserLinkerService>;
   let eventPublisher: jest.Mocked<IdentityEventPublisherService>;
   let masterDataSetup: jest.Mocked<MasterDataSetupService>;
+  let taxSetup: jest.Mocked<TaxSetupService>;
 
   const mockIdentity: Identity = {
     id: 'identity-123',
@@ -96,6 +98,8 @@ describe('AuthService', () => {
             findByEmail: jest.fn(),
             findById: jest.fn(),
             findByEmailAndCompany: jest.fn(),
+            revokeUserSessions: jest.fn(),
+            revokeSessionById: jest.fn(),
           },
         },
         {
@@ -103,6 +107,7 @@ describe('AuthService', () => {
           useValue: {
             findById: jest.fn(),
             findByCnpj: jest.fn(),
+            findByIds: jest.fn(),
           },
         },
         {
@@ -141,6 +146,8 @@ describe('AuthService', () => {
           provide: TokenGeneratorService,
           useValue: {
             generate: jest.fn(),
+            generateTempToken: jest.fn(),
+            verifyTempToken: jest.fn(),
           },
         },
         {
@@ -190,6 +197,12 @@ describe('AuthService', () => {
           },
         },
         {
+          provide: TaxSetupService,
+          useValue: {
+            setupCompanyTaxes: jest.fn(),
+          },
+        },
+        {
           provide: LoggerService,
           useValue: {
             log: jest.fn(),
@@ -216,6 +229,7 @@ describe('AuthService', () => {
     companyUserLinker = module.get(CompanyUserLinkerService);
     eventPublisher = module.get(IdentityEventPublisherService);
     masterDataSetup = module.get(MasterDataSetupService);
+    taxSetup = module.get(TaxSetupService);
 
     // Mock dos value objects
     (Cnpj.create as jest.Mock).mockReturnValue({ value: '12345678000199' });
@@ -241,6 +255,7 @@ describe('AuthService', () => {
         mockCompanyUser,
       ]);
       tokenGenerator.generate.mockResolvedValue(mockToken);
+      tokenGenerator.generateTempToken.mockReturnValue('temp-token-xyz');
     });
 
     it('deve fazer login com sucesso para usuário com uma empresa', async () => {
@@ -336,12 +351,16 @@ describe('AuthService', () => {
       companyUserRepository.findAllByIdentity.mockResolvedValue(
         multipleCompanyUsers,
       );
-      companyRepository.findById.mockResolvedValue(mockCompany as any);
+      companyRepository.findByIds.mockResolvedValue([
+        mockCompany as any,
+        { ...mockCompany, id: 'company-999' } as any,
+      ]);
 
       const result = await service.login(email, password);
 
       expect(result.companies).toBeDefined();
       expect(result.companies).toHaveLength(2);
+      expect(result.temp_token).toBe('temp-token-xyz');
       expect(tokenGenerator.generate).not.toHaveBeenCalled();
     });
 
@@ -368,24 +387,31 @@ describe('AuthService', () => {
       );
       identityRepository.findById.mockResolvedValue(mockIdentity);
       tokenGenerator.generate.mockResolvedValue(mockToken);
+      tokenGenerator.verifyTempToken.mockReturnValue('identity-123');
     });
 
     it('deve selecionar empresa com sucesso', async () => {
-      const result = await service.selectCompany('identity-123', 'company-789');
+      const result = await service.selectCompany(
+        'temp-token-xyz',
+        'company-789',
+      );
 
       expect(result).toEqual(mockToken);
+      expect(tokenGenerator.verifyTempToken).toHaveBeenCalledWith(
+        'temp-token-xyz',
+      );
     });
 
     it('deve lançar UnauthorizedException quando company_user não existir', async () => {
       companyUserRepository.findByIdentityAndCompany.mockResolvedValue(null);
 
       await expect(
-        service.selectCompany('identity-123', 'company-789'),
+        service.selectCompany('temp-token-xyz', 'company-789'),
       ).rejects.toThrow('Acesso negado nesta empresa');
     });
 
     it('deve resetar tentativas após seleção', async () => {
-      await service.selectCompany('identity-123', 'company-789');
+      await service.selectCompany('temp-token-xyz', 'company-789');
 
       expect(loginAttempt.resetAttempts).toHaveBeenCalledWith('identity-123');
     });
@@ -453,6 +479,12 @@ describe('AuthService', () => {
       );
     });
 
+    it('deve configurar impostos iniciais da empresa', async () => {
+      await service.signup(signupDto);
+
+      expect(taxSetup.setupCompanyTaxes).toHaveBeenCalled();
+    });
+
     it('deve publicar evento de criação', async () => {
       await service.signup(signupDto);
 
@@ -506,6 +538,10 @@ describe('AuthService', () => {
   });
 
   describe('resetPassword', () => {
+    beforeEach(() => {
+      passwordReset.resetPassword.mockResolvedValue(mockIdentity);
+    });
+
     it('deve resetar senha com sucesso', async () => {
       const result = await service.resetPassword('token-abc', 'NovaSenha123!');
 
@@ -513,6 +549,9 @@ describe('AuthService', () => {
       expect(passwordReset.resetPassword).toHaveBeenCalledWith(
         'token-abc',
         'NovaSenha123!',
+      );
+      expect(identityRepository.revokeUserSessions).toHaveBeenCalledWith(
+        'identity-123',
       );
     });
   });

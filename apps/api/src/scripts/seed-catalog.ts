@@ -12,7 +12,9 @@ async function main() {
   });
 
   if (!company) {
-    console.error('❌ Empresa "lawtrel-admin" não encontrada. Rode o script create-admin.ts primeiro.');
+    console.error(
+      '❌ Empresa "lawtrel-admin" não encontrada. Rode o script create-admin.ts primeiro.',
+    );
     process.exit(1);
   }
 
@@ -21,12 +23,42 @@ async function main() {
 
   // 2. Popular Classificações Indicativas (Padrão Brasil)
   const ratings = [
-    { code: 'L', name: 'Livre', minAge: 0, desc: 'Exibição em qualquer horário' },
-    { code: '10', name: '10 Anos', minAge: 10, desc: 'Não recomendado para menores de 10 anos' },
-    { code: '12', name: '12 Anos', minAge: 12, desc: 'Não recomendado para menores de 12 anos' },
-    { code: '14', name: '14 Anos', minAge: 14, desc: 'Não recomendado para menores de 14 anos' },
-    { code: '16', name: '16 Anos', minAge: 16, desc: 'Não recomendado para menores de 16 anos' },
-    { code: '18', name: '18 Anos', minAge: 18, desc: 'Não recomendado para menores de 18 anos' },
+    {
+      code: 'L',
+      name: 'Livre',
+      minAge: 0,
+      desc: 'Exibição em qualquer horário',
+    },
+    {
+      code: '10',
+      name: '10 Anos',
+      minAge: 10,
+      desc: 'Não recomendado para menores de 10 anos',
+    },
+    {
+      code: '12',
+      name: '12 Anos',
+      minAge: 12,
+      desc: 'Não recomendado para menores de 12 anos',
+    },
+    {
+      code: '14',
+      name: '14 Anos',
+      minAge: 14,
+      desc: 'Não recomendado para menores de 14 anos',
+    },
+    {
+      code: '16',
+      name: '16 Anos',
+      minAge: 16,
+      desc: 'Não recomendado para menores de 16 anos',
+    },
+    {
+      code: '18',
+      name: '18 Anos',
+      minAge: 18,
+      desc: 'Não recomendado para menores de 18 anos',
+    },
   ];
 
   console.log('🔞 Criando Classificações Indicativas...');
@@ -47,15 +79,28 @@ async function main() {
 
   // 3. Popular Categorias (Gêneros)
   const categories = [
-    'Ação', 'Aventura', 'Comédia', 'Drama', 'Terror', 
-    'Ficção Científica', 'Romance', 'Animação', 'Documentário', 
-    'Suspense', 'Fantasia', 'Musical'
+    'Ação',
+    'Aventura',
+    'Comédia',
+    'Drama',
+    'Terror',
+    'Ficção Científica',
+    'Romance',
+    'Animação',
+    'Documentário',
+    'Suspense',
+    'Fantasia',
+    'Musical',
   ];
 
   console.log('🎬 Criando Categorias de Filmes...');
   for (const catName of categories) {
-    const slug = catName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-");
-    
+    const slug = catName
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, '-');
+
     await prisma.movie_categories.upsert({
       where: { company_id_name: { company_id: companyId, name: catName } },
       update: {},
@@ -74,7 +119,7 @@ async function main() {
   const castTypes = [
     { name: 'Diretor', desc: 'Diretor do filme' },
     { name: 'Ator', desc: 'Ator/Atriz principal ou coadjuvante' },
-    { name: 'Roteirista', desc: 'Escritor do roteiro' }
+    { name: 'Roteirista', desc: 'Escritor do roteiro' },
   ];
 
   for (const ct of castTypes) {
@@ -85,8 +130,8 @@ async function main() {
         id: randomUUID(), // <--- ID Gerado manualmente
         company_id: companyId,
         name: ct.name,
-        description: ct.desc
-      }
+        description: ct.desc,
+      },
     });
   }
 
@@ -97,11 +142,11 @@ async function main() {
     await prisma.media_types.upsert({
       where: { company_id_name: { company_id: companyId, name: mt } },
       update: {},
-      create: { 
+      create: {
         id: randomUUID(), // <--- ID Gerado manualmente
-        company_id: companyId, 
-        name: mt 
-      }
+        company_id: companyId,
+        name: mt,
+      },
     });
   }
 
@@ -119,18 +164,20 @@ async function main() {
     // Primeiro verificamos/criamos o tipo de fornecedor "Distribuidora"
     // Nota: Como estamos num loop e o upsert depende do nome, vamos buscar ou criar antes
     let supplierType = await prisma.supplier_types.findUnique({
-        where: { company_id_name: { company_id: companyId, name: 'Distribuidora' } }
+      where: {
+        company_id_name: { company_id: companyId, name: 'Distribuidora' },
+      },
     });
 
     if (!supplierType) {
-        supplierType = await prisma.supplier_types.create({
-            data: {
-                id: randomUUID(), // <--- ID Gerado manualmente
-                company_id: companyId, 
-                name: 'Distribuidora', 
-                description: 'Distribuidora de filmes'
-            }
-        });
+      supplierType = await prisma.supplier_types.create({
+        data: {
+          id: randomUUID(), // <--- ID Gerado manualmente
+          company_id: companyId,
+          name: 'Distribuidora',
+          description: 'Distribuidora de filmes',
+        },
+      });
     }
 
     await prisma.suppliers.upsert({
@@ -145,7 +192,7 @@ async function main() {
         email: `contato@${dist.name.toLowerCase().replace(/\s+/g, '')}.com`,
         active: true,
         is_film_distributor: true,
-        supplier_type_id: supplierType.id
+        supplier_type_id: supplierType.id,
       },
     });
   }

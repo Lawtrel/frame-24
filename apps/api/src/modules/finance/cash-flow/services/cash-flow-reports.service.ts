@@ -1,13 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CashFlowReportQueryDto } from '../dto/cash-flow-report.dto';
 import { Prisma } from '@repo/db';
+import { ClsService } from 'nestjs-cls';
 
 @Injectable()
 export class CashFlowReportsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly tenantContext: TenantContextService,
+  ) {}
 
-  async getDailyReport(companyId: string, query: CashFlowReportQueryDto) {
+  async getDailyReport(query: CashFlowReportQueryDto) {
+    const companyId = this.tenantContext.getCompanyId();
     const date = query.date ? new Date(query.date) : new Date();
     const startOfDay = new Date(date.setHours(0, 0, 0, 0));
     const endOfDay = new Date(date.setHours(23, 59, 59, 999));
@@ -64,7 +70,8 @@ export class CashFlowReportsService {
     };
   }
 
-  async getPeriodReport(companyId: string, query: CashFlowReportQueryDto) {
+  async getPeriodReport(query: CashFlowReportQueryDto) {
+    const companyId = this.tenantContext.getCompanyId();
     const startDate = query.start_date
       ? new Date(query.start_date)
       : new Date();
@@ -112,15 +119,17 @@ export class CashFlowReportsService {
     };
   }
 
-  async getProjection(companyId: string, query: CashFlowReportQueryDto) {
+  async getProjection(query: CashFlowReportQueryDto) {
+    const companyId = this.tenantContext.getCompanyId();
     const days = Number(query.days) || 30;
     const today = new Date();
     const futureDate = new Date();
     futureDate.setDate(today.getDate() + days);
 
-    // Get current balance of all accounts
+    // Get current balance of all accounts (select only needed fields)
     const accounts = await this.prisma.bank_accounts.findMany({
       where: { company_id: companyId, active: true },
+      select: { current_balance: true },
     });
 
     const currentTotalBalance = accounts.reduce(
@@ -128,7 +137,7 @@ export class CashFlowReportsService {
       0,
     );
 
-    // Get pending entries
+    // Get pending entries (select only needed fields)
     const pendingEntries = await this.prisma.cash_flow_entries.findMany({
       where: {
         company_id: companyId,
@@ -137,6 +146,12 @@ export class CashFlowReportsService {
           gte: today,
           lte: futureDate,
         },
+      },
+      select: {
+        amount: true,
+        entry_type: true,
+        entry_date: true,
+        description: true,
       },
       orderBy: { entry_date: 'asc' },
     });
@@ -166,7 +181,8 @@ export class CashFlowReportsService {
     };
   }
 
-  async getCategorySummary(companyId: string, query: CashFlowReportQueryDto) {
+  async getCategorySummary(query: CashFlowReportQueryDto) {
+    const companyId = this.tenantContext.getCompanyId();
     const month = query.month || new Date().toISOString().slice(0, 7);
     const [year, monthNum] = month.split('-');
     const startDate = new Date(Number(year), Number(monthNum) - 1, 1);

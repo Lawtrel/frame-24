@@ -1,8 +1,11 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
+import { ClsService } from 'nestjs-cls';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { CreateChartAccountDto } from '../dto/create-chart-account.dto';
@@ -13,15 +16,17 @@ export class ChartOfAccountsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly snowflake: SnowflakeService,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
   private getLevelFromCode(accountCode: string): number {
     return accountCode.split('.').length;
   }
 
-  async create(company_id: string, dto: CreateChartAccountDto) {
+  async create(dto: CreateChartAccountDto) {
+    const companyId = this.tenantContext.getCompanyId();
     const existing = await this.prisma.chart_of_accounts.findFirst({
-      where: { company_id, account_code: dto.account_code },
+      where: { company_id: companyId, account_code: dto.account_code },
     });
 
     if (existing) {
@@ -30,7 +35,7 @@ export class ChartOfAccountsService {
 
     if (dto.parent_account_id) {
       await this.ensureAccountBelongsToCompany(
-        company_id,
+        companyId,
         dto.parent_account_id,
       );
     }
@@ -38,7 +43,7 @@ export class ChartOfAccountsService {
     return this.prisma.chart_of_accounts.create({
       data: {
         id: this.snowflake.generate(),
-        company_id,
+        company_id: companyId,
         account_code: dto.account_code,
         account_name: dto.account_name,
         account_type: dto.account_type,
@@ -51,19 +56,21 @@ export class ChartOfAccountsService {
     });
   }
 
-  async findAll(company_id: string) {
+  async findAll() {
+    const companyId = this.tenantContext.getCompanyId();
     return this.prisma.chart_of_accounts.findMany({
-      where: { company_id, active: true },
+      where: { company_id: companyId, active: true },
       orderBy: [{ level: 'asc' }, { account_code: 'asc' }],
     });
   }
 
-  async update(company_id: string, id: string, dto: UpdateChartAccountDto) {
-    await this.ensureAccountBelongsToCompany(company_id, id);
+  async update(id: string, dto: UpdateChartAccountDto) {
+    const companyId = this.tenantContext.getCompanyId();
+    await this.ensureAccountBelongsToCompany(companyId, id);
 
     if (dto.parent_account_id) {
       await this.ensureAccountBelongsToCompany(
-        company_id,
+        companyId,
         dto.parent_account_id,
       );
     }
@@ -84,17 +91,18 @@ export class ChartOfAccountsService {
     });
   }
 
-  async remove(company_id: string, id: string) {
-    await this.ensureAccountBelongsToCompany(company_id, id);
+  async remove(id: string) {
+    const companyId = this.tenantContext.getCompanyId();
+    await this.ensureAccountBelongsToCompany(companyId, id);
     return this.prisma.chart_of_accounts.update({
       where: { id },
       data: { active: false },
     });
   }
 
-  private async ensureAccountBelongsToCompany(company_id: string, id: string) {
+  private async ensureAccountBelongsToCompany(companyId: string, id: string) {
     const account = await this.prisma.chart_of_accounts.findFirst({
-      where: { id, company_id },
+      where: { id, company_id: companyId },
     });
 
     if (!account) {

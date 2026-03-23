@@ -1,22 +1,45 @@
-import { Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import {
+  Controller,
+  ForbiddenException,
+  Get,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ClsService } from 'nestjs-cls';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { PermissionDiscoveryService } from '../services/permission-discovery.service';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import type { RequestUser } from '../../auth/strategies/jwt.strategy';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+
+interface GroupedPermissionItem {
+  id: string;
+  permission: string;
+  resource: string;
+  action: string;
+  name: string;
+  description: string | null;
+}
 
 @ApiTags('Permissions')
 @ApiBearerAuth()
 @Controller({ path: 'permissions', version: '1' })
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class PermissionsController {
   constructor(
     private readonly prisma: PrismaService,
     private readonly permissionDiscovery: PermissionDiscoveryService,
+    private readonly cls: ClsService,
   ) {}
+
+  private getCompanyId(): string {
+    const companyId = this.cls.get<string>('companyId');
+    if (!companyId) {
+      throw new ForbiddenException('Contexto da empresa não encontrado.');
+    }
+    return companyId;
+  }
 
   @Get()
   @RequirePermission('permissions', 'read')
@@ -25,10 +48,11 @@ export class PermissionsController {
     description:
       'Retorna todas as permissões disponíveis no sistema, agrupadas por recurso. Use essas permissões ao criar roles.',
   })
-  async listPermissions(@CurrentUser() user: RequestUser) {
+  async listPermissions(): Promise<Record<string, GroupedPermissionItem[]>> {
+    const companyId = this.getCompanyId();
     const permissions = await this.prisma.permissions.findMany({
       where: {
-        company_id: user.company_id,
+        company_id: companyId,
         active: true,
       },
       orderBy: [{ resource: 'asc' }, { action: 'asc' }],
@@ -49,7 +73,7 @@ export class PermissionsController {
         });
         return acc;
       },
-      {} as Record<string, any[]>,
+      {} as Record<string, GroupedPermissionItem[]>,
     );
   }
 
@@ -60,8 +84,9 @@ export class PermissionsController {
     description:
       'Força sincronização das permissões do código para o banco de dados. Útil após adicionar novos controllers.',
   })
-  async syncPermissions(@CurrentUser() user: RequestUser) {
-    await this.permissionDiscovery.syncCompanyPermissions(user.company_id);
+  async syncPermissions() {
+    const companyId = this.getCompanyId();
+    await this.permissionDiscovery.syncCompanyPermissions(companyId);
     return { message: 'Permissions synced successfully' };
   }
 }

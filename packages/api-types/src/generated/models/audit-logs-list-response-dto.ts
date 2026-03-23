@@ -15,7 +15,7 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
-import type { AuditLogResponseDto } from './audit-log-response-dto';
+import type { AuditLogsListResponseDtoLogsInner } from './audit-logs-list-response-dto-logs-inner';
 
 /**
  * 
@@ -25,10 +25,10 @@ import type { AuditLogResponseDto } from './audit-log-response-dto';
 export interface AuditLogsListResponseDto {
     /**
      * Lista de logs
-     * @type {Array<AuditLogResponseDto>}
+     * @type {Array<AuditLogsListResponseDtoLogsInner>}
      * @memberof AuditLogsListResponseDto
      */
-    'logs': Array<AuditLogResponseDto>;
+    'logs': Array<AuditLogsListResponseDtoLogsInner>;
     /**
      * Total de logs encontrados
      * @type {number}

@@ -29,7 +29,7 @@ export default function SchedulePage() {
     if (!confirm("Tem certeza que deseja cancelar esta sessão?")) return;
     try {
       await ScheduleService.deleteShowtime(id);
-      setShowtimes(prev => prev.filter(s => s.id !== id));
+      setShowtimes((prev) => prev.filter((s) => s.id !== id));
     } catch (error) {
       alert("Erro ao excluir sessão");
     }
@@ -40,7 +40,9 @@ export default function SchedulePage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Programação</h1>
-          <p className="text-sm text-zinc-400">Gerencie as sessões de exibição.</p>
+          <p className="text-sm text-zinc-400">
+            Gerencie as sessões de exibição.
+          </p>
         </div>
         <Link
           href="/schedule/new"
@@ -65,20 +67,30 @@ export default function SchedulePage() {
           </thead>
           <tbody className="divide-y divide-border">
             {loading ? (
-              <tr><td colSpan={6} className="text-center py-8">Carregando...</td></tr>
+              <tr>
+                <td colSpan={6} className="text-center py-8">
+                  Carregando...
+                </td>
+              </tr>
             ) : showtimes.length === 0 ? (
-              <tr><td colSpan={6} className="text-center py-8 text-zinc-500">Nenhuma sessão agendada.</td></tr>
+              <tr>
+                <td colSpan={6} className="text-center py-8 text-zinc-500">
+                  Nenhuma sessão agendada.
+                </td>
+              </tr>
             ) : (
               showtimes.map((session) => (
                 <tr key={session.id} className="hover:bg-zinc-800/50">
                   <td className="px-6 py-4 text-zinc-200">
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-zinc-500" />
-                      {new Date(session.start_time).toLocaleString('pt-BR')}
+                      {new Date(session.start_time).toLocaleString("pt-BR")}
                     </div>
                   </td>
                   <td className="px-6 py-4 font-medium">
-                    {session.movie?.brazil_title || session.movie?.original_title || "Filme N/D"}
+                    {session.movie?.brazil_title ||
+                      session.movie?.original_title ||
+                      "Filme N/D"}
                   </td>
                   <td className="px-6 py-4 text-zinc-400">
                     <div className="flex items-center gap-2">
@@ -86,14 +98,19 @@ export default function SchedulePage() {
                       {session.rooms?.name || "Sala N/D"}
                     </div>
                   </td>
-                  <td className="px-6 py-4">R$ {session.base_ticket_price?.toFixed(2)}</td>
+                  <td className="px-6 py-4">
+                    R$ {session.base_ticket_price?.toFixed(2)}
+                  </td>
                   <td className="px-6 py-4">
                     <span className="bg-green-900/30 text-green-400 px-2 py-1 rounded-full text-xs border border-green-900">
                       {session.session_status?.name || "Ativa"}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button onClick={() => handleDelete(session.id)} className="text-zinc-400 hover:text-red-500 p-2">
+                    <button
+                      onClick={() => handleDelete(session.id)}
+                      className="text-zinc-400 hover:text-red-500 p-2"
+                    >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </td>

@@ -21,12 +21,6 @@
  */
 export interface CreateCinemaComplexDto {
     /**
-     * ID da empresa proprietária do complexo.
-     * @type {string}
-     * @memberof CreateCinemaComplexDto
-     */
-    'company_id': string;
-    /**
      * Nome do complexo de cinema.
      * @type {string}
      * @memberof CreateCinemaComplexDto
@@ -92,5 +86,11 @@ export interface CreateCinemaComplexDto {
      * @memberof CreateCinemaComplexDto
      */
     'active'?: boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateCinemaComplexDto
+     */
+    'company_id'?: string;
 }
 

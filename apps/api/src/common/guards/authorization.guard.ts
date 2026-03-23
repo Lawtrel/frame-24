@@ -16,7 +16,7 @@ export class AuthorizationGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
     private logger: LoggerService,
-  ) { }
+  ) {}
 
   canActivate(context: ExecutionContext): boolean {
     const requiredPermission = this.reflector.get<string>(
@@ -43,12 +43,10 @@ export class AuthorizationGuard implements CanActivate {
         `Acesso negado: ${user.email} (context: ${user.session_context}) tentou acessar endpoint restrito a funcionários`,
         AuthorizationGuard.name,
       );
-      throw new ForbiddenException(
-        'Acesso permitido apenas para funcionários',
-      );
+      throw new ForbiddenException('Acesso negado');
     }
 
-    const employeeUser = user as RequestUser;
+    const employeeUser = user;
 
     if (this.isAdmin(employeeUser)) {
       this.logger.debug(
@@ -65,7 +63,7 @@ export class AuthorizationGuard implements CanActivate {
         `Acesso negado: ${employeeUser.email} (role: ${employeeUser.role}, hierarchy: ${employeeUser.role_hierarchy}) tentou ${requiredPermission}`,
         AuthorizationGuard.name,
       );
-      throw new ForbiddenException(`Sem permissão: ${requiredPermission}`);
+      throw new ForbiddenException('Acesso negado');
     }
 
     return true;

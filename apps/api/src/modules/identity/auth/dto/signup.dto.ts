@@ -3,20 +3,54 @@ import { createZodDto } from 'nestjs-zod';
 import { ApiProperty } from '@nestjs/swagger';
 
 const SignupSchema = z.object({
-  corporate_name: z.string().min(3, 'Razão social muito curta'),
-  trade_name: z.string().optional(),
-  cnpj: z.string().min(1, 'CNPJ é obrigatório'),
+  corporate_name: z
+    .string()
+    .min(3, 'Razão social muito curta')
+    .max(200, 'Razão social deve ter no máximo 200 caracteres'),
+  trade_name: z
+    .string()
+    .max(200, 'Nome fantasia deve ter no máximo 200 caracteres')
+    .optional(),
+  cnpj: z
+    .string()
+    .min(1, 'CNPJ é obrigatório')
+    .max(18, 'CNPJ deve ter no máximo 18 caracteres'),
 
-  company_zip_code: z.string().min(1, 'CEP é obrigatório'),
-  company_street_address: z.string().min(3, 'Endereço muito curto'),
-  company_address_number: z.string().min(1, 'Número é obrigatório'),
-  company_address_complement: z.string().optional(),
-  company_neighborhood: z.string().min(2, 'Bairro é obrigatório'),
-  company_city: z.string().min(2, 'Cidade é obrigatória'),
+  company_zip_code: z
+    .string()
+    .min(1, 'CEP é obrigatório')
+    .max(10, 'CEP deve ter no máximo 10 caracteres'),
+  company_street_address: z
+    .string()
+    .min(3, 'Endereço muito curto')
+    .max(300, 'Endereço deve ter no máximo 300 caracteres'),
+  company_address_number: z
+    .string()
+    .min(1, 'Número é obrigatório')
+    .max(20, 'Número deve ter no máximo 20 caracteres'),
+  company_address_complement: z
+    .string()
+    .max(100, 'Complemento deve ter no máximo 100 caracteres')
+    .optional(),
+  company_neighborhood: z
+    .string()
+    .min(2, 'Bairro é obrigatório')
+    .max(100, 'Bairro deve ter no máximo 100 caracteres'),
+  company_city: z
+    .string()
+    .min(2, 'Cidade é obrigatória')
+    .max(100, 'Cidade deve ter no máximo 100 caracteres'),
   company_state: z.string().length(2, 'Estado deve ter 2 letras (UF)'),
 
-  company_phone: z.string().optional(),
-  company_email: z.string().email('Email da empresa inválido').optional(),
+  company_phone: z
+    .string()
+    .max(20, 'Telefone da empresa deve ter no máximo 20 caracteres')
+    .optional(),
+  company_email: z
+    .string()
+    .email('Email da empresa inválido')
+    .max(100, 'Email da empresa deve ter no máximo 100 caracteres')
+    .optional(),
 
   full_name: z.string().min(3, 'Nome muito curto'),
   email: z.string().email('Email inválido'),

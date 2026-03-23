@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { ClsModule } from 'nestjs-cls';
 import { ClsPluginTransactional } from '@nestjs-cls/transactional';
@@ -35,6 +35,10 @@ import { AppController } from './app.controller';
       },
     ]),
     ClsModule.forRoot({
+      global: true,
+      middleware: {
+        mount: true,
+      },
       plugins: [
         new ClsPluginTransactional({
           imports: [PrismaModule],
@@ -69,9 +73,9 @@ import { AppController } from './app.controller';
       useClass: AllExceptionsFilter,
     },
     {
-      provide: 'APP_GUARD',
+      provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}

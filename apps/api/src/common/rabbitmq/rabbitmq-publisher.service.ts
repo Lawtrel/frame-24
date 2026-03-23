@@ -1,8 +1,10 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { Channel, ChannelModel, connect } from 'amqplib';
 import { LoggerService } from '../services/logger.service';
+import { requireEnv } from 'src/config/env.util';
+import { ClsService } from 'nestjs-cls';
 
-export interface RabbitMQMessage<T = any> {
+export interface RabbitMQMessage<T = unknown> {
   pattern: string;
   data: T;
   metadata?: {
@@ -19,8 +21,14 @@ export class RabbitMQPublisherService implements OnModuleInit, OnModuleDestroy {
   private channel: Channel | null = null;
   private readonly logger = 'RabbitMQPublisher';
   private isConnecting = false;
+  private reconnectAttempts = 0;
+  private readonly maxReconnectDelay = 60000;
+  private readonly baseReconnectDelay = 5000;
 
-  constructor(private loggerService: LoggerService) {}
+  constructor(
+    private loggerService: LoggerService,
+    private readonly cls: ClsService,
+  ) {}
 
   async onModuleInit(): Promise<void> {
     await this.connect();
@@ -44,10 +52,10 @@ export class RabbitMQPublisherService implements OnModuleInit, OnModuleDestroy {
         // Mask password in logs
         logInfo = uri.replace(/:([^:@]+)@/, ':***@');
       } else {
-        const user = process.env.RABBITMQ_USER || 'frame24';
-        const password = process.env.RABBITMQ_PASSWORD || 'frame24pass';
-        const host = process.env.RABBITMQ_HOST || 'localhost';
-        const port = process.env.RABBITMQ_PORT || 5672;
+        const user = requireEnv('RABBITMQ_USER', 'test');
+        const password = requireEnv('RABBITMQ_PASSWORD', 'test');
+        const host = requireEnv('RABBITMQ_HOST', 'localhost');
+        const port = requireEnv('RABBITMQ_PORT', '5672');
         url = `amqp://${user}:${password}@${host}:${port}`;
         logInfo = `${host}:${port}`;
       }
@@ -59,9 +67,10 @@ export class RabbitMQPublisherService implements OnModuleInit, OnModuleDestroy {
 
       this.connection = await connect(url);
 
-      this.connection.on('error', (err) => {
+      this.connection.on('error', (err: unknown) => {
+        const message = err instanceof Error ? err.message : String(err);
         this.loggerService.error(
-          `Connection error: ${err.message}`,
+          `Connection error: ${message}`,
           '',
           this.logger,
         );
@@ -75,12 +84,9 @@ export class RabbitMQPublisherService implements OnModuleInit, OnModuleDestroy {
 
       this.channel = await this.connection.createChannel();
 
-      this.channel.on('error', (err) => {
-        this.loggerService.error(
-          `Channel error: ${err.message}`,
-          '',
-          this.logger,
-        );
+      this.channel.on('error', (err: unknown) => {
+        const message = err instanceof Error ? err.message : String(err);
+        this.loggerService.error(`Channel error: ${message}`, '', this.logger);
       });
 
       this.channel.on('close', () => {
@@ -94,6 +100,7 @@ export class RabbitMQPublisherService implements OnModuleInit, OnModuleDestroy {
 
       this.loggerService.log('Connected to RabbitMQ successfully', this.logger);
       this.isConnecting = false;
+      this.reconnectAttempts = 0; // Reset backoff counter on success
     } catch (error) {
       this.isConnecting = false;
       this.loggerService.error(
@@ -101,16 +108,30 @@ export class RabbitMQPublisherService implements OnModuleInit, OnModuleDestroy {
         '',
         this.logger,
       );
-      // Retry after 5 seconds
-      setTimeout(() => this.connect(), 5000);
+      this.scheduleReconnect();
     }
+  }
+
+  private scheduleReconnect() {
+    const delay = Math.min(
+      this.baseReconnectDelay * Math.pow(2, this.reconnectAttempts),
+      this.maxReconnectDelay,
+    );
+    this.loggerService.warn(
+      `Scheduling RabbitMQ reconnect in ${delay}ms (Attempt ${this.reconnectAttempts + 1})...`,
+      this.logger,
+    );
+    this.reconnectAttempts++;
+    setTimeout(() => {
+      void this.connect();
+    }, delay);
   }
 
   private handleDisconnect() {
     this.connection = null;
     this.channel = null;
     if (!this.isConnecting) {
-      setTimeout(() => this.connect(), 5000);
+      this.scheduleReconnect();
     }
   }
 
@@ -123,7 +144,7 @@ export class RabbitMQPublisherService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async publish<T = any>(message: RabbitMQMessage<T>): Promise<void> {
+  async publish<T = unknown>(message: RabbitMQMessage<T>): Promise<void> {
     if (!this.channel) {
       this.loggerService.warn(
         'Channel not ready, attempting to reconnect...',
@@ -135,13 +156,19 @@ export class RabbitMQPublisherService implements OnModuleInit, OnModuleDestroy {
       }
     }
 
+    const contextCompanyId = this.cls.get<string>('companyId');
+    const contextUserId = this.cls.get<string>('userId');
+
+    const metadata = message.metadata ?? {};
+
     const enrichedMessage = {
       ...message,
       metadata: {
-        ...message.metadata,
-        timestamp: message.metadata?.timestamp || new Date(),
-        correlationId:
-          message.metadata?.correlationId || this.generateCorrelationId(),
+        ...metadata,
+        companyId: metadata.companyId ?? contextCompanyId,
+        userId: metadata.userId ?? contextUserId,
+        timestamp: metadata.timestamp ?? new Date(),
+        correlationId: metadata.correlationId ?? this.generateCorrelationId(),
       },
     };
 

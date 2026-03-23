@@ -14,7 +14,7 @@ export class CinemaComplexesRepository {
   ) {}
 
   async create(
-    createCinemaComplexDto: CreateCinemaComplexDto,
+    createCinemaComplexDto: CreateCinemaComplexDto & { company_id: string },
   ): Promise<cinema_complexes> {
     return this.prisma.cinema_complexes.create({
       data: {

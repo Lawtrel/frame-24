@@ -1,10 +1,12 @@
 import { Injectable, Logger as NestLogger } from '@nestjs/common';
 
+type LogMetadata = Record<string, unknown>;
+
 @Injectable()
 export class LoggerService {
   private logger = new NestLogger();
 
-  log(message: string, context?: string, metadata?: any) {
+  log(message: string, context?: string, metadata?: LogMetadata) {
     this.logger.log(message, context);
     if (metadata) {
       this.logger.log(JSON.stringify(metadata, null, 2), context);
@@ -19,7 +21,7 @@ export class LoggerService {
     this.logger.warn(message, context);
   }
 
-  debug(message: string, context?: string, metadata?: any) {
+  debug(message: string, context?: string, metadata?: LogMetadata) {
     this.logger.debug(message, context);
     if (metadata) {
       this.logger.debug(JSON.stringify(metadata, null, 2), context);

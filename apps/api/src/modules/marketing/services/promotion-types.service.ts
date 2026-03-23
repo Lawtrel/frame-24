@@ -1,4 +1,10 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
+import { ClsService } from 'nestjs-cls';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { PromotionTypesRepository } from '../repositories/promotion-types.repository';
 import { CreatePromotionTypeDto } from '../dto/create-promotion-type.dto';
@@ -8,16 +14,19 @@ export class PromotionTypesService {
   constructor(
     private readonly promotionTypesRepository: PromotionTypesRepository,
     private readonly snowflake: SnowflakeService,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
-  async findAll(company_id: string) {
-    return this.promotionTypesRepository.findAllByCompany(company_id);
+  async findAll() {
+    const companyId = this.tenantContext.getCompanyId();
+    return this.promotionTypesRepository.findAllByCompany(companyId);
   }
 
-  async create(company_id: string, dto: CreatePromotionTypeDto) {
+  async create(dto: CreatePromotionTypeDto) {
+    const companyId = this.tenantContext.getCompanyId();
     const normalizedCode = dto.code.trim().toUpperCase();
     const existing = await this.promotionTypesRepository.findByCode(
-      company_id,
+      companyId,
       normalizedCode,
     );
 
@@ -27,10 +36,10 @@ export class PromotionTypesService {
 
     return this.promotionTypesRepository.create({
       id: this.snowflake.generate(),
-      company_id,
+      company_id: companyId,
       code: normalizedCode,
       name: dto.name.trim(),
-      description: dto.description,
+      description: dto.description?.trim(),
       active: dto.active ?? true,
     });
   }

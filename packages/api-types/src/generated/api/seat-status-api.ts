@@ -21,6 +21,8 @@ import globalAxios from 'axios';
 import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from '../common';
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
+// @ts-ignore
+import type { SeatStatusResponseDto } from '../models';
 /**
  * SeatStatusApi - axios parameter creator
  * @export
@@ -73,7 +75,7 @@ export const SeatStatusApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async seatStatusControllerFindAllV1(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async seatStatusControllerFindAllV1(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<SeatStatusResponseDto>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.seatStatusControllerFindAllV1(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['SeatStatusApi.seatStatusControllerFindAllV1']?.[localVarOperationServerIndex]?.url;
@@ -95,7 +97,7 @@ export const SeatStatusApiFactory = function (configuration?: Configuration, bas
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        seatStatusControllerFindAllV1(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        seatStatusControllerFindAllV1(options?: RawAxiosRequestConfig): AxiosPromise<Array<SeatStatusResponseDto>> {
             return localVarFp.seatStatusControllerFindAllV1(options).then((request) => request(axios, basePath));
         },
     };
@@ -114,7 +116,7 @@ export interface SeatStatusApiInterface {
      * @throws {RequiredError}
      * @memberof SeatStatusApiInterface
      */
-    seatStatusControllerFindAllV1(options?: RawAxiosRequestConfig): AxiosPromise<void>;
+    seatStatusControllerFindAllV1(options?: RawAxiosRequestConfig): AxiosPromise<Array<SeatStatusResponseDto>>;
 
 }
 

@@ -8,7 +8,7 @@ async function main() {
 
   // 1. Buscar a empresa
   const company = await prisma.companies.findFirst({
-    where: { active: true }
+    where: { active: true },
   });
 
   if (!company) {
@@ -31,8 +31,8 @@ async function main() {
       where: {
         company_id_name: {
           company_id: company.id,
-          name: lang.name
-        }
+          name: lang.name,
+        },
       },
       update: {},
       create: {
@@ -40,8 +40,8 @@ async function main() {
         company_id: company.id,
         name: lang.name,
         abbreviation: lang.abbreviation,
-        description: `Áudio ${lang.name}`
-      }
+        description: `Áudio ${lang.name}`,
+      },
     });
     console.log(`✅ Idioma criado/verificado: ${record.name}`);
   }

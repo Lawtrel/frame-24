@@ -21,6 +21,8 @@ import globalAxios from 'axios';
 import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from '../common';
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
+// @ts-ignore
+import type { SessionLanguageResponseDto } from '../models';
 /**
  * SessionLanguagesApi - axios parameter creator
  * @export
@@ -73,7 +75,7 @@ export const SessionLanguagesApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async sessionLanguagesControllerFindAllV1(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async sessionLanguagesControllerFindAllV1(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<SessionLanguageResponseDto>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.sessionLanguagesControllerFindAllV1(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['SessionLanguagesApi.sessionLanguagesControllerFindAllV1']?.[localVarOperationServerIndex]?.url;
@@ -95,7 +97,7 @@ export const SessionLanguagesApiFactory = function (configuration?: Configuratio
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        sessionLanguagesControllerFindAllV1(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        sessionLanguagesControllerFindAllV1(options?: RawAxiosRequestConfig): AxiosPromise<Array<SessionLanguageResponseDto>> {
             return localVarFp.sessionLanguagesControllerFindAllV1(options).then((request) => request(axios, basePath));
         },
     };
@@ -114,7 +116,7 @@ export interface SessionLanguagesApiInterface {
      * @throws {RequiredError}
      * @memberof SessionLanguagesApiInterface
      */
-    sessionLanguagesControllerFindAllV1(options?: RawAxiosRequestConfig): AxiosPromise<void>;
+    sessionLanguagesControllerFindAllV1(options?: RawAxiosRequestConfig): AxiosPromise<Array<SessionLanguageResponseDto>>;
 
 }
 

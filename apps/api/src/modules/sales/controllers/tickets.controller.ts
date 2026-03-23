@@ -3,35 +3,36 @@ import {
   Get,
   Put,
   Param,
-  Body,
   UseGuards,
   HttpCode,
   HttpStatus,
+  NotFoundException,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
 import { TicketsRepository } from '../repositories/tickets.repository';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 
 @ApiTags('Tickets')
 @ApiBearerAuth()
 @Controller({ path: 'tickets', version: '1' })
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class TicketsController {
   constructor(private readonly ticketsRepository: TicketsRepository) {}
 
   @Get(':id')
   @RequirePermission('tickets', 'read')
   @ApiOperation({ summary: 'Buscar ingresso por ID' })
-  async findOne(@Param('id') id: string): Promise<any> {
+  async findOne(
+    @Param('id', ParseEntityIdPipe) id: string,
+  ): Promise<Awaited<ReturnType<TicketsRepository['findById']>>> {
     const ticket = await this.ticketsRepository.findById(id);
     if (!ticket) {
-      throw new Error('Ingresso não encontrado');
+      throw new NotFoundException('Ingresso não encontrado');
     }
     return ticket;
   }
@@ -40,7 +41,9 @@ export class TicketsController {
   @RequirePermission('tickets', 'update')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Marcar ingresso como usado' })
-  async markAsUsed(@Param('id') id: string): Promise<any> {
-    return await this.ticketsRepository.markAsUsed(id, new Date());
+  async markAsUsed(
+    @Param('id', ParseEntityIdPipe) id: string,
+  ): Promise<Awaited<ReturnType<TicketsRepository['markAsUsed']>>> {
+    return this.ticketsRepository.markAsUsed(id, new Date());
   }
 }

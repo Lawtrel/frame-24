@@ -8,7 +8,7 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -16,9 +16,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import { ChartOfAccountsService } from '../services/chart-of-accounts.service';
 import {
   CreateChartAccountDto,
@@ -28,43 +27,39 @@ import {
 @ApiTags('Plano de Contas')
 @ApiBearerAuth()
 @Controller({ path: 'finance/chart-of-accounts', version: '1' })
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class ChartOfAccountsController {
-  constructor(private readonly chartService: ChartOfAccountsService) { }
+  constructor(private readonly chartService: ChartOfAccountsService) {}
 
   @Post()
   @RequirePermission('finance_accounts', 'create')
   @ApiOperation({ summary: 'Criar conta do plano contábil' })
-  async create(
-    @Body() dto: CreateChartAccountDto,
-    @CurrentUser() user: RequestUser,
-  ) {
-    return this.chartService.create(user.company_id, dto);
+  async create(@Body() dto: CreateChartAccountDto) {
+    return this.chartService.create(dto);
   }
 
   @Get()
   @RequirePermission('finance_accounts', 'read')
   @ApiOperation({ summary: 'Listar contas do plano contábil' })
-  async findAll(@CurrentUser() user: RequestUser) {
-    return this.chartService.findAll(user.company_id);
+  async findAll() {
+    return this.chartService.findAll();
   }
 
   @Put(':id')
   @RequirePermission('finance_accounts', 'update')
   @ApiOperation({ summary: 'Atualizar conta contábil' })
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
     @Body() dto: UpdateChartAccountDto,
-    @CurrentUser() user: RequestUser,
   ) {
-    return this.chartService.update(user.company_id, id, dto);
+    return this.chartService.update(id, dto);
   }
 
   @Delete(':id')
   @RequirePermission('finance_accounts', 'delete')
   @ApiOperation({ summary: 'Inativar conta contábil' })
   @ApiResponse({ status: 200, description: 'Conta inativada com sucesso' })
-  async remove(@Param('id') id: string, @CurrentUser() user: RequestUser) {
-    return this.chartService.remove(user.company_id, id);
+  async remove(@Param('id', ParseEntityIdPipe) id: string) {
+    return this.chartService.remove(id);
   }
 }

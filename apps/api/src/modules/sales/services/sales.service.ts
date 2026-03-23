@@ -1,12 +1,18 @@
 import {
+  ForbiddenException,
   Injectable,
   NotFoundException,
   BadRequestException,
   ConflictException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { ProductPriceNotFoundException } from '../exceptions/sales.exceptions';
 import { Transactional } from '@nestjs-cls/transactional';
-import { SalesRepository } from '../repositories/sales.repository';
+import {
+  SaleWithBasicRelations,
+  SaleWithFullRelations,
+  SalesRepository,
+} from '../repositories/sales.repository';
 import { TicketsRepository } from '../repositories/tickets.repository';
 import { ConcessionSalesRepository } from '../repositories/concession-sales.repository';
 import { TicketsService } from './tickets.service';
@@ -24,14 +30,43 @@ import {
   CampaignsService,
   PromotionApplicationResult,
 } from 'src/modules/marketing/services/campaigns.service';
-import type {
-  RequestUser,
-  CustomerUser,
-} from 'src/modules/identity/auth/strategies/jwt.strategy';
+import { ClsService } from 'nestjs-cls';
+
+import { toErrorMessage } from 'src/common/utils/error.util';
+import { todayISO } from 'src/common/utils/date.util';
 
 import { AccountsReceivableService } from 'src/modules/finance/accounts-receivable/services/accounts-receivable.service';
 import { TransactionsService } from 'src/modules/finance/transactions/services/transactions.service';
 import { BankAccountsRepository } from 'src/modules/finance/cash-flow/repositories/bank-accounts.repository';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { SnowflakeService } from 'src/common/services/snowflake.service';
+
+type ProductItem = Awaited<
+  ReturnType<ProductRepository['findAllByIds']>
+>[number];
+type ProductPrice = Awaited<
+  ReturnType<ProductPricesRepository['findActivePricesByProductIds']>
+>[number];
+type TicketPricing = Awaited<
+  ReturnType<TicketsService['calculateTicketPrice']>
+>;
+type TicketInputWithPricing = CreateSaleDto['tickets'][number] & {
+  pricing: TicketPricing;
+};
+type ConcessionItemData = {
+  item_type: 'PRODUCT' | 'COMBO';
+  item_id: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+};
+type SaleForResponse = SaleWithBasicRelations | SaleWithFullRelations;
+type SalesExecutionContext = {
+  companyId: string;
+  userId?: string;
+  customerId?: string;
+  sessionContext?: 'EMPLOYEE' | 'CUSTOMER';
+};
 
 @Injectable()
 export class SalesService {
@@ -52,25 +87,39 @@ export class SalesService {
     private readonly accountsReceivableService: AccountsReceivableService,
     private readonly transactionsService: TransactionsService,
     private readonly bankAccountsRepository: BankAccountsRepository,
+    private readonly tenantContext: TenantContextService,
+    private readonly prisma: PrismaService,
+    private readonly snowflake: SnowflakeService,
   ) {}
 
-  async findAll(
-    user: RequestUser,
-    filters?: {
-      cinema_complex_id?: string;
-      customer_id?: string;
-      start_date?: Date;
-      end_date?: Date;
-      status?: string;
-    },
-  ): Promise<SaleResponseDto[]> {
-    const sales = await this.salesRepository.findAll(user.company_id, filters);
+  private getCustomerId(): string | undefined {
+    return this.tenantContext.getCustomerId();
+  }
+
+  private getSessionContext(): 'EMPLOYEE' | 'CUSTOMER' | undefined {
+    return this.tenantContext.getSessionContext();
+  }
+
+  async findAll(filters?: {
+    cinema_complex_id?: string;
+    customer_id?: string;
+    start_date?: Date;
+    end_date?: Date;
+    status?: string;
+  }): Promise<SaleResponseDto[]> {
+    const sales = await this.salesRepository.findAll(
+      this.tenantContext.getCompanyId(),
+      filters,
+    );
 
     return sales.map((sale) => this.mapToDto(sale));
   }
 
-  async findOne(id: string, user: RequestUser): Promise<SaleResponseDto> {
-    const sale = await this.salesRepository.findById(id, user.company_id);
+  async findOne(id: string): Promise<SaleResponseDto> {
+    const sale = await this.salesRepository.findById(
+      id,
+      this.tenantContext.getCompanyId(),
+    );
 
     if (!sale) {
       throw new NotFoundException('Venda não encontrada');
@@ -82,13 +131,13 @@ export class SalesService {
   @Transactional()
   async create(
     dto: CreateSaleDto,
-    user: RequestUser | CustomerUser,
+    context?: SalesExecutionContext,
   ): Promise<SaleResponseDto> {
-    const company_id = user.company_id;
-    const user_id =
-      'company_user_id' in user ? user.company_user_id : undefined;
-    const resolvedCustomerId =
-      dto.customer_id || ('customer_id' in user ? user.customer_id : undefined);
+    const company_id = context?.companyId ?? this.tenantContext.getCompanyId();
+    const user_id = context?.userId ?? this.tenantContext.getUserId();
+    const sessionContext = context?.sessionContext ?? this.getSessionContext();
+    const contextCustomerId = context?.customerId ?? this.getCustomerId();
+    const resolvedCustomerId = dto.customer_id || contextCustomerId;
 
     // Validar complexo
     const complex = await this.cinemaComplexesRepository.findById(
@@ -97,6 +146,28 @@ export class SalesService {
     if (!complex || complex.company_id !== company_id) {
       throw new NotFoundException('Complexo de cinema não encontrado');
     }
+
+    const paymentMethod = await this.salesRepository.findPaymentMethodById(
+      dto.payment_method,
+      company_id,
+    );
+    if (!paymentMethod) {
+      throw new NotFoundException('Método de pagamento inválido');
+    }
+
+    const resolvedSaleTypeId = await this.resolveSaleTypeId(
+      company_id,
+      dto.sale_type,
+      sessionContext,
+    );
+
+    const initialStatusName = paymentMethod.auto_settle
+      ? 'Confirmada'
+      : 'Pendente';
+    const resolvedInitialStatusId = await this.resolveSaleStatusId(
+      company_id,
+      initialStatusName,
+    );
 
     // 1. Preparação de Dados em Lote
     // Coletar IDs para buscas em lote
@@ -110,13 +181,18 @@ export class SalesService {
         .map((i) => i.item_id) || [];
 
     // Buscas paralelas (Promise.all)
-    const [productsMap, productPricesMap] = await Promise.all([
+    const [productsMap, productPricesMap]: [
+      Map<string, ProductItem>,
+      Map<string, ProductPrice>,
+    ] = await Promise.all([
       // Buscar produtos
       productItemIds.length > 0
         ? this.productsRepository
             .findAllByIds(productItemIds, company_id)
-            .then((items) => new Map(items.map((p) => [p.id, p])))
-        : Promise.resolve(new Map()),
+            .then(
+              (items) => new Map(items.map((product) => [product.id, product])),
+            )
+        : Promise.resolve(new Map<string, ProductItem>()),
 
       // Buscar preços de produtos
       productItemIds.length > 0
@@ -128,11 +204,11 @@ export class SalesService {
             )
             .then((prices) => {
               // Mapear preço por produto_id
-              const map = new Map();
+              const map = new Map<string, ProductPrice>();
               prices.forEach((p) => map.set(p.product_id, p));
               return map;
             })
-        : Promise.resolve(new Map()),
+        : Promise.resolve(new Map<string, ProductPrice>()),
     ]);
 
     // 2. Validação e Reserva de Assentos
@@ -156,28 +232,30 @@ export class SalesService {
       // Paralelizar reservas por sessão
       await Promise.all(
         Array.from(showtimeSeats.entries()).map(([showtime_id, seats]) =>
-          this.ticketsService.validateAndReserveSeats(
-            showtime_id,
-            Array.from(seats),
-            company_id,
-          ),
+          this.ticketsService.validateAndReserveSeats({
+            showtimeId: showtime_id,
+            seatIds: Array.from(seats),
+            context: { companyId: company_id },
+          }),
         ),
       );
     }
 
     // 3. Cálculo de Tickets (Otimizado)
-    const ticketPromises = dto.tickets.map(async (ticketDto) => {
-      const pricing = await this.ticketsService.calculateTicketPrice(
-        ticketDto.showtime_id,
-        ticketDto.seat_id,
-        ticketDto.ticket_type,
-        company_id,
-      );
-      return {
-        ...ticketDto,
-        pricing,
-      };
-    });
+    const ticketPromises: Promise<TicketInputWithPricing>[] = dto.tickets.map(
+      async (ticketDto): Promise<TicketInputWithPricing> => {
+        const pricing = await this.ticketsService.calculateTicketPrice({
+          showtimeId: ticketDto.showtime_id,
+          seatId: ticketDto.seat_id,
+          ticketTypeId: ticketDto.ticket_type,
+          context: { companyId: company_id },
+        });
+        return {
+          ...ticketDto,
+          pricing,
+        };
+      },
+    );
 
     const ticketData = await Promise.all(ticketPromises);
     const ticketsTotal = ticketData.reduce(
@@ -187,7 +265,7 @@ export class SalesService {
 
     // 4. Cálculo de Concessão (Otimizado)
     let concessionTotal = 0;
-    const concessionItemsData: any[] = [];
+    const concessionItemsData: ConcessionItemData[] = [];
 
     if (dto.concession_items && dto.concession_items.length > 0) {
       for (const item of dto.concession_items) {
@@ -219,7 +297,7 @@ export class SalesService {
               );
             if (!foundPrice)
               throw new ProductPriceNotFoundException(
-                product?.name || item.item_id,
+                product?.name ?? item.item_id,
               );
             unitPrice = Number(foundPrice.sale_price);
           } else {
@@ -273,21 +351,21 @@ export class SalesService {
       await this.salesRepository.generateSaleNumber(company_id);
 
     const sale = await this.salesRepository.create({
+      id: this.snowflake.generate(),
       sale_number,
       sale_date: new Date(),
       cinema_complex_id: dto.cinema_complex_id,
       ...(dto.customer_id && { customer_id: dto.customer_id }),
-      ...(dto.sale_type && {
-        sale_types: { connect: { id: dto.sale_type } },
-      }),
-      ...(dto.payment_method && {
-        payment_methods: { connect: { id: dto.payment_method } },
-      }),
+      sale_types: { connect: { id: resolvedSaleTypeId } },
+      payment_methods: { connect: { id: dto.payment_method } },
+      sale_status: { connect: { id: resolvedInitialStatusId } },
       total_amount,
       discount_amount,
       net_amount,
       ...(user_id && { user_id }),
     });
+
+    const seatsByShowtime = new Map<string, string[]>();
 
     // Criar tickets em paralelo
     await Promise.all(
@@ -303,6 +381,7 @@ export class SalesService {
         }
 
         await this.ticketsRepository.create({
+          id: this.snowflake.generate(),
           sales: { connect: { id: sale.id } },
           ticket_number,
           showtime_id: ticketInfo.showtime_id,
@@ -317,19 +396,30 @@ export class SalesService {
         });
 
         if (ticketInfo.seat_id) {
-          await this.ticketsService.reserveSeats(
-            ticketInfo.showtime_id,
-            [ticketInfo.seat_id],
-            sale.id,
-            company_id,
-          );
+          const current = seatsByShowtime.get(ticketInfo.showtime_id) || [];
+          current.push(ticketInfo.seat_id);
+          seatsByShowtime.set(ticketInfo.showtime_id, current);
         }
       }),
     );
 
+    if (seatsByShowtime.size > 0) {
+      await Promise.all(
+        Array.from(seatsByShowtime.entries()).map(([showtimeId, seatIds]) =>
+          this.ticketsService.reserveSeats({
+            showtimeId,
+            seatIds,
+            saleId: sale.id,
+            context: { companyId: company_id },
+          }),
+        ),
+      );
+    }
+
     // Criar concessão
     if (concessionItemsData.length > 0) {
       const concessionSale = await this.concessionSalesRepository.create({
+        id: this.snowflake.generate(),
         sales: { connect: { id: sale.id } },
         sale_date: new Date(),
         total_amount: concessionTotal,
@@ -340,6 +430,7 @@ export class SalesService {
       await Promise.all(
         concessionItemsData.map((item) =>
           this.concessionSalesRepository.createItem({
+            id: this.snowflake.generate(),
             concession_sales: { connect: { id: concessionSale.id } },
             item_type: item.item_type,
             item_id: item.item_id,
@@ -351,122 +442,103 @@ export class SalesService {
       );
     }
 
-    // 7. Lançamentos Fiscais (Não bloquear a venda se falhar)
-    // Envolver cada cálculo em try-catch individual para não causar rollback
+    // 7. Lançamentos Fiscais
     const competenceDate = new Date();
     competenceDate.setHours(0, 0, 0, 0);
 
-    try {
-      const taxPromises: Promise<any>[] = [];
+    const taxPromises: Promise<void>[] = [];
 
-      if (ticketsTotal > 0) {
-        taxPromises.push(
-          this.taxCalculationService
-            .calculateTaxes({
+    if (ticketsTotal > 0) {
+      taxPromises.push(
+        this.taxCalculationService
+          .calculateTaxes(
+            {
               gross_amount: ticketsTotal,
               deductions_amount: 0,
               cinema_complex_id: dto.cinema_complex_id,
-              company_id,
               competence_date: competenceDate,
               revenue_type: 'BOX_OFFICE',
-            })
-            .then((calc) =>
-              this.taxEntriesRepository.create({
-                cinema_complex_id: dto.cinema_complex_id,
-                source_type: 'SALE',
-                source_id: sale.id,
-                competence_date: competenceDate,
-                gross_amount: calc.gross_amount,
-                deductions_amount: calc.deductions_amount,
-                calculation_base: calc.calculation_base,
-                apply_iss: true,
-                iss_rate: calc.iss_rate,
-                iss_amount: calc.iss_amount,
-                ibge_municipality_code: calc.ibge_municipality_code,
-                ...(calc.iss_service_code && {
-                  iss_service_code: calc.iss_service_code,
-                }),
-                pis_cofins_regime: calc.pis_cofins_regime,
-                pis_rate: calc.pis_rate,
-                pis_debit_amount: calc.pis_debit_amount,
-                pis_credit_amount: calc.pis_credit_amount,
-                pis_amount_payable: calc.pis_amount_payable,
-                cofins_rate: calc.cofins_rate,
-                cofins_debit_amount: calc.cofins_debit_amount,
-                cofins_credit_amount: calc.cofins_credit_amount,
-                cofins_amount_payable: calc.cofins_amount_payable,
-                processing_user_id: user_id || null,
-                processed: false,
+            },
+            { companyId: company_id },
+          )
+          .then(async (calc) => {
+            await this.taxEntriesRepository.create({
+              cinema_complex_id: dto.cinema_complex_id,
+              source_type: 'SALE',
+              source_id: sale.id,
+              competence_date: competenceDate,
+              gross_amount: calc.gross_amount,
+              deductions_amount: calc.deductions_amount,
+              calculation_base: calc.calculation_base,
+              apply_iss: true,
+              iss_rate: calc.iss_rate,
+              iss_amount: calc.iss_amount,
+              ibge_municipality_code: calc.ibge_municipality_code,
+              ...(calc.iss_service_code && {
+                iss_service_code: calc.iss_service_code,
               }),
-            )
-            .catch((error) => {
-              this.logger.error(
-                `Erro ao criar lançamento fiscal de bilheteria para venda ${sale.id}: ${error.message}`,
-                SalesService.name,
-              );
-              // Não propaga o erro para não causar rollback
-            }),
-        );
-      }
+              pis_cofins_regime: calc.pis_cofins_regime,
+              pis_rate: calc.pis_rate,
+              pis_debit_amount: calc.pis_debit_amount,
+              pis_credit_amount: calc.pis_credit_amount,
+              pis_amount_payable: calc.pis_amount_payable,
+              cofins_rate: calc.cofins_rate,
+              cofins_debit_amount: calc.cofins_debit_amount,
+              cofins_credit_amount: calc.cofins_credit_amount,
+              cofins_amount_payable: calc.cofins_amount_payable,
+              processing_user_id: user_id || null,
+              processed: false,
+            });
+          }),
+      );
+    }
 
-      if (concessionTotal > 0) {
-        taxPromises.push(
-          this.taxCalculationService
-            .calculateTaxes({
+    if (concessionTotal > 0) {
+      taxPromises.push(
+        this.taxCalculationService
+          .calculateTaxes(
+            {
               gross_amount: concessionTotal,
               deductions_amount: 0,
               cinema_complex_id: dto.cinema_complex_id,
-              company_id,
               competence_date: competenceDate,
               revenue_type: 'CONCESSION',
-            })
-            .then((calc) =>
-              this.taxEntriesRepository.create({
-                cinema_complex_id: dto.cinema_complex_id,
-                source_type: 'SALE',
-                source_id: sale.id,
-                competence_date: competenceDate,
-                gross_amount: calc.gross_amount,
-                deductions_amount: calc.deductions_amount,
-                calculation_base: calc.calculation_base,
-                apply_iss: true,
-                iss_rate: calc.iss_rate,
-                iss_amount: calc.iss_amount,
-                ibge_municipality_code: calc.ibge_municipality_code,
-                ...(calc.iss_service_code && {
-                  iss_service_code: calc.iss_service_code,
-                }),
-                pis_cofins_regime: calc.pis_cofins_regime,
-                pis_rate: calc.pis_rate,
-                pis_debit_amount: calc.pis_debit_amount,
-                pis_credit_amount: calc.pis_credit_amount,
-                pis_amount_payable: calc.pis_amount_payable,
-                cofins_rate: calc.cofins_rate,
-                cofins_debit_amount: calc.cofins_debit_amount,
-                cofins_credit_amount: calc.cofins_credit_amount,
-                cofins_amount_payable: calc.cofins_amount_payable,
-                processing_user_id: user_id || null,
-                processed: false,
+            },
+            { companyId: company_id },
+          )
+          .then(async (calc) => {
+            await this.taxEntriesRepository.create({
+              cinema_complex_id: dto.cinema_complex_id,
+              source_type: 'SALE',
+              source_id: sale.id,
+              competence_date: competenceDate,
+              gross_amount: calc.gross_amount,
+              deductions_amount: calc.deductions_amount,
+              calculation_base: calc.calculation_base,
+              apply_iss: true,
+              iss_rate: calc.iss_rate,
+              iss_amount: calc.iss_amount,
+              ibge_municipality_code: calc.ibge_municipality_code,
+              ...(calc.iss_service_code && {
+                iss_service_code: calc.iss_service_code,
               }),
-            )
-            .catch((error) => {
-              this.logger.error(
-                `Erro ao criar lançamento fiscal de concessão para venda ${sale.id}: ${error.message}`,
-                SalesService.name,
-              );
-              // Não propaga o erro para não causar rollback
-            }),
-        );
-      }
-
-      await Promise.all(taxPromises);
-    } catch (error) {
-      // Este catch não deve ser atingido pois cada Promise tem seu próprio catch
-      this.logger.error(
-        `Erro inesperado no processamento fiscal da venda ${sale.id}: ${error}`,
-        SalesService.name,
+              pis_cofins_regime: calc.pis_cofins_regime,
+              pis_rate: calc.pis_rate,
+              pis_debit_amount: calc.pis_debit_amount,
+              pis_credit_amount: calc.pis_credit_amount,
+              pis_amount_payable: calc.pis_amount_payable,
+              cofins_rate: calc.cofins_rate,
+              cofins_debit_amount: calc.cofins_debit_amount,
+              cofins_credit_amount: calc.cofins_credit_amount,
+              cofins_amount_payable: calc.cofins_amount_payable,
+              processing_user_id: user_id || null,
+              processed: false,
+            });
+          }),
       );
     }
+
+    await Promise.all(taxPromises);
 
     // 8. Finalização
     if (promotionResult) {
@@ -488,7 +560,7 @@ export class SalesService {
 
     // Publicar evento
     const auditUserId =
-      user_id || ('identity_id' in user ? user.identity_id : '');
+      user_id || contextCustomerId || resolvedCustomerId || '';
 
     await this.rabbitmq.publish({
       pattern: 'audit.sale.created',
@@ -505,61 +577,62 @@ export class SalesService {
     );
 
     // 9. Contas a Receber (Automático)
-    try {
-      // Criar título a receber
-      const receivable = await this.accountsReceivableService.create(
-        company_id,
-        {
-          cinema_complex_id: dto.cinema_complex_id,
-          customer_id: resolvedCustomerId,
-          sale_id: sale.id,
-          document_number: sale_number,
-          description: `Venda - Pedido ${sale_number}`,
-          issue_date: new Date().toISOString().split('T')[0],
-          due_date: new Date().toISOString().split('T')[0], // Vencimento hoje (ajustar se for crédito)
-          competence_date: new Date().toISOString().split('T')[0],
-          original_amount: net_amount,
+    const receivable = await this.accountsReceivableService.createForCompany({
+      companyId: company_id,
+      dto: {
+        cinema_complex_id: dto.cinema_complex_id,
+        customer_id: resolvedCustomerId,
+        sale_id: sale.id,
+        document_number: sale_number,
+        description: `Venda - Pedido ${sale_number}`,
+        issue_date: todayISO(),
+        due_date: todayISO(), // Vencimento hoje (ajustar se for crédito)
+        competence_date: todayISO(),
+        original_amount: net_amount,
+        interest_amount: 0,
+        penalty_amount: 0,
+        discount_amount: 0,
+      },
+    });
+
+    const paymentMethodName = completeSale.payment_methods?.name;
+    const paymentMethodAutoSettle = completeSale.payment_methods?.auto_settle;
+    const shouldAutoSettle =
+      typeof paymentMethodAutoSettle === 'boolean'
+        ? paymentMethodAutoSettle
+        : this.isImmediatePaymentMethod(paymentMethodName);
+
+    if (!shouldAutoSettle) {
+      this.logger.log(
+        `Conta a receber ${receivable.id} criada sem baixa automática (método: ${paymentMethodName || dto.payment_method})`,
+        SalesService.name,
+      );
+      return this.mapToDto(completeSale);
+    }
+
+    // Buscar conta bancária padrão
+    const bankAccounts = await this.bankAccountsRepository.findAll(company_id);
+    const defaultAccount = bankAccounts.find((account) => account.active);
+
+    if (defaultAccount) {
+      await this.transactionsService.settleReceivableForCompany({
+        companyId: company_id,
+        userId: user_id || 'SYSTEM',
+        dto: {
+          account_receivable_id: receivable.id,
+          amount: net_amount,
+          transaction_date: todayISO(),
+          bank_account_id: defaultAccount.id,
+          payment_method: paymentMethodName || dto.payment_method || 'CASH',
+          notes: `Baixa automática - Venda ${sale_number}`,
           interest_amount: 0,
           penalty_amount: 0,
           discount_amount: 0,
         },
-      );
-
-      // Se for pagamento imediato (não crédito), baixar o título
-      // TODO: Verificar tipo de pagamento real. Assumindo imediato para simplificação por enquanto.
-      // Em um cenário real, verificaríamos dto.payment_method para decidir se baixa agora ou não.
-      // Vamos assumir que tudo que entra aqui já foi "pago" no POS, então baixamos para gerar o caixa.
-
-      // Buscar conta bancária padrão
-      const bankAccounts =
-        await this.bankAccountsRepository.findAll(company_id);
-      const defaultAccount = bankAccounts.find((acc: any) => acc.active);
-
-      if (defaultAccount) {
-        await this.transactionsService.settleReceivable(
-          company_id,
-          user_id || 'SYSTEM',
-          {
-            account_receivable_id: receivable.id,
-            amount: net_amount,
-            transaction_date: new Date().toISOString().split('T')[0],
-            bank_account_id: defaultAccount.id,
-            payment_method: dto.payment_method || 'CASH', // Fallback
-            notes: `Baixa automática - Venda ${sale_number}`,
-            interest_amount: 0,
-            penalty_amount: 0,
-            discount_amount: 0,
-          },
-        );
-      } else {
-        this.logger.warn(
-          `Nenhuma conta bancária ativa encontrada para baixar venda ${sale_number}`,
-          SalesService.name,
-        );
-      }
-    } catch (error) {
-      this.logger.error(
-        `Erro ao criar conta a receber para venda ${sale.id}: ${error}`,
+      });
+    } else {
+      this.logger.warn(
+        `Nenhuma conta bancária ativa encontrada para baixar venda ${sale_number}`,
         SalesService.name,
       );
     }
@@ -571,9 +644,16 @@ export class SalesService {
   async cancel(
     id: string,
     reason: string,
-    user: RequestUser | CustomerUser,
+    context?: SalesExecutionContext,
   ): Promise<void> {
-    const sale = await this.salesRepository.findById(id, user.company_id);
+    const companyId = context?.companyId ?? this.tenantContext.getCompanyId();
+    const userId =
+      context?.userId ??
+      this.tenantContext.getUserId() ??
+      context?.customerId ??
+      this.getCustomerId();
+
+    const sale = await this.salesRepository.findById(id, companyId);
 
     if (!sale) {
       throw new NotFoundException('Venda não encontrada');
@@ -584,27 +664,50 @@ export class SalesService {
       throw new BadRequestException('Venda já foi cancelada');
     }
 
+    const cancelledStatusId = await this.resolveSaleStatusId(
+      companyId,
+      'Cancelada',
+    );
+
     // Cancelar venda
     await this.salesRepository.update(id, {
+      sale_status: { connect: { id: cancelledStatusId } },
       cancellation_date: new Date(),
       cancellation_reason: reason,
     });
 
+    // Reversões financeiras e fiscais
+    await this.reverseTaxEntriesForCancellation(sale, userId || null);
+    await this.accountsReceivableService.cancelBySaleIdForCompany({
+      companyId,
+      saleId: sale.id,
+    });
+    await this.reverseJournalEntriesForCancellation(sale, reason);
+    await this.reverseLoyaltyPointsForCancellation(sale, companyId);
+
     // Liberar assentos
     if (sale.tickets) {
+      const seatsByShowtime = new Map<string, string[]>();
       for (const ticket of sale.tickets) {
-        if (ticket.seat_id) {
-          // Buscar status "disponível" - precisamos injetar os repositórios
-          // Por enquanto, vamos deixar comentado e implementar depois
-          // TODO: Implementar liberação de assentos no cancelamento
+        if (ticket.seat_id && ticket.showtime_id) {
+          const current = seatsByShowtime.get(ticket.showtime_id) || [];
+          current.push(ticket.seat_id);
+          seatsByShowtime.set(ticket.showtime_id, current);
         }
       }
+
+      await Promise.all(
+        Array.from(seatsByShowtime.entries()).map(([showtime_id, seat_ids]) =>
+          this.ticketsService.releaseSeats({
+            showtimeId: showtime_id,
+            seatIds: seat_ids,
+            context: { companyId },
+          }),
+        ),
+      );
     }
 
     // Publicar evento
-    const userId =
-      'company_user_id' in user ? user.company_user_id : user.identity_id;
-
     await this.rabbitmq.publish({
       pattern: 'audit.sale.cancelled',
       data: {
@@ -613,7 +716,7 @@ export class SalesService {
         old_values: sale,
       },
       metadata: {
-        companyId: user.company_id,
+        companyId,
         userId,
       },
     });
@@ -621,7 +724,140 @@ export class SalesService {
     this.logger.log(`Venda cancelada: ${sale.sale_number}`, SalesService.name);
   }
 
-  private mapToDto(sale: any): SaleResponseDto {
+  private async reverseTaxEntriesForCancellation(
+    sale: SaleWithFullRelations,
+    processingUserId: string | null,
+  ): Promise<void> {
+    const taxEntries = await this.taxEntriesRepository.findAllBySource(
+      'SALE',
+      sale.id,
+    );
+
+    for (const entry of taxEntries) {
+      await this.taxEntriesRepository.create({
+        cinema_complex_id: entry.cinema_complex_id,
+        source_type: 'SALE_CANCELLATION',
+        source_id: sale.id,
+        competence_date: entry.competence_date,
+        gross_amount: -Number(entry.gross_amount),
+        deductions_amount: -Number(entry.deductions_amount || 0),
+        calculation_base: -Number(entry.calculation_base),
+        apply_iss: entry.apply_iss ?? true,
+        iss_rate: Number(entry.iss_rate || 0),
+        iss_amount: -Number(entry.iss_amount || 0),
+        ibge_municipality_code: entry.ibge_municipality_code || undefined,
+        ...(entry.iss_service_code && {
+          iss_service_code: entry.iss_service_code,
+        }),
+        pis_cofins_regime: entry.pis_cofins_regime || undefined,
+        pis_rate: Number(entry.pis_rate),
+        pis_debit_amount: -Number(entry.pis_debit_amount),
+        pis_credit_amount: -Number(entry.pis_credit_amount || 0),
+        pis_amount_payable: -Number(entry.pis_amount_payable),
+        cofins_rate: Number(entry.cofins_rate),
+        cofins_debit_amount: -Number(entry.cofins_debit_amount),
+        cofins_credit_amount: -Number(entry.cofins_credit_amount || 0),
+        cofins_amount_payable: -Number(entry.cofins_amount_payable),
+        processing_user_id: processingUserId,
+        processed: false,
+      });
+    }
+  }
+
+  private async reverseJournalEntriesForCancellation(
+    sale: SaleWithFullRelations,
+    reason: string,
+  ): Promise<void> {
+    const originalEntries = await this.prisma.journal_entries.findMany({
+      where: {
+        origin_type: 'SALE',
+        origin_id: sale.id,
+      },
+      include: {
+        journal_entry_items: true,
+      },
+    });
+
+    if (originalEntries.length === 0) {
+      return;
+    }
+
+    for (const entry of originalEntries) {
+      const reversalEntryNumber = `${entry.entry_number}-REV-${Date.now()}-${Math.floor(
+        Math.random() * 1000,
+      )}`;
+
+      await this.prisma.journal_entries.create({
+        data: {
+          cinema_complex_id: entry.cinema_complex_id,
+          entry_number: reversalEntryNumber,
+          entry_date: new Date(),
+          description: `Estorno de venda ${sale.sale_number}: ${reason}`,
+          origin_type: 'SALE_CANCELLATION',
+          origin_id: sale.id,
+          total_amount: entry.total_amount,
+          journal_entry_items: {
+            create: entry.journal_entry_items.map((item) => ({
+              account_id: item.account_id,
+              movement_type:
+                item.movement_type === 'DEBIT'
+                  ? 'CREDIT'
+                  : item.movement_type === 'CREDIT'
+                    ? 'DEBIT'
+                    : item.movement_type,
+              amount: item.amount,
+              item_description: `Estorno do item ${item.id}`,
+            })),
+          },
+        },
+      });
+    }
+  }
+
+  private async reverseLoyaltyPointsForCancellation(
+    sale: SaleWithFullRelations,
+    companyId: string,
+  ): Promise<void> {
+    if (!sale.customer_id) {
+      return;
+    }
+
+    const pointsEarned = (sale.promotions_used || []).reduce(
+      (sum, usage) => sum + (usage.points_earned || 0),
+      0,
+    );
+
+    if (pointsEarned <= 0) {
+      return;
+    }
+
+    const companyCustomer = await this.prisma.company_customers.findFirst({
+      where: {
+        company_id: companyId,
+        customer_id: sale.customer_id,
+      },
+      select: {
+        id: true,
+        accumulated_points: true,
+      },
+    });
+
+    if (!companyCustomer) {
+      return;
+    }
+
+    const currentPoints = companyCustomer.accumulated_points || 0;
+    const newPoints = Math.max(0, currentPoints - pointsEarned);
+
+    await this.prisma.company_customers.update({
+      where: { id: companyCustomer.id },
+      data: {
+        accumulated_points: newPoints,
+      },
+    });
+  }
+
+  private mapToDto(sale: SaleForResponse): SaleResponseDto {
     const promotionUsage =
       sale.promotions_used && sale.promotions_used.length > 0
         ? sale.promotions_used[0]
@@ -644,7 +880,7 @@ export class SalesService {
         ? promotionUsage.discount_applied.toString()
         : undefined,
       tickets: (sale.tickets || []).map(
-        (ticket: any): TicketResponseDto => ({
+        (ticket): TicketResponseDto => ({
           id: ticket.id,
           ticket_number: ticket.ticket_number,
           seat: ticket.seat ?? undefined,
@@ -657,5 +893,81 @@ export class SalesService {
       ),
       created_at: sale.created_at?.toISOString() || new Date().toISOString(),
     };
+  }
+
+  private isImmediatePaymentMethod(paymentMethodName?: string | null): boolean {
+    if (!paymentMethodName) {
+      return true;
+    }
+
+    const normalized = paymentMethodName
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase();
+
+    const deferredKeywords = ['CREDITO', 'PRAZO', 'BOLETO', 'FATURADO'];
+
+    return !deferredKeywords.some((keyword) => normalized.includes(keyword));
+  }
+
+  private async resolveSaleTypeId(
+    company_id: string,
+    saleTypeIdFromDto: string | undefined,
+    sessionContext?: 'EMPLOYEE' | 'CUSTOMER',
+  ): Promise<string> {
+    if (saleTypeIdFromDto) {
+      const saleType = await this.salesRepository.findSaleTypeById(
+        saleTypeIdFromDto,
+        company_id,
+      );
+
+      if (!saleType) {
+        throw new NotFoundException('Tipo de venda inválido');
+      }
+
+      return saleType.id;
+    }
+
+    const defaultName = sessionContext === 'CUSTOMER' ? 'Online' : 'Balcão';
+    const existing = await this.salesRepository.findSaleTypeByName(
+      company_id,
+      defaultName,
+    );
+
+    if (existing) {
+      return existing.id;
+    }
+
+    const created = await this.salesRepository.createSaleType({
+      company_id,
+      name: defaultName,
+      description: 'Criado automaticamente para consistência de vendas',
+      convenience_fee: 0,
+    });
+
+    return created.id;
+  }
+
+  private async resolveSaleStatusId(
+    company_id: string,
+    statusName: string,
+  ): Promise<string> {
+    const existing = await this.salesRepository.findSaleStatusByName(
+      company_id,
+      statusName,
+    );
+
+    if (existing) {
+      return existing.id;
+    }
+
+    const created = await this.salesRepository.createSaleStatus({
+      company_id,
+      name: statusName,
+      description: 'Criado automaticamente para consistência de vendas',
+      allows_modification: statusName === 'Pendente',
+    });
+
+    return created.id;
   }
 }

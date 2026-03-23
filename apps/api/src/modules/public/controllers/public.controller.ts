@@ -6,19 +6,15 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiQuery,
-} from '@nestjs/swagger';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorator';
 import { PublicService } from '../services/public.service';
 
 @ApiTags('Public')
 @Controller({ path: 'public', version: '1' })
 export class PublicController {
-  constructor(private readonly publicService: PublicService) { }
+  constructor(private readonly publicService: PublicService) {}
 
   @Get('companies')
   @Public()
@@ -51,8 +47,8 @@ export class PublicController {
     status: 404,
     description: 'Empresa não encontrada',
   })
-  async getCompanyBySlug(@Param('tenant_slug') tenant_slug: string) {
-    return this.publicService.getCompanyBySlug(tenant_slug);
+  async getCompanyBySlug(@Param('tenant_slug') tenantSlug: string) {
+    return this.publicService.getCompanyBySlug(tenantSlug);
   }
 
   @Get('companies/:tenant_slug/complexes')
@@ -66,8 +62,8 @@ export class PublicController {
     status: 200,
     description: 'Lista de complexos retornada com sucesso',
   })
-  async getComplexes(@Param('tenant_slug') tenant_slug: string) {
-    const company = await this.publicService.getCompanyBySlug(tenant_slug);
+  async getComplexes(@Param('tenant_slug') tenantSlug: string) {
+    const company = await this.publicService.getCompanyBySlug(tenantSlug);
     return this.publicService.getComplexesByCompany(company.id);
   }
 
@@ -82,8 +78,8 @@ export class PublicController {
     status: 200,
     description: 'Lista de filmes retornada com sucesso',
   })
-  async getMovies(@Param('tenant_slug') tenant_slug: string) {
-    const company = await this.publicService.getCompanyBySlug(tenant_slug);
+  async getMovies(@Param('tenant_slug') tenantSlug: string) {
+    const company = await this.publicService.getCompanyBySlug(tenantSlug);
     return this.publicService.getMoviesByCompany(company.id);
   }
 
@@ -111,15 +107,15 @@ export class PublicController {
     description: 'Lista de sessões retornada com sucesso',
   })
   async getShowtimes(
-    @Param('tenant_slug') tenant_slug: string,
-    @Query('complex_id') complex_id?: string,
-    @Query('movie_id') movie_id?: string,
+    @Param('tenant_slug') tenantSlug: string,
+    @Query('complex_id') complexId?: string,
+    @Query('movie_id') movieId?: string,
     @Query('date') date?: string,
   ) {
-    const company = await this.publicService.getCompanyBySlug(tenant_slug);
+    const company = await this.publicService.getCompanyBySlug(tenantSlug);
     return this.publicService.getShowtimesByCompany(company.id, {
-      complex_id,
-      movie_id,
+      complexId,
+      movieId,
       date: date ? new Date(date) : undefined,
     });
   }
@@ -140,7 +136,7 @@ export class PublicController {
     status: 404,
     description: 'Sessão não encontrada',
   })
-  async getSeatsMap(@Param('id') id: string) {
+  async getSeatsMap(@Param('id', ParseEntityIdPipe) id: string) {
     return this.publicService.getShowtimeSeatsMap(id);
   }
 
@@ -161,11 +157,11 @@ export class PublicController {
     description: 'Lista de produtos retornada com sucesso',
   })
   async getProducts(
-    @Param('tenant_slug') tenant_slug: string,
-    @Query('complex_id') complex_id?: string,
+    @Param('tenant_slug') tenantSlug: string,
+    @Query('complex_id') complexId?: string,
   ) {
-    const company = await this.publicService.getCompanyBySlug(tenant_slug);
-    return this.publicService.getProductsByCompany(company.id, complex_id);
+    const company = await this.publicService.getCompanyBySlug(tenantSlug);
+    return this.publicService.getProductsByCompany(company.id, complexId);
   }
 
   @Get('companies/:tenant_slug/ticket-types')
@@ -179,8 +175,8 @@ export class PublicController {
     status: 200,
     description: 'Lista de tipos de ingresso retornada com sucesso',
   })
-  async getTicketTypes(@Param('tenant_slug') tenant_slug: string) {
-    const company = await this.publicService.getCompanyBySlug(tenant_slug);
+  async getTicketTypes(@Param('tenant_slug') tenantSlug: string) {
+    const company = await this.publicService.getCompanyBySlug(tenantSlug);
     return this.publicService.getTicketTypes(company.id);
   }
 
@@ -195,12 +191,12 @@ export class PublicController {
     status: 200,
     description: 'Lista de métodos de pagamento retornada com sucesso',
   })
-  async getPaymentMethods(@Param('tenant_slug') tenant_slug: string) {
-    const company = await this.publicService.getCompanyBySlug(tenant_slug);
+  async getPaymentMethods(@Param('tenant_slug') tenantSlug: string) {
+    const company = await this.publicService.getCompanyBySlug(tenantSlug);
     return this.publicService.getPaymentMethods(company.id);
   }
 
-  @Get('sales/:id')
+  @Get('companies/:tenant_slug/sales/:reference')
   @Public()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -216,8 +212,12 @@ export class PublicController {
     status: 404,
     description: 'Venda não encontrada',
   })
-  async getSaleDetails(@Param('id') id: string) {
-    return this.publicService.getSaleDetails(id);
+  async getSaleDetails(
+    @Param('tenant_slug') tenantSlug: string,
+    @Param('reference') reference: string,
+  ) {
+    const company = await this.publicService.getCompanyBySlug(tenantSlug);
+    return this.publicService.getSaleDetails(company.id, reference);
   }
 
   @Get('movies/:id')
@@ -235,9 +235,7 @@ export class PublicController {
     status: 404,
     description: 'Filme não encontrado',
   })
-  async getMovie(@Param('id') id: string) {
+  async getMovie(@Param('id', ParseEntityIdPipe) id: string) {
     return this.publicService.getMovie(id);
   }
-
-
 }

@@ -19,7 +19,7 @@ export default function RootLayout({
   useEffect(() => {
     setIsMounted(true);
     const token = localStorage.getItem("admin_token");
-    
+
     if (!token && !isLoginPage) {
       router.push("/login");
     }
@@ -40,8 +40,10 @@ export default function RootLayout({
                 <Sidebar />
               </aside>
             )}
-            
-            <main className={`flex-1 overflow-y-auto ${!isLoginPage ? 'p-8' : ''}`}>
+
+            <main
+              className={`flex-1 overflow-y-auto ${!isLoginPage ? "p-8" : ""}`}
+            >
               {children}
             </main>
           </>

@@ -1,23 +1,15 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
-import {
-  IsBoolean,
-  IsOptional,
-  IsString,
-  MaxLength,
-  MinLength,
-} from 'class-validator';
+import { createZodDto } from 'nestjs-zod';
+import { CreatePromotionTypeSchema } from './create-promotion-type.schema';
 
-export class CreatePromotionTypeDto {
+export class CreatePromotionTypeDto extends createZodDto(
+  CreatePromotionTypeSchema,
+) {
   @ApiProperty({
     description: 'Código único do tipo de promoção por empresa',
     example: 'PERCENTUAL',
     maxLength: 30,
   })
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
-  @IsString()
-  @MinLength(2)
-  @MaxLength(30)
   code!: string;
 
   @ApiProperty({
@@ -25,10 +17,6 @@ export class CreatePromotionTypeDto {
     example: 'Desconto percentual',
     maxLength: 100,
   })
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
-  @IsString()
-  @MinLength(3)
-  @MaxLength(100)
   name!: string;
 
   @ApiPropertyOptional({
@@ -36,10 +24,6 @@ export class CreatePromotionTypeDto {
     example:
       'Aplica um desconto baseado em percentual sobre o valor do pedido.',
   })
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
-  @IsOptional()
-  @IsString()
-  @MaxLength(500)
   description?: string;
 
   @ApiPropertyOptional({
@@ -47,8 +31,6 @@ export class CreatePromotionTypeDto {
     example: true,
     default: true,
   })
-  @IsOptional()
-  @IsBoolean()
   active?: boolean;
 }
 

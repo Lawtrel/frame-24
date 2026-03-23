@@ -12,400 +12,662 @@
  * Do not edit the class manually.
  */
 
-
-import type { Configuration } from '../configuration';
-import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from 'axios';
-import globalAxios from 'axios';
+import type { Configuration } from "../configuration";
+import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from "axios";
+import globalAxios from "axios";
 // Some imports not used depending on template conditions
 // @ts-ignore
-import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from '../common';
+import {
+  DUMMY_BASE_URL,
+  assertParamExists,
+  setApiKeyToObject,
+  setBasicAuthToObject,
+  setBearerAuthToObject,
+  setOAuthToObject,
+  setSearchParams,
+  serializeDataIfNeeded,
+  toPathString,
+  createRequestFunction,
+} from "../common";
 // @ts-ignore
-import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
+import {
+  BASE_PATH,
+  COLLECTION_FORMATS,
+  type RequestArgs,
+  BaseAPI,
+  RequiredError,
+  operationServerMap,
+} from "../base";
 // @ts-ignore
-import type { CreateBankAccountDto } from '../models';
+import type { CreateBankAccountDto } from "../models";
 // @ts-ignore
-import type { UpdateBankAccountDto } from '../models';
+import type { UpdateBankAccountDto } from "../models";
 /**
  * CashFlowBankAccountsApi - axios parameter creator
  * @export
  */
-export const CashFlowBankAccountsApiAxiosParamCreator = function (configuration?: Configuration) {
-    return {
-        /**
-         * 
-         * @summary Create a new bank account
-         * @param {CreateBankAccountDto} createBankAccountDto 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        bankAccountsControllerCreateV1: async (createBankAccountDto: CreateBankAccountDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'createBankAccountDto' is not null or undefined
-            assertParamExists('bankAccountsControllerCreateV1', 'createBankAccountDto', createBankAccountDto)
-            const localVarPath = `/v1/finance/bank-accounts`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+export const CashFlowBankAccountsApiAxiosParamCreator = function (
+  configuration?: Configuration,
+) {
+  return {
+    /**
+     *
+     * @summary Create a new bank account
+     * @param {CreateBankAccountDto} createBankAccountDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    bankAccountsControllerCreateV1: async (
+      createBankAccountDto: CreateBankAccountDto,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'createBankAccountDto' is not null or undefined
+      assertParamExists(
+        "bankAccountsControllerCreateV1",
+        "createBankAccountDto",
+        createBankAccountDto,
+      );
+      const localVarPath = `/v1/finance/bank-accounts`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      const localVarRequestOptions = {
+        method: "POST",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
+      localVarHeaderParameter["Content-Type"] = "application/json";
 
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        createBankAccountDto,
+        localVarRequestOptions,
+        configuration,
+      );
 
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(createBankAccountDto, localVarRequestOptions, configuration)
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @summary Deactivate bank account
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    bankAccountsControllerDeleteV1: async (
+      id: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists("bankAccountsControllerDeleteV1", "id", id);
+      const localVarPath = `/v1/finance/bank-accounts/{id}`.replace(
+        `{${"id"}}`,
+        encodeURIComponent(String(id)),
+      );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary Deactivate bank account
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        bankAccountsControllerDeleteV1: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('bankAccountsControllerDeleteV1', 'id', id)
-            const localVarPath = `/v1/finance/bank-accounts/{id}`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+      const localVarRequestOptions = {
+        method: "DELETE",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @summary List all bank accounts
+     * @param {boolean} activeOnly
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    bankAccountsControllerFindAllV1: async (
+      activeOnly: boolean,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'activeOnly' is not null or undefined
+      assertParamExists(
+        "bankAccountsControllerFindAllV1",
+        "activeOnly",
+        activeOnly,
+      );
+      const localVarPath = `/v1/finance/bank-accounts`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary List all bank accounts
-         * @param {boolean} activeOnly 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        bankAccountsControllerFindAllV1: async (activeOnly: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'activeOnly' is not null or undefined
-            assertParamExists('bankAccountsControllerFindAllV1', 'activeOnly', activeOnly)
-            const localVarPath = `/v1/finance/bank-accounts`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+      if (activeOnly !== undefined) {
+        localVarQueryParameter["active_only"] = activeOnly;
+      }
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
-            if (activeOnly !== undefined) {
-                localVarQueryParameter['active_only'] = activeOnly;
-            }
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @summary Get bank account details
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    bankAccountsControllerFindOneV1: async (
+      id: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists("bankAccountsControllerFindOneV1", "id", id);
+      const localVarPath = `/v1/finance/bank-accounts/{id}`.replace(
+        `{${"id"}}`,
+        encodeURIComponent(String(id)),
+      );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary Get bank account details
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        bankAccountsControllerFindOneV1: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('bankAccountsControllerFindOneV1', 'id', id)
-            const localVarPath = `/v1/finance/bank-accounts/{id}`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @summary Get bank account current balance
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    bankAccountsControllerGetBalanceV1: async (
+      id: string,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists("bankAccountsControllerGetBalanceV1", "id", id);
+      const localVarPath = `/v1/finance/bank-accounts/{id}/balance`.replace(
+        `{${"id"}}`,
+        encodeURIComponent(String(id)),
+      );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
 
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @summary Update bank account
+     * @param {string} id
+     * @param {UpdateBankAccountDto} updateBankAccountDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    bankAccountsControllerUpdateV1: async (
+      id: string,
+      updateBankAccountDto: UpdateBankAccountDto,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists("bankAccountsControllerUpdateV1", "id", id);
+      // verify required parameter 'updateBankAccountDto' is not null or undefined
+      assertParamExists(
+        "bankAccountsControllerUpdateV1",
+        "updateBankAccountDto",
+        updateBankAccountDto,
+      );
+      const localVarPath = `/v1/finance/bank-accounts/{id}`.replace(
+        `{${"id"}}`,
+        encodeURIComponent(String(id)),
+      );
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
 
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary Get bank account current balance
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        bankAccountsControllerGetBalanceV1: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('bankAccountsControllerGetBalanceV1', 'id', id)
-            const localVarPath = `/v1/finance/bank-accounts/{id}/balance`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
+      const localVarRequestOptions = {
+        method: "PATCH",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
+      localVarHeaderParameter["Content-Type"] = "application/json";
 
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        updateBankAccountDto,
+        localVarRequestOptions,
+        configuration,
+      );
 
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary Update bank account
-         * @param {string} id 
-         * @param {UpdateBankAccountDto} updateBankAccountDto 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        bankAccountsControllerUpdateV1: async (id: string, updateBankAccountDto: UpdateBankAccountDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('bankAccountsControllerUpdateV1', 'id', id)
-            // verify required parameter 'updateBankAccountDto' is not null or undefined
-            assertParamExists('bankAccountsControllerUpdateV1', 'updateBankAccountDto', updateBankAccountDto)
-            const localVarPath = `/v1/finance/bank-accounts/{id}`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(updateBankAccountDto, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-    }
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+  };
 };
 
 /**
  * CashFlowBankAccountsApi - functional programming interface
  * @export
  */
-export const CashFlowBankAccountsApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = CashFlowBankAccountsApiAxiosParamCreator(configuration)
-    return {
-        /**
-         * 
-         * @summary Create a new bank account
-         * @param {CreateBankAccountDto} createBankAccountDto 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async bankAccountsControllerCreateV1(createBankAccountDto: CreateBankAccountDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.bankAccountsControllerCreateV1(createBankAccountDto, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CashFlowBankAccountsApi.bankAccountsControllerCreateV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @summary Deactivate bank account
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async bankAccountsControllerDeleteV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.bankAccountsControllerDeleteV1(id, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CashFlowBankAccountsApi.bankAccountsControllerDeleteV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @summary List all bank accounts
-         * @param {boolean} activeOnly 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async bankAccountsControllerFindAllV1(activeOnly: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.bankAccountsControllerFindAllV1(activeOnly, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CashFlowBankAccountsApi.bankAccountsControllerFindAllV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @summary Get bank account details
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async bankAccountsControllerFindOneV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.bankAccountsControllerFindOneV1(id, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CashFlowBankAccountsApi.bankAccountsControllerFindOneV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @summary Get bank account current balance
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async bankAccountsControllerGetBalanceV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.bankAccountsControllerGetBalanceV1(id, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CashFlowBankAccountsApi.bankAccountsControllerGetBalanceV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @summary Update bank account
-         * @param {string} id 
-         * @param {UpdateBankAccountDto} updateBankAccountDto 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async bankAccountsControllerUpdateV1(id: string, updateBankAccountDto: UpdateBankAccountDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.bankAccountsControllerUpdateV1(id, updateBankAccountDto, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CashFlowBankAccountsApi.bankAccountsControllerUpdateV1']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-    }
+export const CashFlowBankAccountsApiFp = function (
+  configuration?: Configuration,
+) {
+  const localVarAxiosParamCreator =
+    CashFlowBankAccountsApiAxiosParamCreator(configuration);
+  return {
+    /**
+     *
+     * @summary Create a new bank account
+     * @param {CreateBankAccountDto} createBankAccountDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async bankAccountsControllerCreateV1(
+      createBankAccountDto: CreateBankAccountDto,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.bankAccountsControllerCreateV1(
+          createBankAccountDto,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap[
+          "CashFlowBankAccountsApi.bankAccountsControllerCreateV1"
+        ]?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     *
+     * @summary Deactivate bank account
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async bankAccountsControllerDeleteV1(
+      id: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.bankAccountsControllerDeleteV1(
+          id,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap[
+          "CashFlowBankAccountsApi.bankAccountsControllerDeleteV1"
+        ]?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     *
+     * @summary List all bank accounts
+     * @param {boolean} activeOnly
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async bankAccountsControllerFindAllV1(
+      activeOnly: boolean,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.bankAccountsControllerFindAllV1(
+          activeOnly,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap[
+          "CashFlowBankAccountsApi.bankAccountsControllerFindAllV1"
+        ]?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     *
+     * @summary Get bank account details
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async bankAccountsControllerFindOneV1(
+      id: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.bankAccountsControllerFindOneV1(
+          id,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap[
+          "CashFlowBankAccountsApi.bankAccountsControllerFindOneV1"
+        ]?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     *
+     * @summary Get bank account current balance
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async bankAccountsControllerGetBalanceV1(
+      id: string,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.bankAccountsControllerGetBalanceV1(
+          id,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap[
+          "CashFlowBankAccountsApi.bankAccountsControllerGetBalanceV1"
+        ]?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     *
+     * @summary Update bank account
+     * @param {string} id
+     * @param {UpdateBankAccountDto} updateBankAccountDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async bankAccountsControllerUpdateV1(
+      id: string,
+      updateBankAccountDto: UpdateBankAccountDto,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.bankAccountsControllerUpdateV1(
+          id,
+          updateBankAccountDto,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap[
+          "CashFlowBankAccountsApi.bankAccountsControllerUpdateV1"
+        ]?.[localVarOperationServerIndex]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+  };
 };
 
 /**
  * CashFlowBankAccountsApi - factory interface
  * @export
  */
-export const CashFlowBankAccountsApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = CashFlowBankAccountsApiFp(configuration)
-    return {
-        /**
-         * 
-         * @summary Create a new bank account
-         * @param {CashFlowBankAccountsApiBankAccountsControllerCreateV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        bankAccountsControllerCreateV1(requestParameters: CashFlowBankAccountsApiBankAccountsControllerCreateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.bankAccountsControllerCreateV1(requestParameters.createBankAccountDto, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @summary Deactivate bank account
-         * @param {CashFlowBankAccountsApiBankAccountsControllerDeleteV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        bankAccountsControllerDeleteV1(requestParameters: CashFlowBankAccountsApiBankAccountsControllerDeleteV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.bankAccountsControllerDeleteV1(requestParameters.id, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @summary List all bank accounts
-         * @param {CashFlowBankAccountsApiBankAccountsControllerFindAllV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        bankAccountsControllerFindAllV1(requestParameters: CashFlowBankAccountsApiBankAccountsControllerFindAllV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.bankAccountsControllerFindAllV1(requestParameters.activeOnly, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @summary Get bank account details
-         * @param {CashFlowBankAccountsApiBankAccountsControllerFindOneV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        bankAccountsControllerFindOneV1(requestParameters: CashFlowBankAccountsApiBankAccountsControllerFindOneV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.bankAccountsControllerFindOneV1(requestParameters.id, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @summary Get bank account current balance
-         * @param {CashFlowBankAccountsApiBankAccountsControllerGetBalanceV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        bankAccountsControllerGetBalanceV1(requestParameters: CashFlowBankAccountsApiBankAccountsControllerGetBalanceV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.bankAccountsControllerGetBalanceV1(requestParameters.id, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @summary Update bank account
-         * @param {CashFlowBankAccountsApiBankAccountsControllerUpdateV1Request} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        bankAccountsControllerUpdateV1(requestParameters: CashFlowBankAccountsApiBankAccountsControllerUpdateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.bankAccountsControllerUpdateV1(requestParameters.id, requestParameters.updateBankAccountDto, options).then((request) => request(axios, basePath));
-        },
-    };
+export const CashFlowBankAccountsApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance,
+) {
+  const localVarFp = CashFlowBankAccountsApiFp(configuration);
+  return {
+    /**
+     *
+     * @summary Create a new bank account
+     * @param {CashFlowBankAccountsApiBankAccountsControllerCreateV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    bankAccountsControllerCreateV1(
+      requestParameters: CashFlowBankAccountsApiBankAccountsControllerCreateV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .bankAccountsControllerCreateV1(
+          requestParameters.createBankAccountDto,
+          options,
+        )
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @summary Deactivate bank account
+     * @param {CashFlowBankAccountsApiBankAccountsControllerDeleteV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    bankAccountsControllerDeleteV1(
+      requestParameters: CashFlowBankAccountsApiBankAccountsControllerDeleteV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .bankAccountsControllerDeleteV1(requestParameters.id, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @summary List all bank accounts
+     * @param {CashFlowBankAccountsApiBankAccountsControllerFindAllV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    bankAccountsControllerFindAllV1(
+      requestParameters: CashFlowBankAccountsApiBankAccountsControllerFindAllV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .bankAccountsControllerFindAllV1(requestParameters.activeOnly, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @summary Get bank account details
+     * @param {CashFlowBankAccountsApiBankAccountsControllerFindOneV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    bankAccountsControllerFindOneV1(
+      requestParameters: CashFlowBankAccountsApiBankAccountsControllerFindOneV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .bankAccountsControllerFindOneV1(requestParameters.id, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @summary Get bank account current balance
+     * @param {CashFlowBankAccountsApiBankAccountsControllerGetBalanceV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    bankAccountsControllerGetBalanceV1(
+      requestParameters: CashFlowBankAccountsApiBankAccountsControllerGetBalanceV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .bankAccountsControllerGetBalanceV1(requestParameters.id, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @summary Update bank account
+     * @param {CashFlowBankAccountsApiBankAccountsControllerUpdateV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    bankAccountsControllerUpdateV1(
+      requestParameters: CashFlowBankAccountsApiBankAccountsControllerUpdateV1Request,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<void> {
+      return localVarFp
+        .bankAccountsControllerUpdateV1(
+          requestParameters.id,
+          requestParameters.updateBankAccountDto,
+          options,
+        )
+        .then((request) => request(axios, basePath));
+    },
+  };
 };
 
 /**
@@ -414,66 +676,83 @@ export const CashFlowBankAccountsApiFactory = function (configuration?: Configur
  * @interface CashFlowBankAccountsApi
  */
 export interface CashFlowBankAccountsApiInterface {
-    /**
-     * 
-     * @summary Create a new bank account
-     * @param {CashFlowBankAccountsApiBankAccountsControllerCreateV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CashFlowBankAccountsApiInterface
-     */
-    bankAccountsControllerCreateV1(requestParameters: CashFlowBankAccountsApiBankAccountsControllerCreateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   *
+   * @summary Create a new bank account
+   * @param {CashFlowBankAccountsApiBankAccountsControllerCreateV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CashFlowBankAccountsApiInterface
+   */
+  bankAccountsControllerCreateV1(
+    requestParameters: CashFlowBankAccountsApiBankAccountsControllerCreateV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * 
-     * @summary Deactivate bank account
-     * @param {CashFlowBankAccountsApiBankAccountsControllerDeleteV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CashFlowBankAccountsApiInterface
-     */
-    bankAccountsControllerDeleteV1(requestParameters: CashFlowBankAccountsApiBankAccountsControllerDeleteV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   *
+   * @summary Deactivate bank account
+   * @param {CashFlowBankAccountsApiBankAccountsControllerDeleteV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CashFlowBankAccountsApiInterface
+   */
+  bankAccountsControllerDeleteV1(
+    requestParameters: CashFlowBankAccountsApiBankAccountsControllerDeleteV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * 
-     * @summary List all bank accounts
-     * @param {CashFlowBankAccountsApiBankAccountsControllerFindAllV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CashFlowBankAccountsApiInterface
-     */
-    bankAccountsControllerFindAllV1(requestParameters: CashFlowBankAccountsApiBankAccountsControllerFindAllV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   *
+   * @summary List all bank accounts
+   * @param {CashFlowBankAccountsApiBankAccountsControllerFindAllV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CashFlowBankAccountsApiInterface
+   */
+  bankAccountsControllerFindAllV1(
+    requestParameters: CashFlowBankAccountsApiBankAccountsControllerFindAllV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * 
-     * @summary Get bank account details
-     * @param {CashFlowBankAccountsApiBankAccountsControllerFindOneV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CashFlowBankAccountsApiInterface
-     */
-    bankAccountsControllerFindOneV1(requestParameters: CashFlowBankAccountsApiBankAccountsControllerFindOneV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   *
+   * @summary Get bank account details
+   * @param {CashFlowBankAccountsApiBankAccountsControllerFindOneV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CashFlowBankAccountsApiInterface
+   */
+  bankAccountsControllerFindOneV1(
+    requestParameters: CashFlowBankAccountsApiBankAccountsControllerFindOneV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * 
-     * @summary Get bank account current balance
-     * @param {CashFlowBankAccountsApiBankAccountsControllerGetBalanceV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CashFlowBankAccountsApiInterface
-     */
-    bankAccountsControllerGetBalanceV1(requestParameters: CashFlowBankAccountsApiBankAccountsControllerGetBalanceV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+  /**
+   *
+   * @summary Get bank account current balance
+   * @param {CashFlowBankAccountsApiBankAccountsControllerGetBalanceV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CashFlowBankAccountsApiInterface
+   */
+  bankAccountsControllerGetBalanceV1(
+    requestParameters: CashFlowBankAccountsApiBankAccountsControllerGetBalanceV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 
-    /**
-     * 
-     * @summary Update bank account
-     * @param {CashFlowBankAccountsApiBankAccountsControllerUpdateV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CashFlowBankAccountsApiInterface
-     */
-    bankAccountsControllerUpdateV1(requestParameters: CashFlowBankAccountsApiBankAccountsControllerUpdateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
-
+  /**
+   *
+   * @summary Update bank account
+   * @param {CashFlowBankAccountsApiBankAccountsControllerUpdateV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CashFlowBankAccountsApiInterface
+   */
+  bankAccountsControllerUpdateV1(
+    requestParameters: CashFlowBankAccountsApiBankAccountsControllerUpdateV1Request,
+    options?: RawAxiosRequestConfig,
+  ): AxiosPromise<void>;
 }
 
 /**
@@ -482,12 +761,12 @@ export interface CashFlowBankAccountsApiInterface {
  * @interface CashFlowBankAccountsApiBankAccountsControllerCreateV1Request
  */
 export interface CashFlowBankAccountsApiBankAccountsControllerCreateV1Request {
-    /**
-     * 
-     * @type {CreateBankAccountDto}
-     * @memberof CashFlowBankAccountsApiBankAccountsControllerCreateV1
-     */
-    readonly createBankAccountDto: CreateBankAccountDto
+  /**
+   *
+   * @type {CreateBankAccountDto}
+   * @memberof CashFlowBankAccountsApiBankAccountsControllerCreateV1
+   */
+  readonly createBankAccountDto: CreateBankAccountDto;
 }
 
 /**
@@ -496,12 +775,12 @@ export interface CashFlowBankAccountsApiBankAccountsControllerCreateV1Request {
  * @interface CashFlowBankAccountsApiBankAccountsControllerDeleteV1Request
  */
 export interface CashFlowBankAccountsApiBankAccountsControllerDeleteV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof CashFlowBankAccountsApiBankAccountsControllerDeleteV1
-     */
-    readonly id: string
+  /**
+   *
+   * @type {string}
+   * @memberof CashFlowBankAccountsApiBankAccountsControllerDeleteV1
+   */
+  readonly id: string;
 }
 
 /**
@@ -510,12 +789,12 @@ export interface CashFlowBankAccountsApiBankAccountsControllerDeleteV1Request {
  * @interface CashFlowBankAccountsApiBankAccountsControllerFindAllV1Request
  */
 export interface CashFlowBankAccountsApiBankAccountsControllerFindAllV1Request {
-    /**
-     * 
-     * @type {boolean}
-     * @memberof CashFlowBankAccountsApiBankAccountsControllerFindAllV1
-     */
-    readonly activeOnly: boolean
+  /**
+   *
+   * @type {boolean}
+   * @memberof CashFlowBankAccountsApiBankAccountsControllerFindAllV1
+   */
+  readonly activeOnly: boolean;
 }
 
 /**
@@ -524,12 +803,12 @@ export interface CashFlowBankAccountsApiBankAccountsControllerFindAllV1Request {
  * @interface CashFlowBankAccountsApiBankAccountsControllerFindOneV1Request
  */
 export interface CashFlowBankAccountsApiBankAccountsControllerFindOneV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof CashFlowBankAccountsApiBankAccountsControllerFindOneV1
-     */
-    readonly id: string
+  /**
+   *
+   * @type {string}
+   * @memberof CashFlowBankAccountsApiBankAccountsControllerFindOneV1
+   */
+  readonly id: string;
 }
 
 /**
@@ -538,12 +817,12 @@ export interface CashFlowBankAccountsApiBankAccountsControllerFindOneV1Request {
  * @interface CashFlowBankAccountsApiBankAccountsControllerGetBalanceV1Request
  */
 export interface CashFlowBankAccountsApiBankAccountsControllerGetBalanceV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof CashFlowBankAccountsApiBankAccountsControllerGetBalanceV1
-     */
-    readonly id: string
+  /**
+   *
+   * @type {string}
+   * @memberof CashFlowBankAccountsApiBankAccountsControllerGetBalanceV1
+   */
+  readonly id: string;
 }
 
 /**
@@ -552,19 +831,19 @@ export interface CashFlowBankAccountsApiBankAccountsControllerGetBalanceV1Reques
  * @interface CashFlowBankAccountsApiBankAccountsControllerUpdateV1Request
  */
 export interface CashFlowBankAccountsApiBankAccountsControllerUpdateV1Request {
-    /**
-     * 
-     * @type {string}
-     * @memberof CashFlowBankAccountsApiBankAccountsControllerUpdateV1
-     */
-    readonly id: string
+  /**
+   *
+   * @type {string}
+   * @memberof CashFlowBankAccountsApiBankAccountsControllerUpdateV1
+   */
+  readonly id: string;
 
-    /**
-     * 
-     * @type {UpdateBankAccountDto}
-     * @memberof CashFlowBankAccountsApiBankAccountsControllerUpdateV1
-     */
-    readonly updateBankAccountDto: UpdateBankAccountDto
+  /**
+   *
+   * @type {UpdateBankAccountDto}
+   * @memberof CashFlowBankAccountsApiBankAccountsControllerUpdateV1
+   */
+  readonly updateBankAccountDto: UpdateBankAccountDto;
 }
 
 /**
@@ -573,77 +852,116 @@ export interface CashFlowBankAccountsApiBankAccountsControllerUpdateV1Request {
  * @class CashFlowBankAccountsApi
  * @extends {BaseAPI}
  */
-export class CashFlowBankAccountsApi extends BaseAPI implements CashFlowBankAccountsApiInterface {
-    /**
-     * 
-     * @summary Create a new bank account
-     * @param {CashFlowBankAccountsApiBankAccountsControllerCreateV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CashFlowBankAccountsApi
-     */
-    public bankAccountsControllerCreateV1(requestParameters: CashFlowBankAccountsApiBankAccountsControllerCreateV1Request, options?: RawAxiosRequestConfig) {
-        return CashFlowBankAccountsApiFp(this.configuration).bankAccountsControllerCreateV1(requestParameters.createBankAccountDto, options).then((request) => request(this.axios, this.basePath));
-    }
+export class CashFlowBankAccountsApi
+  extends BaseAPI
+  implements CashFlowBankAccountsApiInterface
+{
+  /**
+   *
+   * @summary Create a new bank account
+   * @param {CashFlowBankAccountsApiBankAccountsControllerCreateV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CashFlowBankAccountsApi
+   */
+  public bankAccountsControllerCreateV1(
+    requestParameters: CashFlowBankAccountsApiBankAccountsControllerCreateV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return CashFlowBankAccountsApiFp(this.configuration)
+      .bankAccountsControllerCreateV1(
+        requestParameters.createBankAccountDto,
+        options,
+      )
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * 
-     * @summary Deactivate bank account
-     * @param {CashFlowBankAccountsApiBankAccountsControllerDeleteV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CashFlowBankAccountsApi
-     */
-    public bankAccountsControllerDeleteV1(requestParameters: CashFlowBankAccountsApiBankAccountsControllerDeleteV1Request, options?: RawAxiosRequestConfig) {
-        return CashFlowBankAccountsApiFp(this.configuration).bankAccountsControllerDeleteV1(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   *
+   * @summary Deactivate bank account
+   * @param {CashFlowBankAccountsApiBankAccountsControllerDeleteV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CashFlowBankAccountsApi
+   */
+  public bankAccountsControllerDeleteV1(
+    requestParameters: CashFlowBankAccountsApiBankAccountsControllerDeleteV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return CashFlowBankAccountsApiFp(this.configuration)
+      .bankAccountsControllerDeleteV1(requestParameters.id, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * 
-     * @summary List all bank accounts
-     * @param {CashFlowBankAccountsApiBankAccountsControllerFindAllV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CashFlowBankAccountsApi
-     */
-    public bankAccountsControllerFindAllV1(requestParameters: CashFlowBankAccountsApiBankAccountsControllerFindAllV1Request, options?: RawAxiosRequestConfig) {
-        return CashFlowBankAccountsApiFp(this.configuration).bankAccountsControllerFindAllV1(requestParameters.activeOnly, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   *
+   * @summary List all bank accounts
+   * @param {CashFlowBankAccountsApiBankAccountsControllerFindAllV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CashFlowBankAccountsApi
+   */
+  public bankAccountsControllerFindAllV1(
+    requestParameters: CashFlowBankAccountsApiBankAccountsControllerFindAllV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return CashFlowBankAccountsApiFp(this.configuration)
+      .bankAccountsControllerFindAllV1(requestParameters.activeOnly, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * 
-     * @summary Get bank account details
-     * @param {CashFlowBankAccountsApiBankAccountsControllerFindOneV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CashFlowBankAccountsApi
-     */
-    public bankAccountsControllerFindOneV1(requestParameters: CashFlowBankAccountsApiBankAccountsControllerFindOneV1Request, options?: RawAxiosRequestConfig) {
-        return CashFlowBankAccountsApiFp(this.configuration).bankAccountsControllerFindOneV1(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   *
+   * @summary Get bank account details
+   * @param {CashFlowBankAccountsApiBankAccountsControllerFindOneV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CashFlowBankAccountsApi
+   */
+  public bankAccountsControllerFindOneV1(
+    requestParameters: CashFlowBankAccountsApiBankAccountsControllerFindOneV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return CashFlowBankAccountsApiFp(this.configuration)
+      .bankAccountsControllerFindOneV1(requestParameters.id, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * 
-     * @summary Get bank account current balance
-     * @param {CashFlowBankAccountsApiBankAccountsControllerGetBalanceV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CashFlowBankAccountsApi
-     */
-    public bankAccountsControllerGetBalanceV1(requestParameters: CashFlowBankAccountsApiBankAccountsControllerGetBalanceV1Request, options?: RawAxiosRequestConfig) {
-        return CashFlowBankAccountsApiFp(this.configuration).bankAccountsControllerGetBalanceV1(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   *
+   * @summary Get bank account current balance
+   * @param {CashFlowBankAccountsApiBankAccountsControllerGetBalanceV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CashFlowBankAccountsApi
+   */
+  public bankAccountsControllerGetBalanceV1(
+    requestParameters: CashFlowBankAccountsApiBankAccountsControllerGetBalanceV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return CashFlowBankAccountsApiFp(this.configuration)
+      .bankAccountsControllerGetBalanceV1(requestParameters.id, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
 
-    /**
-     * 
-     * @summary Update bank account
-     * @param {CashFlowBankAccountsApiBankAccountsControllerUpdateV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CashFlowBankAccountsApi
-     */
-    public bankAccountsControllerUpdateV1(requestParameters: CashFlowBankAccountsApiBankAccountsControllerUpdateV1Request, options?: RawAxiosRequestConfig) {
-        return CashFlowBankAccountsApiFp(this.configuration).bankAccountsControllerUpdateV1(requestParameters.id, requestParameters.updateBankAccountDto, options).then((request) => request(this.axios, this.basePath));
-    }
+  /**
+   *
+   * @summary Update bank account
+   * @param {CashFlowBankAccountsApiBankAccountsControllerUpdateV1Request} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof CashFlowBankAccountsApi
+   */
+  public bankAccountsControllerUpdateV1(
+    requestParameters: CashFlowBankAccountsApiBankAccountsControllerUpdateV1Request,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return CashFlowBankAccountsApiFp(this.configuration)
+      .bankAccountsControllerUpdateV1(
+        requestParameters.id,
+        requestParameters.updateBankAccountDto,
+        options,
+      )
+      .then((request) => request(this.axios, this.basePath));
+  }
 }
-

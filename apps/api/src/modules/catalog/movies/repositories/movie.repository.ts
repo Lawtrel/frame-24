@@ -2,12 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { movies, Prisma } from '@repo/db';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
+import { SlugService } from 'src/common/services/slug.service';
 
 @Injectable()
 export class MovieRepository {
   constructor(
     private readonly prisma: PrismaService,
     private readonly snowflake: SnowflakeService,
+    private readonly slugService: SlugService,
   ) {}
 
   async findById(id: string): Promise<movies | null> {
@@ -281,27 +283,18 @@ export class MovieRepository {
     }
   }
 
-  async uniqueSlugForTitle(title: string, excludeId?: string): Promise<string> {
-    const base = toSlugBase(title);
-
-    const existsBase = await this.prisma.movies.findFirst({
-      where: { slug: base, ...(excludeId && { id: { not: excludeId } }) },
-      select: { id: true },
-    });
-    if (!existsBase) return base;
-
-    for (let i = 1; i <= 1000; i++) {
-      const candidate = `${base}-${i}`;
-      const exists = await this.prisma.movies.findFirst({
-        where: {
-          slug: candidate,
-          ...(excludeId && { id: { not: excludeId } }),
-        },
-        select: { id: true },
-      });
-      if (!exists) return candidate;
-    }
-    throw new Error('Não foi possível gerar slug único.');
+  async uniqueSlugForTitle(
+    title: string,
+    companyId: string,
+    excludeId?: string,
+  ): Promise<string> {
+    return this.slugService.createUniqueSlug(
+      this.prisma.movies,
+      title,
+      excludeId,
+      'slug',
+      { company_id: companyId },
+    );
   }
 
   async findCastTypes(company_id: string) {
@@ -333,14 +326,4 @@ export class MovieRepository {
       orderBy: { minimum_age: 'asc' },
     });
   }
-}
-
-function toSlugBase(text: string): string {
-  return text
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
 }

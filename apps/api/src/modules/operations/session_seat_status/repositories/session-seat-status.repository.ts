@@ -1,10 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  Prisma,
-  seat_status,
-  seats,
-  session_seat_status as SessionSeatStatus,
-} from '@repo/db';
+import { Prisma, session_seat_status as SessionSeatStatus } from '@repo/db';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -69,7 +64,10 @@ export class SessionSeatStatusRepository {
 
   async updateMany(
     where: Prisma.session_seat_statusWhereInput,
-    data: Prisma.session_seat_statusUpdateInput,
+    data: Prisma.XOR<
+      Prisma.session_seat_statusUpdateManyMutationInput,
+      Prisma.session_seat_statusUncheckedUpdateManyInput
+    >,
   ): Promise<Prisma.BatchPayload> {
     return this.prisma.session_seat_status.updateMany({
       where,

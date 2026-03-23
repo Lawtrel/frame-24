@@ -72,7 +72,7 @@ describe('ExhibitionContractsRepository', () => {
           cinema_complex_id: complexoId,
           active: true,
           start_date: { lte: data },
-          OR: [{ end_date: { gte: data } }, { end_date: null }],
+          end_date: { gte: data },
         },
         include: {
           contract_types: true,
@@ -93,7 +93,7 @@ describe('ExhibitionContractsRepository', () => {
       expect(resultado).toBeNull();
     });
 
-    it('deve encontrar contrato sem data de término (indefinido)', async () => {
+    it('deve usar filtro de data final maior/igual à data informada', async () => {
       const contratoMock = {
         id: 'contrato-789',
         movie_id: 'filme-123',
@@ -101,7 +101,7 @@ describe('ExhibitionContractsRepository', () => {
         distributor_percentage: 50.0,
         exhibitor_percentage: 50.0,
         start_date: new Date('2025-01-01'),
-        end_date: null,
+        end_date: new Date('2025-12-31'),
         active: true,
       };
 
@@ -112,10 +112,17 @@ describe('ExhibitionContractsRepository', () => {
       const resultado = await repositorio.findActiveContract(
         'filme-123',
         'complexo-456',
-        new Date('2025-11-17'),
+        new Date('2025-11-17T00:00:00.000Z'),
       );
 
       expect(resultado).toEqual(contratoMock);
+      expect(prisma.exhibition_contracts.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            end_date: { gte: new Date('2025-11-17T00:00:00.000Z') },
+          }),
+        }),
+      );
     });
   });
 

@@ -12,6 +12,7 @@ import {
   IdentityVerifiedEventData,
   PasswordResetEventData,
 } from 'src/modules/identity/events/identity.events';
+import { requireEnv } from 'src/config/env.util';
 
 interface IdentityMessage {
   pattern: string;
@@ -51,10 +52,10 @@ export class IdentityEmailConsumer implements OnModuleInit, OnModuleDestroy {
       if (uri) {
         url = uri;
       } else {
-        const user = process.env.RABBITMQ_USER || 'frame24';
-        const password = process.env.RABBITMQ_PASSWORD || 'frame24pass';
-        const host = process.env.RABBITMQ_HOST || 'localhost';
-        const port = process.env.RABBITMQ_PORT || 5672;
+        const user = requireEnv('RABBITMQ_USER', 'test');
+        const password = requireEnv('RABBITMQ_PASSWORD', 'test');
+        const host = requireEnv('RABBITMQ_HOST', 'localhost');
+        const port = requireEnv('RABBITMQ_PORT', '5672');
         url = `amqp://${user}:${password}@${host}:${port}`;
       }
 

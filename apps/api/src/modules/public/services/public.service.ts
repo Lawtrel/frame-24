@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma, products } from '@repo/db';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CinemaComplexesRepository } from 'src/modules/operations/cinema-complexes/repositories/cinema-complexes.repository';
 import { ShowtimesRepository } from 'src/modules/operations/showtime_schedule/repositories/showtime.repository';
@@ -6,6 +7,13 @@ import { MovieRepository } from 'src/modules/catalog/movies/repositories/movie.r
 import { ProductRepository } from 'src/modules/catalog/products/repositories/product.repository';
 import { SeatsRepository } from 'src/modules/operations/seats/repositories/seats.repository';
 import { SessionSeatStatusRepository } from 'src/modules/operations/session_seat_status/repositories/session-seat-status.repository';
+
+interface SeatMapStatusData {
+  status: string;
+  sale_id: string | null;
+  reservation_uuid: string | null;
+  expiration_date: Date | null;
+}
 
 @Injectable()
 export class PublicService {
@@ -17,7 +25,7 @@ export class PublicService {
     private readonly productsRepository: ProductRepository,
     private readonly seatsRepository: SeatsRepository,
     private readonly sessionSeatStatusRepository: SessionSeatStatusRepository,
-  ) { }
+  ) {}
 
   async getCompanies() {
     return this.prisma.companies.findMany({
@@ -40,7 +48,7 @@ export class PublicService {
     });
   }
 
-  async getCompanyBySlug(tenant_slug: string): Promise<{
+  async getCompanyBySlug(tenantSlug: string): Promise<{
     id: string;
     corporate_name: string;
     trade_name: string | null;
@@ -53,7 +61,7 @@ export class PublicService {
     website: string | null;
   }> {
     const company = await this.prisma.companies.findUnique({
-      where: { tenant_slug },
+      where: { tenant_slug: tenantSlug },
     });
 
     if (!company || !company.active || company.suspended) {
@@ -74,9 +82,9 @@ export class PublicService {
     };
   }
 
-  async getComplexesByCompany(company_id: string) {
+  async getComplexesByCompany(companyId: string) {
     const complexes =
-      await this.cinemaComplexesRepository.findAllByCompany(company_id);
+      await this.cinemaComplexesRepository.findAllByCompany(companyId);
     return complexes.filter((c) => c.active === true);
   }
 
@@ -84,10 +92,10 @@ export class PublicService {
     return this.moviesRepository.findById(id);
   }
 
-  async getMoviesByCompany(company_id: string) {
+  async getMoviesByCompany(companyId: string) {
     // 1. Buscar complexos da empresa
     const complexes =
-      await this.cinemaComplexesRepository.findAllByCompany(company_id);
+      await this.cinemaComplexesRepository.findAllByCompany(companyId);
     const complexIds = complexes.map((c) => c.id);
 
     // 2. Buscar sessões ativas (futuras, com assentos, status aberta)
@@ -111,34 +119,32 @@ export class PublicService {
     return this.moviesRepository.findByIds(movieIds);
   }
 
-
-
   async getShowtimesByCompany(
-    company_id: string,
+    companyId: string,
     filters?: {
-      complex_id?: string;
-      movie_id?: string;
+      complexId?: string;
+      movieId?: string;
       date?: Date;
     },
   ) {
     // Buscar complexos da empresa
     const complexes =
-      await this.cinemaComplexesRepository.findAllByCompany(company_id);
+      await this.cinemaComplexesRepository.findAllByCompany(companyId);
     const complexIds = complexes.map((c) => c.id);
 
     // Filtrar por complexo se fornecido
-    const targetComplexIds = filters?.complex_id
-      ? [filters.complex_id]
+    const targetComplexIds = filters?.complexId
+      ? [filters.complexId]
       : complexIds;
 
     // Buscar sessões
-    const where: any = {
+    const where: Prisma.showtime_scheduleWhereInput = {
       cinema_complex_id: { in: targetComplexIds },
       // Apenas sessões abertas para vendas
       session_status: {
         name: 'Aberta para Vendas',
       },
-      ...(filters?.movie_id && { movie_id: filters.movie_id }),
+      ...(filters?.movieId && { movie_id: filters.movieId }),
     };
 
     if (filters?.date) {
@@ -246,19 +252,19 @@ export class PublicService {
         ...showtime,
         movie: movie
           ? {
-            id: movie.id,
-            title: movie.brazil_title || movie.original_title,
-            poster_url: movie.movie_media[0]?.media_url || null,
-            duration_minutes: movie.duration_minutes,
-            age_rating: movie.age_rating?.code || null,
-          }
+              id: movie.id,
+              title: movie.brazil_title || movie.original_title,
+              poster_url: movie.movie_media[0]?.media_url || null,
+              duration_minutes: movie.duration_minutes,
+              age_rating: movie.age_rating?.code || null,
+            }
           : null,
       };
     });
   }
 
-  async getShowtimeSeatsMap(showtime_id: string) {
-    const showtime = await this.showtimesRepository.findById(showtime_id);
+  async getShowtimeSeatsMap(showtimeId: string) {
+    const showtime = await this.showtimesRepository.findById(showtimeId);
     if (!showtime || !('room_id' in showtime) || !showtime.room_id) {
       throw new NotFoundException('Sessão não encontrada');
     }
@@ -268,10 +274,10 @@ export class PublicService {
 
     // Buscar status dos assentos para esta sessão
     const seatStatuses =
-      await this.sessionSeatStatusRepository.findByShowtimeId(showtime_id);
+      await this.sessionSeatStatusRepository.findByShowtimeId(showtimeId);
 
     // Mapear status dos assentos
-    const seatMap = new Map<string, any>();
+    const seatMap = new Map<string, SeatMapStatusData>();
     seatStatuses.forEach((ss) => {
       const statusName = ss.seat_status?.name || 'available';
       seatMap.set(ss.seat_id, {
@@ -301,7 +307,7 @@ export class PublicService {
 
     // Buscar detalhes da sessão (cinema e sala)
     const showtimeDetails = await this.prisma.showtime_schedule.findUnique({
-      where: { id: showtime_id },
+      where: { id: showtimeId },
       include: {
         cinema_complexes: true,
         rooms: true,
@@ -323,7 +329,7 @@ export class PublicService {
     }
 
     return {
-      showtime_id,
+      showtime_id: showtimeId,
       room_id: showtime.room_id,
       available_seats: showtime.available_seats || 0,
       sold_seats: showtime.sold_seats || 0,
@@ -331,36 +337,36 @@ export class PublicService {
       seats: seatsMap,
       movie: movieDetails
         ? {
-          title: movieDetails.brazil_title || movieDetails.original_title,
-          poster_url: movieDetails.movie_media[0]?.media_url,
-        }
+            title: movieDetails.brazil_title || movieDetails.original_title,
+            poster_url: movieDetails.movie_media[0]?.media_url,
+          }
         : null,
       cinema: showtimeDetails?.cinema_complexes
         ? {
-          id: showtimeDetails.cinema_complexes.id,
-          name: showtimeDetails.cinema_complexes.name,
-        }
+            id: showtimeDetails.cinema_complexes.id,
+            name: showtimeDetails.cinema_complexes.name,
+          }
         : null,
       room: showtimeDetails?.rooms
         ? {
-          name: showtimeDetails.rooms.name,
-        }
+            name: showtimeDetails.rooms.name,
+          }
         : null,
       start_time: showtimeDetails?.start_time,
     };
   }
 
-  async getProductsByCompany(company_id: string, complex_id?: string) {
-    const products = await this.productsRepository.findAll(company_id, true);
+  async getProductsByCompany(companyId: string, complexId?: string) {
+    const products = await this.productsRepository.findAll(companyId, true);
 
     // Se complex_id fornecido, buscar preços específicos
-    if (complex_id) {
+    if (complexId) {
       const productsWithPrices = await Promise.all(
         products.map(async (product) => {
           const price = await this.prisma.product_prices.findFirst({
             where: {
               product_id: product.id,
-              complex_id: complex_id,
+              complex_id: complexId,
               active: true,
               valid_from: { lte: new Date() },
               OR: [{ valid_to: { gte: new Date() } }, { valid_to: null }],
@@ -381,10 +387,10 @@ export class PublicService {
     return products;
   }
 
-  async getTicketTypes(company_id: string) {
+  async getTicketTypes(companyId: string) {
     const types = await this.prisma.ticket_types.findMany({
       where: {
-        company_id,
+        company_id: companyId,
       },
       select: {
         id: true,
@@ -405,10 +411,10 @@ export class PublicService {
     }));
   }
 
-  async getPaymentMethods(company_id: string) {
+  async getPaymentMethods(companyId: string) {
     return this.prisma.payment_methods.findMany({
       where: {
-        company_id,
+        company_id: companyId,
       },
       select: {
         id: true,
@@ -418,9 +424,16 @@ export class PublicService {
     });
   }
 
-  async getSaleDetails(sale_id: string) {
-    const sale = await this.prisma.sales.findUnique({
-      where: { id: sale_id },
+  async getSaleDetails(companyId: string, publicReference: string) {
+    const complexes =
+      await this.cinemaComplexesRepository.findAllByCompany(companyId);
+    const complexIds = complexes.map((c) => c.id);
+
+    const sale = await this.prisma.sales.findFirst({
+      where: {
+        public_reference: publicReference,
+        cinema_complex_id: { in: complexIds },
+      },
       include: {
         tickets: {
           include: {
@@ -470,7 +483,7 @@ export class PublicService {
       });
     });
 
-    let productsDetails: any[] = [];
+    let productsDetails: products[] = [];
     if (productIds.length > 0) {
       productsDetails = await this.prisma.products.findMany({
         where: { id: { in: productIds } },

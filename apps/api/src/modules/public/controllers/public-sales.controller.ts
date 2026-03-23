@@ -31,7 +31,7 @@ export class PublicSalesController {
     type: SaleResponseDto,
   })
   async create(@Body() dto: CreateSaleDto): Promise<SaleResponseDto> {
-    // Buscar o complexo para obter o company_id
+    // Buscar o complexo para obter o companyId
     const complex = await this.cinemaComplexesRepository.findById(
       dto.cinema_complex_id,
     );
@@ -40,17 +40,10 @@ export class PublicSalesController {
       throw new NotFoundException('Complexo de cinema não encontrado');
     }
 
-    // Construir um usuário "Guest" mockado para o serviço de vendas
-    const guestUser: any = {
-      company_id: complex.company_id,
-      role: 'Guest',
-      permissions: [],
-      customer_id: dto.customer_id,
-      // Campos opcionais que o serviço pode tentar acessar
-      company_user_id: undefined,
-      identity_id: 'guest',
-    };
-
-    return await this.salesService.create(dto, guestUser);
+    return this.salesService.create(dto, {
+      companyId: complex.company_id,
+      customerId: dto.customer_id,
+      sessionContext: 'CUSTOMER',
+    });
   }
 }

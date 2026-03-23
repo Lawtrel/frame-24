@@ -1,8 +1,12 @@
 import {
+  ForbiddenException,
   Injectable,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
+import { bank_accounts, Prisma } from '@repo/db';
+import { ClsService } from 'nestjs-cls';
 import { BankAccountsRepository } from '../repositories/bank-accounts.repository';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { CreateBankAccountDto } from '../dto/create-bank-account.dto';
@@ -13,9 +17,11 @@ export class BankAccountsService {
   constructor(
     private readonly repository: BankAccountsRepository,
     private readonly snowflake: SnowflakeService,
-  ) { }
+    private readonly tenantContext: TenantContextService,
+  ) {}
 
-  async create(companyId: string, dto: CreateBankAccountDto) {
+  async create(dto: CreateBankAccountDto): Promise<bank_accounts> {
+    const companyId = this.tenantContext.getCompanyId();
     const id = this.snowflake.generate();
 
     return this.repository.create({
@@ -35,11 +41,15 @@ export class BankAccountsService {
     });
   }
 
-  async findAll(companyId: string, activeOnly = true) {
+  async findAll(activeOnly = true): Promise<bank_accounts[]> {
+    const companyId = this.tenantContext.getCompanyId();
     return this.repository.findAll(companyId, activeOnly);
   }
 
-  async findOne(id: string, companyId: string) {
+  private async findOneByCompany(
+    companyId: string,
+    id: string,
+  ): Promise<bank_accounts> {
     const account = await this.repository.findById(id, companyId);
 
     if (!account) {
@@ -49,8 +59,13 @@ export class BankAccountsService {
     return account;
   }
 
-  async update(id: string, companyId: string, dto: UpdateBankAccountDto) {
-    const account = await this.findOne(id, companyId);
+  async findOne(id: string): Promise<bank_accounts> {
+    return this.findOneByCompany(this.tenantContext.getCompanyId(), id);
+  }
+
+  async update(id: string, dto: UpdateBankAccountDto): Promise<bank_accounts> {
+    const companyId = this.tenantContext.getCompanyId();
+    await this.findOneByCompany(companyId, id);
 
     const result = await this.repository.update(id, companyId, {
       ...(dto.bank_name && { bank_name: dto.bank_name }),
@@ -70,21 +85,25 @@ export class BankAccountsService {
       throw new BadRequestException('Failed to update bank account');
     }
 
-    return this.findOne(id, companyId);
+    return this.findOneByCompany(companyId, id);
   }
 
-  async delete(id: string, companyId: string) {
-    await this.findOne(id, companyId);
+  async delete(id: string): Promise<Prisma.BatchPayload> {
+    const companyId = this.tenantContext.getCompanyId();
+    await this.findOneByCompany(companyId, id);
 
     return this.repository.update(id, companyId, {
       active: false,
     });
   }
 
-  async getBalance(id: string, companyId: string) {
-    await this.findOne(id, companyId);
+  async getBalance(
+    id: string,
+  ): Promise<{ bank_account_id: string; current_balance: number }> {
+    const companyId = this.tenantContext.getCompanyId();
+    await this.findOneByCompany(companyId, id);
 
-    const balance = await this.repository.getBalance(id);
+    const balance = Number(await this.repository.getBalance(id));
 
     return {
       bank_account_id: id,

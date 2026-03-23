@@ -1,9 +1,18 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
+import { ClsService } from 'nestjs-cls';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class FinanceReportsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly tenantContext: TenantContextService,
+  ) {}
 
   private parseMonth(month: string): {
     start: Date;
@@ -27,17 +36,18 @@ export class FinanceReportsService {
     return { start, end, year, monthNumber };
   }
 
-  private async getCompanyComplexIds(company_id: string): Promise<string[]> {
+  private async getCompanyComplexIds(companyId: string): Promise<string[]> {
     const complexes = await this.prisma.cinema_complexes.findMany({
-      where: { company_id },
+      where: { company_id: companyId },
       select: { id: true },
     });
     return complexes.map((c) => c.id);
   }
 
-  async getIncomeStatement(company_id: string, month: string) {
+  async getIncomeStatement(month: string) {
+    const companyId = this.tenantContext.getCompanyId();
     const { start, end, year, monthNumber } = this.parseMonth(month);
-    const complexIds = await this.getCompanyComplexIds(company_id);
+    const complexIds = await this.getCompanyComplexIds(companyId);
 
     if (complexIds.length === 0) {
       return {
@@ -104,7 +114,7 @@ export class FinanceReportsService {
         original_amount: true,
       },
       where: {
-        company_id,
+        company_id: companyId,
         competence_date: {
           gte: start,
           lte: end,
@@ -140,7 +150,6 @@ export class FinanceReportsService {
 
     const grossRevenue = Number(salesAggregate._sum.total_amount || 0);
     const discounts = Number(salesAggregate._sum.discount_amount || 0);
-    const netRevenue = Number(salesAggregate._sum.net_amount || 0);
 
     const distributorPayouts = Number(
       settlementsAggregate._sum.net_payment_amount || 0,

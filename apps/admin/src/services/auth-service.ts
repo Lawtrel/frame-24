@@ -9,8 +9,7 @@ export const AuthService = {
       loginDto: {
         email,
         password,
-        isCompany: false, 
-      }
+      },
     });
   },
 
@@ -20,7 +19,7 @@ export const AuthService = {
 
   forgotPassword: async (email: string) => {
     return api.authControllerForgotPasswordV1({
-      forgotPasswordDto: { email }
+      forgotPasswordDto: { email },
     });
-  }
+  },
 };

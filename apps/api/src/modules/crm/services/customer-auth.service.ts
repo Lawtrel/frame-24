@@ -27,7 +27,7 @@ export class CustomerAuthService {
     private readonly prisma: PrismaService,
     private readonly snowflake: SnowflakeService,
     private readonly logger: LoggerService,
-  ) { }
+  ) {}
 
   @Transactional()
   async register(dto: RegisterCustomerDto): Promise<CustomerAuthResponseDto> {

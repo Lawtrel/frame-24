@@ -7,7 +7,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import {
   ApiTags,
   ApiOperation,
@@ -18,9 +18,8 @@ import {
 } from '@nestjs/swagger';
 
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 
 import { SeatsService } from '../services/seats.service';
 import { UpdateSeatStatusDto } from '../dto/update-seat-status.dto';
@@ -29,7 +28,7 @@ import { UpdateSeatsStatusBatchDto } from '../dto/update-seats-status-batch.dto'
 @ApiTags('Seats')
 @ApiBearerAuth()
 @Controller({ path: 'seats', version: '1' })
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class SeatsController {
   constructor(private readonly service: SeatsService) {}
 
@@ -46,11 +45,10 @@ export class SeatsController {
   @ApiNotFoundResponse({ description: 'Assento não encontrado.' })
   @ApiForbiddenResponse({ description: 'Acesso negado ao recurso.' })
   async updateSeatStatus(
-    @Param('id') id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
     @Body() dto: UpdateSeatStatusDto,
-    @CurrentUser() user: RequestUser,
   ) {
-    return this.service.updateStatus(id, dto.active, user);
+    return this.service.updateStatus(id, dto.active);
   }
 
   @Patch('status/batch')
@@ -70,10 +68,7 @@ export class SeatsController {
     description:
       'Acesso negado. Um ou mais assentos não foram encontrados ou não pertencem à sua empresa.',
   })
-  async updateStatusBatch(
-    @Body() dto: UpdateSeatsStatusBatchDto,
-    @CurrentUser() user: RequestUser,
-  ) {
-    return this.service.updateStatusBatch(dto, user);
+  async updateStatusBatch(@Body() dto: UpdateSeatsStatusBatchDto) {
+    return this.service.updateStatusBatch(dto);
   }
 }

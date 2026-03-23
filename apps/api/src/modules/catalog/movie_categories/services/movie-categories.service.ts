@@ -1,22 +1,27 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@repo/db';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
+import { ClsService } from 'nestjs-cls';
+import { movie_categories, Prisma } from '@repo/db';
 import { MovieCategoryRepository } from '../repositories/movie-category.repository';
 import { CreateMovieCategoryDto } from '../dto/create-movie-category.dto';
 import { UpdateMovieCategoryDto } from '../dto/update-movie-category.dto';
-import { LoggerService } from 'src/common/services/logger.service';
 import { RabbitMQPublisherService } from 'src/common/rabbitmq/rabbitmq-publisher.service';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 
 @Injectable()
 export class MovieCategoriesService {
   constructor(
     private readonly repository: MovieCategoryRepository,
-    private readonly logger: LoggerService,
     private readonly rabbitmq: RabbitMQPublisherService,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
-  async create(dto: CreateMovieCategoryDto, user: RequestUser) {
-    const companyId = user.company_id;
+  async create(dto: CreateMovieCategoryDto): Promise<movie_categories> {
+    const companyId = this.tenantContext.getCompanyId();
+    const userId = this.tenantContext.getUserId();
     const slug = await this.repository.uniqueSlugForName(dto.name, companyId);
 
     const data: Prisma.movie_categoriesCreateInput = {
@@ -38,32 +43,38 @@ export class MovieCategoriesService {
       },
       metadata: {
         companyId: companyId,
-        userId: user.company_user_id,
+        userId,
       },
     });
     return created;
   }
 
-  async findAll(company_id: string) {
-    return this.repository.findAll(company_id);
+  async findAll(): Promise<movie_categories[]> {
+    const companyId = this.tenantContext.getCompanyId();
+    return this.repository.findAll(companyId);
   }
 
-  async findOne(id: string, company_id: string) {
+  async findOne(id: string): Promise<movie_categories> {
+    const companyId = this.tenantContext.getCompanyId();
     const category = await this.repository.findById(id);
-    if (!category || category.company_id !== company_id) {
+    if (!category || category.company_id !== companyId) {
       throw new NotFoundException('Categoria não encontrada.');
     }
     return category;
   }
 
-  async update(id: string, dto: UpdateMovieCategoryDto, user: RequestUser) {
-    const companyId = user.company_id;
+  async update(
+    id: string,
+    dto: UpdateMovieCategoryDto,
+  ): Promise<movie_categories> {
+    const companyId = this.tenantContext.getCompanyId();
+    const userId = this.tenantContext.getUserId();
     const existing = await this.repository.findById(id);
     if (!existing || existing.company_id !== companyId) {
       throw new NotFoundException('Categoria não encontrada.');
     }
 
-    const updateData: Partial<Prisma.movie_categoriesUpdateInput> = {};
+    const updateData: Prisma.movie_categoriesUpdateInput = {};
 
     if (dto.name && dto.name !== existing.name) {
       updateData.name = dto.name;
@@ -86,10 +97,7 @@ export class MovieCategoriesService {
       updateData.active = dto.active;
     }
 
-    const updated = await this.repository.update(
-      id,
-      updateData as Prisma.movie_categoriesUpdateInput,
-    );
+    const updated = await this.repository.update(id, updateData);
 
     void this.rabbitmq.publish({
       pattern: 'audit.movie_category.updated',
@@ -100,15 +108,16 @@ export class MovieCategoriesService {
       },
       metadata: {
         companyId: companyId,
-        userId: user.company_user_id,
+        userId,
       },
     });
 
     return updated;
   }
 
-  async delete(id: string, user: RequestUser) {
-    const companyId = user.company_id;
+  async delete(id: string): Promise<{ message: string }> {
+    const companyId = this.tenantContext.getCompanyId();
+    const userId = this.tenantContext.getUserId();
     const existing = await this.repository.findById(id);
     if (!existing || existing.company_id !== companyId) {
       throw new NotFoundException('Categoria não encontrada.');
@@ -124,7 +133,7 @@ export class MovieCategoriesService {
       },
       metadata: {
         companyId: companyId,
-        userId: user.company_user_id,
+        userId,
       },
     });
 

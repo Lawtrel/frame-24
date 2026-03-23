@@ -2,10 +2,13 @@ import {
   Controller,
   Post,
   Body,
+  ForbiddenException,
   HttpCode,
   HttpStatus,
   UseGuards,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import {
   ApiTags,
   ApiOperation,
@@ -15,7 +18,6 @@ import {
   ApiUnauthorizedResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { AuthGuard } from '@nestjs/passport';
 
 import { AuthService } from '../services/auth.service';
 import { LoginDto } from '../dto/login.dto';
@@ -24,7 +26,9 @@ import { SignupDto } from '../dto/signup.dto';
 import {
   LoginResponseDto,
   RegisterResponseDto,
+  SelectCompanyResponseDto,
 } from '../dto/auth-response.dto';
+import { SelectCompanyDto } from '../dto/select-company.dto';
 import { VerifyEmailDto } from '../dto/verify-email.dto';
 import {
   ForgotPasswordDto,
@@ -32,13 +36,35 @@ import {
 } from '../dto/forgot-password.dto';
 import { Public } from 'src/common/decorators/public.decorator';
 import { AuthThrottle } from 'src/common/decorators/auth-throttle.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import type { RequestUser } from '../strategies/jwt.strategy';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { ClsService } from 'nestjs-cls';
 
 @ApiTags('Auth')
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(
+    private readonly authService: AuthService,
+    private readonly cls: ClsService,
+  ) {}
+
+  private setAuthCookie(res: Response, token: string): void {
+    const isProduction = process.env.NODE_ENV === 'production';
+    res.cookie('access_token', token, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000, // 24h
+      path: '/',
+    });
+  }
+
+  private getIdentityId(): string {
+    const identityId = this.cls.get<string>('identityId');
+    if (!identityId) {
+      throw new ForbiddenException('Contexto de identidade não encontrado.');
+    }
+    return identityId;
+  }
 
   @Public()
   @AuthThrottle()
@@ -81,18 +107,25 @@ export class AuthController {
   @ApiUnauthorizedResponse({
     description: 'Credenciais inválidas ou conta bloqueada',
   })
-  async login(@Body() dto: LoginDto): Promise<LoginResponseDto> {
-    return this.authService.login(dto.email, dto.password);
+  async login(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<LoginResponseDto> {
+    const result = await this.authService.login(dto.email, dto.password);
+    if (result.access_token) {
+      this.setAuthCookie(res, result.access_token);
+    }
+    return result;
   }
 
-  @Public()
   @AuthThrottle()
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Registro de usuário em empresa existente',
     description:
-      'Adiciona um novo usuário a uma empresa já cadastrada. Use para funcionários convidados.',
+      'Adiciona um novo usuário a uma empresa já cadastrada. Apenas para funcionários autenticados.',
   })
   @ApiResponse({
     status: 201,
@@ -104,6 +137,37 @@ export class AuthController {
   })
   async register(@Body() dto: RegisterDto): Promise<RegisterResponseDto> {
     return this.authService.register(dto);
+  }
+
+  @Public()
+  @AuthThrottle()
+  @Post('select-company')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Selecionar empresa após login',
+    description:
+      'Quando o usuário pertence a múltiplas empresas, este endpoint recebe o token temporário para emitir o token definitivo.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Empresa selecionada com sucesso',
+    type: SelectCompanyResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Token inválido ou empresa não permitida',
+  })
+  async selectCompany(
+    @Body() dto: SelectCompanyDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<LoginResponseDto> {
+    const result = await this.authService.selectCompany(
+      dto.temp_token,
+      dto.company_id,
+    );
+    if (result.access_token) {
+      this.setAuthCookie(res, result.access_token);
+    }
+    return result;
   }
 
   @Public()
@@ -185,13 +249,12 @@ export class AuthController {
   }
 
   @Post('logout')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Logout',
-    description:
-      'Revoga a sessão atual do usuário, invalidando o token JWT.',
+    description: 'Revoga a sessão atual do usuário, invalidando o token JWT.',
   })
   @ApiResponse({
     status: 204,
@@ -200,7 +263,10 @@ export class AuthController {
   @ApiUnauthorizedResponse({
     description: 'Token inválido ou expirado',
   })
-  async logout(@CurrentUser() user: RequestUser): Promise<void> {
-    await this.authService.logout(user.identity_id, user.company_id);
+  async logout(): Promise<void> {
+    await this.authService.logout(
+      this.getIdentityId(),
+      this.cls.get<string>('companyId'),
+    );
   }
 }

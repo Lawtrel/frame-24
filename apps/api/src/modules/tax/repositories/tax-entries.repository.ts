@@ -71,6 +71,19 @@ export class TaxEntriesRepository {
     });
   }
 
+  async findAllBySource(
+    source_type: string,
+    source_id: string,
+  ): Promise<tax_entries[]> {
+    return this.prisma.tax_entries.findMany({
+      where: {
+        source_type,
+        source_id,
+      },
+      orderBy: { created_at: 'asc' },
+    });
+  }
+
   async create(data: Prisma.tax_entriesCreateInput): Promise<tax_entries> {
     return this.prisma.tax_entries.create({
       data: {

@@ -10,15 +10,14 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
 import { MoviesService } from '../services/movies.service';
 import { CreateMovieDto } from '../dto/create-movie.dto';
 import { UpdateMovieDto } from '../dto/update-movie.dto';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import {
   ApiTags,
   ApiOperation,
@@ -30,7 +29,7 @@ import {
 
 @ApiTags('Movies')
 @Controller({ path: 'movies', version: '1' })
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class MoviesController {
   constructor(private readonly service: MoviesService) {}
 
@@ -38,24 +37,24 @@ export class MoviesController {
   @RequirePermission('movies', 'read')
   @ApiOperation({ summary: 'Listar tipos de elenco' })
   @ApiResponse({ status: 200, description: 'Lista de tipos de elenco.' })
-  async getCastTypes(@CurrentUser() user: RequestUser) {
-    return this.service.getCastTypes(user.company_id);
+  async getCastTypes() {
+    return this.service.getCastTypes();
   }
 
   @Get('media-types')
   @RequirePermission('movies', 'read')
   @ApiOperation({ summary: 'Listar tipos de mídia' })
   @ApiResponse({ status: 200, description: 'Lista de tipos de mídia.' })
-  async getMediaTypes(@CurrentUser() user: RequestUser) {
-    return this.service.getMediaTypes(user.company_id);
+  async getMediaTypes() {
+    return this.service.getMediaTypes();
   }
 
   @Get('age-ratings')
   @RequirePermission('movies', 'read')
   @ApiOperation({ summary: 'Listar classificações indicativas' })
   @ApiResponse({ status: 200, description: 'Lista de classificações.' })
-  async getAgeRatings(@CurrentUser() user: RequestUser) {
-    return this.service.getAgeRatings(user.company_id);
+  async getAgeRatings() {
+    return this.service.getAgeRatings();
   }
 
   @Post()
@@ -76,8 +75,8 @@ export class MoviesController {
   @ApiUnauthorizedResponse({
     description: 'JWT ausente ou inválido.',
   })
-  async create(@Body() dto: CreateMovieDto, @CurrentUser() user: RequestUser) {
-    return this.service.create(dto, user.company_id);
+  async create(@Body() dto: CreateMovieDto) {
+    return this.service.create(dto);
   }
 
   @Get()
@@ -90,8 +89,8 @@ export class MoviesController {
     status: 200,
     description: 'Lista retornada com sucesso.',
   })
-  async findAll(@CurrentUser() user: RequestUser) {
-    return this.service.findAll(user.company_id);
+  async findAll() {
+    return this.service.findAll();
   }
 
   @Get(':id')
@@ -106,7 +105,7 @@ export class MoviesController {
   @ApiNotFoundResponse({
     description: 'Filme não encontrado.',
   })
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id', ParseEntityIdPipe) id: string) {
     return this.service.findOne(id);
   }
 
@@ -128,11 +127,10 @@ export class MoviesController {
     description: 'Filme não encontrado.',
   })
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
     @Body() dto: UpdateMovieDto,
-    @CurrentUser() user: RequestUser,
   ) {
-    return this.service.update(id, dto, user.company_id);
+    return this.service.update(id, dto);
   }
 
   @Delete(':id')
@@ -147,7 +145,7 @@ export class MoviesController {
   @ApiNotFoundResponse({
     description: 'Filme não encontrado.',
   })
-  async delete(@Param('id') id: string) {
+  async delete(@Param('id', ParseEntityIdPipe) id: string) {
     return this.service.delete(id);
   }
 }

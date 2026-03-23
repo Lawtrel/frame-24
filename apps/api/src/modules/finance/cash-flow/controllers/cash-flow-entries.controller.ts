@@ -10,7 +10,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -18,9 +18,8 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { CashFlowEntriesService } from '../services/cash-flow-entries.service';
 import { CreateCashFlowEntryDto } from '../dto/create-cash-flow-entry.dto';
@@ -29,9 +28,9 @@ import { CashFlowQueryDto } from '../dto/cash-flow-query.dto';
 @ApiTags('Fluxo de Caixa - Lançamentos')
 @ApiBearerAuth()
 @Controller({ path: 'finance/cash-flow', version: '1' })
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class CashFlowEntriesController {
-  constructor(private readonly service: CashFlowEntriesService) { }
+  constructor(private readonly service: CashFlowEntriesService) {}
 
   @Post()
   @RequirePermission('cash_flow', 'create')
@@ -41,11 +40,8 @@ export class CashFlowEntriesController {
     status: 201,
     description: 'Cash flow entry created successfully',
   })
-  async create(
-    @CurrentUser() user: RequestUser,
-    @Body(new ZodValidationPipe()) dto: CreateCashFlowEntryDto,
-  ) {
-    return this.service.create(user.company_id, user.company_user_id, dto);
+  async create(@Body(new ZodValidationPipe()) dto: CreateCashFlowEntryDto) {
+    return this.service.create(dto);
   }
 
   @Get()
@@ -56,11 +52,8 @@ export class CashFlowEntriesController {
     status: 200,
     description: 'Cash flow entries retrieved successfully',
   })
-  async findAll(
-    @CurrentUser() user: RequestUser,
-    @Query(new ZodValidationPipe()) query: CashFlowQueryDto,
-  ) {
-    return this.service.findAll(user.company_id, query);
+  async findAll(@Query(new ZodValidationPipe()) query: CashFlowQueryDto) {
+    return this.service.findAll(query);
   }
 
   @Get(':id')
@@ -71,8 +64,8 @@ export class CashFlowEntriesController {
     status: 200,
     description: 'Cash flow entry retrieved successfully',
   })
-  async findOne(@CurrentUser() user: RequestUser, @Param('id') id: string) {
-    return this.service.findOne(id, user.company_id);
+  async findOne(@Param('id', ParseEntityIdPipe) id: string) {
+    return this.service.findOne(id);
   }
 
   @Post(':id/reconcile')
@@ -80,8 +73,8 @@ export class CashFlowEntriesController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Reconcile a cash flow entry' })
   @ApiResponse({ status: 200, description: 'Entry reconciled successfully' })
-  async reconcile(@CurrentUser() user: RequestUser, @Param('id') id: string) {
-    return this.service.reconcile(id, user.company_id);
+  async reconcile(@Param('id', ParseEntityIdPipe) id: string) {
+    return this.service.reconcile(id);
   }
 
   @Delete(':id')
@@ -89,7 +82,7 @@ export class CashFlowEntriesController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a cash flow entry' })
   @ApiResponse({ status: 200, description: 'Entry deleted successfully' })
-  async delete(@CurrentUser() user: RequestUser, @Param('id') id: string) {
-    return this.service.delete(id, user.company_id);
+  async delete(@Param('id', ParseEntityIdPipe) id: string) {
+    return this.service.delete(id);
   }
 }

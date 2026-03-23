@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:18.0-alpine
+    image: postgres:18.3-alpine
     container_name: frame24-postgres
     environment:
       POSTGRES_USER: frame24
@@ -18,26 +18,31 @@ services:
       timeout: 5s
       retries: 5
 
-  mailhog:
-    image: mailhog/mailhog:v1.0.1
-    container_name: frame24-mailhog
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: frame24-mailpit
     ports:
       - "1025:1025"   # SMTP
       - "8025:8025"   # Web UI
     networks:
       - frame24-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-S", "http://localhost:8025/livez"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   rabbitmq:
-    image: rabbitmq:4.2-management-alpine
+    image: rabbitmq:4.2.4-management-alpine
     container_name: frame24-rabbitmq
     restart: unless-stopped
     environment:
       RABBITMQ_DEFAULT_USER: frame24
       RABBITMQ_DEFAULT_PASS: frame24pass
     ports:
-      - "5672:5672"   # AMQP protocol
-      - "15672:15672" # Management UI
+      - "5672:5672"    # AMQP protocol
+      - "15672:15672"  # Management UI
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:
@@ -49,7 +54,7 @@ services:
       retries: 5
 
   minio:
-    image: minio/minio:RELEASE.2025-09-07T16-13-09Z-cpuv1
+    image: alpine/minio:RELEASE.2025-10-15T17-29-55Z
     container_name: frame24-minio
     restart: unless-stopped
     environment:
@@ -57,15 +62,14 @@ services:
       MINIO_ROOT_PASSWORD: frame24pass
     command: server /data --console-address ":9001"
     ports:
-      - "9000:9000" # API S3
-      - "9001:9001" # Painel web
+      - "9000:9000"  # API S3
+      - "9001:9001"  # Painel web
     volumes:
       - minio_data:/data
     networks:
       - frame24-network
 
 volumes:
-  es_data:
   postgres_data:
   rabbitmq_data:
   minio_data:

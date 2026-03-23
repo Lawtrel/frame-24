@@ -10,26 +10,26 @@ async function main() {
   if (!company) return console.error('❌ Nenhuma empresa ativa encontrada.');
 
   const statuses = [
-    { 
-      name: 'Livre', 
-      description: 'Assento disponível para venda', 
-      is_default: true // <--- O sistema procura por ISSO
+    {
+      name: 'Livre',
+      description: 'Assento disponível para venda',
+      is_default: true, // <--- O sistema procura por ISSO
     },
-    { 
-      name: 'Vendido', 
-      description: 'Assento já comprado', 
-      is_default: false 
+    {
+      name: 'Vendido',
+      description: 'Assento já comprado',
+      is_default: false,
     },
-    { 
-      name: 'Bloqueado', 
-      description: 'Bloqueio administrativo ou técnico', 
-      is_default: false 
+    {
+      name: 'Bloqueado',
+      description: 'Bloqueio administrativo ou técnico',
+      is_default: false,
     },
-    { 
-      name: 'Reservado', 
-      description: 'Em processo de compra', 
-      is_default: false 
-    }
+    {
+      name: 'Reservado',
+      description: 'Em processo de compra',
+      is_default: false,
+    },
   ];
 
   for (const status of statuses) {
@@ -42,10 +42,12 @@ async function main() {
         name: status.name,
         description: status.description,
         is_default: status.is_default,
-        allows_modification: true
-      }
+        allows_modification: true,
+      },
     });
-    console.log(`✅ Status de assento criado: ${status.name} (Padrão: ${status.is_default})`);
+    console.log(
+      `✅ Status de assento criado: ${status.name} (Padrão: ${status.is_default})`,
+    );
   }
 
   console.log('🚀 Script finalizado com sucesso!');

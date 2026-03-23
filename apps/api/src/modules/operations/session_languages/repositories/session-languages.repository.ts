@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, session_languages as SessionLanguage } from '@repo/db';
 import { PrismaService } from 'src/prisma/prisma.service';
+import type { SessionLanguageResponse } from '../../shared/dto/session-language-response.dto';
 
 @Injectable()
 export class SessionLanguagesRepository {
@@ -8,21 +9,29 @@ export class SessionLanguagesRepository {
 
   async findByNameAndCompany(
     name: string,
-    company_id: string,
+    companyId: string,
   ): Promise<SessionLanguage | null> {
     return this.prisma.session_languages.findUnique({
       where: {
         company_id_name: {
-          company_id,
+          company_id: companyId,
           name,
         },
       },
     });
   }
 
-  async findAllByCompany(company_id: string): Promise<SessionLanguage[]> {
+  async findAllByCompany(
+    companyId: string,
+  ): Promise<SessionLanguageResponse[]> {
     return this.prisma.session_languages.findMany({
-      where: { company_id },
+      where: { company_id: companyId },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        abbreviation: true,
+      },
       orderBy: { name: 'asc' },
     });
   }

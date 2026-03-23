@@ -17,10 +17,12 @@
     "build": "rm -f tsconfig.tsbuildinfo && prisma generate && tsc"
   },
   "dependencies": {
-    "@prisma/client": "^6.18.0",
-    "dotenv": "^17.2.2"
+    "@prisma/adapter-pg": "^7.5.0",
+    "@prisma/client": "^7.5.0",
+    "dotenv": "^17.3.1",
+    "pg": "^8.16.3"
   },
   "devDependencies": {
-    "prisma": "^6.18.0"
+    "prisma": "^7.5.0"
   }
 }

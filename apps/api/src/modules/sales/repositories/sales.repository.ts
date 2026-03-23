@@ -2,6 +2,48 @@ import { Injectable } from '@nestjs/common';
 import { sales, Prisma } from '@repo/db';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
+import { randomUUID } from 'crypto';
+
+export type SaleWithBasicRelations = Prisma.salesGetPayload<{
+  include: {
+    tickets: true;
+    sale_types: true;
+    payment_methods: true;
+    sale_status: true;
+    promotions_used: true;
+  };
+}>;
+
+export type SaleWithFullRelations = Prisma.salesGetPayload<{
+  include: {
+    tickets: true;
+    concession_sales: {
+      include: {
+        concession_sale_items: true;
+      };
+    };
+    promotions_used: true;
+    sale_types: true;
+    payment_methods: true;
+    sale_status: true;
+  };
+}>;
+
+export type SaleWithCreateRelations = Prisma.salesGetPayload<{
+  include: {
+    tickets: true;
+    concession_sales: {
+      include: {
+        concession_sale_items: true;
+      };
+    };
+    promotions_used: true;
+  };
+}>;
+
+type CreateSaleInput = Omit<Prisma.salesCreateInput, 'public_reference'> & {
+  public_reference?: string;
+};
 
 @Injectable()
 export class SalesRepository {
@@ -10,7 +52,10 @@ export class SalesRepository {
     private readonly snowflake: SnowflakeService,
   ) {}
 
-  async findById(id: string, company_id: string): Promise<any> {
+  async findById(
+    id: string,
+    company_id: string,
+  ): Promise<SaleWithFullRelations | null> {
     // Buscar complexos da empresa
     const complexes = await this.prisma.cinema_complexes.findMany({
       where: { company_id },
@@ -66,7 +111,7 @@ export class SalesRepository {
       end_date?: Date;
       status?: string;
     },
-  ): Promise<sales[]> {
+  ): Promise<SaleWithBasicRelations[]> {
     // Buscar complexos da empresa
     const complexes = await this.prisma.cinema_complexes.findMany({
       where: { company_id },
@@ -105,11 +150,12 @@ export class SalesRepository {
     });
   }
 
-  async create(data: any): Promise<any> {
+  async create(data: CreateSaleInput): Promise<SaleWithCreateRelations> {
     return this.prisma.sales.create({
       data: {
         id: this.snowflake.generate(),
         ...data,
+        public_reference: data.public_reference ?? randomUUID(),
       },
       include: {
         tickets: true,
@@ -123,7 +169,80 @@ export class SalesRepository {
     });
   }
 
-  async update(id: string, data: Prisma.salesUpdateInput): Promise<sales> {
+  async findPaymentMethodById(id: string, company_id: string) {
+    return this.prisma.payment_methods.findFirst({
+      where: {
+        id,
+        company_id,
+      },
+    });
+  }
+
+  async findSaleTypeById(id: string, company_id: string) {
+    return this.prisma.sale_types.findFirst({
+      where: {
+        id,
+        company_id,
+      },
+    });
+  }
+
+  async findSaleTypeByName(company_id: string, name: string) {
+    return this.prisma.sale_types.findFirst({
+      where: {
+        company_id,
+        name,
+      },
+    });
+  }
+
+  async createSaleType(data: {
+    company_id: string;
+    name: string;
+    description?: string;
+    convenience_fee?: number;
+  }) {
+    return this.prisma.sale_types.create({
+      data: {
+        id: this.snowflake.generate(),
+        company_id: data.company_id,
+        name: data.name,
+        description: data.description,
+        convenience_fee: data.convenience_fee ?? 0,
+      },
+    });
+  }
+
+  async findSaleStatusByName(company_id: string, name: string) {
+    return this.prisma.sale_status.findFirst({
+      where: {
+        company_id,
+        name,
+      },
+    });
+  }
+
+  async createSaleStatus(data: {
+    company_id: string;
+    name: string;
+    description?: string;
+    allows_modification?: boolean;
+  }) {
+    return this.prisma.sale_status.create({
+      data: {
+        id: this.snowflake.generate(),
+        company_id: data.company_id,
+        name: data.name,
+        description: data.description,
+        allows_modification: data.allows_modification ?? false,
+      },
+    });
+  }
+
+  async update(
+    id: string,
+    data: Prisma.salesUpdateInput,
+  ): Promise<SaleWithCreateRelations> {
     return this.prisma.sales.update({
       where: { id },
       data,

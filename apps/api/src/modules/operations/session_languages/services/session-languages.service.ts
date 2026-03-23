@@ -1,12 +1,17 @@
-import { Injectable } from '@nestjs/common';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
+import { ForbiddenException, Injectable } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
+import { ClsService } from 'nestjs-cls';
+import type { SessionLanguageResponse } from '../../shared/dto/session-language-response.dto';
 import { SessionLanguagesRepository } from '../repositories/session-languages.repository';
 
 @Injectable()
 export class SessionLanguagesService {
-  constructor(private readonly repository: SessionLanguagesRepository) {}
+  constructor(
+    private readonly repository: SessionLanguagesRepository,
+    private readonly tenantContext: TenantContextService,
+  ) {}
 
-  async findAll(user: RequestUser) {
-    return this.repository.findAllByCompany(user.company_id);
+  async findAll(): Promise<SessionLanguageResponse[]> {
+    return this.repository.findAllByCompany(this.tenantContext.getCompanyId());
   }
 }

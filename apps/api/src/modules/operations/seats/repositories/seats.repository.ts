@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { seats, Prisma } from '@repo/db';
+import { Prisma, seats } from '@repo/db';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -18,6 +18,15 @@ export class SeatsRepository {
   async findById(id: string): Promise<seats | null> {
     return this.prisma.seats.findUnique({
       where: { id },
+    });
+  }
+
+  async findByIdWithSeatType(id: string) {
+    return this.prisma.seats.findUnique({
+      where: { id },
+      include: {
+        seat_types: true,
+      },
     });
   }
   async findByRoomId(room_id: string) {

@@ -12,7 +12,7 @@ import {
   Delete,
   Put,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import {
   ApiTags,
   ApiOperation,
@@ -25,19 +25,21 @@ import {
 } from '@nestjs/swagger';
 
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 
 import { CreateShowtimeDto } from '../dto/create-showtime.dto';
 import { UpdateShowtimeDto } from '../dto/update-showtime.dto';
 import { UpdateShowtimeSeatStatusDto } from '../dto/update-showtime-seat-status.dto';
-import { ShowtimesService } from 'src/modules/operations/showtime_schedule/services/shotimes.service';
+import {
+  ShowtimeDetailsDto,
+  ShowtimesService,
+} from 'src/modules/operations/showtime_schedule/services/showtimes.service';
 
 @ApiTags('Showtimes')
 @ApiBearerAuth()
 @Controller({ path: 'showtimes', version: '1' })
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class ShowtimesController {
   constructor(private readonly service: ShowtimesService) {}
 
@@ -57,11 +59,8 @@ export class ShowtimesController {
   @ApiForbiddenResponse({
     description: 'Acesso negado. A sala não pertence à sua empresa.',
   })
-  async preview(
-    @Body() dto: CreateShowtimeDto,
-    @CurrentUser() user: RequestUser,
-  ) {
-    return this.service.preview(dto, user);
+  async preview(@Body() dto: CreateShowtimeDto) {
+    return this.service.preview(dto);
   }
 
   @Post()
@@ -76,11 +75,8 @@ export class ShowtimesController {
   @ApiForbiddenResponse({
     description: 'Acesso negado. A sala não pertence à sua empresa.',
   })
-  async create(
-    @Body() dto: CreateShowtimeDto,
-    @CurrentUser() user: RequestUser,
-  ) {
-    return this.service.create(dto, user);
+  async create(@Body() dto: CreateShowtimeDto) {
+    return this.service.create(dto);
   }
 
   @Get()
@@ -97,14 +93,13 @@ export class ShowtimesController {
   })
   @ApiQuery({ name: 'status', required: false })
   async findAll(
-    @CurrentUser() user: RequestUser,
     @Query('cinema_complex_id') cinema_complex_id?: string,
     @Query('room_id') room_id?: string,
     @Query('movie_id') movie_id?: string,
     @Query('start_time') start_time?: Date,
     @Query('status') status?: string,
   ) {
-    return this.service.findAll(user, {
+    return this.service.findAll({
       cinema_complex_id,
       room_id,
       movie_id,
@@ -119,10 +114,9 @@ export class ShowtimesController {
   @ApiNotFoundResponse({ description: 'Sessão não encontrada.' })
   @ApiForbiddenResponse({ description: 'Acesso negado a esta sessão.' })
   async findOne(
-    @Param('id') id: string,
-    @CurrentUser() user: RequestUser,
-  ): Promise<any> {
-    return this.service.findOne(id, user);
+    @Param('id', ParseEntityIdPipe) id: string,
+  ): Promise<ShowtimeDetailsDto> {
+    return this.service.findOne(id);
   }
 
   @Get(':id/seats')
@@ -130,8 +124,8 @@ export class ShowtimesController {
   @ApiOperation({ summary: 'Obter o mapa de assentos de uma sessão' })
   @ApiNotFoundResponse({ description: 'Sessão não encontrada.' })
   @ApiForbiddenResponse({ description: 'Acesso negado a esta sessão.' })
-  async getSeatsMap(@Param('id') id: string, @CurrentUser() user: RequestUser) {
-    return this.service.getSeatsMap(id, user);
+  async getSeatsMap(@Param('id', ParseEntityIdPipe) id: string) {
+    return this.service.getSeatsMap(id);
   }
 
   @Patch(':id')
@@ -141,11 +135,10 @@ export class ShowtimesController {
   @ApiForbiddenResponse({ description: 'Acesso negado a esta sessão.' })
   @ApiConflictResponse({ description: 'Conflito de horário com outra sessão.' })
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
     @Body() dto: UpdateShowtimeDto,
-    @CurrentUser() user: RequestUser,
   ) {
-    return this.service.update(id, dto, user);
+    return this.service.update(id, dto);
   }
 
   @Delete(':id')
@@ -155,8 +148,8 @@ export class ShowtimesController {
   @ApiResponse({ status: 200, description: 'Sessão cancelada com sucesso.' })
   @ApiNotFoundResponse({ description: 'Sessão não encontrada.' })
   @ApiForbiddenResponse({ description: 'Acesso negado a esta sessão.' })
-  async remove(@Param('id') id: string, @CurrentUser() user: RequestUser) {
-    return this.service.remove(id, user);
+  async remove(@Param('id', ParseEntityIdPipe) id: string) {
+    return this.service.remove(id);
   }
 
   @Put(':id/seats/:seatId/status')
@@ -165,12 +158,11 @@ export class ShowtimesController {
     summary: 'Atualizar o status manual de um assento em uma sessão',
   })
   async updateSeatStatus(
-    @Param('id') id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
     @Param('seatId') seatId: string,
     @Body() dto: UpdateShowtimeSeatStatusDto,
-    @CurrentUser() user: RequestUser,
   ) {
-    await this.service.updateSeatStatus(id, seatId, dto.status, user);
+    await this.service.updateSeatStatus(id, seatId, dto.status);
     return { success: true };
   }
 }

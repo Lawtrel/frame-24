@@ -90,7 +90,7 @@ export interface CreateExhibitionContractDto {
      */
     'guaranteed_minimum'?: number;
     /**
-     * Outros valores de garantia mínima (legacy)
+     * Outros valores de garantia mínima
      * @type {number}
      * @memberof CreateExhibitionContractDto
      */

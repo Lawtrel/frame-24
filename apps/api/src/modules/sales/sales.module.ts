@@ -13,10 +13,13 @@ import { TaxModule } from 'src/modules/tax/tax.module';
 import { MarketingModule } from 'src/modules/marketing/marketing.module';
 
 import { SalesController } from './controllers/sales.controller';
+import { TicketTypesController } from './controllers/ticket-types.controller';
 import { TicketsController } from './controllers/tickets.controller';
 import { SalesService } from './services/sales.service';
+import { TicketTypesService } from './services/ticket-types.service';
 import { TicketsService } from './services/tickets.service';
 import { SalesRepository } from './repositories/sales.repository';
+import { TicketTypesRepository } from './repositories/ticket-types.repository';
 import { TicketsRepository } from './repositories/tickets.repository';
 import { ConcessionSalesRepository } from './repositories/concession-sales.repository';
 import { SeatsReservationGateway } from './gateways/seats-reservation.gateway';
@@ -24,6 +27,7 @@ import { SeatsReservationGateway } from './gateways/seats-reservation.gateway';
 import { CashFlowModule } from '../finance/cash-flow/cash-flow.module';
 import { AccountsReceivableModule } from '../finance/accounts-receivable/accounts-receivable.module';
 import { TransactionsModule } from '../finance/transactions/transactions.module';
+import { AuthModule } from '../identity/auth/auth.module';
 
 @Module({
   imports: [
@@ -40,12 +44,15 @@ import { TransactionsModule } from '../finance/transactions/transactions.module'
     CashFlowModule,
     AccountsReceivableModule,
     TransactionsModule,
+    AuthModule,
   ],
-  controllers: [SalesController, TicketsController],
+  controllers: [SalesController, TicketsController, TicketTypesController],
   providers: [
     SalesService,
+    TicketTypesService,
     TicketsService,
     SalesRepository,
+    TicketTypesRepository,
     TicketsRepository,
     ConcessionSalesRepository,
     ProductPricesRepository,
@@ -54,8 +61,10 @@ import { TransactionsModule } from '../finance/transactions/transactions.module'
   ],
   exports: [
     SalesService,
+    TicketTypesService,
     TicketsService,
     SalesRepository,
+    TicketTypesRepository,
     TicketsRepository,
     ConcessionSalesRepository,
   ],

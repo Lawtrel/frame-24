@@ -14,6 +14,11 @@ import { ProductPriceNotFoundException } from '../exceptions/sales.exceptions';
 import { TaxCalculationService } from 'src/modules/tax/services/tax-calculation.service';
 import { TaxEntriesRepository } from 'src/modules/tax/repositories/tax-entries.repository';
 import { CampaignsService } from 'src/modules/marketing/services/campaigns.service';
+import { AccountsReceivableService } from 'src/modules/finance/accounts-receivable/services/accounts-receivable.service';
+import { TransactionsService } from 'src/modules/finance/transactions/services/transactions.service';
+import { BankAccountsRepository } from 'src/modules/finance/cash-flow/repositories/bank-accounts.repository';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
+import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { ClsModule } from 'nestjs-cls';
 import { ClsPluginTransactional } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
@@ -69,6 +74,25 @@ describe('SalesService', () => {
             findAll: jest.fn(),
             create: jest.fn(),
             generateSaleNumber: jest.fn(),
+            findPaymentMethodById: jest.fn().mockResolvedValue({
+              id: 'payment-1',
+              company_id: 'company-1',
+              auto_settle: true,
+              name: 'Dinheiro',
+            }),
+            findSaleTypeById: jest.fn(),
+            findSaleTypeByName: jest.fn().mockResolvedValue({
+              id: 'sale-type-balcao',
+              company_id: 'company-1',
+              name: 'Balcão',
+            }),
+            createSaleType: jest.fn(),
+            findSaleStatusByName: jest.fn().mockResolvedValue({
+              id: 'sale-status-confirmada',
+              company_id: 'company-1',
+              name: 'Confirmada',
+            }),
+            createSaleStatus: jest.fn(),
           },
         },
         {
@@ -162,6 +186,7 @@ describe('SalesService', () => {
           provide: TaxEntriesRepository,
           useValue: {
             create: jest.fn(),
+            findAllBySource: jest.fn().mockResolvedValue([]),
           },
         },
         {
@@ -169,6 +194,56 @@ describe('SalesService', () => {
           useValue: {
             applyPromotion: jest.fn(),
             recordPromotionUsage: jest.fn(),
+          },
+        },
+        {
+          provide: AccountsReceivableService,
+          useValue: {
+            createForCompany: jest.fn().mockResolvedValue({ id: 'ar-1' }),
+            cancelBySaleIdForCompany: jest.fn().mockResolvedValue({ count: 0 }),
+          },
+        },
+        {
+          provide: TransactionsService,
+          useValue: {
+            settleReceivableForCompany: jest.fn().mockResolvedValue(undefined),
+          },
+        },
+        {
+          provide: BankAccountsRepository,
+          useValue: {
+            findAll: jest
+              .fn()
+              .mockResolvedValue([{ id: 'bank-1', active: true }]),
+          },
+        },
+        {
+          provide: TenantContextService,
+          useValue: {
+            getCompanyId: jest.fn().mockReturnValue('company-1'),
+            getUserId: jest.fn().mockReturnValue('user-1'),
+            getCustomerId: jest.fn().mockReturnValue(undefined),
+            getSessionContext: jest.fn().mockReturnValue('EMPLOYEE'),
+          },
+        },
+        {
+          provide: SnowflakeService,
+          useValue: {
+            generate: jest.fn(() => 'snowflake-test-id'),
+          },
+        },
+        {
+          provide: PrismaService,
+          useValue: {
+            $transaction: jest.fn().mockImplementation((cb) => cb()),
+            journal_entries: {
+              findMany: jest.fn().mockResolvedValue([]),
+              create: jest.fn(),
+            },
+            company_customers: {
+              findFirst: jest.fn().mockResolvedValue(null),
+              update: jest.fn(),
+            },
           },
         },
       ],
@@ -190,10 +265,11 @@ describe('SalesService', () => {
   });
 
   describe('create', () => {
-    const mockUser = {
-      company_id: 'company-1',
-      company_user_id: 'user-1',
-    } as any;
+    const mockContext = {
+      companyId: 'company-1',
+      userId: 'user-1',
+      sessionContext: 'EMPLOYEE' as const,
+    };
 
     const mockDto = {
       cinema_complex_id: 'complex-1',
@@ -240,7 +316,7 @@ describe('SalesService', () => {
 
       productPricesRepository.findActivePrice.mockResolvedValue(null);
 
-      await expect(service.create(mockDto, mockUser)).rejects.toThrow(
+      await expect(service.create(mockDto, mockContext)).rejects.toThrow(
         ProductPriceNotFoundException,
       );
     });
@@ -313,7 +389,7 @@ describe('SalesService', () => {
       ticketsRepository.generateTicketNumber.mockReturnValue('TKT-123');
       ticketsRepository.create.mockResolvedValue({} as any);
 
-      const result = await service.create(mockDto, mockUser);
+      const result = await service.create(mockDto, mockContext);
 
       expect(result).toBeDefined();
       expect(salesRepository.create).toHaveBeenCalled();

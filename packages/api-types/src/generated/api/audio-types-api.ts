@@ -21,6 +21,8 @@ import globalAxios from 'axios';
 import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from '../common';
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
+// @ts-ignore
+import type { OperationTypeResponseDto } from '../models';
 /**
  * AudioTypesApi - axios parameter creator
  * @export
@@ -73,7 +75,7 @@ export const AudioTypesApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async audioTypesControllerFindAllV1(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async audioTypesControllerFindAllV1(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<OperationTypeResponseDto>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.audioTypesControllerFindAllV1(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AudioTypesApi.audioTypesControllerFindAllV1']?.[localVarOperationServerIndex]?.url;
@@ -95,7 +97,7 @@ export const AudioTypesApiFactory = function (configuration?: Configuration, bas
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        audioTypesControllerFindAllV1(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        audioTypesControllerFindAllV1(options?: RawAxiosRequestConfig): AxiosPromise<Array<OperationTypeResponseDto>> {
             return localVarFp.audioTypesControllerFindAllV1(options).then((request) => request(axios, basePath));
         },
     };
@@ -114,7 +116,7 @@ export interface AudioTypesApiInterface {
      * @throws {RequiredError}
      * @memberof AudioTypesApiInterface
      */
-    audioTypesControllerFindAllV1(options?: RawAxiosRequestConfig): AxiosPromise<void>;
+    audioTypesControllerFindAllV1(options?: RawAxiosRequestConfig): AxiosPromise<Array<OperationTypeResponseDto>>;
 
 }
 

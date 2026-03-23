@@ -10,22 +10,21 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
 import { SalesService } from '../services/sales.service';
 import { CreateSaleDto } from '../dto/create-sale.dto';
 import { SaleResponseDto } from '../dto/sale-response.dto';
-import type { RequestUser } from 'src/modules/identity/auth/strategies/jwt.strategy';
 
 @ApiTags('Sales')
 @ApiBearerAuth()
 @Controller({ path: 'sales', version: '1' })
-@UseGuards(AuthGuard('jwt'), AuthorizationGuard)
+@UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class SalesController {
   constructor(private readonly salesService: SalesService) {}
 
@@ -33,11 +32,8 @@ export class SalesController {
   @RequirePermission('sales', 'create')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Criar nova venda' })
-  async create(
-    @Body() dto: CreateSaleDto,
-    @CurrentUser() user: RequestUser,
-  ): Promise<SaleResponseDto> {
-    return await this.salesService.create(dto, user);
+  async create(@Body() dto: CreateSaleDto): Promise<SaleResponseDto> {
+    return await this.salesService.create(dto);
   }
 
   @Get()
@@ -49,26 +45,30 @@ export class SalesController {
     @Query('start_date') start_date?: string,
     @Query('end_date') end_date?: string,
     @Query('status') status?: string,
-    @CurrentUser() user?: RequestUser,
   ): Promise<SaleResponseDto[]> {
-    const filters: any = {};
+    const filters: {
+      cinema_complex_id?: string;
+      customer_id?: string;
+      start_date?: Date;
+      end_date?: Date;
+      status?: string;
+    } = {};
     if (cinema_complex_id) filters.cinema_complex_id = cinema_complex_id;
     if (customer_id) filters.customer_id = customer_id;
     if (start_date) filters.start_date = new Date(start_date);
     if (end_date) filters.end_date = new Date(end_date);
     if (status) filters.status = status;
 
-    return await this.salesService.findAll(user!, filters);
+    return await this.salesService.findAll(filters);
   }
 
   @Get(':id')
   @RequirePermission('sales', 'read')
   @ApiOperation({ summary: 'Buscar venda por ID' })
   async findOne(
-    @Param('id') id: string,
-    @CurrentUser() user: RequestUser,
+    @Param('id', ParseEntityIdPipe) id: string,
   ): Promise<SaleResponseDto> {
-    return await this.salesService.findOne(id, user);
+    return await this.salesService.findOne(id);
   }
 
   @Delete(':id/cancel')
@@ -76,10 +76,9 @@ export class SalesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Cancelar venda' })
   async cancel(
-    @Param('id') id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
     @Body('reason') reason: string,
-    @CurrentUser() user: RequestUser,
   ): Promise<void> {
-    return await this.salesService.cancel(id, reason, user);
+    return await this.salesService.cancel(id, reason);
   }
 }

@@ -1,16 +1,36 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Prisma } from '@repo/db';
+import { bank_reconciliations, Prisma } from '@repo/db';
+
+type BankReconciliationListItem = Prisma.bank_reconciliationsGetPayload<{
+  include: {
+    bank_accounts: {
+      select: {
+        bank_name: true;
+        account_number: true;
+      };
+    };
+  };
+}>;
+
+type BankReconciliationWithBankAccount = Prisma.bank_reconciliationsGetPayload<{
+  include: { bank_accounts: true };
+}>;
 
 @Injectable()
 export class BankReconciliationRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: Prisma.bank_reconciliationsCreateInput) {
+  async create(
+    data: Prisma.bank_reconciliationsCreateInput,
+  ): Promise<bank_reconciliations> {
     return this.prisma.bank_reconciliations.create({ data });
   }
 
-  async findAll(companyId: string, bankAccountId?: string) {
+  async findAll(
+    companyId: string,
+    bankAccountId?: string,
+  ): Promise<BankReconciliationListItem[]> {
     const where: Prisma.bank_reconciliationsWhereInput = {
       bank_accounts: {
         company_id: companyId,
@@ -35,7 +55,9 @@ export class BankReconciliationRepository {
     });
   }
 
-  async findById(id: string) {
+  async findById(
+    id: string,
+  ): Promise<BankReconciliationWithBankAccount | null> {
     return this.prisma.bank_reconciliations.findUnique({
       where: { id },
       include: {
@@ -44,7 +66,10 @@ export class BankReconciliationRepository {
     });
   }
 
-  async findByMonth(bankAccountId: string, month: Date) {
+  async findByMonth(
+    bankAccountId: string,
+    month: Date,
+  ): Promise<bank_reconciliations | null> {
     return this.prisma.bank_reconciliations.findUnique({
       where: {
         bank_account_id_reference_month: {
@@ -55,7 +80,10 @@ export class BankReconciliationRepository {
     });
   }
 
-  async update(id: string, data: Prisma.bank_reconciliationsUpdateInput) {
+  async update(
+    id: string,
+    data: Prisma.bank_reconciliationsUpdateInput,
+  ): Promise<bank_reconciliations> {
     return this.prisma.bank_reconciliations.update({
       where: { id },
       data,
@@ -66,7 +94,12 @@ export class BankReconciliationRepository {
     bankAccountId: string,
     startDate: Date,
     endDate: Date,
-  ) {
+  ): Promise<{
+    total_receipts: number;
+    total_payments: number;
+    pending_receipts: number;
+    pending_payments: number;
+  }> {
     const receipts = await this.prisma.cash_flow_entries.aggregate({
       where: {
         bank_account_id: bankAccountId,

@@ -392,7 +392,7 @@ export const ShowtimesApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async showtimesControllerFindAllV1(startTime: string, cinemaComplexId?: string, roomId?: string, movieId?: string, status?: string, sessionDate?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<object>>> {
+        async showtimesControllerFindAllV1(startTime: string, cinemaComplexId?: string, roomId?: string, movieId?: string, status?: string, sessionDate?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.showtimesControllerFindAllV1(startTime, cinemaComplexId, roomId, movieId, status, sessionDate, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ShowtimesApi.showtimesControllerFindAllV1']?.[localVarOperationServerIndex]?.url;
@@ -506,7 +506,7 @@ export const ShowtimesApiFactory = function (configuration?: Configuration, base
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        showtimesControllerFindAllV1(requestParameters: ShowtimesApiShowtimesControllerFindAllV1Request, options?: RawAxiosRequestConfig): AxiosPromise<Array<object>> {
+        showtimesControllerFindAllV1(requestParameters: ShowtimesApiShowtimesControllerFindAllV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.showtimesControllerFindAllV1(requestParameters.startTime, requestParameters.cinemaComplexId, requestParameters.roomId, requestParameters.movieId, requestParameters.status, requestParameters.sessionDate, options).then((request) => request(axios, basePath));
         },
         /**
@@ -596,7 +596,7 @@ export interface ShowtimesApiInterface {
      * @throws {RequiredError}
      * @memberof ShowtimesApiInterface
      */
-    showtimesControllerFindAllV1(requestParameters: ShowtimesApiShowtimesControllerFindAllV1Request, options?: RawAxiosRequestConfig): AxiosPromise<Array<object>>;
+    showtimesControllerFindAllV1(requestParameters: ShowtimesApiShowtimesControllerFindAllV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
 
     /**
      * 

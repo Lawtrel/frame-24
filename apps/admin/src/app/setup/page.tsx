@@ -24,7 +24,7 @@ export default function SetupPage() {
   const handleCreateComplex = async () => {
     const name = prompt("Nome do Cinema (Ex: Cineplex Shopping):");
     if (!name) return;
-    
+
     setLoading(true);
     try {
       await OperationsService.createComplex({
@@ -32,7 +32,7 @@ export default function SetupPage() {
         code: `CX-${Math.floor(Math.random() * 1000)}`, // Gera código aleatório
         address: "Endereço Padrão",
         ibge_municipality_code: "3550308", // SP Padrão
-        active: true
+        active: true,
       });
       await loadData();
       alert("Cinema criado!");
@@ -53,7 +53,7 @@ export default function SetupPage() {
       await OperationsService.createRoom(complexId, {
         room_number: `${Math.floor(Math.random() * 100)}`,
         name,
-        capacity: 50
+        capacity: 50,
       });
       alert("Sala criada! Agora ela aparecerá na Programação.");
     } catch (error) {
@@ -67,19 +67,25 @@ export default function SetupPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-foreground">Configuração Rápida</h1>
-        <button 
+        <h1 className="text-2xl font-bold text-foreground">
+          Configuração Rápida
+        </h1>
+        <button
           onClick={handleCreateComplex}
           disabled={loading}
           className="flex items-center gap-2 bg-accent-red px-4 py-2 rounded text-white hover:bg-red-600"
         >
-          {loading ? <Loader2 className="animate-spin" /> : <Plus />} Criar Cinema
+          {loading ? <Loader2 className="animate-spin" /> : <Plus />} Criar
+          Cinema
         </button>
       </div>
 
       <div className="grid gap-4">
-        {complexes.map(c => (
-          <div key={c.id} className="p-4 bg-zinc-900 border border-zinc-800 rounded flex justify-between items-center">
+        {complexes.map((c) => (
+          <div
+            key={c.id}
+            className="p-4 bg-zinc-900 border border-zinc-800 rounded flex justify-between items-center"
+          >
             <div>
               <h3 className="font-bold text-white flex items-center gap-2">
                 <Building className="w-4 h-4 text-zinc-400" /> {c.name}
@@ -88,7 +94,7 @@ export default function SetupPage() {
                 <MapPin className="w-3 h-3" /> {c.address}
               </p>
             </div>
-            <button 
+            <button
               onClick={() => handleCreateRoom(c.id)}
               className="text-sm bg-zinc-800 text-zinc-300 px-3 py-1 rounded hover:bg-zinc-700"
             >
@@ -96,7 +102,7 @@ export default function SetupPage() {
             </button>
           </div>
         ))}
-        
+
         {complexes.length === 0 && (
           <div className="text-center py-10 text-zinc-500">
             Nenhum cinema encontrado para sua empresa. Crie um acima.

@@ -25,12 +25,6 @@ export interface UpdateCinemaComplexDto {
      * @type {string}
      * @memberof UpdateCinemaComplexDto
      */
-    'company_id'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof UpdateCinemaComplexDto
-     */
     'name'?: string;
     /**
      * 

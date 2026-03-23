@@ -1,4 +1,12 @@
+jest.mock('@nestjs-cls/transactional', () => ({
+  Transactional:
+    () => (target: any, propertyKey: string, descriptor: PropertyDescriptor) =>
+      descriptor,
+  TransactionHost: jest.fn(),
+}));
+
 import { Test, TestingModule } from '@nestjs/testing';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { StockMovementsService } from './stock-movements.service';
 import { StockMovementsRepository } from '../repositories/stock-movements.repository';
 import { ProductStockRepository } from '../repositories/product-stock.repository';
@@ -19,11 +27,19 @@ describe('StockMovementsService', () => {
   let productStockRepository: jest.Mocked<ProductStockRepository>;
   let stockMovementTypesRepository: jest.Mocked<StockMovementTypesRepository>;
   let productsRepository: jest.Mocked<ProductRepository>;
+  let cinemaComplexesRepository: jest.Mocked<CinemaComplexesRepository>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         StockMovementsService,
+        {
+          provide: TenantContextService,
+          useValue: {
+            getCompanyId: jest.fn().mockReturnValue('company-1'),
+            getUserId: jest.fn().mockReturnValue('user-1'),
+          },
+        },
         {
           provide: StockMovementsRepository,
           useValue: {
@@ -80,6 +96,7 @@ describe('StockMovementsService', () => {
     productStockRepository = module.get(ProductStockRepository);
     stockMovementTypesRepository = module.get(StockMovementTypesRepository);
     productsRepository = module.get(ProductRepository);
+    cinemaComplexesRepository = module.get(CinemaComplexesRepository);
   });
 
   it('should be defined', () => {
@@ -87,11 +104,6 @@ describe('StockMovementsService', () => {
   });
 
   describe('create', () => {
-    const mockUser = {
-      company_id: 'company-1',
-      company_user_id: 'user-1',
-    } as any;
-
     const mockDto = {
       product_id: 'product-1',
       complex_id: 'complex-1',
@@ -99,10 +111,17 @@ describe('StockMovementsService', () => {
       quantity: 10,
     };
 
+    beforeEach(() => {
+      cinemaComplexesRepository.findById.mockResolvedValue({
+        id: 'complex-1',
+        company_id: 'company-1',
+      } as any);
+    });
+
     it('should throw ProductNotFoundException when product not found', async () => {
       productsRepository.findById.mockResolvedValue(null);
 
-      await expect(service.create(mockDto, mockUser)).rejects.toThrow(
+      await expect(service.create(mockDto)).rejects.toThrow(
         ProductNotFoundException,
       );
     });
@@ -115,7 +134,7 @@ describe('StockMovementsService', () => {
 
       stockMovementTypesRepository.findByIdOrName.mockResolvedValue(null);
 
-      await expect(service.create(mockDto, mockUser)).rejects.toThrow(
+      await expect(service.create(mockDto)).rejects.toThrow(
         MovementTypeNotFoundException,
       );
     });
@@ -138,7 +157,7 @@ describe('StockMovementsService', () => {
       } as any);
 
       await expect(
-        service.create({ ...mockDto, quantity: 10 }, mockUser),
+        service.create({ ...mockDto, quantity: 10 }),
       ).rejects.toThrow(InsufficientStockException);
     });
 
@@ -165,9 +184,10 @@ describe('StockMovementsService', () => {
         quantity: 10,
         previous_quantity: 5,
         current_quantity: 15,
+        movement_date: new Date('2026-01-01T00:00:00.000Z'),
       } as any);
 
-      const result = await service.create(mockDto, mockUser);
+      const result = await service.create(mockDto);
 
       expect(result).toBeDefined();
       expect(stockMovementsRepository.create).toHaveBeenCalled();

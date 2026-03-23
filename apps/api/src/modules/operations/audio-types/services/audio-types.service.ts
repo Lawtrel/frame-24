@@ -1,12 +1,17 @@
-import { Injectable } from '@nestjs/common';
-import { audio_types as AudioType } from '@repo/db';
+import { ForbiddenException, Injectable } from '@nestjs/common';
+import { TenantContextService } from 'src/common/services/tenant-context.service';
+import { ClsService } from 'nestjs-cls';
+import type { OperationTypeResponse } from '../../shared/dto/operation-type-response.dto';
 import { AudioTypesRepository } from '../repositories/audio-types.repository';
 
 @Injectable()
 export class AudioTypesService {
-  constructor(private readonly repository: AudioTypesRepository) {}
+  constructor(
+    private readonly repository: AudioTypesRepository,
+    private readonly tenantContext: TenantContextService,
+  ) {}
 
-  async findAll(company_id: string): Promise<AudioType[]> {
-    return this.repository.findAllByCompany(company_id);
+  async findAll(): Promise<OperationTypeResponse[]> {
+    return this.repository.findAllByCompany(this.tenantContext.getCompanyId());
   }
 }

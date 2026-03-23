@@ -1,0 +1,62 @@
+import { TaxEntriesController } from './tax-entries.controller';
+import { TaxEntriesService } from '../services/tax-entries.service';
+
+describe('TaxEntriesController', () => {
+  let controller: TaxEntriesController;
+  let service: jest.Mocked<TaxEntriesService>;
+
+  beforeEach(() => {
+    service = {
+      create: jest.fn(),
+      findAll: jest.fn(),
+      findOne: jest.fn(),
+      markAsProcessed: jest.fn(),
+    } as unknown as jest.Mocked<TaxEntriesService>;
+
+    controller = new TaxEntriesController(service);
+  });
+
+  it('should delegate create and findOne', async () => {
+    service.create.mockResolvedValue({ id: 'tax-1' } as never);
+    service.findOne.mockResolvedValue({ id: 'tax-1' } as never);
+
+    const created = await controller.create({ cinema_complex_id: 'complex-1' } as any);
+    const found = await controller.findOne('tax-1');
+
+    expect(service.create).toHaveBeenCalled();
+    expect(service.findOne).toHaveBeenCalledWith('tax-1');
+    expect(created).toEqual({ id: 'tax-1' });
+    expect(found).toEqual({ id: 'tax-1' });
+  });
+
+  it('should parse query filters and delegate findAll', async () => {
+    service.findAll.mockResolvedValue([] as never);
+
+    await controller.findAll(
+      'complex-1',
+      'SALE',
+      'sale-1',
+      '2026-03-01',
+      '2026-03-31',
+      'true',
+    );
+
+    expect(service.findAll).toHaveBeenCalledWith({
+      cinema_complex_id: 'complex-1',
+      source_type: 'SALE',
+      source_id: 'sale-1',
+      start_date: new Date('2026-03-01'),
+      end_date: new Date('2026-03-31'),
+      processed: true,
+    });
+  });
+
+  it('should delegate markAsProcessed', async () => {
+    service.markAsProcessed.mockResolvedValue({ id: 'tax-1', processed: true } as never);
+
+    const result = await controller.markAsProcessed('tax-1');
+
+    expect(service.markAsProcessed).toHaveBeenCalledWith('tax-1');
+    expect(result).toEqual({ id: 'tax-1', processed: true });
+  });
+});
