@@ -6,8 +6,8 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
-  ParseUUIDPipe,
 } from '@nestjs/common';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import {
   ApiTags,
   ApiOperation,
@@ -45,7 +45,7 @@ export class SeatsController {
   @ApiNotFoundResponse({ description: 'Assento não encontrado.' })
   @ApiForbiddenResponse({ description: 'Acesso negado ao recurso.' })
   async updateSeatStatus(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
     @Body() dto: UpdateSeatStatusDto,
   ) {
     return this.service.updateStatus(id, dto.active);

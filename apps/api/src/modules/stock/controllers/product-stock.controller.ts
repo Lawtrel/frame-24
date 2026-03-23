@@ -2,10 +2,10 @@ import {
   Controller,
   Get,
   Param,
-  ParseUUIDPipe,
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
@@ -44,8 +44,8 @@ export class ProductStockController {
   @RequirePermission('stock', 'read')
   @ApiOperation({ summary: 'Buscar estoque de produto específico' })
   async findOne(
-    @Param('product_id', ParseUUIDPipe) product_id: string,
-    @Param('complex_id', ParseUUIDPipe) complex_id: string,
+    @Param('product_id', ParseEntityIdPipe) product_id: string,
+    @Param('complex_id', ParseEntityIdPipe) complex_id: string,
   ): Promise<ProductStockResponseDto> {
     return await this.productStockService.findOne(product_id, complex_id);
   }

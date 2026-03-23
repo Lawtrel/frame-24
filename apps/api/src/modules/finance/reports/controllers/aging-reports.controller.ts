@@ -3,9 +3,9 @@ import {
   Get,
   Query,
   Param,
-  ParseUUIDPipe,
   UseGuards,
 } from '@nestjs/common';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import { AgingReportsService } from '../services/aging-reports.service';
 import { PositionReportsService } from '../services/position-reports.service';
 import { AgingReportQueryDto } from '../dto/aging-report-query.dto';
@@ -82,7 +82,7 @@ export class AgingReportsController {
   })
   @ApiResponse({ status: 200, description: 'Detalhes retornados com sucesso.' })
   getCustomerPositionById(
-    @Param('customer_id', ParseUUIDPipe) customer_id: string,
+    @Param('customer_id', ParseEntityIdPipe) customer_id: string,
   ) {
     return this.positionService.getCustomerPositionById(customer_id);
   }
@@ -108,7 +108,7 @@ export class AgingReportsController {
   })
   @ApiResponse({ status: 200, description: 'Detalhes retornados com sucesso.' })
   getSupplierPositionById(
-    @Param('supplier_id', ParseUUIDPipe) supplier_id: string,
+    @Param('supplier_id', ParseEntityIdPipe) supplier_id: string,
   ) {
     return this.positionService.getSupplierPositionById(supplier_id);
   }

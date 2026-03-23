@@ -170,16 +170,17 @@ export class TicketsService {
       );
     }
 
-    // Atualizar contadores da sessão
-    const showtime = await this.showtimesRepository.findById(showtimeId);
-    if (showtime) {
-      const currentSold = showtime.sold_seats || 0;
-      const currentAvailable = showtime.available_seats || 0;
+    // Atualização atômica com guarda de limite evita contadores negativos.
+    const countersUpdated =
+      await this.showtimesRepository.reserveSeatsCountersAtomically(
+        showtimeId,
+        seatIds.length,
+      );
 
-      await this.showtimesRepository.update(showtimeId, {
-        sold_seats: currentSold + seatIds.length,
-        available_seats: Math.max(0, currentAvailable - seatIds.length),
-      });
+    if (!countersUpdated) {
+      throw new ConflictException(
+        'Não foi possível atualizar lotação da sessão de forma segura',
+      );
     }
   }
 
@@ -221,18 +222,19 @@ export class TicketsService {
       return;
     }
 
-    const showtime = await this.showtimesRepository.findById(showtimeId);
-    if (!showtime) {
+    const countersUpdated =
+      await this.showtimesRepository.releaseSeatsCountersSafely(
+        showtimeId,
+        releasedCount,
+      );
+
+    if (!countersUpdated) {
+      this.logger.warn(
+        `Falha ao atualizar contadores da sessão ${showtimeId} na liberação de assentos`,
+        TicketsService.name,
+      );
       return;
     }
-
-    const currentSold = showtime.sold_seats || 0;
-    const currentAvailable = showtime.available_seats || 0;
-
-    await this.showtimesRepository.update(showtimeId, {
-      sold_seats: Math.max(0, currentSold - releasedCount),
-      available_seats: currentAvailable + releasedCount,
-    });
 
     this.logger.log(
       `Assentos liberados na sessão ${showtimeId}: ${releasedCount}`,

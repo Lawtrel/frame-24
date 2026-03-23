@@ -7,8 +7,8 @@ import {
   Param,
   Query,
   UseGuards,
-  ParseUUIDPipe,
 } from '@nestjs/common';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import { AccountsPayableService } from '../services/accounts-payable.service';
 import { CreateAccountPayableDto } from '../dto/create-account-payable.dto';
 import { UpdateAccountPayableDto } from '../dto/update-account-payable.dto';
@@ -70,7 +70,7 @@ export class AccountsPayableController {
   })
   @ApiResponse({ status: 200, description: 'Detalhes da conta a pagar.' })
   @ApiResponse({ status: 404, description: 'Conta a pagar não encontrada.' })
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
+  findOne(@Param('id', ParseEntityIdPipe) id: string) {
     return this.service.findOne(id);
   }
 
@@ -87,7 +87,7 @@ export class AccountsPayableController {
   })
   @ApiResponse({ status: 404, description: 'Conta a pagar não encontrada.' })
   update(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
     @Body() dto: UpdateAccountPayableDto,
   ) {
     return this.service.update(id, dto);

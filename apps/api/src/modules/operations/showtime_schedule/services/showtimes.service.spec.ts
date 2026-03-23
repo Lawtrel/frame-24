@@ -80,6 +80,8 @@ describe('ShowtimesService', () => {
             findOverlappingSessions: jest.fn(),
             create: jest.fn(),
             update: jest.fn(),
+            blockSeatsCountersAtomically: jest.fn(),
+            unblockSeatsCountersSafely: jest.fn(),
           },
         },
         {
@@ -87,6 +89,7 @@ describe('ShowtimesService', () => {
           useValue: {
             createMany: jest.fn(),
             findByShowtimeId: jest.fn(),
+            findBySeatAndShowtime: jest.fn(),
             updateStatus: jest.fn(),
           },
         },
@@ -789,6 +792,41 @@ describe('ShowtimesService', () => {
       expect(result).toEqual({ id: 'show-1' });
     });
 
+    it('deve considerar buffer operacional no cálculo de término', async () => {
+      const startTime = new Date(Date.now() + 3 * 60 * 60 * 1000);
+      const dto = { ...baseDto, start_time: startTime };
+
+      moviesRepository.findById.mockResolvedValue(mockMovie as any);
+      roomsRepository.findById.mockResolvedValue(mockRoom as any);
+      showtimesRepository.findOverlappingSessions.mockResolvedValue([] as any);
+      cinemaComplexesRepository.findById.mockResolvedValue(mockComplex as any);
+      showtimesRepository.create.mockResolvedValue({ id: 'show-1' } as any);
+      seatsRepository.findByRoomId.mockResolvedValue([
+        { id: 'seat-1', seat_type: null, active: true },
+      ] as any);
+      seatTypesRepository.findByIds.mockResolvedValue([] as any);
+      seatStatusRepository.findDefaultByCompany.mockResolvedValue({
+        id: 'status-available',
+      } as any);
+      exhibitionContractsRepository.findActiveContract.mockResolvedValue(null);
+      municipalTaxParametersRepository.findActiveByCompanyAndIbge.mockResolvedValue(
+        null,
+      );
+      federalTaxRatesRepository.findActiveByCompany.mockResolvedValue(null);
+
+      await service.create(dto as any);
+
+      const expectedEndTime = new Date(
+        startTime.getTime() + (120 + 35) * 60 * 1000,
+      );
+
+      expect(showtimesRepository.findOverlappingSessions).toHaveBeenCalledWith(
+        dto.room_id,
+        startTime,
+        expectedEndTime,
+      );
+    });
+
     it('deve rejeitar quando não há status padrão de assento', async () => {
       moviesRepository.findById.mockResolvedValue(mockMovie as any);
       roomsRepository.findById.mockResolvedValue(mockRoom as any);
@@ -922,6 +960,36 @@ describe('ShowtimesService', () => {
       ).rejects.toThrow(ConflictException);
     });
 
+    it('deve considerar buffer operacional no recálculo de conflito', async () => {
+      const existing = {
+        ...baseExisting,
+        room: { id: 'room-1' },
+        movie: { id: 'movie-1' },
+      } as any;
+
+      jest.spyOn(service, 'findOne').mockResolvedValue(existing);
+      moviesRepository.findById.mockResolvedValue({
+        id: 'movie-1',
+        duration_minutes: 120,
+      } as any);
+      showtimesRepository.findOverlappingSessions.mockResolvedValue([] as any);
+      showtimesRepository.update.mockResolvedValue({ id: 'show-1' } as any);
+
+      const nextStart = new Date(Date.now() + 4 * 60 * 60 * 1000);
+      await service.update('show-1', { start_time: nextStart } as any);
+
+      const expectedEndTime = new Date(
+        nextStart.getTime() + (120 + 35) * 60 * 1000,
+      );
+
+      expect(showtimesRepository.findOverlappingSessions).toHaveBeenCalledWith(
+        'room-1',
+        nextStart,
+        expectedEndTime,
+        'show-1',
+      );
+    });
+
     it('deve atualizar e publicar auditoria', async () => {
       jest.spyOn(service, 'findOne').mockResolvedValue(baseExisting);
       showtimesRepository.update.mockResolvedValue({ id: 'show-1' } as any);
@@ -1037,9 +1105,20 @@ describe('ShowtimesService', () => {
         id: 'show-1',
         cinema_complexes: { company_id: COMPANY_ID },
       } as any);
-      seatStatusRepository.findByNameAndCompany.mockResolvedValue({ id: 'status-available' } as any);
+      seatStatusRepository.findByNameAndCompany
+        .mockResolvedValueOnce({ id: 'status-blocked' } as any)
+        .mockResolvedValueOnce({ id: 'status-available' } as any);
+      sessionSeatStatusRepository.findBySeatAndShowtime.mockResolvedValue({
+        status: 'status-blocked',
+      } as any);
+      showtimesRepository.unblockSeatsCountersSafely.mockResolvedValue(true as any);
 
       await service.updateSeatStatus('show-1', 'seat-1', 'Disponível');
+
+      expect(showtimesRepository.unblockSeatsCountersSafely).toHaveBeenCalledWith(
+        'show-1',
+        1,
+      );
 
       expect(sessionSeatStatusRepository.updateStatus).toHaveBeenCalledWith(
         'show-1',
@@ -1057,18 +1136,47 @@ describe('ShowtimesService', () => {
         id: 'show-1',
         cinema_complexes: { company_id: COMPANY_ID },
       } as any);
-      seatStatusRepository.findByNameAndCompany.mockResolvedValue(null as any);
+      seatStatusRepository.findByNameAndCompany
+        .mockResolvedValueOnce({ id: 'status-blocked' } as any)
+        .mockResolvedValueOnce(null as any);
       seatStatusRepository.findDefaultByCompany.mockResolvedValue({ id: 'status-default' } as any);
+      sessionSeatStatusRepository.findBySeatAndShowtime.mockResolvedValue({
+        status: 'status-default',
+      } as any);
+      showtimesRepository.blockSeatsCountersAtomically.mockResolvedValue(true as any);
 
       await service.updateSeatStatus('show-1', 'seat-1', 'Bloqueado');
+
+      expect(showtimesRepository.blockSeatsCountersAtomically).toHaveBeenCalledWith(
+        'show-1',
+        1,
+      );
 
       expect(sessionSeatStatusRepository.updateStatus).toHaveBeenCalledWith(
         'show-1',
         'seat-1',
         expect.objectContaining({
-          seat_status: { connect: { id: 'status-default' } },
+          seat_status: { connect: { id: 'status-blocked' } },
         }),
       );
+    });
+
+    it('deve lançar conflito ao bloquear sem assentos disponíveis', async () => {
+      showtimesRepository.findById.mockResolvedValue({
+        id: 'show-1',
+        cinema_complexes: { company_id: COMPANY_ID },
+      } as any);
+      seatStatusRepository.findByNameAndCompany
+        .mockResolvedValueOnce({ id: 'status-blocked' } as any)
+        .mockResolvedValueOnce({ id: 'status-available' } as any);
+      sessionSeatStatusRepository.findBySeatAndShowtime.mockResolvedValue({
+        status: 'status-available',
+      } as any);
+      showtimesRepository.blockSeatsCountersAtomically.mockResolvedValue(false as any);
+
+      await expect(
+        service.updateSeatStatus('show-1', 'seat-1', 'Bloqueado'),
+      ).rejects.toThrow(ConflictException);
     });
   });
 });

@@ -9,8 +9,8 @@ import {
   Post,
   Put,
   UseGuards,
-  ParseUUIDPipe,
 } from '@nestjs/common';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -51,7 +51,7 @@ export class ContractTypesController {
   @RequirePermission('contracts', 'read')
   @ApiOperation({ summary: 'Buscar tipo de contrato por ID' })
   @ApiParam({ name: 'id', description: 'Identificador do tipo' })
-  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+  async findOne(@Param('id', ParseEntityIdPipe) id: string) {
     return this.service.findOne(id);
   }
 
@@ -59,7 +59,7 @@ export class ContractTypesController {
   @RequirePermission('contracts', 'update')
   @ApiOperation({ summary: 'Atualizar tipo de contrato' })
   async update(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
     @Body() dto: UpdateContractTypeDto,
   ) {
     return this.service.update(id, dto);
@@ -70,7 +70,7 @@ export class ContractTypesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Remover tipo de contrato' })
   @ApiResponse({ status: 204, description: 'Tipo removido.' })
-  async delete(@Param('id', ParseUUIDPipe) id: string) {
+  async delete(@Param('id', ParseEntityIdPipe) id: string) {
     await this.service.delete(id);
   }
 }

@@ -1,13 +1,11 @@
 import {
-  ForbiddenException,
+  BadRequestException,
   Injectable,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { TenantContextService } from 'src/common/services/tenant-context.service';
-import { ClsService } from 'nestjs-cls';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { RabbitMQPublisherService } from 'src/common/rabbitmq/rabbitmq-publisher.service';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { todayISO } from 'src/common/utils/date.util';
 import { CreateDistributorSettlementDto } from '../dto/create-distributor-settlement.dto';
@@ -22,6 +20,12 @@ type FindDistributorSettlementsForCompanyInput = {
 type CreateDistributorSettlementForCompanyInput = {
   companyId: string;
   dto: CreateDistributorSettlementDto;
+};
+
+type SettlementContractContext = {
+  id: string;
+  cinema_complex_id: string;
+  movie_id: string;
 };
 
 @Injectable()
@@ -51,10 +55,10 @@ export class DistributorSettlementsService {
   private async ensureContractBelongsToCompany(
     contractId: string,
     companyId: string,
-  ) {
+  ): Promise<SettlementContractContext> {
     const contract = await this.prisma.exhibition_contracts.findFirst({
       where: { id: contractId },
-      select: { cinema_complex_id: true },
+      select: { id: true, cinema_complex_id: true, movie_id: true },
     });
 
     if (!contract) {
@@ -65,6 +69,12 @@ export class DistributorSettlementsService {
       contract.cinema_complex_id,
       companyId,
     );
+
+    return {
+      id: contract.id,
+      cinema_complex_id: contract.cinema_complex_id,
+      movie_id: contract.movie_id,
+    };
   }
 
   private async ensureDistributorBelongsToCompany(
@@ -134,11 +144,40 @@ export class DistributorSettlementsService {
 
   async createForCompany(input: CreateDistributorSettlementForCompanyInput) {
     const { companyId, dto } = input;
-    await this.ensureContractBelongsToCompany(dto.contract_id, companyId);
+    const contract = await this.ensureContractBelongsToCompany(
+      dto.contract_id,
+      companyId,
+    );
     await this.ensureDistributorBelongsToCompany(dto.distributor_id, companyId);
     await this.ensureComplexBelongsToCompany(dto.cinema_complex_id, companyId);
 
-    const gross = dto.gross_box_office_revenue;
+    if (contract.cinema_complex_id !== dto.cinema_complex_id) {
+      throw new BadRequestException(
+        'Contrato informado não pertence ao complexo de cinema selecionado',
+      );
+    }
+
+    const competenceStart = new Date(dto.competence_start_date);
+    const competenceEnd = new Date(dto.competence_end_date);
+
+    if (Number.isNaN(competenceStart.getTime()) || Number.isNaN(competenceEnd.getTime())) {
+      throw new BadRequestException('Período de competência inválido');
+    }
+
+    if (competenceEnd < competenceStart) {
+      throw new BadRequestException(
+        'Data final da competência não pode ser anterior à inicial',
+      );
+    }
+
+    const reconciled = await this.reconcileGrossRevenueAndTickets({
+      cinemaComplexId: dto.cinema_complex_id,
+      movieId: contract.movie_id,
+      competenceStart,
+      competenceEnd,
+    });
+
+    const gross = reconciled.grossBoxOfficeRevenue;
     const distributorPercentage = dto.distributor_percentage / 100;
     const calculatedAmount = Number((gross * distributorPercentage).toFixed(2));
     const deductions = dto.deductions_amount || 0;
@@ -154,6 +193,7 @@ export class DistributorSettlementsService {
         cinema_complex_id: dto.cinema_complex_id,
         competence_start_date: new Date(dto.competence_start_date),
         competence_end_date: new Date(dto.competence_end_date),
+        total_tickets_sold: reconciled.totalTicketsSold,
         gross_box_office_revenue: gross,
         distributor_percentage: dto.distributor_percentage,
         calculated_settlement_amount: calculatedAmount,
@@ -201,5 +241,44 @@ export class DistributorSettlementsService {
     }
 
     return settlement;
+  }
+
+  private async reconcileGrossRevenueAndTickets(params: {
+    cinemaComplexId: string;
+    movieId: string;
+    competenceStart: Date;
+    competenceEnd: Date;
+  }): Promise<{ grossBoxOfficeRevenue: number; totalTicketsSold: number }> {
+    const competenceStartAt = new Date(params.competenceStart);
+    competenceStartAt.setHours(0, 0, 0, 0);
+
+    const competenceEndAt = new Date(params.competenceEnd);
+    competenceEndAt.setHours(23, 59, 59, 999);
+
+    const result = await this.prisma.$queryRaw<
+      Array<{ gross_revenue: number | null; total_tickets_sold: number | null }>
+    >`
+      SELECT
+        COALESCE(SUM(t.total_amount), 0) AS gross_revenue,
+        COUNT(t.id) AS total_tickets_sold
+      FROM "sales"."tickets" t
+      INNER JOIN "sales"."sales" s ON s.id = t.sale_id
+      INNER JOIN "operations"."showtime_schedule" sh ON sh.id = t.showtime_id
+      WHERE
+        sh.cinema_complex_id = ${params.cinemaComplexId}
+        AND sh.movie_id = ${params.movieId}
+        AND s.sale_date >= ${competenceStartAt}
+        AND s.sale_date <= ${competenceEndAt}
+        AND s.cancellation_date IS NULL
+    `;
+
+    const aggregate = result[0];
+    const grossBoxOfficeRevenue = Number(aggregate?.gross_revenue ?? 0);
+    const totalTicketsSold = Number(aggregate?.total_tickets_sold ?? 0);
+
+    return {
+      grossBoxOfficeRevenue,
+      totalTicketsSold,
+    };
   }
 }

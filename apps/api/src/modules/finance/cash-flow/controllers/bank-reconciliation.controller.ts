@@ -9,8 +9,8 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
-  ParseUUIDPipe,
 } from '@nestjs/common';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -68,7 +68,7 @@ export class BankReconciliationController {
     status: 200,
     description: 'Reconciliation retrieved successfully',
   })
-  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+  async findOne(@Param('id', ParseEntityIdPipe) id: string) {
     return this.service.findOne(id);
   }
 
@@ -81,7 +81,7 @@ export class BankReconciliationController {
     description: 'Reconciliation updated successfully',
   })
   async update(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
     @Body(new ZodValidationPipe()) dto: UpdateBankReconciliationDto,
   ) {
     return this.service.update(id, dto);
@@ -95,7 +95,7 @@ export class BankReconciliationController {
     status: 200,
     description: 'Reconciliation completed successfully',
   })
-  async complete(@Param('id', ParseUUIDPipe) id: string) {
+  async complete(@Param('id', ParseEntityIdPipe) id: string) {
     return this.service.complete(id);
   }
 }

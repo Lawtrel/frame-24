@@ -9,8 +9,8 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
-  ParseUUIDPipe,
 } from '@nestjs/common';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
@@ -70,7 +70,7 @@ export class TaxEntriesController {
   @RequirePermission('tax', 'read')
   @ApiOperation({ summary: 'Buscar lançamento fiscal por ID' })
   async findOne(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
   ): Promise<TaxEntryResponseDto> {
     return await this.taxEntriesService.findOne(id);
   }
@@ -80,7 +80,7 @@ export class TaxEntriesController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Marcar lançamento fiscal como processado' })
   async markAsProcessed(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
   ): Promise<TaxEntryResponseDto> {
     return await this.taxEntriesService.markAsProcessed(id);
   }

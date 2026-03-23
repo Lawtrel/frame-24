@@ -13,6 +13,7 @@ describe('SeatsReservationGateway', () => {
   let jwtService: jest.Mocked<JwtService>;
   let sessionSeatStatusFindMany: jest.Mock;
   let sessionSeatStatusUpdateMany: jest.Mock;
+  let showtimeFindUnique: jest.Mock;
 
   const makeClient = () => {
     return {
@@ -41,9 +42,13 @@ describe('SeatsReservationGateway', () => {
 
     sessionSeatStatusFindMany = jest.fn();
     sessionSeatStatusUpdateMany = jest.fn();
+    showtimeFindUnique = jest.fn();
 
     prisma = {
       $transaction: jest.fn(),
+      showtime_schedule: {
+        findUnique: showtimeFindUnique,
+      },
       session_seat_status: {
         findMany: sessionSeatStatusFindMany,
         updateMany: sessionSeatStatusUpdateMany,
@@ -122,6 +127,7 @@ describe('SeatsReservationGateway', () => {
 
   it('should join showtime and restore reservation when user has one', () => {
     const client = makeClient();
+    client.data.user = { sub: 'user-1', company_id: 'company-1' };
     (gateway as any).reservations.set('res-1', {
       showtime_id: 'show-1',
       seat_ids: ['A1', 'A2'],
@@ -132,7 +138,7 @@ describe('SeatsReservationGateway', () => {
       company_id: 'company-1',
     });
 
-    gateway.handleJoinShowtime(client, { showtime_id: 'show-1', user_id: 'user-1' });
+    gateway.handleJoinShowtime(client, { showtime_id: 'show-1' });
 
     expect(client.join).toHaveBeenCalledWith('showtime:show-1');
     expect(client.emit).toHaveBeenCalledWith('joined-showtime', { showtime_id: 'show-1' });
@@ -144,12 +150,16 @@ describe('SeatsReservationGateway', () => {
 
   it('should emit reservation error when reserved status is missing', async () => {
     const client = makeClient();
+    client.data.user = { sub: 'user-1', company_id: 'company-1' };
+    showtimeFindUnique.mockResolvedValue({
+      id: 'show-1',
+      cinema_complexes: { company_id: 'company-1' },
+    } as never);
     seatStatusRepository.findByNameAndCompany.mockResolvedValue(null);
 
     await gateway.handleReserveSeats(client, {
       showtime_id: 'show-1',
       seat_ids: ['A1'],
-      company_id: 'company-1',
     });
 
     expect(client.emit).toHaveBeenCalledWith(
@@ -160,11 +170,16 @@ describe('SeatsReservationGateway', () => {
 
   it('should reserve seats successfully and notify room', async () => {
     const client = makeClient();
+    client.data.user = { sub: 'user-1', company_id: 'company-1' };
     const roomEmit = jest.fn();
     (gateway as any).server = {
       to: jest.fn().mockReturnValue({ emit: roomEmit }),
     };
 
+    showtimeFindUnique.mockResolvedValue({
+      id: 'show-1',
+      cinema_complexes: { company_id: 'company-1' },
+    } as never);
     seatStatusRepository.findByNameAndCompany.mockResolvedValue({ id: 'reserved-status' } as never);
     prisma.$transaction.mockImplementation(async (cb: any) => {
       const tx = {
@@ -179,8 +194,6 @@ describe('SeatsReservationGateway', () => {
     await gateway.handleReserveSeats(client, {
       showtime_id: 'show-1',
       seat_ids: ['A1', 'A2'],
-      company_id: 'company-1',
-      user_id: 'user-1',
     });
 
     expect(client.emit).toHaveBeenCalledWith(
@@ -195,6 +208,11 @@ describe('SeatsReservationGateway', () => {
 
   it('should emit reservation error when seat is unavailable in transaction', async () => {
     const client = makeClient();
+    client.data.user = { sub: 'user-1', company_id: 'company-1' };
+    showtimeFindUnique.mockResolvedValue({
+      id: 'show-1',
+      cinema_complexes: { company_id: 'company-1' },
+    } as never);
     seatStatusRepository.findByNameAndCompany.mockResolvedValue({ id: 'reserved-status' } as never);
     prisma.$transaction.mockImplementation(async (cb: any) => {
       const tx = {
@@ -209,7 +227,6 @@ describe('SeatsReservationGateway', () => {
     await gateway.handleReserveSeats(client, {
       showtime_id: 'show-1',
       seat_ids: ['A1'],
-      company_id: 'company-1',
     });
 
     expect(client.emit).toHaveBeenCalledWith(
@@ -220,6 +237,11 @@ describe('SeatsReservationGateway', () => {
 
   it('should emit reservation error when update count differs from requested seats', async () => {
     const client = makeClient();
+    client.data.user = { sub: 'user-1', company_id: 'company-1' };
+    showtimeFindUnique.mockResolvedValue({
+      id: 'show-1',
+      cinema_complexes: { company_id: 'company-1' },
+    } as never);
     seatStatusRepository.findByNameAndCompany.mockResolvedValue({ id: 'reserved-status' } as never);
     prisma.$transaction.mockImplementation(async (cb: any) => {
       const tx = {
@@ -234,7 +256,6 @@ describe('SeatsReservationGateway', () => {
     await gateway.handleReserveSeats(client, {
       showtime_id: 'show-1',
       seat_ids: ['A1', 'A2'],
-      company_id: 'company-1',
     });
 
     expect(client.emit).toHaveBeenCalledWith(
@@ -245,6 +266,7 @@ describe('SeatsReservationGateway', () => {
 
   it('should emit confirmation error when reservation does not exist', async () => {
     const client = makeClient();
+    client.data.user = { sub: 'user-1', company_id: 'company-1' };
 
     await gateway.handleConfirmReservation(client, {
       reservation_uuid: 'missing',
@@ -259,6 +281,7 @@ describe('SeatsReservationGateway', () => {
 
   it('should confirm reservation and clear it from memory', async () => {
     const client = makeClient();
+    client.data.user = { sub: 'user-1', company_id: 'company-1' };
     const roomEmit = jest.fn();
     (gateway as any).server = {
       to: jest.fn().mockReturnValue({ emit: roomEmit }),
@@ -290,6 +313,7 @@ describe('SeatsReservationGateway', () => {
 
   it('should emit confirmation error when update fails', async () => {
     const client = makeClient();
+    client.data.user = { sub: 'user-1', company_id: 'company-1' };
     (gateway as any).reservations.set('res-1', {
       showtime_id: 'show-1',
       seat_ids: ['A1'],
@@ -313,19 +337,52 @@ describe('SeatsReservationGateway', () => {
 
   it('should release seats by reservation uuid and emit result to client', async () => {
     const client = makeClient();
+    client.data.user = { sub: 'user-1', company_id: 'company-1' };
+    (gateway as any).reservations.set('res-1', {
+      showtime_id: 'show-1',
+      seat_ids: ['A1'],
+      expires_at: new Date(Date.now() + 60000),
+      socket_id: 'socket-1',
+      reservation_uuid: 'res-1',
+      user_id: 'user-1',
+      company_id: 'company-1',
+    });
+
     const expireSpy = jest
       .spyOn(gateway as any, 'expireReservation')
       .mockResolvedValue(undefined);
 
     await gateway.handleReleaseSeats(client, {
       reservation_uuid: 'res-1',
-      company_id: 'company-1',
     });
 
     expect(expireSpy).toHaveBeenCalledWith('res-1', 'company-1');
     expect(client.emit).toHaveBeenCalledWith('seats-released', {
       reservation_uuid: 'res-1',
     });
+  });
+
+  it('should block release when reservation belongs to another user', async () => {
+    const client = makeClient();
+    client.data.user = { sub: 'user-2', company_id: 'company-1' };
+    (gateway as any).reservations.set('res-1', {
+      showtime_id: 'show-1',
+      seat_ids: ['A1'],
+      expires_at: new Date(Date.now() + 60000),
+      socket_id: 'socket-1',
+      reservation_uuid: 'res-1',
+      user_id: 'user-1',
+      company_id: 'company-1',
+    });
+
+    await gateway.handleReleaseSeats(client, {
+      reservation_uuid: 'res-1',
+    });
+
+    expect(client.emit).toHaveBeenCalledWith(
+      'reservation-error',
+      expect.objectContaining({ message: 'Reserva pertence a outro usuário' }),
+    );
   });
 
   it('should expire reservation from memory and notify clients', async () => {

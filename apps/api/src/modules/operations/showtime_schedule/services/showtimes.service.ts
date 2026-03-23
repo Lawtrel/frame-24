@@ -116,6 +116,10 @@ interface TicketPricingRoomInput {
 }
 
 const WEEK_IN_MS = 7 * 24 * 60 * 60 * 1000;
+const TRAILER_BLOCK_MINUTES = 15;
+const TURNAROUND_BLOCK_MINUTES = 20;
+const SESSION_OPERATIONAL_BUFFER_MINUTES =
+  TRAILER_BLOCK_MINUTES + TURNAROUND_BLOCK_MINUTES;
 const DEFAULT_DISTRIBUTOR_PERCENTAGE = 0;
 const DEFAULT_EXHIBITOR_PERCENTAGE = 100;
 
@@ -569,6 +573,16 @@ export class ShowtimesService {
     };
   }
 
+  private calculateSessionEndTime(
+    startTime: Date,
+    movieDurationMinutes: number,
+  ): Date {
+    return new Date(
+      startTime.getTime() +
+        (movieDurationMinutes + SESSION_OPERATIONAL_BUFFER_MINUTES) * 60000,
+    );
+  }
+
   @Transactional()
   async create(dto: CreateShowtimeDto): Promise<Showtime> {
     const companyId = this.tenantContext.getCompanyId();
@@ -584,8 +598,9 @@ export class ShowtimesService {
     );
 
     const startTime = dto.start_time;
-    const endTime = new Date(
-      startTime.getTime() + movie.duration_minutes * 60000,
+    const endTime = this.calculateSessionEndTime(
+      startTime,
+      movie.duration_minutes,
     );
     const overlappingSessions =
       await this.showtimesRepository.findOverlappingSessions(
@@ -764,8 +779,9 @@ export class ShowtimesService {
       if (!movie || !movie.duration_minutes) {
         throw new NotFoundException('Filme ou sua duração não encontrados.');
       }
-      newEndTime = new Date(
-        newStartTime.getTime() + movie.duration_minutes * 60000,
+      newEndTime = this.calculateSessionEndTime(
+        newStartTime,
+        movie.duration_minutes,
       );
 
       const overlappingSessions =
@@ -876,6 +892,7 @@ export class ShowtimesService {
     return { message: 'Sessão cancelada com sucesso.' };
   }
 
+  @Transactional()
   async updateSeatStatus(
     showtime_id: string,
     seat_id: string,
@@ -888,20 +905,68 @@ export class ShowtimesService {
       throw new NotFoundException('Sessão não encontrada.');
     }
 
-    const seatStatus =
+    const blockedStatus = await this.seatStatusRepository.findByNameAndCompany(
+      'Bloqueado',
+      companyId,
+    );
+    const availableStatus =
       (await this.seatStatusRepository.findByNameAndCompany(
-        status,
+        'Disponível',
         companyId,
       )) || (await this.seatStatusRepository.findDefaultByCompany(companyId));
 
-    if (!seatStatus) {
+    if (!availableStatus) {
+      throw new NotFoundException('Status de assento "Disponível" não configurado');
+    }
+
+    if (status === 'Bloqueado' && !blockedStatus) {
       throw new NotFoundException(
-        `Status de assento "${status}" não configurado`,
+        'Status de assento "Bloqueado" não configurado',
       );
     }
 
+    const currentSeatStatus =
+      await this.sessionSeatStatusRepository.findBySeatAndShowtime(
+        showtime_id,
+        seat_id,
+      );
+
+    if (!currentSeatStatus) {
+      throw new NotFoundException('Assento não encontrado para esta sessão.');
+    }
+
+    const targetSeatStatusId =
+      status === 'Bloqueado' ? blockedStatus!.id : availableStatus.id;
+
+    if (currentSeatStatus.status === targetSeatStatusId) {
+      return;
+    }
+
+    if (
+      status === 'Bloqueado' &&
+      currentSeatStatus.status === availableStatus.id
+    ) {
+      const didBlock = await this.showtimesRepository.blockSeatsCountersAtomically(
+        showtime_id,
+        1,
+      );
+      if (!didBlock) {
+        throw new ConflictException(
+          'Não foi possível bloquear assento: não há assentos disponíveis suficientes.',
+        );
+      }
+    }
+
+    if (
+      status === 'Disponível' &&
+      blockedStatus &&
+      currentSeatStatus.status === blockedStatus.id
+    ) {
+      await this.showtimesRepository.unblockSeatsCountersSafely(showtime_id, 1);
+    }
+
     const updateData: Prisma.session_seat_statusUpdateInput = {
-      seat_status: { connect: { id: seatStatus.id } },
+      seat_status: { connect: { id: targetSeatStatusId } },
     };
 
     if (status === 'Disponível') {

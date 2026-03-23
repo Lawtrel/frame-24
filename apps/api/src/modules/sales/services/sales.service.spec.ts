@@ -18,6 +18,7 @@ import { AccountsReceivableService } from 'src/modules/finance/accounts-receivab
 import { TransactionsService } from 'src/modules/finance/transactions/services/transactions.service';
 import { BankAccountsRepository } from 'src/modules/finance/cash-flow/repositories/bank-accounts.repository';
 import { TenantContextService } from 'src/common/services/tenant-context.service';
+import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { ClsModule } from 'nestjs-cls';
 import { ClsPluginTransactional } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
@@ -185,6 +186,7 @@ describe('SalesService', () => {
           provide: TaxEntriesRepository,
           useValue: {
             create: jest.fn(),
+            findAllBySource: jest.fn().mockResolvedValue([]),
           },
         },
         {
@@ -197,13 +199,14 @@ describe('SalesService', () => {
         {
           provide: AccountsReceivableService,
           useValue: {
-            create: jest.fn().mockResolvedValue({ id: 'ar-1' }),
+            createForCompany: jest.fn().mockResolvedValue({ id: 'ar-1' }),
+            cancelBySaleIdForCompany: jest.fn().mockResolvedValue({ count: 0 }),
           },
         },
         {
           provide: TransactionsService,
           useValue: {
-            settleReceivable: jest.fn().mockResolvedValue(undefined),
+            settleReceivableForCompany: jest.fn().mockResolvedValue(undefined),
           },
         },
         {
@@ -221,6 +224,26 @@ describe('SalesService', () => {
             getUserId: jest.fn().mockReturnValue('user-1'),
             getCustomerId: jest.fn().mockReturnValue(undefined),
             getSessionContext: jest.fn().mockReturnValue('EMPLOYEE'),
+          },
+        },
+        {
+          provide: SnowflakeService,
+          useValue: {
+            generate: jest.fn(() => 'snowflake-test-id'),
+          },
+        },
+        {
+          provide: PrismaService,
+          useValue: {
+            $transaction: jest.fn().mockImplementation((cb) => cb()),
+            journal_entries: {
+              findMany: jest.fn().mockResolvedValue([]),
+              create: jest.fn(),
+            },
+            company_customers: {
+              findFirst: jest.fn().mockResolvedValue(null),
+              update: jest.fn(),
+            },
           },
         },
       ],

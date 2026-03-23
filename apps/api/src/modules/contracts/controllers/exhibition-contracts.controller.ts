@@ -10,8 +10,8 @@ import {
   Put,
   Query,
   UseGuards,
-  ParseUUIDPipe,
 } from '@nestjs/common';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -69,7 +69,7 @@ export class ExhibitionContractsController {
   @RequirePermission('contracts', 'read')
   @ApiOperation({ summary: 'Buscar contrato de exibição por ID' })
   @ApiParam({ name: 'id', description: 'Identificador do contrato' })
-  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+  async findOne(@Param('id', ParseEntityIdPipe) id: string) {
     return this.service.findOne(id);
   }
 
@@ -77,7 +77,7 @@ export class ExhibitionContractsController {
   @RequirePermission('contracts', 'update')
   @ApiOperation({ summary: 'Atualizar contrato de exibição' })
   async update(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
     @Body() dto: UpdateExhibitionContractDto,
   ) {
     return this.service.update(id, dto);
@@ -88,7 +88,7 @@ export class ExhibitionContractsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Desativar contrato de exibição' })
   @ApiResponse({ status: 204, description: 'Contrato desativado.' })
-  async delete(@Param('id', ParseUUIDPipe) id: string) {
+  async delete(@Param('id', ParseEntityIdPipe) id: string) {
     await this.service.delete(id);
   }
 }

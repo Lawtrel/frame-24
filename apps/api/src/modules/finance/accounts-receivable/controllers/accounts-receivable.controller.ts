@@ -7,8 +7,8 @@ import {
   Param,
   Query,
   UseGuards,
-  ParseUUIDPipe,
 } from '@nestjs/common';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import { AccountsReceivableService } from '../services/accounts-receivable.service';
 import { CreateAccountReceivableDto } from '../dto/create-account-receivable.dto';
 import { UpdateAccountReceivableDto } from '../dto/update-account-receivable.dto';
@@ -69,7 +69,7 @@ export class AccountsReceivableController {
   })
   @ApiResponse({ status: 200, description: 'Detalhes da conta a receber.' })
   @ApiResponse({ status: 404, description: 'Conta a receber não encontrada.' })
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
+  findOne(@Param('id', ParseEntityIdPipe) id: string) {
     return this.service.findOne(id);
   }
 
@@ -86,7 +86,7 @@ export class AccountsReceivableController {
   })
   @ApiResponse({ status: 404, description: 'Conta a receber não encontrada.' })
   update(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
     @Body() dto: UpdateAccountReceivableDto,
   ) {
     return this.service.update(id, dto);

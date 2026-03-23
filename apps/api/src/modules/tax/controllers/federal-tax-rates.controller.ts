@@ -9,8 +9,8 @@ import {
   Post,
   Put,
   UseGuards,
-  ParseUUIDPipe,
 } from '@nestjs/common';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -51,7 +51,7 @@ export class FederalTaxRatesController {
   @RequirePermission('tax', 'read')
   @ApiOperation({ summary: 'Buscar taxa federal por ID' })
   @ApiParam({ name: 'id', description: 'Identificador da taxa federal' })
-  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+  async findOne(@Param('id', ParseEntityIdPipe) id: string) {
     return this.service.findById(id);
   }
 
@@ -60,7 +60,7 @@ export class FederalTaxRatesController {
   @ApiOperation({ summary: 'Atualizar taxa federal' })
   @ApiParam({ name: 'id', description: 'Identificador da taxa federal' })
   async update(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
     @Body() dto: UpdateFederalTaxRateDto,
   ) {
     return this.service.update(id, dto);
@@ -72,7 +72,7 @@ export class FederalTaxRatesController {
   @ApiOperation({ summary: 'Excluir taxa federal' })
   @ApiParam({ name: 'id', description: 'Identificador da taxa federal' })
   @ApiResponse({ status: 204, description: 'Taxa removida.' })
-  async delete(@Param('id', ParseUUIDPipe) id: string) {
+  async delete(@Param('id', ParseEntityIdPipe) id: string) {
     await this.service.delete(id);
   }
 }

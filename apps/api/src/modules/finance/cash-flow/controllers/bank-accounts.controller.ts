@@ -10,8 +10,8 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
-  ParseUUIDPipe,
 } from '@nestjs/common';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -65,7 +65,7 @@ export class BankAccountsController {
     status: 200,
     description: 'Bank account retrieved successfully',
   })
-  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+  async findOne(@Param('id', ParseEntityIdPipe) id: string) {
     return this.service.findOne(id);
   }
 
@@ -74,7 +74,7 @@ export class BankAccountsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get bank account current balance' })
   @ApiResponse({ status: 200, description: 'Balance retrieved successfully' })
-  async getBalance(@Param('id', ParseUUIDPipe) id: string) {
+  async getBalance(@Param('id', ParseEntityIdPipe) id: string) {
     return this.service.getBalance(id);
   }
 
@@ -87,7 +87,7 @@ export class BankAccountsController {
     description: 'Bank account updated successfully',
   })
   async update(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
     @Body(new ZodValidationPipe()) dto: UpdateBankAccountDto,
   ) {
     return this.service.update(id, dto);
@@ -101,7 +101,7 @@ export class BankAccountsController {
     status: 200,
     description: 'Bank account deactivated successfully',
   })
-  async delete(@Param('id', ParseUUIDPipe) id: string) {
+  async delete(@Param('id', ParseEntityIdPipe) id: string) {
     return this.service.delete(id);
   }
 }

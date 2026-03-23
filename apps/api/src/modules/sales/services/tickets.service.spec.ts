@@ -36,6 +36,8 @@ describe('TicketsService', () => {
     showtimesRepository = {
       findById: jest.fn(),
       update: jest.fn(),
+      reserveSeatsCountersAtomically: jest.fn(),
+      releaseSeatsCountersSafely: jest.fn(),
     } as unknown as jest.Mocked<ShowtimesRepository>;
 
     sessionSeatStatusRepository = {
@@ -120,12 +122,7 @@ describe('TicketsService', () => {
   it('should reserve seats and update showtime counters', async () => {
     seatStatusRepository.findByNameAndCompany.mockResolvedValue({ id: 'sold-status' } as never);
     sessionSeatStatusRepository.updateMany.mockResolvedValue({ count: 1 } as never);
-    showtimesRepository.findById.mockResolvedValue({
-      id: 'show-1',
-      sold_seats: 10,
-      available_seats: 90,
-    } as never);
-    showtimesRepository.update.mockResolvedValue({ id: 'show-1' } as never);
+    showtimesRepository.reserveSeatsCountersAtomically.mockResolvedValue(true);
 
     await service.reserveSeats({
       showtimeId: 'show-1',
@@ -134,10 +131,10 @@ describe('TicketsService', () => {
     });
 
     expect(sessionSeatStatusRepository.updateMany).toHaveBeenCalledTimes(2);
-    expect(showtimesRepository.update).toHaveBeenCalledWith('show-1', {
-      sold_seats: 12,
-      available_seats: 88,
-    });
+    expect(showtimesRepository.reserveSeatsCountersAtomically).toHaveBeenCalledWith(
+      'show-1',
+      2,
+    );
   });
 
   it('should release sold seats and rollback counters', async () => {
@@ -148,18 +145,15 @@ describe('TicketsService', () => {
       .mockResolvedValueOnce({ sale_id: 'sale-1' } as never)
       .mockResolvedValueOnce({ sale_id: null } as never);
     sessionSeatStatusRepository.updateStatus.mockResolvedValue({ id: 'row-1' } as never);
-    showtimesRepository.findById.mockResolvedValue({
-      sold_seats: 5,
-      available_seats: 95,
-    } as never);
+    showtimesRepository.releaseSeatsCountersSafely.mockResolvedValue(true);
 
     await service.releaseSeats({ showtimeId: 'show-1', seatIds: ['s1', 's2'] });
 
     expect(sessionSeatStatusRepository.updateStatus).toHaveBeenCalledTimes(1);
-    expect(showtimesRepository.update).toHaveBeenCalledWith('show-1', {
-      sold_seats: 4,
-      available_seats: 96,
-    });
+    expect(showtimesRepository.releaseSeatsCountersSafely).toHaveBeenCalledWith(
+      'show-1',
+      1,
+    );
   });
 
   it('should calculate ticket price with seat additional and ticket discount', async () => {

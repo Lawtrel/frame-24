@@ -8,8 +8,8 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
-  ParseUUIDPipe,
 } from '@nestjs/common';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import {
   ApiTags,
   ApiOperation,
@@ -85,7 +85,7 @@ export class CustomerPurchasesController {
     description: 'Compra não encontrada',
   })
   async findOne(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
   ): Promise<SaleResponseDto> {
     return this.customerPurchasesService.findOne(id);
   }
@@ -113,7 +113,7 @@ export class CustomerPurchasesController {
     description: 'Detalhes do ingresso retornados com sucesso',
   })
   async findTicketById(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
   ): Promise<Record<string, unknown>> {
     return this.customerPurchasesService.findTicketById(id);
   }
@@ -128,7 +128,7 @@ export class CustomerPurchasesController {
     status: 200,
     description: 'QR Code retornado com sucesso',
   })
-  async getTicketQrCode(@Param('id', ParseUUIDPipe) id: string) {
+  async getTicketQrCode(@Param('id', ParseEntityIdPipe) id: string) {
     return this.customerPurchasesService.getTicketQrCode(id);
   }
 
@@ -159,7 +159,7 @@ export class CustomerPurchasesController {
     status: 204,
     description: 'Compra cancelada com sucesso',
   })
-  async cancelPurchase(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+  async cancelPurchase(@Param('id', ParseEntityIdPipe) id: string): Promise<void> {
     return this.customerPurchasesService.cancelPurchase(id);
   }
 }

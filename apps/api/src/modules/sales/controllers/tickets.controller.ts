@@ -7,8 +7,8 @@ import {
   HttpCode,
   HttpStatus,
   NotFoundException,
-  ParseUUIDPipe,
 } from '@nestjs/common';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
@@ -28,7 +28,7 @@ export class TicketsController {
   @RequirePermission('tickets', 'read')
   @ApiOperation({ summary: 'Buscar ingresso por ID' })
   async findOne(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
   ): Promise<Awaited<ReturnType<TicketsRepository['findById']>>> {
     const ticket = await this.ticketsRepository.findById(id);
     if (!ticket) {
@@ -42,7 +42,7 @@ export class TicketsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Marcar ingresso como usado' })
   async markAsUsed(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
   ): Promise<Awaited<ReturnType<TicketsRepository['markAsUsed']>>> {
     return this.ticketsRepository.markAsUsed(id, new Date());
   }

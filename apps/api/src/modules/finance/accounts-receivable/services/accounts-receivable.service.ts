@@ -81,4 +81,16 @@ export class AccountsReceivableService {
 
     return this.repository.update(id, payload);
   }
+
+  async cancelBySaleIdForCompany(input: {
+    companyId: string;
+    saleId: string;
+  }): Promise<number> {
+    const result = await this.repository.cancelBySaleId(
+      input.saleId,
+      input.companyId,
+    );
+
+    return result.count;
+  }
 }

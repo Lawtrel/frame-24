@@ -9,8 +9,8 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
-  ParseUUIDPipe,
 } from '@nestjs/common';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
@@ -50,7 +50,7 @@ export class ProductCategoriesController {
   @RequirePermission('product_categories', 'read')
   @ApiOperation({ summary: 'Buscar categoria por ID' })
   async findOne(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
   ): Promise<ProductCategoryResponseDto> {
     return await this.categoriesService.findOne(id);
   }
@@ -59,7 +59,7 @@ export class ProductCategoriesController {
   @RequirePermission('product_categories', 'update')
   @ApiOperation({ summary: 'Atualizar categoria' })
   async update(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
     @Body() dto: UpdateProductCategoryDto,
   ): Promise<ProductCategoryResponseDto> {
     return await this.categoriesService.update(id, dto);
@@ -69,7 +69,7 @@ export class ProductCategoriesController {
   @RequirePermission('product_categories', 'delete')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Deletar categoria' })
-  async delete(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+  async delete(@Param('id', ParseEntityIdPipe) id: string): Promise<void> {
     return await this.categoriesService.delete(id);
   }
 }

@@ -38,6 +38,8 @@ import { todayISO } from 'src/common/utils/date.util';
 import { AccountsReceivableService } from 'src/modules/finance/accounts-receivable/services/accounts-receivable.service';
 import { TransactionsService } from 'src/modules/finance/transactions/services/transactions.service';
 import { BankAccountsRepository } from 'src/modules/finance/cash-flow/repositories/bank-accounts.repository';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { SnowflakeService } from 'src/common/services/snowflake.service';
 
 type ProductItem = Awaited<
   ReturnType<ProductRepository['findAllByIds']>
@@ -86,6 +88,8 @@ export class SalesService {
     private readonly transactionsService: TransactionsService,
     private readonly bankAccountsRepository: BankAccountsRepository,
     private readonly tenantContext: TenantContextService,
+    private readonly prisma: PrismaService,
+    private readonly snowflake: SnowflakeService,
   ) {}
 
   private getCustomerId(): string | undefined {
@@ -347,6 +351,7 @@ export class SalesService {
       await this.salesRepository.generateSaleNumber(company_id);
 
     const sale = await this.salesRepository.create({
+      id: this.snowflake.generate(),
       sale_number,
       sale_date: new Date(),
       cinema_complex_id: dto.cinema_complex_id,
@@ -359,6 +364,8 @@ export class SalesService {
       net_amount,
       ...(user_id && { user_id }),
     });
+
+    const seatsByShowtime = new Map<string, string[]>();
 
     // Criar tickets em paralelo
     await Promise.all(
@@ -374,6 +381,7 @@ export class SalesService {
         }
 
         await this.ticketsRepository.create({
+          id: this.snowflake.generate(),
           sales: { connect: { id: sale.id } },
           ticket_number,
           showtime_id: ticketInfo.showtime_id,
@@ -388,19 +396,30 @@ export class SalesService {
         });
 
         if (ticketInfo.seat_id) {
-          await this.ticketsService.reserveSeats({
-            showtimeId: ticketInfo.showtime_id,
-            seatIds: [ticketInfo.seat_id],
-            saleId: sale.id,
-            context: { companyId: company_id },
-          });
+          const current = seatsByShowtime.get(ticketInfo.showtime_id) || [];
+          current.push(ticketInfo.seat_id);
+          seatsByShowtime.set(ticketInfo.showtime_id, current);
         }
       }),
     );
 
+    if (seatsByShowtime.size > 0) {
+      await Promise.all(
+        Array.from(seatsByShowtime.entries()).map(([showtimeId, seatIds]) =>
+          this.ticketsService.reserveSeats({
+            showtimeId,
+            seatIds,
+            saleId: sale.id,
+            context: { companyId: company_id },
+          }),
+        ),
+      );
+    }
+
     // Criar concessão
     if (concessionItemsData.length > 0) {
       const concessionSale = await this.concessionSalesRepository.create({
+        id: this.snowflake.generate(),
         sales: { connect: { id: sale.id } },
         sale_date: new Date(),
         total_amount: concessionTotal,
@@ -411,6 +430,7 @@ export class SalesService {
       await Promise.all(
         concessionItemsData.map((item) =>
           this.concessionSalesRepository.createItem({
+            id: this.snowflake.generate(),
             concession_sales: { connect: { id: concessionSale.id } },
             item_type: item.item_type,
             item_id: item.item_id,
@@ -422,126 +442,103 @@ export class SalesService {
       );
     }
 
-    // 7. Lançamentos Fiscais (Não bloquear a venda se falhar)
-    // Envolver cada cálculo em try-catch individual para não causar rollback
+    // 7. Lançamentos Fiscais
     const competenceDate = new Date();
     competenceDate.setHours(0, 0, 0, 0);
 
-    try {
-      const taxPromises: Promise<void>[] = [];
+    const taxPromises: Promise<void>[] = [];
 
-      if (ticketsTotal > 0) {
-        taxPromises.push(
-          this.taxCalculationService
-            .calculateTaxes(
-              {
-                gross_amount: ticketsTotal,
-                deductions_amount: 0,
-                cinema_complex_id: dto.cinema_complex_id,
-                competence_date: competenceDate,
-                revenue_type: 'BOX_OFFICE',
-              },
-              { companyId: company_id },
-            )
-            .then(async (calc) => {
-              await this.taxEntriesRepository.create({
-                cinema_complex_id: dto.cinema_complex_id,
-                source_type: 'SALE',
-                source_id: sale.id,
-                competence_date: competenceDate,
-                gross_amount: calc.gross_amount,
-                deductions_amount: calc.deductions_amount,
-                calculation_base: calc.calculation_base,
-                apply_iss: true,
-                iss_rate: calc.iss_rate,
-                iss_amount: calc.iss_amount,
-                ibge_municipality_code: calc.ibge_municipality_code,
-                ...(calc.iss_service_code && {
-                  iss_service_code: calc.iss_service_code,
-                }),
-                pis_cofins_regime: calc.pis_cofins_regime,
-                pis_rate: calc.pis_rate,
-                pis_debit_amount: calc.pis_debit_amount,
-                pis_credit_amount: calc.pis_credit_amount,
-                pis_amount_payable: calc.pis_amount_payable,
-                cofins_rate: calc.cofins_rate,
-                cofins_debit_amount: calc.cofins_debit_amount,
-                cofins_credit_amount: calc.cofins_credit_amount,
-                cofins_amount_payable: calc.cofins_amount_payable,
-                processing_user_id: user_id || null,
-                processed: false,
-              });
-            })
-            .catch((error) => {
-              this.logger.error(
-                `Erro ao criar lançamento fiscal de bilheteria para venda ${sale.id}: ${toErrorMessage(error)}`,
-                SalesService.name,
-              );
-              // Não propaga o erro para não causar rollback
-            }),
-        );
-      }
-
-      if (concessionTotal > 0) {
-        taxPromises.push(
-          this.taxCalculationService
-            .calculateTaxes(
-              {
-                gross_amount: concessionTotal,
-                deductions_amount: 0,
-                cinema_complex_id: dto.cinema_complex_id,
-                competence_date: competenceDate,
-                revenue_type: 'CONCESSION',
-              },
-              { companyId: company_id },
-            )
-            .then(async (calc) => {
-              await this.taxEntriesRepository.create({
-                cinema_complex_id: dto.cinema_complex_id,
-                source_type: 'SALE',
-                source_id: sale.id,
-                competence_date: competenceDate,
-                gross_amount: calc.gross_amount,
-                deductions_amount: calc.deductions_amount,
-                calculation_base: calc.calculation_base,
-                apply_iss: true,
-                iss_rate: calc.iss_rate,
-                iss_amount: calc.iss_amount,
-                ibge_municipality_code: calc.ibge_municipality_code,
-                ...(calc.iss_service_code && {
-                  iss_service_code: calc.iss_service_code,
-                }),
-                pis_cofins_regime: calc.pis_cofins_regime,
-                pis_rate: calc.pis_rate,
-                pis_debit_amount: calc.pis_debit_amount,
-                pis_credit_amount: calc.pis_credit_amount,
-                pis_amount_payable: calc.pis_amount_payable,
-                cofins_rate: calc.cofins_rate,
-                cofins_debit_amount: calc.cofins_debit_amount,
-                cofins_credit_amount: calc.cofins_credit_amount,
-                cofins_amount_payable: calc.cofins_amount_payable,
-                processing_user_id: user_id || null,
-                processed: false,
-              });
-            })
-            .catch((error) => {
-              this.logger.error(
-                `Erro ao criar lançamento fiscal de concessão para venda ${sale.id}: ${toErrorMessage(error)}`,
-                SalesService.name,
-              );
-              // Não propaga o erro para não causar rollback
-            }),
-        );
-      }
-
-      await Promise.all(taxPromises);
-    } catch (error) {
-      // Este catch não deve ser atingido pois cada Promise tem seu próprio catch
-      this.logger.error(
-        `Erro inesperado no processamento fiscal da venda ${sale.id}: ${toErrorMessage(error)}`,
-        SalesService.name,
+    if (ticketsTotal > 0) {
+      taxPromises.push(
+        this.taxCalculationService
+          .calculateTaxes(
+            {
+              gross_amount: ticketsTotal,
+              deductions_amount: 0,
+              cinema_complex_id: dto.cinema_complex_id,
+              competence_date: competenceDate,
+              revenue_type: 'BOX_OFFICE',
+            },
+            { companyId: company_id },
+          )
+          .then(async (calc) => {
+            await this.taxEntriesRepository.create({
+              cinema_complex_id: dto.cinema_complex_id,
+              source_type: 'SALE',
+              source_id: sale.id,
+              competence_date: competenceDate,
+              gross_amount: calc.gross_amount,
+              deductions_amount: calc.deductions_amount,
+              calculation_base: calc.calculation_base,
+              apply_iss: true,
+              iss_rate: calc.iss_rate,
+              iss_amount: calc.iss_amount,
+              ibge_municipality_code: calc.ibge_municipality_code,
+              ...(calc.iss_service_code && {
+                iss_service_code: calc.iss_service_code,
+              }),
+              pis_cofins_regime: calc.pis_cofins_regime,
+              pis_rate: calc.pis_rate,
+              pis_debit_amount: calc.pis_debit_amount,
+              pis_credit_amount: calc.pis_credit_amount,
+              pis_amount_payable: calc.pis_amount_payable,
+              cofins_rate: calc.cofins_rate,
+              cofins_debit_amount: calc.cofins_debit_amount,
+              cofins_credit_amount: calc.cofins_credit_amount,
+              cofins_amount_payable: calc.cofins_amount_payable,
+              processing_user_id: user_id || null,
+              processed: false,
+            });
+          }),
       );
     }
+
+    if (concessionTotal > 0) {
+      taxPromises.push(
+        this.taxCalculationService
+          .calculateTaxes(
+            {
+              gross_amount: concessionTotal,
+              deductions_amount: 0,
+              cinema_complex_id: dto.cinema_complex_id,
+              competence_date: competenceDate,
+              revenue_type: 'CONCESSION',
+            },
+            { companyId: company_id },
+          )
+          .then(async (calc) => {
+            await this.taxEntriesRepository.create({
+              cinema_complex_id: dto.cinema_complex_id,
+              source_type: 'SALE',
+              source_id: sale.id,
+              competence_date: competenceDate,
+              gross_amount: calc.gross_amount,
+              deductions_amount: calc.deductions_amount,
+              calculation_base: calc.calculation_base,
+              apply_iss: true,
+              iss_rate: calc.iss_rate,
+              iss_amount: calc.iss_amount,
+              ibge_municipality_code: calc.ibge_municipality_code,
+              ...(calc.iss_service_code && {
+                iss_service_code: calc.iss_service_code,
+              }),
+              pis_cofins_regime: calc.pis_cofins_regime,
+              pis_rate: calc.pis_rate,
+              pis_debit_amount: calc.pis_debit_amount,
+              pis_credit_amount: calc.pis_credit_amount,
+              pis_amount_payable: calc.pis_amount_payable,
+              cofins_rate: calc.cofins_rate,
+              cofins_debit_amount: calc.cofins_debit_amount,
+              cofins_credit_amount: calc.cofins_credit_amount,
+              cofins_amount_payable: calc.cofins_amount_payable,
+              processing_user_id: user_id || null,
+              processed: false,
+            });
+          }),
+      );
+    }
+
+    await Promise.all(taxPromises);
 
     // 8. Finalização
     if (promotionResult) {
@@ -580,71 +577,62 @@ export class SalesService {
     );
 
     // 9. Contas a Receber (Automático)
-    try {
-      // Criar título a receber
-      const receivable = await this.accountsReceivableService.createForCompany({
+    const receivable = await this.accountsReceivableService.createForCompany({
+      companyId: company_id,
+      dto: {
+        cinema_complex_id: dto.cinema_complex_id,
+        customer_id: resolvedCustomerId,
+        sale_id: sale.id,
+        document_number: sale_number,
+        description: `Venda - Pedido ${sale_number}`,
+        issue_date: todayISO(),
+        due_date: todayISO(), // Vencimento hoje (ajustar se for crédito)
+        competence_date: todayISO(),
+        original_amount: net_amount,
+        interest_amount: 0,
+        penalty_amount: 0,
+        discount_amount: 0,
+      },
+    });
+
+    const paymentMethodName = completeSale.payment_methods?.name;
+    const paymentMethodAutoSettle = completeSale.payment_methods?.auto_settle;
+    const shouldAutoSettle =
+      typeof paymentMethodAutoSettle === 'boolean'
+        ? paymentMethodAutoSettle
+        : this.isImmediatePaymentMethod(paymentMethodName);
+
+    if (!shouldAutoSettle) {
+      this.logger.log(
+        `Conta a receber ${receivable.id} criada sem baixa automática (método: ${paymentMethodName || dto.payment_method})`,
+        SalesService.name,
+      );
+      return this.mapToDto(completeSale);
+    }
+
+    // Buscar conta bancária padrão
+    const bankAccounts = await this.bankAccountsRepository.findAll(company_id);
+    const defaultAccount = bankAccounts.find((account) => account.active);
+
+    if (defaultAccount) {
+      await this.transactionsService.settleReceivableForCompany({
         companyId: company_id,
+        userId: user_id || 'SYSTEM',
         dto: {
-          cinema_complex_id: dto.cinema_complex_id,
-          customer_id: resolvedCustomerId,
-          sale_id: sale.id,
-          document_number: sale_number,
-          description: `Venda - Pedido ${sale_number}`,
-          issue_date: todayISO(),
-          due_date: todayISO(), // Vencimento hoje (ajustar se for crédito)
-          competence_date: todayISO(),
-          original_amount: net_amount,
+          account_receivable_id: receivable.id,
+          amount: net_amount,
+          transaction_date: todayISO(),
+          bank_account_id: defaultAccount.id,
+          payment_method: paymentMethodName || dto.payment_method || 'CASH',
+          notes: `Baixa automática - Venda ${sale_number}`,
           interest_amount: 0,
           penalty_amount: 0,
           discount_amount: 0,
         },
       });
-
-      const paymentMethodName = completeSale.payment_methods?.name;
-      const paymentMethodAutoSettle = completeSale.payment_methods?.auto_settle;
-      const shouldAutoSettle =
-        typeof paymentMethodAutoSettle === 'boolean'
-          ? paymentMethodAutoSettle
-          : this.isImmediatePaymentMethod(paymentMethodName);
-
-      if (!shouldAutoSettle) {
-        this.logger.log(
-          `Conta a receber ${receivable.id} criada sem baixa automática (método: ${paymentMethodName || dto.payment_method})`,
-          SalesService.name,
-        );
-        return this.mapToDto(completeSale);
-      }
-
-      // Buscar conta bancária padrão
-      const bankAccounts =
-        await this.bankAccountsRepository.findAll(company_id);
-      const defaultAccount = bankAccounts.find((account) => account.active);
-
-      if (defaultAccount) {
-        await this.transactionsService.settleReceivableForCompany({
-          companyId: company_id,
-          userId: user_id || 'SYSTEM',
-          dto: {
-            account_receivable_id: receivable.id,
-            amount: net_amount,
-            transaction_date: todayISO(),
-            bank_account_id: defaultAccount.id,
-            payment_method: paymentMethodName || dto.payment_method || 'CASH',
-            notes: `Baixa automática - Venda ${sale_number}`,
-            interest_amount: 0,
-            penalty_amount: 0,
-            discount_amount: 0,
-          },
-        });
-      } else {
-        this.logger.warn(
-          `Nenhuma conta bancária ativa encontrada para baixar venda ${sale_number}`,
-          SalesService.name,
-        );
-      }
-    } catch (error) {
-      this.logger.error(
-        `Erro ao criar conta a receber para venda ${sale.id}: ${toErrorMessage(error)}`,
+    } else {
+      this.logger.warn(
+        `Nenhuma conta bancária ativa encontrada para baixar venda ${sale_number}`,
         SalesService.name,
       );
     }
@@ -688,6 +676,15 @@ export class SalesService {
       cancellation_reason: reason,
     });
 
+    // Reversões financeiras e fiscais
+    await this.reverseTaxEntriesForCancellation(sale, userId || null);
+    await this.accountsReceivableService.cancelBySaleIdForCompany({
+      companyId,
+      saleId: sale.id,
+    });
+    await this.reverseJournalEntriesForCancellation(sale, reason);
+    await this.reverseLoyaltyPointsForCancellation(sale, companyId);
+
     // Liberar assentos
     if (sale.tickets) {
       const seatsByShowtime = new Map<string, string[]>();
@@ -725,6 +722,139 @@ export class SalesService {
     });
 
     this.logger.log(`Venda cancelada: ${sale.sale_number}`, SalesService.name);
+  }
+
+  private async reverseTaxEntriesForCancellation(
+    sale: SaleWithFullRelations,
+    processingUserId: string | null,
+  ): Promise<void> {
+    const taxEntries = await this.taxEntriesRepository.findAllBySource(
+      'SALE',
+      sale.id,
+    );
+
+    for (const entry of taxEntries) {
+      await this.taxEntriesRepository.create({
+        cinema_complex_id: entry.cinema_complex_id,
+        source_type: 'SALE_CANCELLATION',
+        source_id: sale.id,
+        competence_date: entry.competence_date,
+        gross_amount: -Number(entry.gross_amount),
+        deductions_amount: -Number(entry.deductions_amount || 0),
+        calculation_base: -Number(entry.calculation_base),
+        apply_iss: entry.apply_iss ?? true,
+        iss_rate: Number(entry.iss_rate || 0),
+        iss_amount: -Number(entry.iss_amount || 0),
+        ibge_municipality_code: entry.ibge_municipality_code || undefined,
+        ...(entry.iss_service_code && {
+          iss_service_code: entry.iss_service_code,
+        }),
+        pis_cofins_regime: entry.pis_cofins_regime || undefined,
+        pis_rate: Number(entry.pis_rate),
+        pis_debit_amount: -Number(entry.pis_debit_amount),
+        pis_credit_amount: -Number(entry.pis_credit_amount || 0),
+        pis_amount_payable: -Number(entry.pis_amount_payable),
+        cofins_rate: Number(entry.cofins_rate),
+        cofins_debit_amount: -Number(entry.cofins_debit_amount),
+        cofins_credit_amount: -Number(entry.cofins_credit_amount || 0),
+        cofins_amount_payable: -Number(entry.cofins_amount_payable),
+        processing_user_id: processingUserId,
+        processed: false,
+      });
+    }
+  }
+
+  private async reverseJournalEntriesForCancellation(
+    sale: SaleWithFullRelations,
+    reason: string,
+  ): Promise<void> {
+    const originalEntries = await this.prisma.journal_entries.findMany({
+      where: {
+        origin_type: 'SALE',
+        origin_id: sale.id,
+      },
+      include: {
+        journal_entry_items: true,
+      },
+    });
+
+    if (originalEntries.length === 0) {
+      return;
+    }
+
+    for (const entry of originalEntries) {
+      const reversalEntryNumber = `${entry.entry_number}-REV-${Date.now()}-${Math.floor(
+        Math.random() * 1000,
+      )}`;
+
+      await this.prisma.journal_entries.create({
+        data: {
+          cinema_complex_id: entry.cinema_complex_id,
+          entry_number: reversalEntryNumber,
+          entry_date: new Date(),
+          description: `Estorno de venda ${sale.sale_number}: ${reason}`,
+          origin_type: 'SALE_CANCELLATION',
+          origin_id: sale.id,
+          total_amount: entry.total_amount,
+          journal_entry_items: {
+            create: entry.journal_entry_items.map((item) => ({
+              account_id: item.account_id,
+              movement_type:
+                item.movement_type === 'DEBIT'
+                  ? 'CREDIT'
+                  : item.movement_type === 'CREDIT'
+                    ? 'DEBIT'
+                    : item.movement_type,
+              amount: item.amount,
+              item_description: `Estorno do item ${item.id}`,
+            })),
+          },
+        },
+      });
+    }
+  }
+
+  private async reverseLoyaltyPointsForCancellation(
+    sale: SaleWithFullRelations,
+    companyId: string,
+  ): Promise<void> {
+    if (!sale.customer_id) {
+      return;
+    }
+
+    const pointsEarned = (sale.promotions_used || []).reduce(
+      (sum, usage) => sum + (usage.points_earned || 0),
+      0,
+    );
+
+    if (pointsEarned <= 0) {
+      return;
+    }
+
+    const companyCustomer = await this.prisma.company_customers.findFirst({
+      where: {
+        company_id: companyId,
+        customer_id: sale.customer_id,
+      },
+      select: {
+        id: true,
+        accumulated_points: true,
+      },
+    });
+
+    if (!companyCustomer) {
+      return;
+    }
+
+    const currentPoints = companyCustomer.accumulated_points || 0;
+    const newPoints = Math.max(0, currentPoints - pointsEarned);
+
+    await this.prisma.company_customers.update({
+      where: { id: companyCustomer.id },
+      data: {
+        accumulated_points: newPoints,
+      },
+    });
   }
 
   private mapToDto(sale: SaleForResponse): SaleResponseDto {

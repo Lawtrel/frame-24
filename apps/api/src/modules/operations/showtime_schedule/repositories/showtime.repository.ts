@@ -76,6 +76,92 @@ export class ShowtimesRepository {
     });
   }
 
+  async reserveSeatsCountersAtomically(
+    id: string,
+    seatsToReserve: number,
+  ): Promise<boolean> {
+    if (seatsToReserve <= 0) {
+      return true;
+    }
+
+    const affectedRows = await this.prisma.$executeRaw`
+      UPDATE "operations"."showtime_schedule"
+      SET
+        "sold_seats" = COALESCE("sold_seats", 0) + ${seatsToReserve},
+        "available_seats" = COALESCE("available_seats", 0) - ${seatsToReserve}
+      WHERE
+        "id" = ${id}
+        AND COALESCE("available_seats", 0) >= ${seatsToReserve}
+    `;
+
+    return Number(affectedRows) === 1;
+  }
+
+  async releaseSeatsCountersSafely(
+    id: string,
+    seatsToRelease: number,
+  ): Promise<boolean> {
+    if (seatsToRelease <= 0) {
+      return true;
+    }
+
+    const affectedRows = await this.prisma.$executeRaw`
+      UPDATE "operations"."showtime_schedule"
+      SET
+        "sold_seats" = GREATEST(
+          0,
+          COALESCE("sold_seats", 0) - LEAST(${seatsToRelease}, COALESCE("sold_seats", 0))
+        ),
+        "available_seats" = COALESCE("available_seats", 0) + LEAST(${seatsToRelease}, COALESCE("sold_seats", 0))
+      WHERE "id" = ${id}
+    `;
+
+    return Number(affectedRows) === 1;
+  }
+
+  async blockSeatsCountersAtomically(
+    id: string,
+    seatsToBlock: number,
+  ): Promise<boolean> {
+    if (seatsToBlock <= 0) {
+      return true;
+    }
+
+    const affectedRows = await this.prisma.$executeRaw`
+      UPDATE "operations"."showtime_schedule"
+      SET
+        "blocked_seats" = COALESCE("blocked_seats", 0) + ${seatsToBlock},
+        "available_seats" = COALESCE("available_seats", 0) - ${seatsToBlock}
+      WHERE
+        "id" = ${id}
+        AND COALESCE("available_seats", 0) >= ${seatsToBlock}
+    `;
+
+    return Number(affectedRows) === 1;
+  }
+
+  async unblockSeatsCountersSafely(
+    id: string,
+    seatsToUnblock: number,
+  ): Promise<boolean> {
+    if (seatsToUnblock <= 0) {
+      return true;
+    }
+
+    const affectedRows = await this.prisma.$executeRaw`
+      UPDATE "operations"."showtime_schedule"
+      SET
+        "blocked_seats" = GREATEST(
+          0,
+          COALESCE("blocked_seats", 0) - LEAST(${seatsToUnblock}, COALESCE("blocked_seats", 0))
+        ),
+        "available_seats" = COALESCE("available_seats", 0) + LEAST(${seatsToUnblock}, COALESCE("blocked_seats", 0))
+      WHERE "id" = ${id}
+    `;
+
+    return Number(affectedRows) === 1;
+  }
+
   async remove(id: string) {
     return this.prisma.showtime_schedule.delete({
       where: { id },

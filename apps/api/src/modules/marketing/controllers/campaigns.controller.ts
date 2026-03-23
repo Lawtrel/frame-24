@@ -7,8 +7,8 @@ import {
   Param,
   Post,
   UseGuards,
-  ParseUUIDPipe,
 } from '@nestjs/common';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -59,7 +59,7 @@ export class CampaignsController {
   @ApiOperation({
     summary: 'Buscar campanha por ID',
   })
-  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+  async findOne(@Param('id', ParseEntityIdPipe) id: string) {
     return this.campaignsService.findOne(id);
   }
 
@@ -68,7 +68,7 @@ export class CampaignsController {
   @ApiOperation({
     summary: 'Ativar campanha',
   })
-  async activate(@Param('id', ParseUUIDPipe) id: string) {
+  async activate(@Param('id', ParseEntityIdPipe) id: string) {
     return this.campaignsService.activate(id);
   }
 
@@ -77,7 +77,7 @@ export class CampaignsController {
   @ApiOperation({
     summary: 'Pausar campanha',
   })
-  async pause(@Param('id', ParseUUIDPipe) id: string) {
+  async pause(@Param('id', ParseEntityIdPipe) id: string) {
     return this.campaignsService.pause(id);
   }
 }

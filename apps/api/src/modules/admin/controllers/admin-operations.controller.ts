@@ -4,8 +4,8 @@ import {
   Get,
   Param,
   UseGuards,
-  ParseUUIDPipe,
 } from '@nestjs/common';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
@@ -33,7 +33,7 @@ export class AdminOperationsController {
   @ApiOperation({
     summary: 'Liberar/cancelar reserva pendente',
   })
-  async cancelReservation(@Param('id', ParseUUIDPipe) id: string) {
+  async cancelReservation(@Param('id', ParseEntityIdPipe) id: string) {
     await this.adminService.cancelReservation(id);
     return { success: true };
   }
@@ -43,7 +43,7 @@ export class AdminOperationsController {
   @ApiOperation({
     summary: 'Obter QR Code de um ingresso (uso administrativo)',
   })
-  async getTicketQrCode(@Param('id', ParseUUIDPipe) id: string) {
+  async getTicketQrCode(@Param('id', ParseEntityIdPipe) id: string) {
     return this.adminService.getTicketQrCode(id);
   }
 }

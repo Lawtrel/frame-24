@@ -11,8 +11,8 @@ import {
   Patch,
   Delete,
   Put,
-  ParseUUIDPipe,
 } from '@nestjs/common';
+import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import {
   ApiTags,
   ApiOperation,
@@ -114,7 +114,7 @@ export class ShowtimesController {
   @ApiNotFoundResponse({ description: 'Sessão não encontrada.' })
   @ApiForbiddenResponse({ description: 'Acesso negado a esta sessão.' })
   async findOne(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
   ): Promise<ShowtimeDetailsDto> {
     return this.service.findOne(id);
   }
@@ -124,7 +124,7 @@ export class ShowtimesController {
   @ApiOperation({ summary: 'Obter o mapa de assentos de uma sessão' })
   @ApiNotFoundResponse({ description: 'Sessão não encontrada.' })
   @ApiForbiddenResponse({ description: 'Acesso negado a esta sessão.' })
-  async getSeatsMap(@Param('id', ParseUUIDPipe) id: string) {
+  async getSeatsMap(@Param('id', ParseEntityIdPipe) id: string) {
     return this.service.getSeatsMap(id);
   }
 
@@ -135,7 +135,7 @@ export class ShowtimesController {
   @ApiForbiddenResponse({ description: 'Acesso negado a esta sessão.' })
   @ApiConflictResponse({ description: 'Conflito de horário com outra sessão.' })
   async update(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
     @Body() dto: UpdateShowtimeDto,
   ) {
     return this.service.update(id, dto);
@@ -148,7 +148,7 @@ export class ShowtimesController {
   @ApiResponse({ status: 200, description: 'Sessão cancelada com sucesso.' })
   @ApiNotFoundResponse({ description: 'Sessão não encontrada.' })
   @ApiForbiddenResponse({ description: 'Acesso negado a esta sessão.' })
-  async remove(@Param('id', ParseUUIDPipe) id: string) {
+  async remove(@Param('id', ParseEntityIdPipe) id: string) {
     return this.service.remove(id);
   }
 
@@ -158,7 +158,7 @@ export class ShowtimesController {
     summary: 'Atualizar o status manual de um assento em uma sessão',
   })
   async updateSeatStatus(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseEntityIdPipe) id: string,
     @Param('seatId') seatId: string,
     @Body() dto: UpdateShowtimeSeatStatusDto,
   ) {

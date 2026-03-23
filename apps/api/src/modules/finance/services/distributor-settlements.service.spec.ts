@@ -14,6 +14,7 @@ describe('DistributorSettlementsService', () => {
 
   beforeEach(() => {
     prisma = {
+      $queryRaw: jest.fn(),
       cinema_complexes: {
         findFirst: jest.fn(),
         findMany: jest.fn(),
@@ -75,7 +76,9 @@ describe('DistributorSettlementsService', () => {
 
   it('should throw when complex does not belong to company', async () => {
     prisma.exhibition_contracts.findFirst.mockResolvedValue({
+      id: 'contract-1',
       cinema_complex_id: 'complex-1',
+      movie_id: 'movie-1',
     } as never);
     prisma.suppliers.findFirst.mockResolvedValue({ id: 'supplier-1' } as never);
     prisma.cinema_complexes.findFirst.mockResolvedValue(null);
@@ -95,10 +98,15 @@ describe('DistributorSettlementsService', () => {
 
   it('should create settlement, calculate net values and create payable when positive', async () => {
     prisma.exhibition_contracts.findFirst.mockResolvedValue({
+      id: 'contract-1',
       cinema_complex_id: 'complex-1',
+      movie_id: 'movie-1',
     } as never);
     prisma.suppliers.findFirst.mockResolvedValue({ id: 'supplier-1' } as never);
     prisma.cinema_complexes.findFirst.mockResolvedValue({ id: 'complex-1' } as never);
+    prisma.$queryRaw.mockResolvedValue([
+      { gross_revenue: 1200, total_tickets_sold: 100 },
+    ] as never);
     prisma.distributor_settlements.create.mockResolvedValue({ id: 'sett-1' } as never);
     accountsPayableService.createForCompany.mockResolvedValue({ id: 'ap-1' } as never);
 
@@ -117,11 +125,13 @@ describe('DistributorSettlementsService', () => {
     expect(prisma.distributor_settlements.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         id: 'sett-1',
-        calculated_settlement_amount: 400,
-        final_settlement_amount: 350,
-        net_payment_amount: 325,
-        settlement_base_amount: 350,
-        net_settlement_amount: 325,
+        gross_box_office_revenue: 1200,
+        total_tickets_sold: 100,
+        calculated_settlement_amount: 480,
+        final_settlement_amount: 430,
+        net_payment_amount: 405,
+        settlement_base_amount: 430,
+        net_settlement_amount: 405,
       }),
     });
     expect(accountsPayableService.createForCompany).toHaveBeenCalledWith(
@@ -130,7 +140,7 @@ describe('DistributorSettlementsService', () => {
         dto: expect.objectContaining({
           source_type: 'distributor_settlement',
           source_id: 'sett-1',
-          original_amount: 325,
+          original_amount: 405,
         }),
       }),
     );
@@ -139,10 +149,15 @@ describe('DistributorSettlementsService', () => {
 
   it('should not fail settlement creation when payable creation throws', async () => {
     prisma.exhibition_contracts.findFirst.mockResolvedValue({
+      id: 'contract-1',
       cinema_complex_id: 'complex-1',
+      movie_id: 'movie-1',
     } as never);
     prisma.suppliers.findFirst.mockResolvedValue({ id: 'supplier-1' } as never);
     prisma.cinema_complexes.findFirst.mockResolvedValue({ id: 'complex-1' } as never);
+    prisma.$queryRaw.mockResolvedValue([
+      { gross_revenue: 100, total_tickets_sold: 10 },
+    ] as never);
     prisma.distributor_settlements.create.mockResolvedValue({ id: 'sett-1' } as never);
     accountsPayableService.createForCompany.mockRejectedValue(new Error('ap error'));
 

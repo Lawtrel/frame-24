@@ -114,6 +114,36 @@ export class AccountsReceivableRepository {
     });
   }
 
+  async findBySaleId(
+    saleId: string,
+    companyId: string,
+  ): Promise<accounts_receivable[]> {
+    return this.prisma.accounts_receivable.findMany({
+      where: {
+        sale_id: saleId,
+        company_id: companyId,
+      },
+      orderBy: { created_at: 'desc' },
+    });
+  }
+
+  async cancelBySaleId(
+    saleId: string,
+    companyId: string,
+  ): Promise<Prisma.BatchPayload> {
+    return this.prisma.accounts_receivable.updateMany({
+      where: {
+        sale_id: saleId,
+        company_id: companyId,
+        status: { in: ['pending', 'partially_paid', 'overdue'] },
+      },
+      data: {
+        status: 'cancelled',
+        remaining_amount: 0,
+      },
+    });
+  }
+
   async update(
     id: string,
     dto: UpdateAccountReceivableDto,
