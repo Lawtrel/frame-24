@@ -332,6 +332,33 @@ describe('CustomRoleRepository', () => {
     });
   });
 
+  describe('createAdminRole', () => {
+    it('deve criar a role Super Admin com company_id explícito', async () => {
+      prismaService.custom_roles.create.mockResolvedValue({
+        ...mockCustomRole,
+        name: 'Super Admin',
+      });
+
+      const result = await repository.createAdminRole('company-456');
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          name: 'Super Admin',
+        }),
+      );
+      expect(prismaService.custom_roles.create).toHaveBeenCalledWith({
+        data: {
+          id: '123456789',
+          company_id: 'company-456',
+          name: 'Super Admin',
+          description: 'Administrador com acesso total',
+          is_system_role: true,
+          hierarchy_level: 1,
+        },
+      });
+    });
+  });
+
   describe('update', () => {
     const updateData: Prisma.custom_rolesUpdateInput = {
       description: 'Descrição atualizada',

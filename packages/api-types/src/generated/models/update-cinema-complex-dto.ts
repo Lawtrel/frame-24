@@ -12,82 +12,79 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface UpdateCinemaComplexDto
  */
 export interface UpdateCinemaComplexDto {
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateCinemaComplexDto
-   */
-  company_id?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateCinemaComplexDto
-   */
-  name?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateCinemaComplexDto
-   */
-  code?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateCinemaComplexDto
-   */
-  cnpj?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateCinemaComplexDto
-   */
-  address?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateCinemaComplexDto
-   */
-  city?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateCinemaComplexDto
-   */
-  state?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateCinemaComplexDto
-   */
-  postal_code?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateCinemaComplexDto
-   */
-  ibge_municipality_code?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateCinemaComplexDto
-   */
-  ancine_registry?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateCinemaComplexDto
-   */
-  opening_date?: string;
-  /**
-   *
-   * @type {boolean}
-   * @memberof UpdateCinemaComplexDto
-   */
-  active?: boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateCinemaComplexDto
+     */
+    'name'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateCinemaComplexDto
+     */
+    'code'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateCinemaComplexDto
+     */
+    'cnpj'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateCinemaComplexDto
+     */
+    'address'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateCinemaComplexDto
+     */
+    'city'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateCinemaComplexDto
+     */
+    'state'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateCinemaComplexDto
+     */
+    'postal_code'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateCinemaComplexDto
+     */
+    'ibge_municipality_code'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateCinemaComplexDto
+     */
+    'ancine_registry'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateCinemaComplexDto
+     */
+    'opening_date'?: string;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof UpdateCinemaComplexDto
+     */
+    'active'?: boolean;
 }
+

@@ -12,52 +12,55 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface CustomerAuthResponseDtoCustomer
  */
 export interface CustomerAuthResponseDtoCustomer {
-  /**
-   *
-   * @type {string}
-   * @memberof CustomerAuthResponseDtoCustomer
-   */
-  id: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CustomerAuthResponseDtoCustomer
-   */
-  email: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CustomerAuthResponseDtoCustomer
-   */
-  name: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CustomerAuthResponseDtoCustomer
-   */
-  company_id: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CustomerAuthResponseDtoCustomer
-   */
-  tenant_slug: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CustomerAuthResponseDtoCustomer
-   */
-  loyalty_level: string;
-  /**
-   *
-   * @type {number}
-   * @memberof CustomerAuthResponseDtoCustomer
-   */
-  accumulated_points: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof CustomerAuthResponseDtoCustomer
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CustomerAuthResponseDtoCustomer
+     */
+    'email': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CustomerAuthResponseDtoCustomer
+     */
+    'name': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CustomerAuthResponseDtoCustomer
+     */
+    'company_id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CustomerAuthResponseDtoCustomer
+     */
+    'tenant_slug': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CustomerAuthResponseDtoCustomer
+     */
+    'loyalty_level': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof CustomerAuthResponseDtoCustomer
+     */
+    'accumulated_points': number;
 }
+

@@ -12,16 +12,19 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface UpdateSeatStatusDto
  */
 export interface UpdateSeatStatusDto {
-  /**
-   * O novo status do assento (true para ativo, false para inativo/manutenção).
-   * @type {boolean}
-   * @memberof UpdateSeatStatusDto
-   */
-  active: boolean;
+    /**
+     * O novo status do assento (true para ativo, false para inativo/manutenção).
+     * @type {boolean}
+     * @memberof UpdateSeatStatusDto
+     */
+    'active': boolean;
 }
+

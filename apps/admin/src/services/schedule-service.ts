@@ -13,7 +13,7 @@ export const ScheduleService = {
     const response = await showtimesApi.showtimesControllerFindAllV1({
       startTime: new Date(0).toISOString(),
     });
-    return response.data;
+    return (response.data ?? []) as any[];
   },
 
   // Criar sessão
@@ -38,7 +38,7 @@ export const ScheduleService = {
       // 1. Busca os complexos primeiro
       const complexesResponse =
         await cinemaComplexesApi.cinemaComplexesControllerFindAllV1();
-      const complexes = complexesResponse.data as any[];
+      const complexes = (complexesResponse.data ?? []) as any[];
 
       if (!complexes || complexes.length === 0) {
         return [];
@@ -52,7 +52,7 @@ export const ScheduleService = {
           });
 
           // Injetamos o objeto do complexo dentro da sala para o UI exibir o nome corretamente
-          return (roomsResponse.data as any[]).map((room) => ({
+          return ((roomsResponse.data ?? []) as any[]).map((room) => ({
             ...room,
             cinema_complexes: complex, // Garante que {room.cinema_complexes.name} funcione no select
           }));

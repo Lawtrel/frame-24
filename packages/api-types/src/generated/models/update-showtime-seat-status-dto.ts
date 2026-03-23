@@ -12,24 +12,27 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface UpdateShowtimeSeatStatusDto
  */
 export interface UpdateShowtimeSeatStatusDto {
-  /**
-   * Novo status do assento
-   * @type {string}
-   * @memberof UpdateShowtimeSeatStatusDto
-   */
-  status: UpdateShowtimeSeatStatusDtoStatusEnum;
+    /**
+     * Novo status do assento
+     * @type {string}
+     * @memberof UpdateShowtimeSeatStatusDto
+     */
+    'status': UpdateShowtimeSeatStatusDtoStatusEnum;
 }
 
 export const UpdateShowtimeSeatStatusDtoStatusEnum = {
-  Bloqueado: "Bloqueado",
-  Disponvel: "Disponível",
+    Bloqueado: 'Bloqueado',
+    Disponvel: 'Disponível'
 } as const;
 
-export type UpdateShowtimeSeatStatusDtoStatusEnum =
-  (typeof UpdateShowtimeSeatStatusDtoStatusEnum)[keyof typeof UpdateShowtimeSeatStatusDtoStatusEnum];
+export type UpdateShowtimeSeatStatusDtoStatusEnum = typeof UpdateShowtimeSeatStatusDtoStatusEnum[keyof typeof UpdateShowtimeSeatStatusDtoStatusEnum];
+
+

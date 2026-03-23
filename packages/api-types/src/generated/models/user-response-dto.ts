@@ -12,62 +12,64 @@
  * Do not edit the class manually.
  */
 
+
 // May contain unused imports in some cases
 // @ts-ignore
-import type { UserResponseDtoCompanyUser } from "./user-response-dto-company-user";
+import type { UserResponseDtoCompanyUser } from './user-response-dto-company-user';
 
 /**
- *
+ * 
  * @export
  * @interface UserResponseDto
  */
 export interface UserResponseDto {
-  /**
-   * ID do funcionário
-   * @type {string}
-   * @memberof UserResponseDto
-   */
-  employee_id: string;
-  /**
-   * Nome completo
-   * @type {string}
-   * @memberof UserResponseDto
-   */
-  full_name: string;
-  /**
-   * Email
-   * @type {string}
-   * @memberof UserResponseDto
-   */
-  email: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UserResponseDto
-   */
-  cpf?: string | null;
-  /**
-   *
-   * @type {string}
-   * @memberof UserResponseDto
-   */
-  mobile?: string | null;
-  /**
-   *
-   * @type {UserResponseDtoCompanyUser}
-   * @memberof UserResponseDto
-   */
-  company_user: UserResponseDtoCompanyUser;
-  /**
-   * Data de criação
-   * @type {string}
-   * @memberof UserResponseDto
-   */
-  created_at: string;
-  /**
-   * Data de atualização
-   * @type {string}
-   * @memberof UserResponseDto
-   */
-  updated_at: string;
+    /**
+     * ID do funcionário
+     * @type {string}
+     * @memberof UserResponseDto
+     */
+    'employee_id': string;
+    /**
+     * Nome completo
+     * @type {string}
+     * @memberof UserResponseDto
+     */
+    'full_name': string;
+    /**
+     * Email
+     * @type {string}
+     * @memberof UserResponseDto
+     */
+    'email': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserResponseDto
+     */
+    'cpf'?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserResponseDto
+     */
+    'mobile'?: string | null;
+    /**
+     * 
+     * @type {UserResponseDtoCompanyUser}
+     * @memberof UserResponseDto
+     */
+    'company_user': UserResponseDtoCompanyUser;
+    /**
+     * Data de criação
+     * @type {string}
+     * @memberof UserResponseDto
+     */
+    'created_at': string;
+    /**
+     * Data de atualização
+     * @type {string}
+     * @memberof UserResponseDto
+     */
+    'updated_at': string;
 }
+

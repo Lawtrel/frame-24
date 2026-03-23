@@ -12,46 +12,49 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface CreateMovieDtoMediaInner
  */
 export interface CreateMovieDtoMediaInner {
-  /**
-   *
-   * @type {string}
-   * @memberof CreateMovieDtoMediaInner
-   */
-  media_type: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CreateMovieDtoMediaInner
-   */
-  media_url: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CreateMovieDtoMediaInner
-   */
-  title?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CreateMovieDtoMediaInner
-   */
-  description?: string;
-  /**
-   *
-   * @type {number}
-   * @memberof CreateMovieDtoMediaInner
-   */
-  width?: number;
-  /**
-   *
-   * @type {number}
-   * @memberof CreateMovieDtoMediaInner
-   */
-  height?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateMovieDtoMediaInner
+     */
+    'media_type': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateMovieDtoMediaInner
+     */
+    'media_url': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateMovieDtoMediaInner
+     */
+    'title'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateMovieDtoMediaInner
+     */
+    'description'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof CreateMovieDtoMediaInner
+     */
+    'width'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof CreateMovieDtoMediaInner
+     */
+    'height'?: number;
 }
+

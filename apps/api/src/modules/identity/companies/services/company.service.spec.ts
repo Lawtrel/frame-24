@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { Company } from 'src/modules/identity/auth/domain/entities/company.entity';
 import { CompanyMapper } from 'src/modules/identity/auth/infraestructure/mappers/company.mapper';
 import { companies, Prisma, $Enums } from '@repo/db';
@@ -19,7 +18,6 @@ type MockPrismaService = {
 describe('CompanyRepository', () => {
   let repository: CompanyRepository;
   let prismaService: MockPrismaService;
-  let snowflakeService: jest.Mocked<SnowflakeService>;
 
   const mockRawCompany: companies = {
     id: '123456789',
@@ -110,18 +108,11 @@ describe('CompanyRepository', () => {
             },
           },
         },
-        {
-          provide: SnowflakeService,
-          useValue: {
-            generate: jest.fn().mockReturnValue('123456789'),
-          },
-        },
       ],
     }).compile();
 
     repository = module.get<CompanyRepository>(CompanyRepository);
     prismaService = module.get(PrismaService);
-    snowflakeService = module.get(SnowflakeService);
 
     jest.spyOn(CompanyMapper, 'toDomain').mockReturnValue(mockDomainCompany);
   });
@@ -289,23 +280,19 @@ describe('CompanyRepository', () => {
 
       expect(result).toEqual(mockRawCompany);
       expect(prismaService.companies.create).toHaveBeenCalledWith({
-        data: {
-          id: '123456789',
-          ...createData,
-        },
+        data: createData,
       });
     });
 
-    it('deve gerar um ID usando SnowflakeService', async () => {
+    it('deve delegar a geração de ID ao Prisma/schema', async () => {
       prismaService.companies.create.mockResolvedValue(mockRawCompany);
 
       await repository.create(createData);
 
-      expect(snowflakeService.generate).toHaveBeenCalled();
       expect(prismaService.companies.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            id: '123456789',
+            ...createData,
           }),
         }),
       );
@@ -332,7 +319,6 @@ describe('CompanyRepository', () => {
       expect(prismaService.companies.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           ...fullData,
-          id: expect.any(String),
         }),
       });
     });

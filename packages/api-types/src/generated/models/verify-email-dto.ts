@@ -12,16 +12,19 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface VerifyEmailDto
  */
 export interface VerifyEmailDto {
-  /**
-   * Token de verificação enviado por email
-   * @type {string}
-   * @memberof VerifyEmailDto
-   */
-  token: string;
+    /**
+     * Token de verificação enviado por email
+     * @type {string}
+     * @memberof VerifyEmailDto
+     */
+    'token': string;
 }
+

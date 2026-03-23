@@ -3,7 +3,7 @@ import { AgingAutomationService } from './aging-automation.service';
 
 describe('AgingAutomationService', () => {
   let service: AgingAutomationService;
-  let prisma: jest.Mocked<PrismaService>;
+  let prisma: any;
 
   beforeEach(() => {
     prisma = {
@@ -17,7 +17,7 @@ describe('AgingAutomationService', () => {
         findMany: jest.fn(),
         update: jest.fn(),
       },
-    } as unknown as jest.Mocked<PrismaService>;
+    } as any;
 
     service = new AgingAutomationService(prisma);
   });

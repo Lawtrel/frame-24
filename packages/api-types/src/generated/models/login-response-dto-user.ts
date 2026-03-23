@@ -12,40 +12,43 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface LoginResponseDtoUser
  */
 export interface LoginResponseDtoUser {
-  /**
-   *
-   * @type {string}
-   * @memberof LoginResponseDtoUser
-   */
-  id: string;
-  /**
-   *
-   * @type {string}
-   * @memberof LoginResponseDtoUser
-   */
-  email: string;
-  /**
-   *
-   * @type {string}
-   * @memberof LoginResponseDtoUser
-   */
-  company_id: string;
-  /**
-   *
-   * @type {string}
-   * @memberof LoginResponseDtoUser
-   */
-  role_id: string;
-  /**
-   *
-   * @type {string}
-   * @memberof LoginResponseDtoUser
-   */
-  employee_id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LoginResponseDtoUser
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LoginResponseDtoUser
+     */
+    'email': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LoginResponseDtoUser
+     */
+    'company_id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LoginResponseDtoUser
+     */
+    'role_id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LoginResponseDtoUser
+     */
+    'employee_id': string;
 }
+

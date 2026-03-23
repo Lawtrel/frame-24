@@ -12,58 +12,61 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface CreateStockMovementDto
  */
 export interface CreateStockMovementDto {
-  /**
-   * ID do produto
-   * @type {string}
-   * @memberof CreateStockMovementDto
-   */
-  product_id: string;
-  /**
-   * ID do complexo de cinema
-   * @type {string}
-   * @memberof CreateStockMovementDto
-   */
-  complex_id: string;
-  /**
-   * ID do tipo de movimentação
-   * @type {string}
-   * @memberof CreateStockMovementDto
-   */
-  movement_type: string;
-  /**
-   * Quantidade movimentada
-   * @type {number}
-   * @memberof CreateStockMovementDto
-   */
-  quantity: number;
-  /**
-   * Valor unitário
-   * @type {number}
-   * @memberof CreateStockMovementDto
-   */
-  unit_value?: number;
-  /**
-   * Tipo de origem (ex: SALE, PURCHASE)
-   * @type {string}
-   * @memberof CreateStockMovementDto
-   */
-  origin_type?: string;
-  /**
-   * ID da origem
-   * @type {string}
-   * @memberof CreateStockMovementDto
-   */
-  origin_id?: string;
-  /**
-   * Observações
-   * @type {string}
-   * @memberof CreateStockMovementDto
-   */
-  observations?: string;
+    /**
+     * ID do produto
+     * @type {string}
+     * @memberof CreateStockMovementDto
+     */
+    'product_id': string;
+    /**
+     * ID do complexo de cinema
+     * @type {string}
+     * @memberof CreateStockMovementDto
+     */
+    'complex_id': string;
+    /**
+     * ID do tipo de movimentação
+     * @type {string}
+     * @memberof CreateStockMovementDto
+     */
+    'movement_type': string;
+    /**
+     * Quantidade movimentada
+     * @type {number}
+     * @memberof CreateStockMovementDto
+     */
+    'quantity': number;
+    /**
+     * Valor unitário
+     * @type {number}
+     * @memberof CreateStockMovementDto
+     */
+    'unit_value'?: number;
+    /**
+     * Tipo de origem (ex: SALE, PURCHASE)
+     * @type {string}
+     * @memberof CreateStockMovementDto
+     */
+    'origin_type'?: string;
+    /**
+     * ID da origem
+     * @type {string}
+     * @memberof CreateStockMovementDto
+     */
+    'origin_id'?: string;
+    /**
+     * Observações
+     * @type {string}
+     * @memberof CreateStockMovementDto
+     */
+    'observations'?: string;
 }
+

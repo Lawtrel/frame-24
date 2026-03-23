@@ -12,46 +12,49 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface UpdateChartAccountDto
  */
 export interface UpdateChartAccountDto {
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateChartAccountDto
-   */
-  account_code?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateChartAccountDto
-   */
-  account_name?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateChartAccountDto
-   */
-  account_type?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateChartAccountDto
-   */
-  account_nature?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateChartAccountDto
-   */
-  parent_account_id?: string;
-  /**
-   *
-   * @type {boolean}
-   * @memberof UpdateChartAccountDto
-   */
-  allows_entry?: boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateChartAccountDto
+     */
+    'account_code'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateChartAccountDto
+     */
+    'account_name'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateChartAccountDto
+     */
+    'account_type'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateChartAccountDto
+     */
+    'account_nature'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateChartAccountDto
+     */
+    'parent_account_id'?: string;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof UpdateChartAccountDto
+     */
+    'allows_entry'?: boolean;
 }
+

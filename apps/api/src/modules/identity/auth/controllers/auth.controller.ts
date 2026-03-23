@@ -8,7 +8,7 @@ import {
   UseGuards,
   Res,
 } from '@nestjs/common';
-import * as express from 'express';
+import type { Response } from 'express';
 import {
   ApiTags,
   ApiOperation,
@@ -47,7 +47,7 @@ export class AuthController {
     private readonly cls: ClsService,
   ) {}
 
-  private setAuthCookie(res: express.Response, token: string): void {
+  private setAuthCookie(res: Response, token: string): void {
     const isProduction = process.env.NODE_ENV === 'production';
     res.cookie('access_token', token, {
       httpOnly: true,
@@ -109,7 +109,7 @@ export class AuthController {
   })
   async login(
     @Body() dto: LoginDto,
-    @Res({ passthrough: true }) res: express.Response,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<LoginResponseDto> {
     const result = await this.authService.login(dto.email, dto.password);
     if (result.access_token) {
@@ -158,7 +158,7 @@ export class AuthController {
   })
   async selectCompany(
     @Body() dto: SelectCompanyDto,
-    @Res({ passthrough: true }) res: express.Response,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<LoginResponseDto> {
     const result = await this.authService.selectCompany(
       dto.temp_token,

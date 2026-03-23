@@ -12,22 +12,25 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface ResetPasswordDto
  */
 export interface ResetPasswordDto {
-  /**
-   * Token de validação enviado por email
-   * @type {string}
-   * @memberof ResetPasswordDto
-   */
-  token: string;
-  /**
-   * Nova senha (mín. 8 caracteres, maiúscula, minúscula e número)
-   * @type {string}
-   * @memberof ResetPasswordDto
-   */
-  password: string;
+    /**
+     * Token de validação enviado por email
+     * @type {string}
+     * @memberof ResetPasswordDto
+     */
+    'token': string;
+    /**
+     * Nova senha (mín. 8 caracteres, maiúscula, minúscula e número)
+     * @type {string}
+     * @memberof ResetPasswordDto
+     */
+    'password': string;
 }
+

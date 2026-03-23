@@ -6,7 +6,7 @@ import { ChartOfAccountsService } from './chart-of-accounts.service';
 
 describe('ChartOfAccountsService', () => {
   let service: ChartOfAccountsService;
-  let prisma: jest.Mocked<PrismaService>;
+  let prisma: any;
   let snowflake: jest.Mocked<SnowflakeService>;
   let tenantContext: jest.Mocked<TenantContextService>;
 
@@ -18,7 +18,7 @@ describe('ChartOfAccountsService', () => {
         create: jest.fn(),
         update: jest.fn(),
       },
-    } as unknown as jest.Mocked<PrismaService>;
+    } as any;
 
     snowflake = {
       generate: jest.fn(),

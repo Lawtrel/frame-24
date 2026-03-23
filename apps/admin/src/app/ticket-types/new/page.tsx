@@ -2,9 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { SalesService } from "@/services/sales-services"; // Ajuste o import se necessário
-import { apiConfig } from "@/services/api-config"; // Importe apiConfig
-import { TicketsApi } from "@repo/api-types"; // Import direto para garantir tipagem
+import { SalesService } from "@/services/sales-services";
 
 export default function NewTicketTypePage() {
   const router = useRouter();
@@ -19,15 +17,10 @@ export default function NewTicketTypePage() {
     e.preventDefault();
     setLoading(true);
     try {
-      // Usando a API direta para evitar confusão de nomes no service wrapper
-      const api = new TicketTypesApi(apiConfig);
-      await api.ticketTypesControllerCreateV1({
-        createTicketTypeDto: {
-          // O nome correto do DTO deve ser verificado na API gerada
-          name: formData.name,
-          description: formData.description,
-          discount_percentage: Number(formData.discount_percentage),
-        } as any,
+      await SalesService.createTicketType({
+        name: formData.name,
+        description: formData.description,
+        discount_percentage: Number(formData.discount_percentage),
       });
 
       router.push("/ticket-types");

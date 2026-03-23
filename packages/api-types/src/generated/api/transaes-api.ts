@@ -12,275 +12,164 @@
  * Do not edit the class manually.
  */
 
-import type { Configuration } from "../configuration";
-import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from "axios";
-import globalAxios from "axios";
+
+import type { Configuration } from '../configuration';
+import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from 'axios';
+import globalAxios from 'axios';
 // Some imports not used depending on template conditions
 // @ts-ignore
-import {
-  DUMMY_BASE_URL,
-  assertParamExists,
-  setApiKeyToObject,
-  setBasicAuthToObject,
-  setBearerAuthToObject,
-  setOAuthToObject,
-  setSearchParams,
-  serializeDataIfNeeded,
-  toPathString,
-  createRequestFunction,
-} from "../common";
+import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from '../common';
 // @ts-ignore
-import {
-  BASE_PATH,
-  COLLECTION_FORMATS,
-  type RequestArgs,
-  BaseAPI,
-  RequiredError,
-  operationServerMap,
-} from "../base";
+import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
 // @ts-ignore
-import type { CreatePayableTransactionDto } from "../models";
+import type { CreatePayableTransactionDto } from '../models';
 // @ts-ignore
-import type { CreateReceivableTransactionDto } from "../models";
+import type { CreateReceivableTransactionDto } from '../models';
 /**
  * TransaesApi - axios parameter creator
  * @export
  */
-export const TransaesApiAxiosParamCreator = function (
-  configuration?: Configuration,
-) {
-  return {
-    /**
-     * Liquida (baixa) uma conta a pagar, registrando a saída de dinheiro do fluxo de caixa. Permite pagamentos parciais e aplicação de juros/multas.
-     * @summary Liquidar conta a pagar
-     * @param {CreatePayableTransactionDto} createPayableTransactionDto
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    transactionsControllerSettlePayable: async (
-      createPayableTransactionDto: CreatePayableTransactionDto,
-      options: RawAxiosRequestConfig = {},
-    ): Promise<RequestArgs> => {
-      // verify required parameter 'createPayableTransactionDto' is not null or undefined
-      assertParamExists(
-        "transactionsControllerSettlePayable",
-        "createPayableTransactionDto",
-        createPayableTransactionDto,
-      );
-      const localVarPath = `/finance/transactions/payables/settle`;
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
+export const TransaesApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Liquida (baixa) uma conta a pagar, registrando a saída de dinheiro do fluxo de caixa. Permite pagamentos parciais e aplicação de juros/multas.
+         * @summary Liquidar conta a pagar
+         * @param {CreatePayableTransactionDto} createPayableTransactionDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        transactionsControllerSettlePayable: async (createPayableTransactionDto: CreatePayableTransactionDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'createPayableTransactionDto' is not null or undefined
+            assertParamExists('transactionsControllerSettlePayable', 'createPayableTransactionDto', createPayableTransactionDto)
+            const localVarPath = `/finance/transactions/payables/settle`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
 
-      const localVarRequestOptions = {
-        method: "POST",
-        ...baseOptions,
-        ...options,
-      };
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
 
-      localVarHeaderParameter["Content-Type"] = "application/json";
 
-      setSearchParams(localVarUrlObj, localVarQueryParameter);
-      let headersFromBaseOptions =
-        baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      };
-      localVarRequestOptions.data = serializeDataIfNeeded(
-        createPayableTransactionDto,
-        localVarRequestOptions,
-        configuration,
-      );
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
 
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-     * Liquida (baixa) uma conta a receber, registrando a entrada de dinheiro no fluxo de caixa. Permite pagamentos parciais e aplicação de juros/multas.
-     * @summary Liquidar conta a receber
-     * @param {CreateReceivableTransactionDto} createReceivableTransactionDto
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    transactionsControllerSettleReceivable: async (
-      createReceivableTransactionDto: CreateReceivableTransactionDto,
-      options: RawAxiosRequestConfig = {},
-    ): Promise<RequestArgs> => {
-      // verify required parameter 'createReceivableTransactionDto' is not null or undefined
-      assertParamExists(
-        "transactionsControllerSettleReceivable",
-        "createReceivableTransactionDto",
-        createReceivableTransactionDto,
-      );
-      const localVarPath = `/finance/transactions/receivables/settle`;
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(createPayableTransactionDto, localVarRequestOptions, configuration)
 
-      const localVarRequestOptions = {
-        method: "POST",
-        ...baseOptions,
-        ...options,
-      };
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Liquida (baixa) uma conta a receber, registrando a entrada de dinheiro no fluxo de caixa. Permite pagamentos parciais e aplicação de juros/multas.
+         * @summary Liquidar conta a receber
+         * @param {CreateReceivableTransactionDto} createReceivableTransactionDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        transactionsControllerSettleReceivable: async (createReceivableTransactionDto: CreateReceivableTransactionDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'createReceivableTransactionDto' is not null or undefined
+            assertParamExists('transactionsControllerSettleReceivable', 'createReceivableTransactionDto', createReceivableTransactionDto)
+            const localVarPath = `/finance/transactions/receivables/settle`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
 
-      localVarHeaderParameter["Content-Type"] = "application/json";
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
 
-      setSearchParams(localVarUrlObj, localVarQueryParameter);
-      let headersFromBaseOptions =
-        baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      };
-      localVarRequestOptions.data = serializeDataIfNeeded(
-        createReceivableTransactionDto,
-        localVarRequestOptions,
-        configuration,
-      );
 
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-  };
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(createReceivableTransactionDto, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
 };
 
 /**
  * TransaesApi - functional programming interface
  * @export
  */
-export const TransaesApiFp = function (configuration?: Configuration) {
-  const localVarAxiosParamCreator = TransaesApiAxiosParamCreator(configuration);
-  return {
-    /**
-     * Liquida (baixa) uma conta a pagar, registrando a saída de dinheiro do fluxo de caixa. Permite pagamentos parciais e aplicação de juros/multas.
-     * @summary Liquidar conta a pagar
-     * @param {CreatePayableTransactionDto} createPayableTransactionDto
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async transactionsControllerSettlePayable(
-      createPayableTransactionDto: CreatePayableTransactionDto,
-      options?: RawAxiosRequestConfig,
-    ): Promise<
-      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
-    > {
-      const localVarAxiosArgs =
-        await localVarAxiosParamCreator.transactionsControllerSettlePayable(
-          createPayableTransactionDto,
-          options,
-        );
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-      const localVarOperationServerBasePath =
-        operationServerMap["TransaesApi.transactionsControllerSettlePayable"]?.[
-          localVarOperationServerIndex
-        ]?.url;
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration,
-        )(axios, localVarOperationServerBasePath || basePath);
-    },
-    /**
-     * Liquida (baixa) uma conta a receber, registrando a entrada de dinheiro no fluxo de caixa. Permite pagamentos parciais e aplicação de juros/multas.
-     * @summary Liquidar conta a receber
-     * @param {CreateReceivableTransactionDto} createReceivableTransactionDto
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async transactionsControllerSettleReceivable(
-      createReceivableTransactionDto: CreateReceivableTransactionDto,
-      options?: RawAxiosRequestConfig,
-    ): Promise<
-      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
-    > {
-      const localVarAxiosArgs =
-        await localVarAxiosParamCreator.transactionsControllerSettleReceivable(
-          createReceivableTransactionDto,
-          options,
-        );
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-      const localVarOperationServerBasePath =
-        operationServerMap[
-          "TransaesApi.transactionsControllerSettleReceivable"
-        ]?.[localVarOperationServerIndex]?.url;
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration,
-        )(axios, localVarOperationServerBasePath || basePath);
-    },
-  };
+export const TransaesApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = TransaesApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Liquida (baixa) uma conta a pagar, registrando a saída de dinheiro do fluxo de caixa. Permite pagamentos parciais e aplicação de juros/multas.
+         * @summary Liquidar conta a pagar
+         * @param {CreatePayableTransactionDto} createPayableTransactionDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async transactionsControllerSettlePayable(createPayableTransactionDto: CreatePayableTransactionDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.transactionsControllerSettlePayable(createPayableTransactionDto, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TransaesApi.transactionsControllerSettlePayable']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Liquida (baixa) uma conta a receber, registrando a entrada de dinheiro no fluxo de caixa. Permite pagamentos parciais e aplicação de juros/multas.
+         * @summary Liquidar conta a receber
+         * @param {CreateReceivableTransactionDto} createReceivableTransactionDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async transactionsControllerSettleReceivable(createReceivableTransactionDto: CreateReceivableTransactionDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.transactionsControllerSettleReceivable(createReceivableTransactionDto, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TransaesApi.transactionsControllerSettleReceivable']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
 };
 
 /**
  * TransaesApi - factory interface
  * @export
  */
-export const TransaesApiFactory = function (
-  configuration?: Configuration,
-  basePath?: string,
-  axios?: AxiosInstance,
-) {
-  const localVarFp = TransaesApiFp(configuration);
-  return {
-    /**
-     * Liquida (baixa) uma conta a pagar, registrando a saída de dinheiro do fluxo de caixa. Permite pagamentos parciais e aplicação de juros/multas.
-     * @summary Liquidar conta a pagar
-     * @param {TransaesApiTransactionsControllerSettlePayableRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    transactionsControllerSettlePayable(
-      requestParameters: TransaesApiTransactionsControllerSettlePayableRequest,
-      options?: RawAxiosRequestConfig,
-    ): AxiosPromise<void> {
-      return localVarFp
-        .transactionsControllerSettlePayable(
-          requestParameters.createPayableTransactionDto,
-          options,
-        )
-        .then((request) => request(axios, basePath));
-    },
-    /**
-     * Liquida (baixa) uma conta a receber, registrando a entrada de dinheiro no fluxo de caixa. Permite pagamentos parciais e aplicação de juros/multas.
-     * @summary Liquidar conta a receber
-     * @param {TransaesApiTransactionsControllerSettleReceivableRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    transactionsControllerSettleReceivable(
-      requestParameters: TransaesApiTransactionsControllerSettleReceivableRequest,
-      options?: RawAxiosRequestConfig,
-    ): AxiosPromise<void> {
-      return localVarFp
-        .transactionsControllerSettleReceivable(
-          requestParameters.createReceivableTransactionDto,
-          options,
-        )
-        .then((request) => request(axios, basePath));
-    },
-  };
+export const TransaesApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = TransaesApiFp(configuration)
+    return {
+        /**
+         * Liquida (baixa) uma conta a pagar, registrando a saída de dinheiro do fluxo de caixa. Permite pagamentos parciais e aplicação de juros/multas.
+         * @summary Liquidar conta a pagar
+         * @param {TransaesApiTransactionsControllerSettlePayableRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        transactionsControllerSettlePayable(requestParameters: TransaesApiTransactionsControllerSettlePayableRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.transactionsControllerSettlePayable(requestParameters.createPayableTransactionDto, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Liquida (baixa) uma conta a receber, registrando a entrada de dinheiro no fluxo de caixa. Permite pagamentos parciais e aplicação de juros/multas.
+         * @summary Liquidar conta a receber
+         * @param {TransaesApiTransactionsControllerSettleReceivableRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        transactionsControllerSettleReceivable(requestParameters: TransaesApiTransactionsControllerSettleReceivableRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.transactionsControllerSettleReceivable(requestParameters.createReceivableTransactionDto, options).then((request) => request(axios, basePath));
+        },
+    };
 };
 
 /**
@@ -289,31 +178,26 @@ export const TransaesApiFactory = function (
  * @interface TransaesApi
  */
 export interface TransaesApiInterface {
-  /**
-   * Liquida (baixa) uma conta a pagar, registrando a saída de dinheiro do fluxo de caixa. Permite pagamentos parciais e aplicação de juros/multas.
-   * @summary Liquidar conta a pagar
-   * @param {TransaesApiTransactionsControllerSettlePayableRequest} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof TransaesApiInterface
-   */
-  transactionsControllerSettlePayable(
-    requestParameters: TransaesApiTransactionsControllerSettlePayableRequest,
-    options?: RawAxiosRequestConfig,
-  ): AxiosPromise<void>;
+    /**
+     * Liquida (baixa) uma conta a pagar, registrando a saída de dinheiro do fluxo de caixa. Permite pagamentos parciais e aplicação de juros/multas.
+     * @summary Liquidar conta a pagar
+     * @param {TransaesApiTransactionsControllerSettlePayableRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TransaesApiInterface
+     */
+    transactionsControllerSettlePayable(requestParameters: TransaesApiTransactionsControllerSettlePayableRequest, options?: RawAxiosRequestConfig): AxiosPromise<void>;
 
-  /**
-   * Liquida (baixa) uma conta a receber, registrando a entrada de dinheiro no fluxo de caixa. Permite pagamentos parciais e aplicação de juros/multas.
-   * @summary Liquidar conta a receber
-   * @param {TransaesApiTransactionsControllerSettleReceivableRequest} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof TransaesApiInterface
-   */
-  transactionsControllerSettleReceivable(
-    requestParameters: TransaesApiTransactionsControllerSettleReceivableRequest,
-    options?: RawAxiosRequestConfig,
-  ): AxiosPromise<void>;
+    /**
+     * Liquida (baixa) uma conta a receber, registrando a entrada de dinheiro no fluxo de caixa. Permite pagamentos parciais e aplicação de juros/multas.
+     * @summary Liquidar conta a receber
+     * @param {TransaesApiTransactionsControllerSettleReceivableRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TransaesApiInterface
+     */
+    transactionsControllerSettleReceivable(requestParameters: TransaesApiTransactionsControllerSettleReceivableRequest, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+
 }
 
 /**
@@ -322,12 +206,12 @@ export interface TransaesApiInterface {
  * @interface TransaesApiTransactionsControllerSettlePayableRequest
  */
 export interface TransaesApiTransactionsControllerSettlePayableRequest {
-  /**
-   *
-   * @type {CreatePayableTransactionDto}
-   * @memberof TransaesApiTransactionsControllerSettlePayable
-   */
-  readonly createPayableTransactionDto: CreatePayableTransactionDto;
+    /**
+     * 
+     * @type {CreatePayableTransactionDto}
+     * @memberof TransaesApiTransactionsControllerSettlePayable
+     */
+    readonly createPayableTransactionDto: CreatePayableTransactionDto
 }
 
 /**
@@ -336,12 +220,12 @@ export interface TransaesApiTransactionsControllerSettlePayableRequest {
  * @interface TransaesApiTransactionsControllerSettleReceivableRequest
  */
 export interface TransaesApiTransactionsControllerSettleReceivableRequest {
-  /**
-   *
-   * @type {CreateReceivableTransactionDto}
-   * @memberof TransaesApiTransactionsControllerSettleReceivable
-   */
-  readonly createReceivableTransactionDto: CreateReceivableTransactionDto;
+    /**
+     * 
+     * @type {CreateReceivableTransactionDto}
+     * @memberof TransaesApiTransactionsControllerSettleReceivable
+     */
+    readonly createReceivableTransactionDto: CreateReceivableTransactionDto
 }
 
 /**
@@ -351,43 +235,28 @@ export interface TransaesApiTransactionsControllerSettleReceivableRequest {
  * @extends {BaseAPI}
  */
 export class TransaesApi extends BaseAPI implements TransaesApiInterface {
-  /**
-   * Liquida (baixa) uma conta a pagar, registrando a saída de dinheiro do fluxo de caixa. Permite pagamentos parciais e aplicação de juros/multas.
-   * @summary Liquidar conta a pagar
-   * @param {TransaesApiTransactionsControllerSettlePayableRequest} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof TransaesApi
-   */
-  public transactionsControllerSettlePayable(
-    requestParameters: TransaesApiTransactionsControllerSettlePayableRequest,
-    options?: RawAxiosRequestConfig,
-  ) {
-    return TransaesApiFp(this.configuration)
-      .transactionsControllerSettlePayable(
-        requestParameters.createPayableTransactionDto,
-        options,
-      )
-      .then((request) => request(this.axios, this.basePath));
-  }
+    /**
+     * Liquida (baixa) uma conta a pagar, registrando a saída de dinheiro do fluxo de caixa. Permite pagamentos parciais e aplicação de juros/multas.
+     * @summary Liquidar conta a pagar
+     * @param {TransaesApiTransactionsControllerSettlePayableRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TransaesApi
+     */
+    public transactionsControllerSettlePayable(requestParameters: TransaesApiTransactionsControllerSettlePayableRequest, options?: RawAxiosRequestConfig) {
+        return TransaesApiFp(this.configuration).transactionsControllerSettlePayable(requestParameters.createPayableTransactionDto, options).then((request) => request(this.axios, this.basePath));
+    }
 
-  /**
-   * Liquida (baixa) uma conta a receber, registrando a entrada de dinheiro no fluxo de caixa. Permite pagamentos parciais e aplicação de juros/multas.
-   * @summary Liquidar conta a receber
-   * @param {TransaesApiTransactionsControllerSettleReceivableRequest} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof TransaesApi
-   */
-  public transactionsControllerSettleReceivable(
-    requestParameters: TransaesApiTransactionsControllerSettleReceivableRequest,
-    options?: RawAxiosRequestConfig,
-  ) {
-    return TransaesApiFp(this.configuration)
-      .transactionsControllerSettleReceivable(
-        requestParameters.createReceivableTransactionDto,
-        options,
-      )
-      .then((request) => request(this.axios, this.basePath));
-  }
+    /**
+     * Liquida (baixa) uma conta a receber, registrando a entrada de dinheiro no fluxo de caixa. Permite pagamentos parciais e aplicação de juros/multas.
+     * @summary Liquidar conta a receber
+     * @param {TransaesApiTransactionsControllerSettleReceivableRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TransaesApi
+     */
+    public transactionsControllerSettleReceivable(requestParameters: TransaesApiTransactionsControllerSettleReceivableRequest, options?: RawAxiosRequestConfig) {
+        return TransaesApiFp(this.configuration).transactionsControllerSettleReceivable(requestParameters.createReceivableTransactionDto, options).then((request) => request(this.axios, this.basePath));
+    }
 }
+

@@ -5,7 +5,7 @@ import { FinanceReportsService } from './finance-reports.service';
 
 describe('FinanceReportsService', () => {
   let service: FinanceReportsService;
-  let prisma: jest.Mocked<PrismaService>;
+  let prisma: any;
   let tenantContext: jest.Mocked<TenantContextService>;
 
   beforeEach(() => {
@@ -25,7 +25,7 @@ describe('FinanceReportsService', () => {
       accounts_payable: {
         groupBy: jest.fn(),
       },
-    } as unknown as jest.Mocked<PrismaService>;
+    } as any;
 
     tenantContext = {
       getCompanyId: jest.fn(),
@@ -114,7 +114,8 @@ describe('FinanceReportsService', () => {
     });
     expect(result.operational_result).toBe(420);
     expect(result.net_result).toBe(410);
-    expect(result.metrics.gross_margin).toBeCloseTo(64.2857, 3);
-    expect(result.metrics.net_margin).toBeCloseTo(48.8095, 3);
+    expect(result.metrics).toBeDefined();
+    expect(result.metrics!.gross_margin).toBeCloseTo(64.2857, 3);
+    expect(result.metrics!.net_margin).toBeCloseTo(48.8095, 3);
   });
 });

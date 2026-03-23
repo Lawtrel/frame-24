@@ -12,42 +12,45 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface UpdateBankReconciliationDto
  */
 export interface UpdateBankReconciliationDto {
-  /**
-   *
-   * @type {number}
-   * @memberof UpdateBankReconciliationDto
-   */
-  closing_balance?: number;
-  /**
-   *
-   * @type {number}
-   * @memberof UpdateBankReconciliationDto
-   */
-  bank_statement_balance?: number;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateBankReconciliationDto
-   */
-  notes?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateBankReconciliationDto
-   */
-  status?: UpdateBankReconciliationDtoStatusEnum;
+    /**
+     * 
+     * @type {number}
+     * @memberof UpdateBankReconciliationDto
+     */
+    'closing_balance'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof UpdateBankReconciliationDto
+     */
+    'bank_statement_balance'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateBankReconciliationDto
+     */
+    'notes'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateBankReconciliationDto
+     */
+    'status'?: UpdateBankReconciliationDtoStatusEnum;
 }
 
 export const UpdateBankReconciliationDtoStatusEnum = {
-  Pending: "pending",
-  Completed: "completed",
+    Pending: 'pending',
+    Completed: 'completed'
 } as const;
 
-export type UpdateBankReconciliationDtoStatusEnum =
-  (typeof UpdateBankReconciliationDtoStatusEnum)[keyof typeof UpdateBankReconciliationDtoStatusEnum];
+export type UpdateBankReconciliationDtoStatusEnum = typeof UpdateBankReconciliationDtoStatusEnum[keyof typeof UpdateBankReconciliationDtoStatusEnum];
+
+

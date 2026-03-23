@@ -12,551 +12,334 @@
  * Do not edit the class manually.
  */
 
-import type { Configuration } from "../configuration";
-import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from "axios";
-import globalAxios from "axios";
+
+import type { Configuration } from '../configuration';
+import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from 'axios';
+import globalAxios from 'axios';
 // Some imports not used depending on template conditions
 // @ts-ignore
-import {
-  DUMMY_BASE_URL,
-  assertParamExists,
-  setApiKeyToObject,
-  setBasicAuthToObject,
-  setBearerAuthToObject,
-  setOAuthToObject,
-  setSearchParams,
-  serializeDataIfNeeded,
-  toPathString,
-  createRequestFunction,
-} from "../common";
+import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from '../common';
 // @ts-ignore
-import {
-  BASE_PATH,
-  COLLECTION_FORMATS,
-  type RequestArgs,
-  BaseAPI,
-  RequiredError,
-  operationServerMap,
-} from "../base";
+import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
 // @ts-ignore
-import type { CreateMovieCategoryDto } from "../models";
+import type { CreateMovieCategoryDto } from '../models';
 // @ts-ignore
-import type { UpdateMovieCategoryDto } from "../models";
+import type { UpdateMovieCategoryDto } from '../models';
 /**
  * MovieCategoriesApi - axios parameter creator
  * @export
  */
-export const MovieCategoriesApiAxiosParamCreator = function (
-  configuration?: Configuration,
-) {
-  return {
-    /**
-     * Cria uma nova categoria de filme com slug único gerado automaticamente.
-     * @summary Criar categoria de filme
-     * @param {CreateMovieCategoryDto} createMovieCategoryDto
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    movieCategoriesControllerCreateV1: async (
-      createMovieCategoryDto: CreateMovieCategoryDto,
-      options: RawAxiosRequestConfig = {},
-    ): Promise<RequestArgs> => {
-      // verify required parameter 'createMovieCategoryDto' is not null or undefined
-      assertParamExists(
-        "movieCategoriesControllerCreateV1",
-        "createMovieCategoryDto",
-        createMovieCategoryDto,
-      );
-      const localVarPath = `/v1/movie-categories`;
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
+export const MovieCategoriesApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Cria uma nova categoria de filme com slug único gerado automaticamente.
+         * @summary Criar categoria de filme
+         * @param {CreateMovieCategoryDto} createMovieCategoryDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        movieCategoriesControllerCreateV1: async (createMovieCategoryDto: CreateMovieCategoryDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'createMovieCategoryDto' is not null or undefined
+            assertParamExists('movieCategoriesControllerCreateV1', 'createMovieCategoryDto', createMovieCategoryDto)
+            const localVarPath = `/v1/movie-categories`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
 
-      const localVarRequestOptions = {
-        method: "POST",
-        ...baseOptions,
-        ...options,
-      };
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
 
-      localVarHeaderParameter["Content-Type"] = "application/json";
 
-      setSearchParams(localVarUrlObj, localVarQueryParameter);
-      let headersFromBaseOptions =
-        baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      };
-      localVarRequestOptions.data = serializeDataIfNeeded(
-        createMovieCategoryDto,
-        localVarRequestOptions,
-        configuration,
-      );
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
 
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-     *
-     * @summary Excluir categoria
-     * @param {string} id
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    movieCategoriesControllerDeleteV1: async (
-      id: string,
-      options: RawAxiosRequestConfig = {},
-    ): Promise<RequestArgs> => {
-      // verify required parameter 'id' is not null or undefined
-      assertParamExists("movieCategoriesControllerDeleteV1", "id", id);
-      const localVarPath = `/v1/movie-categories/{id}`.replace(
-        `{${"id"}}`,
-        encodeURIComponent(String(id)),
-      );
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(createMovieCategoryDto, localVarRequestOptions, configuration)
 
-      const localVarRequestOptions = {
-        method: "DELETE",
-        ...baseOptions,
-        ...options,
-      };
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Excluir categoria
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        movieCategoriesControllerDeleteV1: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('movieCategoriesControllerDeleteV1', 'id', id)
+            const localVarPath = `/v1/movie-categories/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
 
-      setSearchParams(localVarUrlObj, localVarQueryParameter);
-      let headersFromBaseOptions =
-        baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      };
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
 
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-     *
-     * @summary Listar categorias de filmes
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    movieCategoriesControllerFindAllV1: async (
-      options: RawAxiosRequestConfig = {},
-    ): Promise<RequestArgs> => {
-      const localVarPath = `/v1/movie-categories`;
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
 
-      const localVarRequestOptions = {
-        method: "GET",
-        ...baseOptions,
-        ...options,
-      };
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
-      setSearchParams(localVarUrlObj, localVarQueryParameter);
-      let headersFromBaseOptions =
-        baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Listar categorias de filmes
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        movieCategoriesControllerFindAllV1: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/v1/movie-categories`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
 
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-     *
-     * @summary Buscar categoria por ID
-     * @param {string} id
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    movieCategoriesControllerFindOneV1: async (
-      id: string,
-      options: RawAxiosRequestConfig = {},
-    ): Promise<RequestArgs> => {
-      // verify required parameter 'id' is not null or undefined
-      assertParamExists("movieCategoriesControllerFindOneV1", "id", id);
-      const localVarPath = `/v1/movie-categories/{id}`.replace(
-        `{${"id"}}`,
-        encodeURIComponent(String(id)),
-      );
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
 
-      const localVarRequestOptions = {
-        method: "GET",
-        ...baseOptions,
-        ...options,
-      };
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
 
-      setSearchParams(localVarUrlObj, localVarQueryParameter);
-      let headersFromBaseOptions =
-        baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      };
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-     * Se o nome for alterado, o slug é recalculado automaticamente.
-     * @summary Atualizar categoria
-     * @param {string} id
-     * @param {UpdateMovieCategoryDto} updateMovieCategoryDto
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    movieCategoriesControllerUpdateV1: async (
-      id: string,
-      updateMovieCategoryDto: UpdateMovieCategoryDto,
-      options: RawAxiosRequestConfig = {},
-    ): Promise<RequestArgs> => {
-      // verify required parameter 'id' is not null or undefined
-      assertParamExists("movieCategoriesControllerUpdateV1", "id", id);
-      // verify required parameter 'updateMovieCategoryDto' is not null or undefined
-      assertParamExists(
-        "movieCategoriesControllerUpdateV1",
-        "updateMovieCategoryDto",
-        updateMovieCategoryDto,
-      );
-      const localVarPath = `/v1/movie-categories/{id}`.replace(
-        `{${"id"}}`,
-        encodeURIComponent(String(id)),
-      );
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Buscar categoria por ID
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        movieCategoriesControllerFindOneV1: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('movieCategoriesControllerFindOneV1', 'id', id)
+            const localVarPath = `/v1/movie-categories/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
 
-      const localVarRequestOptions = {
-        method: "PUT",
-        ...baseOptions,
-        ...options,
-      };
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
 
-      localVarHeaderParameter["Content-Type"] = "application/json";
 
-      setSearchParams(localVarUrlObj, localVarQueryParameter);
-      let headersFromBaseOptions =
-        baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      };
-      localVarRequestOptions.data = serializeDataIfNeeded(
-        updateMovieCategoryDto,
-        localVarRequestOptions,
-        configuration,
-      );
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-  };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Se o nome for alterado, o slug é recalculado automaticamente.
+         * @summary Atualizar categoria
+         * @param {string} id 
+         * @param {UpdateMovieCategoryDto} updateMovieCategoryDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        movieCategoriesControllerUpdateV1: async (id: string, updateMovieCategoryDto: UpdateMovieCategoryDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('movieCategoriesControllerUpdateV1', 'id', id)
+            // verify required parameter 'updateMovieCategoryDto' is not null or undefined
+            assertParamExists('movieCategoriesControllerUpdateV1', 'updateMovieCategoryDto', updateMovieCategoryDto)
+            const localVarPath = `/v1/movie-categories/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(updateMovieCategoryDto, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
 };
 
 /**
  * MovieCategoriesApi - functional programming interface
  * @export
  */
-export const MovieCategoriesApiFp = function (configuration?: Configuration) {
-  const localVarAxiosParamCreator =
-    MovieCategoriesApiAxiosParamCreator(configuration);
-  return {
-    /**
-     * Cria uma nova categoria de filme com slug único gerado automaticamente.
-     * @summary Criar categoria de filme
-     * @param {CreateMovieCategoryDto} createMovieCategoryDto
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async movieCategoriesControllerCreateV1(
-      createMovieCategoryDto: CreateMovieCategoryDto,
-      options?: RawAxiosRequestConfig,
-    ): Promise<
-      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
-    > {
-      const localVarAxiosArgs =
-        await localVarAxiosParamCreator.movieCategoriesControllerCreateV1(
-          createMovieCategoryDto,
-          options,
-        );
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-      const localVarOperationServerBasePath =
-        operationServerMap[
-          "MovieCategoriesApi.movieCategoriesControllerCreateV1"
-        ]?.[localVarOperationServerIndex]?.url;
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration,
-        )(axios, localVarOperationServerBasePath || basePath);
-    },
-    /**
-     *
-     * @summary Excluir categoria
-     * @param {string} id
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async movieCategoriesControllerDeleteV1(
-      id: string,
-      options?: RawAxiosRequestConfig,
-    ): Promise<
-      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
-    > {
-      const localVarAxiosArgs =
-        await localVarAxiosParamCreator.movieCategoriesControllerDeleteV1(
-          id,
-          options,
-        );
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-      const localVarOperationServerBasePath =
-        operationServerMap[
-          "MovieCategoriesApi.movieCategoriesControllerDeleteV1"
-        ]?.[localVarOperationServerIndex]?.url;
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration,
-        )(axios, localVarOperationServerBasePath || basePath);
-    },
-    /**
-     *
-     * @summary Listar categorias de filmes
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async movieCategoriesControllerFindAllV1(
-      options?: RawAxiosRequestConfig,
-    ): Promise<
-      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
-    > {
-      const localVarAxiosArgs =
-        await localVarAxiosParamCreator.movieCategoriesControllerFindAllV1(
-          options,
-        );
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-      const localVarOperationServerBasePath =
-        operationServerMap[
-          "MovieCategoriesApi.movieCategoriesControllerFindAllV1"
-        ]?.[localVarOperationServerIndex]?.url;
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration,
-        )(axios, localVarOperationServerBasePath || basePath);
-    },
-    /**
-     *
-     * @summary Buscar categoria por ID
-     * @param {string} id
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async movieCategoriesControllerFindOneV1(
-      id: string,
-      options?: RawAxiosRequestConfig,
-    ): Promise<
-      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
-    > {
-      const localVarAxiosArgs =
-        await localVarAxiosParamCreator.movieCategoriesControllerFindOneV1(
-          id,
-          options,
-        );
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-      const localVarOperationServerBasePath =
-        operationServerMap[
-          "MovieCategoriesApi.movieCategoriesControllerFindOneV1"
-        ]?.[localVarOperationServerIndex]?.url;
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration,
-        )(axios, localVarOperationServerBasePath || basePath);
-    },
-    /**
-     * Se o nome for alterado, o slug é recalculado automaticamente.
-     * @summary Atualizar categoria
-     * @param {string} id
-     * @param {UpdateMovieCategoryDto} updateMovieCategoryDto
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async movieCategoriesControllerUpdateV1(
-      id: string,
-      updateMovieCategoryDto: UpdateMovieCategoryDto,
-      options?: RawAxiosRequestConfig,
-    ): Promise<
-      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
-    > {
-      const localVarAxiosArgs =
-        await localVarAxiosParamCreator.movieCategoriesControllerUpdateV1(
-          id,
-          updateMovieCategoryDto,
-          options,
-        );
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-      const localVarOperationServerBasePath =
-        operationServerMap[
-          "MovieCategoriesApi.movieCategoriesControllerUpdateV1"
-        ]?.[localVarOperationServerIndex]?.url;
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration,
-        )(axios, localVarOperationServerBasePath || basePath);
-    },
-  };
+export const MovieCategoriesApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = MovieCategoriesApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Cria uma nova categoria de filme com slug único gerado automaticamente.
+         * @summary Criar categoria de filme
+         * @param {CreateMovieCategoryDto} createMovieCategoryDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async movieCategoriesControllerCreateV1(createMovieCategoryDto: CreateMovieCategoryDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.movieCategoriesControllerCreateV1(createMovieCategoryDto, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['MovieCategoriesApi.movieCategoriesControllerCreateV1']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Excluir categoria
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async movieCategoriesControllerDeleteV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.movieCategoriesControllerDeleteV1(id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['MovieCategoriesApi.movieCategoriesControllerDeleteV1']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Listar categorias de filmes
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async movieCategoriesControllerFindAllV1(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.movieCategoriesControllerFindAllV1(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['MovieCategoriesApi.movieCategoriesControllerFindAllV1']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Buscar categoria por ID
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async movieCategoriesControllerFindOneV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.movieCategoriesControllerFindOneV1(id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['MovieCategoriesApi.movieCategoriesControllerFindOneV1']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Se o nome for alterado, o slug é recalculado automaticamente.
+         * @summary Atualizar categoria
+         * @param {string} id 
+         * @param {UpdateMovieCategoryDto} updateMovieCategoryDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async movieCategoriesControllerUpdateV1(id: string, updateMovieCategoryDto: UpdateMovieCategoryDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.movieCategoriesControllerUpdateV1(id, updateMovieCategoryDto, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['MovieCategoriesApi.movieCategoriesControllerUpdateV1']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
 };
 
 /**
  * MovieCategoriesApi - factory interface
  * @export
  */
-export const MovieCategoriesApiFactory = function (
-  configuration?: Configuration,
-  basePath?: string,
-  axios?: AxiosInstance,
-) {
-  const localVarFp = MovieCategoriesApiFp(configuration);
-  return {
-    /**
-     * Cria uma nova categoria de filme com slug único gerado automaticamente.
-     * @summary Criar categoria de filme
-     * @param {MovieCategoriesApiMovieCategoriesControllerCreateV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    movieCategoriesControllerCreateV1(
-      requestParameters: MovieCategoriesApiMovieCategoriesControllerCreateV1Request,
-      options?: RawAxiosRequestConfig,
-    ): AxiosPromise<void> {
-      return localVarFp
-        .movieCategoriesControllerCreateV1(
-          requestParameters.createMovieCategoryDto,
-          options,
-        )
-        .then((request) => request(axios, basePath));
-    },
-    /**
-     *
-     * @summary Excluir categoria
-     * @param {MovieCategoriesApiMovieCategoriesControllerDeleteV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    movieCategoriesControllerDeleteV1(
-      requestParameters: MovieCategoriesApiMovieCategoriesControllerDeleteV1Request,
-      options?: RawAxiosRequestConfig,
-    ): AxiosPromise<void> {
-      return localVarFp
-        .movieCategoriesControllerDeleteV1(requestParameters.id, options)
-        .then((request) => request(axios, basePath));
-    },
-    /**
-     *
-     * @summary Listar categorias de filmes
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    movieCategoriesControllerFindAllV1(
-      options?: RawAxiosRequestConfig,
-    ): AxiosPromise<void> {
-      return localVarFp
-        .movieCategoriesControllerFindAllV1(options)
-        .then((request) => request(axios, basePath));
-    },
-    /**
-     *
-     * @summary Buscar categoria por ID
-     * @param {MovieCategoriesApiMovieCategoriesControllerFindOneV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    movieCategoriesControllerFindOneV1(
-      requestParameters: MovieCategoriesApiMovieCategoriesControllerFindOneV1Request,
-      options?: RawAxiosRequestConfig,
-    ): AxiosPromise<void> {
-      return localVarFp
-        .movieCategoriesControllerFindOneV1(requestParameters.id, options)
-        .then((request) => request(axios, basePath));
-    },
-    /**
-     * Se o nome for alterado, o slug é recalculado automaticamente.
-     * @summary Atualizar categoria
-     * @param {MovieCategoriesApiMovieCategoriesControllerUpdateV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    movieCategoriesControllerUpdateV1(
-      requestParameters: MovieCategoriesApiMovieCategoriesControllerUpdateV1Request,
-      options?: RawAxiosRequestConfig,
-    ): AxiosPromise<void> {
-      return localVarFp
-        .movieCategoriesControllerUpdateV1(
-          requestParameters.id,
-          requestParameters.updateMovieCategoryDto,
-          options,
-        )
-        .then((request) => request(axios, basePath));
-    },
-  };
+export const MovieCategoriesApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = MovieCategoriesApiFp(configuration)
+    return {
+        /**
+         * Cria uma nova categoria de filme com slug único gerado automaticamente.
+         * @summary Criar categoria de filme
+         * @param {MovieCategoriesApiMovieCategoriesControllerCreateV1Request} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        movieCategoriesControllerCreateV1(requestParameters: MovieCategoriesApiMovieCategoriesControllerCreateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.movieCategoriesControllerCreateV1(requestParameters.createMovieCategoryDto, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Excluir categoria
+         * @param {MovieCategoriesApiMovieCategoriesControllerDeleteV1Request} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        movieCategoriesControllerDeleteV1(requestParameters: MovieCategoriesApiMovieCategoriesControllerDeleteV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.movieCategoriesControllerDeleteV1(requestParameters.id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Listar categorias de filmes
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        movieCategoriesControllerFindAllV1(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.movieCategoriesControllerFindAllV1(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Buscar categoria por ID
+         * @param {MovieCategoriesApiMovieCategoriesControllerFindOneV1Request} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        movieCategoriesControllerFindOneV1(requestParameters: MovieCategoriesApiMovieCategoriesControllerFindOneV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.movieCategoriesControllerFindOneV1(requestParameters.id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Se o nome for alterado, o slug é recalculado automaticamente.
+         * @summary Atualizar categoria
+         * @param {MovieCategoriesApiMovieCategoriesControllerUpdateV1Request} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        movieCategoriesControllerUpdateV1(requestParameters: MovieCategoriesApiMovieCategoriesControllerUpdateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.movieCategoriesControllerUpdateV1(requestParameters.id, requestParameters.updateMovieCategoryDto, options).then((request) => request(axios, basePath));
+        },
+    };
 };
 
 /**
@@ -565,68 +348,55 @@ export const MovieCategoriesApiFactory = function (
  * @interface MovieCategoriesApi
  */
 export interface MovieCategoriesApiInterface {
-  /**
-   * Cria uma nova categoria de filme com slug único gerado automaticamente.
-   * @summary Criar categoria de filme
-   * @param {MovieCategoriesApiMovieCategoriesControllerCreateV1Request} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof MovieCategoriesApiInterface
-   */
-  movieCategoriesControllerCreateV1(
-    requestParameters: MovieCategoriesApiMovieCategoriesControllerCreateV1Request,
-    options?: RawAxiosRequestConfig,
-  ): AxiosPromise<void>;
+    /**
+     * Cria uma nova categoria de filme com slug único gerado automaticamente.
+     * @summary Criar categoria de filme
+     * @param {MovieCategoriesApiMovieCategoriesControllerCreateV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MovieCategoriesApiInterface
+     */
+    movieCategoriesControllerCreateV1(requestParameters: MovieCategoriesApiMovieCategoriesControllerCreateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
 
-  /**
-   *
-   * @summary Excluir categoria
-   * @param {MovieCategoriesApiMovieCategoriesControllerDeleteV1Request} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof MovieCategoriesApiInterface
-   */
-  movieCategoriesControllerDeleteV1(
-    requestParameters: MovieCategoriesApiMovieCategoriesControllerDeleteV1Request,
-    options?: RawAxiosRequestConfig,
-  ): AxiosPromise<void>;
+    /**
+     * 
+     * @summary Excluir categoria
+     * @param {MovieCategoriesApiMovieCategoriesControllerDeleteV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MovieCategoriesApiInterface
+     */
+    movieCategoriesControllerDeleteV1(requestParameters: MovieCategoriesApiMovieCategoriesControllerDeleteV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
 
-  /**
-   *
-   * @summary Listar categorias de filmes
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof MovieCategoriesApiInterface
-   */
-  movieCategoriesControllerFindAllV1(
-    options?: RawAxiosRequestConfig,
-  ): AxiosPromise<void>;
+    /**
+     * 
+     * @summary Listar categorias de filmes
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MovieCategoriesApiInterface
+     */
+    movieCategoriesControllerFindAllV1(options?: RawAxiosRequestConfig): AxiosPromise<void>;
 
-  /**
-   *
-   * @summary Buscar categoria por ID
-   * @param {MovieCategoriesApiMovieCategoriesControllerFindOneV1Request} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof MovieCategoriesApiInterface
-   */
-  movieCategoriesControllerFindOneV1(
-    requestParameters: MovieCategoriesApiMovieCategoriesControllerFindOneV1Request,
-    options?: RawAxiosRequestConfig,
-  ): AxiosPromise<void>;
+    /**
+     * 
+     * @summary Buscar categoria por ID
+     * @param {MovieCategoriesApiMovieCategoriesControllerFindOneV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MovieCategoriesApiInterface
+     */
+    movieCategoriesControllerFindOneV1(requestParameters: MovieCategoriesApiMovieCategoriesControllerFindOneV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
 
-  /**
-   * Se o nome for alterado, o slug é recalculado automaticamente.
-   * @summary Atualizar categoria
-   * @param {MovieCategoriesApiMovieCategoriesControllerUpdateV1Request} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof MovieCategoriesApiInterface
-   */
-  movieCategoriesControllerUpdateV1(
-    requestParameters: MovieCategoriesApiMovieCategoriesControllerUpdateV1Request,
-    options?: RawAxiosRequestConfig,
-  ): AxiosPromise<void>;
+    /**
+     * Se o nome for alterado, o slug é recalculado automaticamente.
+     * @summary Atualizar categoria
+     * @param {MovieCategoriesApiMovieCategoriesControllerUpdateV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MovieCategoriesApiInterface
+     */
+    movieCategoriesControllerUpdateV1(requestParameters: MovieCategoriesApiMovieCategoriesControllerUpdateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+
 }
 
 /**
@@ -635,12 +405,12 @@ export interface MovieCategoriesApiInterface {
  * @interface MovieCategoriesApiMovieCategoriesControllerCreateV1Request
  */
 export interface MovieCategoriesApiMovieCategoriesControllerCreateV1Request {
-  /**
-   *
-   * @type {CreateMovieCategoryDto}
-   * @memberof MovieCategoriesApiMovieCategoriesControllerCreateV1
-   */
-  readonly createMovieCategoryDto: CreateMovieCategoryDto;
+    /**
+     * 
+     * @type {CreateMovieCategoryDto}
+     * @memberof MovieCategoriesApiMovieCategoriesControllerCreateV1
+     */
+    readonly createMovieCategoryDto: CreateMovieCategoryDto
 }
 
 /**
@@ -649,12 +419,12 @@ export interface MovieCategoriesApiMovieCategoriesControllerCreateV1Request {
  * @interface MovieCategoriesApiMovieCategoriesControllerDeleteV1Request
  */
 export interface MovieCategoriesApiMovieCategoriesControllerDeleteV1Request {
-  /**
-   *
-   * @type {string}
-   * @memberof MovieCategoriesApiMovieCategoriesControllerDeleteV1
-   */
-  readonly id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof MovieCategoriesApiMovieCategoriesControllerDeleteV1
+     */
+    readonly id: string
 }
 
 /**
@@ -663,12 +433,12 @@ export interface MovieCategoriesApiMovieCategoriesControllerDeleteV1Request {
  * @interface MovieCategoriesApiMovieCategoriesControllerFindOneV1Request
  */
 export interface MovieCategoriesApiMovieCategoriesControllerFindOneV1Request {
-  /**
-   *
-   * @type {string}
-   * @memberof MovieCategoriesApiMovieCategoriesControllerFindOneV1
-   */
-  readonly id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof MovieCategoriesApiMovieCategoriesControllerFindOneV1
+     */
+    readonly id: string
 }
 
 /**
@@ -677,19 +447,19 @@ export interface MovieCategoriesApiMovieCategoriesControllerFindOneV1Request {
  * @interface MovieCategoriesApiMovieCategoriesControllerUpdateV1Request
  */
 export interface MovieCategoriesApiMovieCategoriesControllerUpdateV1Request {
-  /**
-   *
-   * @type {string}
-   * @memberof MovieCategoriesApiMovieCategoriesControllerUpdateV1
-   */
-  readonly id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof MovieCategoriesApiMovieCategoriesControllerUpdateV1
+     */
+    readonly id: string
 
-  /**
-   *
-   * @type {UpdateMovieCategoryDto}
-   * @memberof MovieCategoriesApiMovieCategoriesControllerUpdateV1
-   */
-  readonly updateMovieCategoryDto: UpdateMovieCategoryDto;
+    /**
+     * 
+     * @type {UpdateMovieCategoryDto}
+     * @memberof MovieCategoriesApiMovieCategoriesControllerUpdateV1
+     */
+    readonly updateMovieCategoryDto: UpdateMovieCategoryDto
 }
 
 /**
@@ -698,95 +468,64 @@ export interface MovieCategoriesApiMovieCategoriesControllerUpdateV1Request {
  * @class MovieCategoriesApi
  * @extends {BaseAPI}
  */
-export class MovieCategoriesApi
-  extends BaseAPI
-  implements MovieCategoriesApiInterface
-{
-  /**
-   * Cria uma nova categoria de filme com slug único gerado automaticamente.
-   * @summary Criar categoria de filme
-   * @param {MovieCategoriesApiMovieCategoriesControllerCreateV1Request} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof MovieCategoriesApi
-   */
-  public movieCategoriesControllerCreateV1(
-    requestParameters: MovieCategoriesApiMovieCategoriesControllerCreateV1Request,
-    options?: RawAxiosRequestConfig,
-  ) {
-    return MovieCategoriesApiFp(this.configuration)
-      .movieCategoriesControllerCreateV1(
-        requestParameters.createMovieCategoryDto,
-        options,
-      )
-      .then((request) => request(this.axios, this.basePath));
-  }
+export class MovieCategoriesApi extends BaseAPI implements MovieCategoriesApiInterface {
+    /**
+     * Cria uma nova categoria de filme com slug único gerado automaticamente.
+     * @summary Criar categoria de filme
+     * @param {MovieCategoriesApiMovieCategoriesControllerCreateV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MovieCategoriesApi
+     */
+    public movieCategoriesControllerCreateV1(requestParameters: MovieCategoriesApiMovieCategoriesControllerCreateV1Request, options?: RawAxiosRequestConfig) {
+        return MovieCategoriesApiFp(this.configuration).movieCategoriesControllerCreateV1(requestParameters.createMovieCategoryDto, options).then((request) => request(this.axios, this.basePath));
+    }
 
-  /**
-   *
-   * @summary Excluir categoria
-   * @param {MovieCategoriesApiMovieCategoriesControllerDeleteV1Request} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof MovieCategoriesApi
-   */
-  public movieCategoriesControllerDeleteV1(
-    requestParameters: MovieCategoriesApiMovieCategoriesControllerDeleteV1Request,
-    options?: RawAxiosRequestConfig,
-  ) {
-    return MovieCategoriesApiFp(this.configuration)
-      .movieCategoriesControllerDeleteV1(requestParameters.id, options)
-      .then((request) => request(this.axios, this.basePath));
-  }
+    /**
+     * 
+     * @summary Excluir categoria
+     * @param {MovieCategoriesApiMovieCategoriesControllerDeleteV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MovieCategoriesApi
+     */
+    public movieCategoriesControllerDeleteV1(requestParameters: MovieCategoriesApiMovieCategoriesControllerDeleteV1Request, options?: RawAxiosRequestConfig) {
+        return MovieCategoriesApiFp(this.configuration).movieCategoriesControllerDeleteV1(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
+    }
 
-  /**
-   *
-   * @summary Listar categorias de filmes
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof MovieCategoriesApi
-   */
-  public movieCategoriesControllerFindAllV1(options?: RawAxiosRequestConfig) {
-    return MovieCategoriesApiFp(this.configuration)
-      .movieCategoriesControllerFindAllV1(options)
-      .then((request) => request(this.axios, this.basePath));
-  }
+    /**
+     * 
+     * @summary Listar categorias de filmes
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MovieCategoriesApi
+     */
+    public movieCategoriesControllerFindAllV1(options?: RawAxiosRequestConfig) {
+        return MovieCategoriesApiFp(this.configuration).movieCategoriesControllerFindAllV1(options).then((request) => request(this.axios, this.basePath));
+    }
 
-  /**
-   *
-   * @summary Buscar categoria por ID
-   * @param {MovieCategoriesApiMovieCategoriesControllerFindOneV1Request} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof MovieCategoriesApi
-   */
-  public movieCategoriesControllerFindOneV1(
-    requestParameters: MovieCategoriesApiMovieCategoriesControllerFindOneV1Request,
-    options?: RawAxiosRequestConfig,
-  ) {
-    return MovieCategoriesApiFp(this.configuration)
-      .movieCategoriesControllerFindOneV1(requestParameters.id, options)
-      .then((request) => request(this.axios, this.basePath));
-  }
+    /**
+     * 
+     * @summary Buscar categoria por ID
+     * @param {MovieCategoriesApiMovieCategoriesControllerFindOneV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MovieCategoriesApi
+     */
+    public movieCategoriesControllerFindOneV1(requestParameters: MovieCategoriesApiMovieCategoriesControllerFindOneV1Request, options?: RawAxiosRequestConfig) {
+        return MovieCategoriesApiFp(this.configuration).movieCategoriesControllerFindOneV1(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
+    }
 
-  /**
-   * Se o nome for alterado, o slug é recalculado automaticamente.
-   * @summary Atualizar categoria
-   * @param {MovieCategoriesApiMovieCategoriesControllerUpdateV1Request} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof MovieCategoriesApi
-   */
-  public movieCategoriesControllerUpdateV1(
-    requestParameters: MovieCategoriesApiMovieCategoriesControllerUpdateV1Request,
-    options?: RawAxiosRequestConfig,
-  ) {
-    return MovieCategoriesApiFp(this.configuration)
-      .movieCategoriesControllerUpdateV1(
-        requestParameters.id,
-        requestParameters.updateMovieCategoryDto,
-        options,
-      )
-      .then((request) => request(this.axios, this.basePath));
-  }
+    /**
+     * Se o nome for alterado, o slug é recalculado automaticamente.
+     * @summary Atualizar categoria
+     * @param {MovieCategoriesApiMovieCategoriesControllerUpdateV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MovieCategoriesApi
+     */
+    public movieCategoriesControllerUpdateV1(requestParameters: MovieCategoriesApiMovieCategoriesControllerUpdateV1Request, options?: RawAxiosRequestConfig) {
+        return MovieCategoriesApiFp(this.configuration).movieCategoriesControllerUpdateV1(requestParameters.id, requestParameters.updateMovieCategoryDto, options).then((request) => request(this.axios, this.basePath));
+    }
 }
+

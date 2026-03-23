@@ -311,9 +311,9 @@ describe('CompanyUserRepository', () => {
       expect(prismaService.company_users.create).toHaveBeenCalledWith({
         data: {
           id: '123456789',
-          identities: { connect: { id: 'identity-123' } },
-          companies: { connect: { id: 'company-456' } },
-          custom_roles: { connect: { id: 'role-789' } },
+          identity_id: 'identity-123',
+          company_id: 'company-456',
+          role_id: 'role-789',
           employee_id: 'EMP001',
           active: true,
           start_date: expect.any(Date),
@@ -342,6 +342,9 @@ describe('CompanyUserRepository', () => {
       expect(result).toEqual(mockDomainCompanyUser);
       expect(prismaService.company_users.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
+          identity_id: 'identity-123',
+          company_id: 'company-456',
+          role_id: 'role-789',
           department: 'TI',
           job_level: 'Senior',
           location: 'São Paulo',

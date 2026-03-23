@@ -6,7 +6,7 @@ import { JournalEntriesService } from './journal-entries.service';
 
 describe('JournalEntriesService', () => {
   let service: JournalEntriesService;
-  let prisma: jest.Mocked<PrismaService>;
+  let prisma: any;
   let snowflake: jest.Mocked<SnowflakeService>;
   let tenantContext: jest.Mocked<TenantContextService>;
 
@@ -25,7 +25,7 @@ describe('JournalEntriesService', () => {
         findUnique: jest.fn(),
         findMany: jest.fn(),
       },
-    } as unknown as jest.Mocked<PrismaService>;
+    } as any;
 
     snowflake = {
       generate: jest.fn(),

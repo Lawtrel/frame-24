@@ -12,46 +12,49 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface CreateChartAccountDto
  */
 export interface CreateChartAccountDto {
-  /**
-   * Código único da conta contábil
-   * @type {string}
-   * @memberof CreateChartAccountDto
-   */
-  account_code: string;
-  /**
-   * Nome da conta contábil
-   * @type {string}
-   * @memberof CreateChartAccountDto
-   */
-  account_name: string;
-  /**
-   * Tipo da conta (Ativo, Passivo, etc)
-   * @type {string}
-   * @memberof CreateChartAccountDto
-   */
-  account_type?: string;
-  /**
-   * Natureza da conta (Devedor/Credor)
-   * @type {string}
-   * @memberof CreateChartAccountDto
-   */
-  account_nature?: string;
-  /**
-   * ID da conta pai, se houver
-   * @type {string}
-   * @memberof CreateChartAccountDto
-   */
-  parent_account_id?: string;
-  /**
-   * Indica se permite lançamentos diretamente nesta conta
-   * @type {boolean}
-   * @memberof CreateChartAccountDto
-   */
-  allows_entry?: boolean;
+    /**
+     * Código único da conta contábil
+     * @type {string}
+     * @memberof CreateChartAccountDto
+     */
+    'account_code': string;
+    /**
+     * Nome da conta contábil
+     * @type {string}
+     * @memberof CreateChartAccountDto
+     */
+    'account_name': string;
+    /**
+     * Tipo da conta (Ativo, Passivo, etc)
+     * @type {string}
+     * @memberof CreateChartAccountDto
+     */
+    'account_type'?: string;
+    /**
+     * Natureza da conta (Devedor/Credor)
+     * @type {string}
+     * @memberof CreateChartAccountDto
+     */
+    'account_nature'?: string;
+    /**
+     * ID da conta pai, se houver
+     * @type {string}
+     * @memberof CreateChartAccountDto
+     */
+    'parent_account_id'?: string;
+    /**
+     * Indica se permite lançamentos diretamente nesta conta
+     * @type {boolean}
+     * @memberof CreateChartAccountDto
+     */
+    'allows_entry'?: boolean;
 }
+

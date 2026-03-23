@@ -12,34 +12,37 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface CreatePromotionTypeDto
  */
 export interface CreatePromotionTypeDto {
-  /**
-   * Código único do tipo de promoção por empresa
-   * @type {string}
-   * @memberof CreatePromotionTypeDto
-   */
-  code: string;
-  /**
-   * Nome amigável apresentado no dashboard
-   * @type {string}
-   * @memberof CreatePromotionTypeDto
-   */
-  name: string;
-  /**
-   * Descrição detalhada do tipo de promoção
-   * @type {string}
-   * @memberof CreatePromotionTypeDto
-   */
-  description?: string;
-  /**
-   * Define se o tipo está ativo para novas campanhas
-   * @type {boolean}
-   * @memberof CreatePromotionTypeDto
-   */
-  active?: boolean;
+    /**
+     * Código único do tipo de promoção por empresa
+     * @type {string}
+     * @memberof CreatePromotionTypeDto
+     */
+    'code': string;
+    /**
+     * Nome amigável apresentado no dashboard
+     * @type {string}
+     * @memberof CreatePromotionTypeDto
+     */
+    'name': string;
+    /**
+     * Descrição detalhada do tipo de promoção
+     * @type {string}
+     * @memberof CreatePromotionTypeDto
+     */
+    'description'?: string;
+    /**
+     * Define se o tipo está ativo para novas campanhas
+     * @type {boolean}
+     * @memberof CreatePromotionTypeDto
+     */
+    'active'?: boolean;
 }
+

@@ -12,684 +12,418 @@
  * Do not edit the class manually.
  */
 
-import type { Configuration } from "../configuration";
-import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from "axios";
-import globalAxios from "axios";
+
+import type { Configuration } from '../configuration';
+import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from 'axios';
+import globalAxios from 'axios';
 // Some imports not used depending on template conditions
 // @ts-ignore
-import {
-  DUMMY_BASE_URL,
-  assertParamExists,
-  setApiKeyToObject,
-  setBasicAuthToObject,
-  setBearerAuthToObject,
-  setOAuthToObject,
-  setSearchParams,
-  serializeDataIfNeeded,
-  toPathString,
-  createRequestFunction,
-} from "../common";
+import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from '../common';
 // @ts-ignore
-import {
-  BASE_PATH,
-  COLLECTION_FORMATS,
-  type RequestArgs,
-  BaseAPI,
-  RequiredError,
-  operationServerMap,
-} from "../base";
+import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
 /**
  * FluxoDeCaixaRelatriosApi - axios parameter creator
  * @export
  */
-export const FluxoDeCaixaRelatriosApiAxiosParamCreator = function (
-  configuration?: Configuration,
-) {
-  return {
-    /**
-     *
-     * @summary Get cash flow summary by category
-     * @param {string} [date]
-     * @param {string} [startDate]
-     * @param {string} [endDate]
-     * @param {string} [days]
-     * @param {string} [month]
-     * @param {string} [bankAccountId]
-     * @param {string} [cinemaComplexId]
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    cashFlowReportsControllerGetCategorySummaryV1: async (
-      date?: string,
-      startDate?: string,
-      endDate?: string,
-      days?: string,
-      month?: string,
-      bankAccountId?: string,
-      cinemaComplexId?: string,
-      options: RawAxiosRequestConfig = {},
-    ): Promise<RequestArgs> => {
-      const localVarPath = `/v1/finance/cash-flow/reports/summary`;
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
+export const FluxoDeCaixaRelatriosApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @summary Get cash flow summary by category
+         * @param {string} [date] 
+         * @param {string} [startDate] 
+         * @param {string} [endDate] 
+         * @param {string} [days] 
+         * @param {string} [month] 
+         * @param {string} [bankAccountId] 
+         * @param {string} [cinemaComplexId] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        cashFlowReportsControllerGetCategorySummaryV1: async (date?: string, startDate?: string, endDate?: string, days?: string, month?: string, bankAccountId?: string, cinemaComplexId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/v1/finance/cash-flow/reports/summary`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
 
-      const localVarRequestOptions = {
-        method: "GET",
-        ...baseOptions,
-        ...options,
-      };
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
 
-      if (date !== undefined) {
-        localVarQueryParameter["date"] = date;
-      }
+            if (date !== undefined) {
+                localVarQueryParameter['date'] = date;
+            }
 
-      if (startDate !== undefined) {
-        localVarQueryParameter["start_date"] = startDate;
-      }
+            if (startDate !== undefined) {
+                localVarQueryParameter['start_date'] = startDate;
+            }
 
-      if (endDate !== undefined) {
-        localVarQueryParameter["end_date"] = endDate;
-      }
+            if (endDate !== undefined) {
+                localVarQueryParameter['end_date'] = endDate;
+            }
 
-      if (days !== undefined) {
-        localVarQueryParameter["days"] = days;
-      }
+            if (days !== undefined) {
+                localVarQueryParameter['days'] = days;
+            }
 
-      if (month !== undefined) {
-        localVarQueryParameter["month"] = month;
-      }
+            if (month !== undefined) {
+                localVarQueryParameter['month'] = month;
+            }
 
-      if (bankAccountId !== undefined) {
-        localVarQueryParameter["bank_account_id"] = bankAccountId;
-      }
+            if (bankAccountId !== undefined) {
+                localVarQueryParameter['bank_account_id'] = bankAccountId;
+            }
 
-      if (cinemaComplexId !== undefined) {
-        localVarQueryParameter["cinema_complex_id"] = cinemaComplexId;
-      }
+            if (cinemaComplexId !== undefined) {
+                localVarQueryParameter['cinema_complex_id'] = cinemaComplexId;
+            }
 
-      setSearchParams(localVarUrlObj, localVarQueryParameter);
-      let headersFromBaseOptions =
-        baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      };
 
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-     *
-     * @summary Get daily cash flow report
-     * @param {string} [date]
-     * @param {string} [startDate]
-     * @param {string} [endDate]
-     * @param {string} [days]
-     * @param {string} [month]
-     * @param {string} [bankAccountId]
-     * @param {string} [cinemaComplexId]
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    cashFlowReportsControllerGetDailyReportV1: async (
-      date?: string,
-      startDate?: string,
-      endDate?: string,
-      days?: string,
-      month?: string,
-      bankAccountId?: string,
-      cinemaComplexId?: string,
-      options: RawAxiosRequestConfig = {},
-    ): Promise<RequestArgs> => {
-      const localVarPath = `/v1/finance/cash-flow/reports/daily`;
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
-      const localVarRequestOptions = {
-        method: "GET",
-        ...baseOptions,
-        ...options,
-      };
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get daily cash flow report
+         * @param {string} [date] 
+         * @param {string} [startDate] 
+         * @param {string} [endDate] 
+         * @param {string} [days] 
+         * @param {string} [month] 
+         * @param {string} [bankAccountId] 
+         * @param {string} [cinemaComplexId] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        cashFlowReportsControllerGetDailyReportV1: async (date?: string, startDate?: string, endDate?: string, days?: string, month?: string, bankAccountId?: string, cinemaComplexId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/v1/finance/cash-flow/reports/daily`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
 
-      if (date !== undefined) {
-        localVarQueryParameter["date"] = date;
-      }
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
 
-      if (startDate !== undefined) {
-        localVarQueryParameter["start_date"] = startDate;
-      }
+            if (date !== undefined) {
+                localVarQueryParameter['date'] = date;
+            }
 
-      if (endDate !== undefined) {
-        localVarQueryParameter["end_date"] = endDate;
-      }
+            if (startDate !== undefined) {
+                localVarQueryParameter['start_date'] = startDate;
+            }
 
-      if (days !== undefined) {
-        localVarQueryParameter["days"] = days;
-      }
+            if (endDate !== undefined) {
+                localVarQueryParameter['end_date'] = endDate;
+            }
 
-      if (month !== undefined) {
-        localVarQueryParameter["month"] = month;
-      }
+            if (days !== undefined) {
+                localVarQueryParameter['days'] = days;
+            }
 
-      if (bankAccountId !== undefined) {
-        localVarQueryParameter["bank_account_id"] = bankAccountId;
-      }
+            if (month !== undefined) {
+                localVarQueryParameter['month'] = month;
+            }
 
-      if (cinemaComplexId !== undefined) {
-        localVarQueryParameter["cinema_complex_id"] = cinemaComplexId;
-      }
+            if (bankAccountId !== undefined) {
+                localVarQueryParameter['bank_account_id'] = bankAccountId;
+            }
 
-      setSearchParams(localVarUrlObj, localVarQueryParameter);
-      let headersFromBaseOptions =
-        baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      };
+            if (cinemaComplexId !== undefined) {
+                localVarQueryParameter['cinema_complex_id'] = cinemaComplexId;
+            }
 
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-     *
-     * @summary Get cash flow report by period
-     * @param {string} [date]
-     * @param {string} [startDate]
-     * @param {string} [endDate]
-     * @param {string} [days]
-     * @param {string} [month]
-     * @param {string} [bankAccountId]
-     * @param {string} [cinemaComplexId]
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    cashFlowReportsControllerGetPeriodReportV1: async (
-      date?: string,
-      startDate?: string,
-      endDate?: string,
-      days?: string,
-      month?: string,
-      bankAccountId?: string,
-      cinemaComplexId?: string,
-      options: RawAxiosRequestConfig = {},
-    ): Promise<RequestArgs> => {
-      const localVarPath = `/v1/finance/cash-flow/reports/period`;
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
 
-      const localVarRequestOptions = {
-        method: "GET",
-        ...baseOptions,
-        ...options,
-      };
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
-      if (date !== undefined) {
-        localVarQueryParameter["date"] = date;
-      }
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get cash flow report by period
+         * @param {string} [date] 
+         * @param {string} [startDate] 
+         * @param {string} [endDate] 
+         * @param {string} [days] 
+         * @param {string} [month] 
+         * @param {string} [bankAccountId] 
+         * @param {string} [cinemaComplexId] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        cashFlowReportsControllerGetPeriodReportV1: async (date?: string, startDate?: string, endDate?: string, days?: string, month?: string, bankAccountId?: string, cinemaComplexId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/v1/finance/cash-flow/reports/period`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
 
-      if (startDate !== undefined) {
-        localVarQueryParameter["start_date"] = startDate;
-      }
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
 
-      if (endDate !== undefined) {
-        localVarQueryParameter["end_date"] = endDate;
-      }
+            if (date !== undefined) {
+                localVarQueryParameter['date'] = date;
+            }
 
-      if (days !== undefined) {
-        localVarQueryParameter["days"] = days;
-      }
+            if (startDate !== undefined) {
+                localVarQueryParameter['start_date'] = startDate;
+            }
 
-      if (month !== undefined) {
-        localVarQueryParameter["month"] = month;
-      }
+            if (endDate !== undefined) {
+                localVarQueryParameter['end_date'] = endDate;
+            }
 
-      if (bankAccountId !== undefined) {
-        localVarQueryParameter["bank_account_id"] = bankAccountId;
-      }
+            if (days !== undefined) {
+                localVarQueryParameter['days'] = days;
+            }
 
-      if (cinemaComplexId !== undefined) {
-        localVarQueryParameter["cinema_complex_id"] = cinemaComplexId;
-      }
+            if (month !== undefined) {
+                localVarQueryParameter['month'] = month;
+            }
 
-      setSearchParams(localVarUrlObj, localVarQueryParameter);
-      let headersFromBaseOptions =
-        baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      };
+            if (bankAccountId !== undefined) {
+                localVarQueryParameter['bank_account_id'] = bankAccountId;
+            }
 
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-     *
-     * @summary Get cash flow projection
-     * @param {string} [date]
-     * @param {string} [startDate]
-     * @param {string} [endDate]
-     * @param {string} [days]
-     * @param {string} [month]
-     * @param {string} [bankAccountId]
-     * @param {string} [cinemaComplexId]
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    cashFlowReportsControllerGetProjectionV1: async (
-      date?: string,
-      startDate?: string,
-      endDate?: string,
-      days?: string,
-      month?: string,
-      bankAccountId?: string,
-      cinemaComplexId?: string,
-      options: RawAxiosRequestConfig = {},
-    ): Promise<RequestArgs> => {
-      const localVarPath = `/v1/finance/cash-flow/reports/projection`;
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
+            if (cinemaComplexId !== undefined) {
+                localVarQueryParameter['cinema_complex_id'] = cinemaComplexId;
+            }
 
-      const localVarRequestOptions = {
-        method: "GET",
-        ...baseOptions,
-        ...options,
-      };
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
 
-      if (date !== undefined) {
-        localVarQueryParameter["date"] = date;
-      }
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
-      if (startDate !== undefined) {
-        localVarQueryParameter["start_date"] = startDate;
-      }
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get cash flow projection
+         * @param {string} [date] 
+         * @param {string} [startDate] 
+         * @param {string} [endDate] 
+         * @param {string} [days] 
+         * @param {string} [month] 
+         * @param {string} [bankAccountId] 
+         * @param {string} [cinemaComplexId] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        cashFlowReportsControllerGetProjectionV1: async (date?: string, startDate?: string, endDate?: string, days?: string, month?: string, bankAccountId?: string, cinemaComplexId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/v1/finance/cash-flow/reports/projection`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
 
-      if (endDate !== undefined) {
-        localVarQueryParameter["end_date"] = endDate;
-      }
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
 
-      if (days !== undefined) {
-        localVarQueryParameter["days"] = days;
-      }
+            if (date !== undefined) {
+                localVarQueryParameter['date'] = date;
+            }
 
-      if (month !== undefined) {
-        localVarQueryParameter["month"] = month;
-      }
+            if (startDate !== undefined) {
+                localVarQueryParameter['start_date'] = startDate;
+            }
 
-      if (bankAccountId !== undefined) {
-        localVarQueryParameter["bank_account_id"] = bankAccountId;
-      }
+            if (endDate !== undefined) {
+                localVarQueryParameter['end_date'] = endDate;
+            }
 
-      if (cinemaComplexId !== undefined) {
-        localVarQueryParameter["cinema_complex_id"] = cinemaComplexId;
-      }
+            if (days !== undefined) {
+                localVarQueryParameter['days'] = days;
+            }
 
-      setSearchParams(localVarUrlObj, localVarQueryParameter);
-      let headersFromBaseOptions =
-        baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      };
+            if (month !== undefined) {
+                localVarQueryParameter['month'] = month;
+            }
 
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-  };
+            if (bankAccountId !== undefined) {
+                localVarQueryParameter['bank_account_id'] = bankAccountId;
+            }
+
+            if (cinemaComplexId !== undefined) {
+                localVarQueryParameter['cinema_complex_id'] = cinemaComplexId;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
 };
 
 /**
  * FluxoDeCaixaRelatriosApi - functional programming interface
  * @export
  */
-export const FluxoDeCaixaRelatriosApiFp = function (
-  configuration?: Configuration,
-) {
-  const localVarAxiosParamCreator =
-    FluxoDeCaixaRelatriosApiAxiosParamCreator(configuration);
-  return {
-    /**
-     *
-     * @summary Get cash flow summary by category
-     * @param {string} [date]
-     * @param {string} [startDate]
-     * @param {string} [endDate]
-     * @param {string} [days]
-     * @param {string} [month]
-     * @param {string} [bankAccountId]
-     * @param {string} [cinemaComplexId]
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async cashFlowReportsControllerGetCategorySummaryV1(
-      date?: string,
-      startDate?: string,
-      endDate?: string,
-      days?: string,
-      month?: string,
-      bankAccountId?: string,
-      cinemaComplexId?: string,
-      options?: RawAxiosRequestConfig,
-    ): Promise<
-      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
-    > {
-      const localVarAxiosArgs =
-        await localVarAxiosParamCreator.cashFlowReportsControllerGetCategorySummaryV1(
-          date,
-          startDate,
-          endDate,
-          days,
-          month,
-          bankAccountId,
-          cinemaComplexId,
-          options,
-        );
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-      const localVarOperationServerBasePath =
-        operationServerMap[
-          "FluxoDeCaixaRelatriosApi.cashFlowReportsControllerGetCategorySummaryV1"
-        ]?.[localVarOperationServerIndex]?.url;
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration,
-        )(axios, localVarOperationServerBasePath || basePath);
-    },
-    /**
-     *
-     * @summary Get daily cash flow report
-     * @param {string} [date]
-     * @param {string} [startDate]
-     * @param {string} [endDate]
-     * @param {string} [days]
-     * @param {string} [month]
-     * @param {string} [bankAccountId]
-     * @param {string} [cinemaComplexId]
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async cashFlowReportsControllerGetDailyReportV1(
-      date?: string,
-      startDate?: string,
-      endDate?: string,
-      days?: string,
-      month?: string,
-      bankAccountId?: string,
-      cinemaComplexId?: string,
-      options?: RawAxiosRequestConfig,
-    ): Promise<
-      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
-    > {
-      const localVarAxiosArgs =
-        await localVarAxiosParamCreator.cashFlowReportsControllerGetDailyReportV1(
-          date,
-          startDate,
-          endDate,
-          days,
-          month,
-          bankAccountId,
-          cinemaComplexId,
-          options,
-        );
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-      const localVarOperationServerBasePath =
-        operationServerMap[
-          "FluxoDeCaixaRelatriosApi.cashFlowReportsControllerGetDailyReportV1"
-        ]?.[localVarOperationServerIndex]?.url;
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration,
-        )(axios, localVarOperationServerBasePath || basePath);
-    },
-    /**
-     *
-     * @summary Get cash flow report by period
-     * @param {string} [date]
-     * @param {string} [startDate]
-     * @param {string} [endDate]
-     * @param {string} [days]
-     * @param {string} [month]
-     * @param {string} [bankAccountId]
-     * @param {string} [cinemaComplexId]
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async cashFlowReportsControllerGetPeriodReportV1(
-      date?: string,
-      startDate?: string,
-      endDate?: string,
-      days?: string,
-      month?: string,
-      bankAccountId?: string,
-      cinemaComplexId?: string,
-      options?: RawAxiosRequestConfig,
-    ): Promise<
-      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
-    > {
-      const localVarAxiosArgs =
-        await localVarAxiosParamCreator.cashFlowReportsControllerGetPeriodReportV1(
-          date,
-          startDate,
-          endDate,
-          days,
-          month,
-          bankAccountId,
-          cinemaComplexId,
-          options,
-        );
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-      const localVarOperationServerBasePath =
-        operationServerMap[
-          "FluxoDeCaixaRelatriosApi.cashFlowReportsControllerGetPeriodReportV1"
-        ]?.[localVarOperationServerIndex]?.url;
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration,
-        )(axios, localVarOperationServerBasePath || basePath);
-    },
-    /**
-     *
-     * @summary Get cash flow projection
-     * @param {string} [date]
-     * @param {string} [startDate]
-     * @param {string} [endDate]
-     * @param {string} [days]
-     * @param {string} [month]
-     * @param {string} [bankAccountId]
-     * @param {string} [cinemaComplexId]
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async cashFlowReportsControllerGetProjectionV1(
-      date?: string,
-      startDate?: string,
-      endDate?: string,
-      days?: string,
-      month?: string,
-      bankAccountId?: string,
-      cinemaComplexId?: string,
-      options?: RawAxiosRequestConfig,
-    ): Promise<
-      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
-    > {
-      const localVarAxiosArgs =
-        await localVarAxiosParamCreator.cashFlowReportsControllerGetProjectionV1(
-          date,
-          startDate,
-          endDate,
-          days,
-          month,
-          bankAccountId,
-          cinemaComplexId,
-          options,
-        );
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-      const localVarOperationServerBasePath =
-        operationServerMap[
-          "FluxoDeCaixaRelatriosApi.cashFlowReportsControllerGetProjectionV1"
-        ]?.[localVarOperationServerIndex]?.url;
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration,
-        )(axios, localVarOperationServerBasePath || basePath);
-    },
-  };
+export const FluxoDeCaixaRelatriosApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = FluxoDeCaixaRelatriosApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @summary Get cash flow summary by category
+         * @param {string} [date] 
+         * @param {string} [startDate] 
+         * @param {string} [endDate] 
+         * @param {string} [days] 
+         * @param {string} [month] 
+         * @param {string} [bankAccountId] 
+         * @param {string} [cinemaComplexId] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async cashFlowReportsControllerGetCategorySummaryV1(date?: string, startDate?: string, endDate?: string, days?: string, month?: string, bankAccountId?: string, cinemaComplexId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.cashFlowReportsControllerGetCategorySummaryV1(date, startDate, endDate, days, month, bankAccountId, cinemaComplexId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FluxoDeCaixaRelatriosApi.cashFlowReportsControllerGetCategorySummaryV1']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Get daily cash flow report
+         * @param {string} [date] 
+         * @param {string} [startDate] 
+         * @param {string} [endDate] 
+         * @param {string} [days] 
+         * @param {string} [month] 
+         * @param {string} [bankAccountId] 
+         * @param {string} [cinemaComplexId] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async cashFlowReportsControllerGetDailyReportV1(date?: string, startDate?: string, endDate?: string, days?: string, month?: string, bankAccountId?: string, cinemaComplexId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.cashFlowReportsControllerGetDailyReportV1(date, startDate, endDate, days, month, bankAccountId, cinemaComplexId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FluxoDeCaixaRelatriosApi.cashFlowReportsControllerGetDailyReportV1']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Get cash flow report by period
+         * @param {string} [date] 
+         * @param {string} [startDate] 
+         * @param {string} [endDate] 
+         * @param {string} [days] 
+         * @param {string} [month] 
+         * @param {string} [bankAccountId] 
+         * @param {string} [cinemaComplexId] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async cashFlowReportsControllerGetPeriodReportV1(date?: string, startDate?: string, endDate?: string, days?: string, month?: string, bankAccountId?: string, cinemaComplexId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.cashFlowReportsControllerGetPeriodReportV1(date, startDate, endDate, days, month, bankAccountId, cinemaComplexId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FluxoDeCaixaRelatriosApi.cashFlowReportsControllerGetPeriodReportV1']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Get cash flow projection
+         * @param {string} [date] 
+         * @param {string} [startDate] 
+         * @param {string} [endDate] 
+         * @param {string} [days] 
+         * @param {string} [month] 
+         * @param {string} [bankAccountId] 
+         * @param {string} [cinemaComplexId] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async cashFlowReportsControllerGetProjectionV1(date?: string, startDate?: string, endDate?: string, days?: string, month?: string, bankAccountId?: string, cinemaComplexId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.cashFlowReportsControllerGetProjectionV1(date, startDate, endDate, days, month, bankAccountId, cinemaComplexId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FluxoDeCaixaRelatriosApi.cashFlowReportsControllerGetProjectionV1']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
 };
 
 /**
  * FluxoDeCaixaRelatriosApi - factory interface
  * @export
  */
-export const FluxoDeCaixaRelatriosApiFactory = function (
-  configuration?: Configuration,
-  basePath?: string,
-  axios?: AxiosInstance,
-) {
-  const localVarFp = FluxoDeCaixaRelatriosApiFp(configuration);
-  return {
-    /**
-     *
-     * @summary Get cash flow summary by category
-     * @param {FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySummaryV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    cashFlowReportsControllerGetCategorySummaryV1(
-      requestParameters: FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySummaryV1Request = {},
-      options?: RawAxiosRequestConfig,
-    ): AxiosPromise<void> {
-      return localVarFp
-        .cashFlowReportsControllerGetCategorySummaryV1(
-          requestParameters.date,
-          requestParameters.startDate,
-          requestParameters.endDate,
-          requestParameters.days,
-          requestParameters.month,
-          requestParameters.bankAccountId,
-          requestParameters.cinemaComplexId,
-          options,
-        )
-        .then((request) => request(axios, basePath));
-    },
-    /**
-     *
-     * @summary Get daily cash flow report
-     * @param {FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReportV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    cashFlowReportsControllerGetDailyReportV1(
-      requestParameters: FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReportV1Request = {},
-      options?: RawAxiosRequestConfig,
-    ): AxiosPromise<void> {
-      return localVarFp
-        .cashFlowReportsControllerGetDailyReportV1(
-          requestParameters.date,
-          requestParameters.startDate,
-          requestParameters.endDate,
-          requestParameters.days,
-          requestParameters.month,
-          requestParameters.bankAccountId,
-          requestParameters.cinemaComplexId,
-          options,
-        )
-        .then((request) => request(axios, basePath));
-    },
-    /**
-     *
-     * @summary Get cash flow report by period
-     * @param {FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodReportV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    cashFlowReportsControllerGetPeriodReportV1(
-      requestParameters: FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodReportV1Request = {},
-      options?: RawAxiosRequestConfig,
-    ): AxiosPromise<void> {
-      return localVarFp
-        .cashFlowReportsControllerGetPeriodReportV1(
-          requestParameters.date,
-          requestParameters.startDate,
-          requestParameters.endDate,
-          requestParameters.days,
-          requestParameters.month,
-          requestParameters.bankAccountId,
-          requestParameters.cinemaComplexId,
-          options,
-        )
-        .then((request) => request(axios, basePath));
-    },
-    /**
-     *
-     * @summary Get cash flow projection
-     * @param {FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    cashFlowReportsControllerGetProjectionV1(
-      requestParameters: FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV1Request = {},
-      options?: RawAxiosRequestConfig,
-    ): AxiosPromise<void> {
-      return localVarFp
-        .cashFlowReportsControllerGetProjectionV1(
-          requestParameters.date,
-          requestParameters.startDate,
-          requestParameters.endDate,
-          requestParameters.days,
-          requestParameters.month,
-          requestParameters.bankAccountId,
-          requestParameters.cinemaComplexId,
-          options,
-        )
-        .then((request) => request(axios, basePath));
-    },
-  };
+export const FluxoDeCaixaRelatriosApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = FluxoDeCaixaRelatriosApiFp(configuration)
+    return {
+        /**
+         * 
+         * @summary Get cash flow summary by category
+         * @param {FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySummaryV1Request} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        cashFlowReportsControllerGetCategorySummaryV1(requestParameters: FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySummaryV1Request = {}, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.cashFlowReportsControllerGetCategorySummaryV1(requestParameters.date, requestParameters.startDate, requestParameters.endDate, requestParameters.days, requestParameters.month, requestParameters.bankAccountId, requestParameters.cinemaComplexId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get daily cash flow report
+         * @param {FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReportV1Request} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        cashFlowReportsControllerGetDailyReportV1(requestParameters: FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReportV1Request = {}, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.cashFlowReportsControllerGetDailyReportV1(requestParameters.date, requestParameters.startDate, requestParameters.endDate, requestParameters.days, requestParameters.month, requestParameters.bankAccountId, requestParameters.cinemaComplexId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get cash flow report by period
+         * @param {FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodReportV1Request} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        cashFlowReportsControllerGetPeriodReportV1(requestParameters: FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodReportV1Request = {}, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.cashFlowReportsControllerGetPeriodReportV1(requestParameters.date, requestParameters.startDate, requestParameters.endDate, requestParameters.days, requestParameters.month, requestParameters.bankAccountId, requestParameters.cinemaComplexId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get cash flow projection
+         * @param {FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV1Request} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        cashFlowReportsControllerGetProjectionV1(requestParameters: FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV1Request = {}, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.cashFlowReportsControllerGetProjectionV1(requestParameters.date, requestParameters.startDate, requestParameters.endDate, requestParameters.days, requestParameters.month, requestParameters.bankAccountId, requestParameters.cinemaComplexId, options).then((request) => request(axios, basePath));
+        },
+    };
 };
 
 /**
@@ -698,57 +432,46 @@ export const FluxoDeCaixaRelatriosApiFactory = function (
  * @interface FluxoDeCaixaRelatriosApi
  */
 export interface FluxoDeCaixaRelatriosApiInterface {
-  /**
-   *
-   * @summary Get cash flow summary by category
-   * @param {FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySummaryV1Request} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof FluxoDeCaixaRelatriosApiInterface
-   */
-  cashFlowReportsControllerGetCategorySummaryV1(
-    requestParameters?: FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySummaryV1Request,
-    options?: RawAxiosRequestConfig,
-  ): AxiosPromise<void>;
+    /**
+     * 
+     * @summary Get cash flow summary by category
+     * @param {FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySummaryV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FluxoDeCaixaRelatriosApiInterface
+     */
+    cashFlowReportsControllerGetCategorySummaryV1(requestParameters?: FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySummaryV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
 
-  /**
-   *
-   * @summary Get daily cash flow report
-   * @param {FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReportV1Request} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof FluxoDeCaixaRelatriosApiInterface
-   */
-  cashFlowReportsControllerGetDailyReportV1(
-    requestParameters?: FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReportV1Request,
-    options?: RawAxiosRequestConfig,
-  ): AxiosPromise<void>;
+    /**
+     * 
+     * @summary Get daily cash flow report
+     * @param {FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReportV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FluxoDeCaixaRelatriosApiInterface
+     */
+    cashFlowReportsControllerGetDailyReportV1(requestParameters?: FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReportV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
 
-  /**
-   *
-   * @summary Get cash flow report by period
-   * @param {FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodReportV1Request} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof FluxoDeCaixaRelatriosApiInterface
-   */
-  cashFlowReportsControllerGetPeriodReportV1(
-    requestParameters?: FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodReportV1Request,
-    options?: RawAxiosRequestConfig,
-  ): AxiosPromise<void>;
+    /**
+     * 
+     * @summary Get cash flow report by period
+     * @param {FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodReportV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FluxoDeCaixaRelatriosApiInterface
+     */
+    cashFlowReportsControllerGetPeriodReportV1(requestParameters?: FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodReportV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
 
-  /**
-   *
-   * @summary Get cash flow projection
-   * @param {FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV1Request} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof FluxoDeCaixaRelatriosApiInterface
-   */
-  cashFlowReportsControllerGetProjectionV1(
-    requestParameters?: FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV1Request,
-    options?: RawAxiosRequestConfig,
-  ): AxiosPromise<void>;
+    /**
+     * 
+     * @summary Get cash flow projection
+     * @param {FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FluxoDeCaixaRelatriosApiInterface
+     */
+    cashFlowReportsControllerGetProjectionV1(requestParameters?: FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
+
 }
 
 /**
@@ -757,54 +480,54 @@ export interface FluxoDeCaixaRelatriosApiInterface {
  * @interface FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySummaryV1Request
  */
 export interface FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySummaryV1Request {
-  /**
-   *
-   * @type {string}
-   * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySummaryV1
-   */
-  readonly date?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySummaryV1
+     */
+    readonly date?: string
 
-  /**
-   *
-   * @type {string}
-   * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySummaryV1
-   */
-  readonly startDate?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySummaryV1
+     */
+    readonly startDate?: string
 
-  /**
-   *
-   * @type {string}
-   * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySummaryV1
-   */
-  readonly endDate?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySummaryV1
+     */
+    readonly endDate?: string
 
-  /**
-   *
-   * @type {string}
-   * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySummaryV1
-   */
-  readonly days?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySummaryV1
+     */
+    readonly days?: string
 
-  /**
-   *
-   * @type {string}
-   * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySummaryV1
-   */
-  readonly month?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySummaryV1
+     */
+    readonly month?: string
 
-  /**
-   *
-   * @type {string}
-   * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySummaryV1
-   */
-  readonly bankAccountId?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySummaryV1
+     */
+    readonly bankAccountId?: string
 
-  /**
-   *
-   * @type {string}
-   * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySummaryV1
-   */
-  readonly cinemaComplexId?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySummaryV1
+     */
+    readonly cinemaComplexId?: string
 }
 
 /**
@@ -813,54 +536,54 @@ export interface FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySum
  * @interface FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReportV1Request
  */
 export interface FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReportV1Request {
-  /**
-   *
-   * @type {string}
-   * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReportV1
-   */
-  readonly date?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReportV1
+     */
+    readonly date?: string
 
-  /**
-   *
-   * @type {string}
-   * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReportV1
-   */
-  readonly startDate?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReportV1
+     */
+    readonly startDate?: string
 
-  /**
-   *
-   * @type {string}
-   * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReportV1
-   */
-  readonly endDate?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReportV1
+     */
+    readonly endDate?: string
 
-  /**
-   *
-   * @type {string}
-   * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReportV1
-   */
-  readonly days?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReportV1
+     */
+    readonly days?: string
 
-  /**
-   *
-   * @type {string}
-   * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReportV1
-   */
-  readonly month?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReportV1
+     */
+    readonly month?: string
 
-  /**
-   *
-   * @type {string}
-   * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReportV1
-   */
-  readonly bankAccountId?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReportV1
+     */
+    readonly bankAccountId?: string
 
-  /**
-   *
-   * @type {string}
-   * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReportV1
-   */
-  readonly cinemaComplexId?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReportV1
+     */
+    readonly cinemaComplexId?: string
 }
 
 /**
@@ -869,54 +592,54 @@ export interface FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReport
  * @interface FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodReportV1Request
  */
 export interface FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodReportV1Request {
-  /**
-   *
-   * @type {string}
-   * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodReportV1
-   */
-  readonly date?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodReportV1
+     */
+    readonly date?: string
 
-  /**
-   *
-   * @type {string}
-   * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodReportV1
-   */
-  readonly startDate?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodReportV1
+     */
+    readonly startDate?: string
 
-  /**
-   *
-   * @type {string}
-   * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodReportV1
-   */
-  readonly endDate?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodReportV1
+     */
+    readonly endDate?: string
 
-  /**
-   *
-   * @type {string}
-   * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodReportV1
-   */
-  readonly days?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodReportV1
+     */
+    readonly days?: string
 
-  /**
-   *
-   * @type {string}
-   * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodReportV1
-   */
-  readonly month?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodReportV1
+     */
+    readonly month?: string
 
-  /**
-   *
-   * @type {string}
-   * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodReportV1
-   */
-  readonly bankAccountId?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodReportV1
+     */
+    readonly bankAccountId?: string
 
-  /**
-   *
-   * @type {string}
-   * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodReportV1
-   */
-  readonly cinemaComplexId?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodReportV1
+     */
+    readonly cinemaComplexId?: string
 }
 
 /**
@@ -925,54 +648,54 @@ export interface FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodRepor
  * @interface FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV1Request
  */
 export interface FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV1Request {
-  /**
-   *
-   * @type {string}
-   * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV1
-   */
-  readonly date?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV1
+     */
+    readonly date?: string
 
-  /**
-   *
-   * @type {string}
-   * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV1
-   */
-  readonly startDate?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV1
+     */
+    readonly startDate?: string
 
-  /**
-   *
-   * @type {string}
-   * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV1
-   */
-  readonly endDate?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV1
+     */
+    readonly endDate?: string
 
-  /**
-   *
-   * @type {string}
-   * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV1
-   */
-  readonly days?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV1
+     */
+    readonly days?: string
 
-  /**
-   *
-   * @type {string}
-   * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV1
-   */
-  readonly month?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV1
+     */
+    readonly month?: string
 
-  /**
-   *
-   * @type {string}
-   * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV1
-   */
-  readonly bankAccountId?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV1
+     */
+    readonly bankAccountId?: string
 
-  /**
-   *
-   * @type {string}
-   * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV1
-   */
-  readonly cinemaComplexId?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV1
+     */
+    readonly cinemaComplexId?: string
 }
 
 /**
@@ -981,111 +704,53 @@ export interface FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV
  * @class FluxoDeCaixaRelatriosApi
  * @extends {BaseAPI}
  */
-export class FluxoDeCaixaRelatriosApi
-  extends BaseAPI
-  implements FluxoDeCaixaRelatriosApiInterface
-{
-  /**
-   *
-   * @summary Get cash flow summary by category
-   * @param {FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySummaryV1Request} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof FluxoDeCaixaRelatriosApi
-   */
-  public cashFlowReportsControllerGetCategorySummaryV1(
-    requestParameters: FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySummaryV1Request = {},
-    options?: RawAxiosRequestConfig,
-  ) {
-    return FluxoDeCaixaRelatriosApiFp(this.configuration)
-      .cashFlowReportsControllerGetCategorySummaryV1(
-        requestParameters.date,
-        requestParameters.startDate,
-        requestParameters.endDate,
-        requestParameters.days,
-        requestParameters.month,
-        requestParameters.bankAccountId,
-        requestParameters.cinemaComplexId,
-        options,
-      )
-      .then((request) => request(this.axios, this.basePath));
-  }
+export class FluxoDeCaixaRelatriosApi extends BaseAPI implements FluxoDeCaixaRelatriosApiInterface {
+    /**
+     * 
+     * @summary Get cash flow summary by category
+     * @param {FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySummaryV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FluxoDeCaixaRelatriosApi
+     */
+    public cashFlowReportsControllerGetCategorySummaryV1(requestParameters: FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetCategorySummaryV1Request = {}, options?: RawAxiosRequestConfig) {
+        return FluxoDeCaixaRelatriosApiFp(this.configuration).cashFlowReportsControllerGetCategorySummaryV1(requestParameters.date, requestParameters.startDate, requestParameters.endDate, requestParameters.days, requestParameters.month, requestParameters.bankAccountId, requestParameters.cinemaComplexId, options).then((request) => request(this.axios, this.basePath));
+    }
 
-  /**
-   *
-   * @summary Get daily cash flow report
-   * @param {FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReportV1Request} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof FluxoDeCaixaRelatriosApi
-   */
-  public cashFlowReportsControllerGetDailyReportV1(
-    requestParameters: FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReportV1Request = {},
-    options?: RawAxiosRequestConfig,
-  ) {
-    return FluxoDeCaixaRelatriosApiFp(this.configuration)
-      .cashFlowReportsControllerGetDailyReportV1(
-        requestParameters.date,
-        requestParameters.startDate,
-        requestParameters.endDate,
-        requestParameters.days,
-        requestParameters.month,
-        requestParameters.bankAccountId,
-        requestParameters.cinemaComplexId,
-        options,
-      )
-      .then((request) => request(this.axios, this.basePath));
-  }
+    /**
+     * 
+     * @summary Get daily cash flow report
+     * @param {FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReportV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FluxoDeCaixaRelatriosApi
+     */
+    public cashFlowReportsControllerGetDailyReportV1(requestParameters: FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetDailyReportV1Request = {}, options?: RawAxiosRequestConfig) {
+        return FluxoDeCaixaRelatriosApiFp(this.configuration).cashFlowReportsControllerGetDailyReportV1(requestParameters.date, requestParameters.startDate, requestParameters.endDate, requestParameters.days, requestParameters.month, requestParameters.bankAccountId, requestParameters.cinemaComplexId, options).then((request) => request(this.axios, this.basePath));
+    }
 
-  /**
-   *
-   * @summary Get cash flow report by period
-   * @param {FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodReportV1Request} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof FluxoDeCaixaRelatriosApi
-   */
-  public cashFlowReportsControllerGetPeriodReportV1(
-    requestParameters: FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodReportV1Request = {},
-    options?: RawAxiosRequestConfig,
-  ) {
-    return FluxoDeCaixaRelatriosApiFp(this.configuration)
-      .cashFlowReportsControllerGetPeriodReportV1(
-        requestParameters.date,
-        requestParameters.startDate,
-        requestParameters.endDate,
-        requestParameters.days,
-        requestParameters.month,
-        requestParameters.bankAccountId,
-        requestParameters.cinemaComplexId,
-        options,
-      )
-      .then((request) => request(this.axios, this.basePath));
-  }
+    /**
+     * 
+     * @summary Get cash flow report by period
+     * @param {FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodReportV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FluxoDeCaixaRelatriosApi
+     */
+    public cashFlowReportsControllerGetPeriodReportV1(requestParameters: FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetPeriodReportV1Request = {}, options?: RawAxiosRequestConfig) {
+        return FluxoDeCaixaRelatriosApiFp(this.configuration).cashFlowReportsControllerGetPeriodReportV1(requestParameters.date, requestParameters.startDate, requestParameters.endDate, requestParameters.days, requestParameters.month, requestParameters.bankAccountId, requestParameters.cinemaComplexId, options).then((request) => request(this.axios, this.basePath));
+    }
 
-  /**
-   *
-   * @summary Get cash flow projection
-   * @param {FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV1Request} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof FluxoDeCaixaRelatriosApi
-   */
-  public cashFlowReportsControllerGetProjectionV1(
-    requestParameters: FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV1Request = {},
-    options?: RawAxiosRequestConfig,
-  ) {
-    return FluxoDeCaixaRelatriosApiFp(this.configuration)
-      .cashFlowReportsControllerGetProjectionV1(
-        requestParameters.date,
-        requestParameters.startDate,
-        requestParameters.endDate,
-        requestParameters.days,
-        requestParameters.month,
-        requestParameters.bankAccountId,
-        requestParameters.cinemaComplexId,
-        options,
-      )
-      .then((request) => request(this.axios, this.basePath));
-  }
+    /**
+     * 
+     * @summary Get cash flow projection
+     * @param {FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FluxoDeCaixaRelatriosApi
+     */
+    public cashFlowReportsControllerGetProjectionV1(requestParameters: FluxoDeCaixaRelatriosApiCashFlowReportsControllerGetProjectionV1Request = {}, options?: RawAxiosRequestConfig) {
+        return FluxoDeCaixaRelatriosApiFp(this.configuration).cashFlowReportsControllerGetProjectionV1(requestParameters.date, requestParameters.startDate, requestParameters.endDate, requestParameters.days, requestParameters.month, requestParameters.bankAccountId, requestParameters.cinemaComplexId, options).then((request) => request(this.axios, this.basePath));
+    }
 }
+

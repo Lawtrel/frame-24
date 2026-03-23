@@ -3,7 +3,7 @@ import { BankReconciliationRepository } from './bank-reconciliation.repository';
 
 describe('BankReconciliationRepository', () => {
   let repository: BankReconciliationRepository;
-  let prisma: jest.Mocked<PrismaService>;
+  let prisma: any;
 
   beforeEach(() => {
     prisma = {
@@ -16,7 +16,7 @@ describe('BankReconciliationRepository', () => {
       cash_flow_entries: {
         aggregate: jest.fn(),
       },
-    } as unknown as jest.Mocked<PrismaService>;
+    } as any;
 
     repository = new BankReconciliationRepository(prisma);
   });

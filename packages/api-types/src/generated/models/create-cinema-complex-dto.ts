@@ -12,82 +12,85 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface CreateCinemaComplexDto
  */
 export interface CreateCinemaComplexDto {
-  /**
-   * ID da empresa proprietária do complexo.
-   * @type {string}
-   * @memberof CreateCinemaComplexDto
-   */
-  company_id: string;
-  /**
-   * Nome do complexo de cinema.
-   * @type {string}
-   * @memberof CreateCinemaComplexDto
-   */
-  name: string;
-  /**
-   * Código único para o complexo.
-   * @type {string}
-   * @memberof CreateCinemaComplexDto
-   */
-  code: string;
-  /**
-   * CNPJ do complexo.
-   * @type {string}
-   * @memberof CreateCinemaComplexDto
-   */
-  cnpj?: string;
-  /**
-   * Endereço completo do cinema.
-   * @type {string}
-   * @memberof CreateCinemaComplexDto
-   */
-  address?: string;
-  /**
-   * Cidade onde o complexo está localizado.
-   * @type {string}
-   * @memberof CreateCinemaComplexDto
-   */
-  city?: string;
-  /**
-   * Estado (UF).
-   * @type {string}
-   * @memberof CreateCinemaComplexDto
-   */
-  state?: string;
-  /**
-   * Código Postal (CEP).
-   * @type {string}
-   * @memberof CreateCinemaComplexDto
-   */
-  postal_code?: string;
-  /**
-   * Código do município no IBGE.
-   * @type {string}
-   * @memberof CreateCinemaComplexDto
-   */
-  ibge_municipality_code: string;
-  /**
-   * Registro do complexo na ANCINE.
-   * @type {string}
-   * @memberof CreateCinemaComplexDto
-   */
-  ancine_registry?: string;
-  /**
-   * Data de inauguração (ISO 8601)
-   * @type {string}
-   * @memberof CreateCinemaComplexDto
-   */
-  opening_date?: string;
-  /**
-   * Indica se o complexo está ativo.
-   * @type {boolean}
-   * @memberof CreateCinemaComplexDto
-   */
-  active?: boolean;
+    /**
+     * Nome do complexo de cinema.
+     * @type {string}
+     * @memberof CreateCinemaComplexDto
+     */
+    'name': string;
+    /**
+     * Código único para o complexo.
+     * @type {string}
+     * @memberof CreateCinemaComplexDto
+     */
+    'code': string;
+    /**
+     * CNPJ do complexo.
+     * @type {string}
+     * @memberof CreateCinemaComplexDto
+     */
+    'cnpj'?: string;
+    /**
+     * Endereço completo do cinema.
+     * @type {string}
+     * @memberof CreateCinemaComplexDto
+     */
+    'address'?: string;
+    /**
+     * Cidade onde o complexo está localizado.
+     * @type {string}
+     * @memberof CreateCinemaComplexDto
+     */
+    'city'?: string;
+    /**
+     * Estado (UF).
+     * @type {string}
+     * @memberof CreateCinemaComplexDto
+     */
+    'state'?: string;
+    /**
+     * Código Postal (CEP).
+     * @type {string}
+     * @memberof CreateCinemaComplexDto
+     */
+    'postal_code'?: string;
+    /**
+     * Código do município no IBGE.
+     * @type {string}
+     * @memberof CreateCinemaComplexDto
+     */
+    'ibge_municipality_code': string;
+    /**
+     * Registro do complexo na ANCINE.
+     * @type {string}
+     * @memberof CreateCinemaComplexDto
+     */
+    'ancine_registry'?: string;
+    /**
+     * Data de inauguração (ISO 8601)
+     * @type {string}
+     * @memberof CreateCinemaComplexDto
+     */
+    'opening_date'?: string;
+    /**
+     * Indica se o complexo está ativo.
+     * @type {boolean}
+     * @memberof CreateCinemaComplexDto
+     */
+    'active'?: boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateCinemaComplexDto
+     */
+    'company_id'?: string;
 }
+

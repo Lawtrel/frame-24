@@ -12,36 +12,39 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface CreateSaleDtoConcessionItemsInner
  */
 export interface CreateSaleDtoConcessionItemsInner {
-  /**
-   *
-   * @type {string}
-   * @memberof CreateSaleDtoConcessionItemsInner
-   */
-  item_type?: CreateSaleDtoConcessionItemsInnerItemTypeEnum;
-  /**
-   *
-   * @type {string}
-   * @memberof CreateSaleDtoConcessionItemsInner
-   */
-  item_id?: string;
-  /**
-   *
-   * @type {number}
-   * @memberof CreateSaleDtoConcessionItemsInner
-   */
-  quantity?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateSaleDtoConcessionItemsInner
+     */
+    'item_type'?: CreateSaleDtoConcessionItemsInnerItemTypeEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateSaleDtoConcessionItemsInner
+     */
+    'item_id'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof CreateSaleDtoConcessionItemsInner
+     */
+    'quantity'?: number;
 }
 
 export const CreateSaleDtoConcessionItemsInnerItemTypeEnum = {
-  Product: "PRODUCT",
-  Combo: "COMBO",
+    Product: 'PRODUCT',
+    Combo: 'COMBO'
 } as const;
 
-export type CreateSaleDtoConcessionItemsInnerItemTypeEnum =
-  (typeof CreateSaleDtoConcessionItemsInnerItemTypeEnum)[keyof typeof CreateSaleDtoConcessionItemsInnerItemTypeEnum];
+export type CreateSaleDtoConcessionItemsInnerItemTypeEnum = typeof CreateSaleDtoConcessionItemsInnerItemTypeEnum[keyof typeof CreateSaleDtoConcessionItemsInnerItemTypeEnum];
+
+

@@ -12,70 +12,73 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface UserResponseDtoCompanyUser
  */
 export interface UserResponseDtoCompanyUser {
-  /**
-   *
-   * @type {string}
-   * @memberof UserResponseDtoCompanyUser
-   */
-  id: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UserResponseDtoCompanyUser
-   */
-  employee_id: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UserResponseDtoCompanyUser
-   */
-  role_id: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UserResponseDtoCompanyUser
-   */
-  role_name: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UserResponseDtoCompanyUser
-   */
-  department: string | null;
-  /**
-   *
-   * @type {string}
-   * @memberof UserResponseDtoCompanyUser
-   */
-  job_level: string | null;
-  /**
-   *
-   * @type {boolean}
-   * @memberof UserResponseDtoCompanyUser
-   */
-  active: boolean;
-  /**
-   *
-   * @type {string}
-   * @memberof UserResponseDtoCompanyUser
-   */
-  start_date: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UserResponseDtoCompanyUser
-   */
-  end_date: string | null;
-  /**
-   *
-   * @type {string}
-   * @memberof UserResponseDtoCompanyUser
-   */
-  last_access: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserResponseDtoCompanyUser
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserResponseDtoCompanyUser
+     */
+    'employee_id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserResponseDtoCompanyUser
+     */
+    'role_id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserResponseDtoCompanyUser
+     */
+    'role_name': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserResponseDtoCompanyUser
+     */
+    'department': string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserResponseDtoCompanyUser
+     */
+    'job_level': string | null;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof UserResponseDtoCompanyUser
+     */
+    'active': boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserResponseDtoCompanyUser
+     */
+    'start_date': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserResponseDtoCompanyUser
+     */
+    'end_date': string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserResponseDtoCompanyUser
+     */
+    'last_access': string | null;
 }
+

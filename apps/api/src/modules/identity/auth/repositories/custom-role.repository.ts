@@ -46,7 +46,7 @@ export class CustomRoleRepository {
     return this.prisma.custom_roles.create({
       data: {
         id: this.snowflake.generate(),
-        companies: { connect: { id: companyId } },
+        company_id: companyId,
         name: 'Super Admin',
         description: 'Administrador com acesso total',
         is_system_role: true,

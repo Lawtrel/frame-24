@@ -12,34 +12,37 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface RegisterResponseDto
  */
 export interface RegisterResponseDto {
-  /**
-   * Status de sucesso da operação
-   * @type {boolean}
-   * @memberof RegisterResponseDto
-   */
-  success: boolean;
-  /**
-   * ID do usuário criado
-   * @type {string}
-   * @memberof RegisterResponseDto
-   */
-  user_id: string;
-  /**
-   * Email do usuário
-   * @type {string}
-   * @memberof RegisterResponseDto
-   */
-  email: string;
-  /**
-   * Mensagem de sucesso
-   * @type {string}
-   * @memberof RegisterResponseDto
-   */
-  message: string;
+    /**
+     * Status de sucesso da operação
+     * @type {boolean}
+     * @memberof RegisterResponseDto
+     */
+    'success': boolean;
+    /**
+     * ID do usuário criado
+     * @type {string}
+     * @memberof RegisterResponseDto
+     */
+    'user_id': string;
+    /**
+     * Email do usuário
+     * @type {string}
+     * @memberof RegisterResponseDto
+     */
+    'email': string;
+    /**
+     * Mensagem de sucesso
+     * @type {string}
+     * @memberof RegisterResponseDto
+     */
+    'message': string;
 }
+

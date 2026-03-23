@@ -1,124 +1,33 @@
 import { Prisma } from '@repo/db';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 
-const SNOWFLAKE_FIRST_MODELS = new Set<string>([
-  'account_natures',
-  'account_types',
-  'accounting_movement_types',
-  'accounts_payable',
-  'accounts_receivable',
-  'age_ratings',
-  'audio_types',
-  'bank_accounts',
-  'bank_reconciliations',
-  'campaign_categories',
-  'campaign_complexes',
-  'campaign_movies',
-  'campaign_rooms',
-  'campaign_session_types',
-  'campaign_weekdays',
-  'cash_flow_entries',
-  'cast_types',
-  'chart_of_accounts',
-  'cinema_complexes',
-  'combo_products',
-  'combos',
-  'companies',
-  'company_customers',
-  'company_users',
-  'concession_sale_items',
-  'concession_sales',
-  'concession_status',
-  'contingency_reserves',
-  'contingency_status',
-  'contingency_types',
-  'contract_types',
-  'courtesy_parameters',
-  'credit_types',
-  'custom_roles',
-  'customer_favorite_combos',
-  'customer_favorite_genres',
-  'customer_favorite_products',
-  'customer_interactions',
-  'customer_points',
-  'customer_preferences',
-  'customer_preferred_rows',
-  'customer_preferred_times',
-  'customer_preferred_weekdays',
-  'customers',
-  'departments',
-  'distributor_settlement_status',
-  'distributor_settlements',
-  'employees',
-  'employment_contract_types',
-  'exhibition_contract_sliding_scales',
-  'exhibition_contracts',
-  'federal_tax_rates',
-  'identities',
-  'iss_withholdings',
-  'journal_entries',
-  'journal_entry_items',
-  'journal_entry_status',
-  'journal_entry_types',
-  'media_types',
-  'monthly_income_statement',
-  'monthly_tax_settlement',
-  'movie_cast',
-  'movie_categories',
-  'movie_media',
-  'movies',
-  'municipal_tax_parameters',
-  'payable_transactions',
-  'payment_methods',
-  'permissions',
-  'persons',
-  'pis_cofins_credits',
-  'positions',
-  'product_categories',
-  'product_prices',
-  'product_stock',
-  'products',
-  'projection_types',
-  'promotion_types',
-  'promotional_campaigns',
-  'promotions_used',
-  'receivable_transactions',
-  'recine_acquisition_types',
-  'recine_acquisitions',
-  'recine_deadline_types',
-  'recine_deadlines',
-  'recine_item_types',
-  'recine_project_status',
-  'recine_project_types',
-  'recine_projects',
-  'revenue_types',
-  'role_permissions',
-  'rooms',
-  'sale_status',
-  'sale_types',
-  'sales',
-  'seat_status',
-  'seat_types',
-  'seats',
-  'session_languages',
-  'session_seat_status',
-  'session_status',
-  'settlement_bases',
-  'settlement_status',
-  'showtime_schedule',
-  'simple_national_brackets',
-  'state_icms_parameters',
-  'stock_movement_types',
-  'stock_movements',
-  'supplier_types',
-  'suppliers',
-  'tax_compensations',
-  'tax_entries',
-  'tax_types',
-  'ticket_types',
-  'tickets',
-  'user_attributes',
-]);
+function isUuidDefault(field: Prisma.DMMF.Field): boolean {
+  if (!field.hasDefaultValue) {
+    return false;
+  }
+
+  const value = field.default;
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'name' in value &&
+    (value as { name?: unknown }).name === 'uuid'
+  );
+}
+
+const ENABLED_SNOWFLAKE_MODELS = new Set(
+  Prisma.dmmf.datamodel.models
+    .filter((model) =>
+      model.fields.some(
+        (field) =>
+          field.name === 'id' &&
+          field.kind === 'scalar' &&
+          field.type === 'String' &&
+          !isUuidDefault(field),
+      ),
+    )
+    .map((model) => model.name),
+);
 
 type CreateArgs = {
   data?: Record<string, unknown>;
@@ -129,7 +38,7 @@ type CreateManyArgs = {
 };
 
 function shouldAssignSnowflakeId(model: string | undefined): boolean {
-  return !!model && SNOWFLAKE_FIRST_MODELS.has(model);
+  return !!model && ENABLED_SNOWFLAKE_MODELS.has(model);
 }
 
 function injectId(

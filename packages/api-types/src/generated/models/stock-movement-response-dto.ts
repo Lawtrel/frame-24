@@ -12,88 +12,91 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface StockMovementResponseDto
  */
 export interface StockMovementResponseDto {
-  /**
-   *
-   * @type {string}
-   * @memberof StockMovementResponseDto
-   */
-  id: string;
-  /**
-   *
-   * @type {string}
-   * @memberof StockMovementResponseDto
-   */
-  product_id: string;
-  /**
-   *
-   * @type {string}
-   * @memberof StockMovementResponseDto
-   */
-  complex_id: string;
-  /**
-   *
-   * @type {string}
-   * @memberof StockMovementResponseDto
-   */
-  movement_type: string;
-  /**
-   *
-   * @type {number}
-   * @memberof StockMovementResponseDto
-   */
-  quantity: number;
-  /**
-   *
-   * @type {number}
-   * @memberof StockMovementResponseDto
-   */
-  previous_quantity: number;
-  /**
-   *
-   * @type {number}
-   * @memberof StockMovementResponseDto
-   */
-  current_quantity: number;
-  /**
-   *
-   * @type {string}
-   * @memberof StockMovementResponseDto
-   */
-  unit_value?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof StockMovementResponseDto
-   */
-  total_value?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof StockMovementResponseDto
-   */
-  origin_type?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof StockMovementResponseDto
-   */
-  origin_id?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof StockMovementResponseDto
-   */
-  movement_date: string;
-  /**
-   *
-   * @type {string}
-   * @memberof StockMovementResponseDto
-   */
-  created_at: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StockMovementResponseDto
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StockMovementResponseDto
+     */
+    'product_id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StockMovementResponseDto
+     */
+    'complex_id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StockMovementResponseDto
+     */
+    'movement_type': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof StockMovementResponseDto
+     */
+    'quantity': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof StockMovementResponseDto
+     */
+    'previous_quantity': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof StockMovementResponseDto
+     */
+    'current_quantity': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof StockMovementResponseDto
+     */
+    'unit_value'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StockMovementResponseDto
+     */
+    'total_value'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StockMovementResponseDto
+     */
+    'origin_type'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StockMovementResponseDto
+     */
+    'origin_id'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StockMovementResponseDto
+     */
+    'movement_date': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StockMovementResponseDto
+     */
+    'created_at': string;
 }
+

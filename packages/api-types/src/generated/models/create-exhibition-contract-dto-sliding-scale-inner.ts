@@ -12,28 +12,31 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface CreateExhibitionContractDtoSlidingScaleInner
  */
 export interface CreateExhibitionContractDtoSlidingScaleInner {
-  /**
-   *
-   * @type {number}
-   * @memberof CreateExhibitionContractDtoSlidingScaleInner
-   */
-  week_number: number;
-  /**
-   *
-   * @type {number}
-   * @memberof CreateExhibitionContractDtoSlidingScaleInner
-   */
-  distributor_percentage: number;
-  /**
-   *
-   * @type {number}
-   * @memberof CreateExhibitionContractDtoSlidingScaleInner
-   */
-  exhibitor_percentage: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof CreateExhibitionContractDtoSlidingScaleInner
+     */
+    'week_number': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof CreateExhibitionContractDtoSlidingScaleInner
+     */
+    'distributor_percentage': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof CreateExhibitionContractDtoSlidingScaleInner
+     */
+    'exhibitor_percentage': number;
 }
+

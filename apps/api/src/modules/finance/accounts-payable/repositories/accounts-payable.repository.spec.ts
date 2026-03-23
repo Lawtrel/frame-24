@@ -4,7 +4,7 @@ import { AccountsPayableRepository } from './accounts-payable.repository';
 
 describe('AccountsPayableRepository', () => {
   let repository: AccountsPayableRepository;
-  let prisma: jest.Mocked<PrismaService>;
+  let prisma: any;
   let snowflake: jest.Mocked<SnowflakeService>;
 
   beforeEach(() => {
@@ -16,7 +16,7 @@ describe('AccountsPayableRepository', () => {
         findFirst: jest.fn(),
         update: jest.fn(),
       },
-    } as unknown as jest.Mocked<PrismaService>;
+    } as any;
 
     snowflake = {
       generate: jest.fn(),

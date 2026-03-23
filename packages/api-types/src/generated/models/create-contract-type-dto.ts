@@ -12,22 +12,25 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface CreateContractTypeDto
  */
 export interface CreateContractTypeDto {
-  /**
-   * Nome do tipo de contrato
-   * @type {string}
-   * @memberof CreateContractTypeDto
-   */
-  name: string;
-  /**
-   * Descrição breve do contrato
-   * @type {string}
-   * @memberof CreateContractTypeDto
-   */
-  description?: string;
+    /**
+     * Nome do tipo de contrato
+     * @type {string}
+     * @memberof CreateContractTypeDto
+     */
+    'name': string;
+    /**
+     * Descrição breve do contrato
+     * @type {string}
+     * @memberof CreateContractTypeDto
+     */
+    'description'?: string;
 }
+

@@ -12,122 +12,124 @@
  * Do not edit the class manually.
  */
 
+
 // May contain unused imports in some cases
 // @ts-ignore
-import type { SaleResponseDtoMovie } from "./sale-response-dto-movie";
+import type { SaleResponseDtoMovie } from './sale-response-dto-movie';
 // May contain unused imports in some cases
 // @ts-ignore
-import type { SaleResponseDtoShowtime } from "./sale-response-dto-showtime";
+import type { SaleResponseDtoShowtime } from './sale-response-dto-showtime';
 // May contain unused imports in some cases
 // @ts-ignore
-import type { TicketResponseDto } from "./ticket-response-dto";
+import type { TicketResponseDto } from './ticket-response-dto';
 
 /**
- *
+ * 
  * @export
  * @interface SaleResponseDto
  */
 export interface SaleResponseDto {
-  /**
-   *
-   * @type {string}
-   * @memberof SaleResponseDto
-   */
-  id: string;
-  /**
-   *
-   * @type {string}
-   * @memberof SaleResponseDto
-   */
-  sale_number: string;
-  /**
-   *
-   * @type {string}
-   * @memberof SaleResponseDto
-   */
-  cinema_complex_id: string;
-  /**
-   *
-   * @type {string}
-   * @memberof SaleResponseDto
-   */
-  customer_id?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof SaleResponseDto
-   */
-  sale_date: string;
-  /**
-   *
-   * @type {string}
-   * @memberof SaleResponseDto
-   */
-  total_amount: string;
-  /**
-   *
-   * @type {string}
-   * @memberof SaleResponseDto
-   */
-  discount_amount: string;
-  /**
-   *
-   * @type {string}
-   * @memberof SaleResponseDto
-   */
-  net_amount: string;
-  /**
-   *
-   * @type {string}
-   * @memberof SaleResponseDto
-   */
-  sale_type?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof SaleResponseDto
-   */
-  payment_method?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof SaleResponseDto
-   */
-  status?: string;
-  /**
-   * Código promocional aplicado nesta venda
-   * @type {string}
-   * @memberof SaleResponseDto
-   */
-  promotion_code?: string;
-  /**
-   * Valor de desconto aplicado pela promoção
-   * @type {string}
-   * @memberof SaleResponseDto
-   */
-  promotion_discount?: string;
-  /**
-   *
-   * @type {Array<TicketResponseDto>}
-   * @memberof SaleResponseDto
-   */
-  tickets: Array<TicketResponseDto>;
-  /**
-   *
-   * @type {string}
-   * @memberof SaleResponseDto
-   */
-  created_at: string;
-  /**
-   *
-   * @type {SaleResponseDtoShowtime}
-   * @memberof SaleResponseDto
-   */
-  showtime?: SaleResponseDtoShowtime;
-  /**
-   *
-   * @type {SaleResponseDtoMovie}
-   * @memberof SaleResponseDto
-   */
-  movie?: SaleResponseDtoMovie;
+    /**
+     * 
+     * @type {string}
+     * @memberof SaleResponseDto
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SaleResponseDto
+     */
+    'sale_number': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SaleResponseDto
+     */
+    'cinema_complex_id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SaleResponseDto
+     */
+    'customer_id'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SaleResponseDto
+     */
+    'sale_date': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SaleResponseDto
+     */
+    'total_amount': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SaleResponseDto
+     */
+    'discount_amount': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SaleResponseDto
+     */
+    'net_amount': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SaleResponseDto
+     */
+    'sale_type'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SaleResponseDto
+     */
+    'payment_method'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SaleResponseDto
+     */
+    'status'?: string;
+    /**
+     * Código promocional aplicado nesta venda
+     * @type {string}
+     * @memberof SaleResponseDto
+     */
+    'promotion_code'?: string;
+    /**
+     * Valor de desconto aplicado pela promoção
+     * @type {string}
+     * @memberof SaleResponseDto
+     */
+    'promotion_discount'?: string;
+    /**
+     * 
+     * @type {Array<TicketResponseDto>}
+     * @memberof SaleResponseDto
+     */
+    'tickets': Array<TicketResponseDto>;
+    /**
+     * 
+     * @type {string}
+     * @memberof SaleResponseDto
+     */
+    'created_at': string;
+    /**
+     * 
+     * @type {SaleResponseDtoShowtime}
+     * @memberof SaleResponseDto
+     */
+    'showtime'?: SaleResponseDtoShowtime;
+    /**
+     * 
+     * @type {SaleResponseDtoMovie}
+     * @memberof SaleResponseDto
+     */
+    'movie'?: SaleResponseDtoMovie;
 }
+

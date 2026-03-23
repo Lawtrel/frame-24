@@ -12,58 +12,61 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface RoleResponseDto
  */
 export interface RoleResponseDto {
-  /**
-   * Role ID
-   * @type {string}
-   * @memberof RoleResponseDto
-   */
-  id: string;
-  /**
-   * Role name
-   * @type {string}
-   * @memberof RoleResponseDto
-   */
-  name: string;
-  /**
-   *
-   * @type {string}
-   * @memberof RoleResponseDto
-   */
-  description?: string | null;
-  /**
-   * Whether this is a system role (cannot be edited/deleted)
-   * @type {boolean}
-   * @memberof RoleResponseDto
-   */
-  is_system_role: boolean;
-  /**
-   *
-   * @type {number}
-   * @memberof RoleResponseDto
-   */
-  hierarchy_level?: number | null;
-  /**
-   *
-   * @type {Array<Array<string>>}
-   * @memberof RoleResponseDto
-   */
-  permissions: Array<Array<string>>;
-  /**
-   * Creation timestamp
-   * @type {string}
-   * @memberof RoleResponseDto
-   */
-  created_at: string;
-  /**
-   * Last update timestamp
-   * @type {string}
-   * @memberof RoleResponseDto
-   */
-  updated_at: string;
+    /**
+     * Role ID
+     * @type {string}
+     * @memberof RoleResponseDto
+     */
+    'id': string;
+    /**
+     * Role name
+     * @type {string}
+     * @memberof RoleResponseDto
+     */
+    'name': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RoleResponseDto
+     */
+    'description'?: string | null;
+    /**
+     * Whether this is a system role (cannot be edited/deleted)
+     * @type {boolean}
+     * @memberof RoleResponseDto
+     */
+    'is_system_role': boolean;
+    /**
+     * 
+     * @type {number}
+     * @memberof RoleResponseDto
+     */
+    'hierarchy_level'?: number | null;
+    /**
+     * 
+     * @type {Array<Array<string>>}
+     * @memberof RoleResponseDto
+     */
+    'permissions': Array<Array<string>>;
+    /**
+     * Creation timestamp
+     * @type {string}
+     * @memberof RoleResponseDto
+     */
+    'created_at': string;
+    /**
+     * Last update timestamp
+     * @type {string}
+     * @memberof RoleResponseDto
+     */
+    'updated_at': string;
 }
+

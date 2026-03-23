@@ -12,339 +12,207 @@
  * Do not edit the class manually.
  */
 
-import type { Configuration } from "../configuration";
-import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from "axios";
-import globalAxios from "axios";
+
+import type { Configuration } from '../configuration';
+import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from 'axios';
+import globalAxios from 'axios';
 // Some imports not used depending on template conditions
 // @ts-ignore
-import {
-  DUMMY_BASE_URL,
-  assertParamExists,
-  setApiKeyToObject,
-  setBasicAuthToObject,
-  setBearerAuthToObject,
-  setOAuthToObject,
-  setSearchParams,
-  serializeDataIfNeeded,
-  toPathString,
-  createRequestFunction,
-} from "../common";
+import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from '../common';
 // @ts-ignore
-import {
-  BASE_PATH,
-  COLLECTION_FORMATS,
-  type RequestArgs,
-  BaseAPI,
-  RequiredError,
-  operationServerMap,
-} from "../base";
+import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
 /**
  * AdminApi - axios parameter creator
  * @export
  */
-export const AdminApiAxiosParamCreator = function (
-  configuration?: Configuration,
-) {
-  return {
-    /**
-     *
-     * @summary Liberar/cancelar reserva pendente
-     * @param {string} id
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    adminOperationsControllerCancelReservationV1: async (
-      id: string,
-      options: RawAxiosRequestConfig = {},
-    ): Promise<RequestArgs> => {
-      // verify required parameter 'id' is not null or undefined
-      assertParamExists(
-        "adminOperationsControllerCancelReservationV1",
-        "id",
-        id,
-      );
-      const localVarPath = `/v1/admin/reservations/{id}`.replace(
-        `{${"id"}}`,
-        encodeURIComponent(String(id)),
-      );
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
+export const AdminApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @summary Liberar/cancelar reserva pendente
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        adminOperationsControllerCancelReservationV1: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('adminOperationsControllerCancelReservationV1', 'id', id)
+            const localVarPath = `/v1/admin/reservations/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
 
-      const localVarRequestOptions = {
-        method: "DELETE",
-        ...baseOptions,
-        ...options,
-      };
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
 
-      setSearchParams(localVarUrlObj, localVarQueryParameter);
-      let headersFromBaseOptions =
-        baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      };
 
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-     *
-     * @summary Obter QR Code de um ingresso (uso administrativo)
-     * @param {string} id
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    adminOperationsControllerGetTicketQrCodeV1: async (
-      id: string,
-      options: RawAxiosRequestConfig = {},
-    ): Promise<RequestArgs> => {
-      // verify required parameter 'id' is not null or undefined
-      assertParamExists("adminOperationsControllerGetTicketQrCodeV1", "id", id);
-      const localVarPath = `/v1/admin/tickets/{id}/qr-code`.replace(
-        `{${"id"}}`,
-        encodeURIComponent(String(id)),
-      );
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
-      const localVarRequestOptions = {
-        method: "GET",
-        ...baseOptions,
-        ...options,
-      };
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Obter QR Code de um ingresso (uso administrativo)
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        adminOperationsControllerGetTicketQrCodeV1: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('adminOperationsControllerGetTicketQrCodeV1', 'id', id)
+            const localVarPath = `/v1/admin/tickets/{id}/qr-code`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
 
-      setSearchParams(localVarUrlObj, localVarQueryParameter);
-      let headersFromBaseOptions =
-        baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      };
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
 
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-     *
-     * @summary Listar reservas pendentes de assentos
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    adminOperationsControllerListReservationsV1: async (
-      options: RawAxiosRequestConfig = {},
-    ): Promise<RequestArgs> => {
-      const localVarPath = `/v1/admin/reservations`;
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
 
-      const localVarRequestOptions = {
-        method: "GET",
-        ...baseOptions,
-        ...options,
-      };
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
-      setSearchParams(localVarUrlObj, localVarQueryParameter);
-      let headersFromBaseOptions =
-        baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Listar reservas pendentes de assentos
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        adminOperationsControllerListReservationsV1: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/v1/admin/reservations`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
 
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-  };
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
 };
 
 /**
  * AdminApi - functional programming interface
  * @export
  */
-export const AdminApiFp = function (configuration?: Configuration) {
-  const localVarAxiosParamCreator = AdminApiAxiosParamCreator(configuration);
-  return {
-    /**
-     *
-     * @summary Liberar/cancelar reserva pendente
-     * @param {string} id
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async adminOperationsControllerCancelReservationV1(
-      id: string,
-      options?: RawAxiosRequestConfig,
-    ): Promise<
-      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
-    > {
-      const localVarAxiosArgs =
-        await localVarAxiosParamCreator.adminOperationsControllerCancelReservationV1(
-          id,
-          options,
-        );
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-      const localVarOperationServerBasePath =
-        operationServerMap[
-          "AdminApi.adminOperationsControllerCancelReservationV1"
-        ]?.[localVarOperationServerIndex]?.url;
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration,
-        )(axios, localVarOperationServerBasePath || basePath);
-    },
-    /**
-     *
-     * @summary Obter QR Code de um ingresso (uso administrativo)
-     * @param {string} id
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async adminOperationsControllerGetTicketQrCodeV1(
-      id: string,
-      options?: RawAxiosRequestConfig,
-    ): Promise<
-      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
-    > {
-      const localVarAxiosArgs =
-        await localVarAxiosParamCreator.adminOperationsControllerGetTicketQrCodeV1(
-          id,
-          options,
-        );
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-      const localVarOperationServerBasePath =
-        operationServerMap[
-          "AdminApi.adminOperationsControllerGetTicketQrCodeV1"
-        ]?.[localVarOperationServerIndex]?.url;
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration,
-        )(axios, localVarOperationServerBasePath || basePath);
-    },
-    /**
-     *
-     * @summary Listar reservas pendentes de assentos
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async adminOperationsControllerListReservationsV1(
-      options?: RawAxiosRequestConfig,
-    ): Promise<
-      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
-    > {
-      const localVarAxiosArgs =
-        await localVarAxiosParamCreator.adminOperationsControllerListReservationsV1(
-          options,
-        );
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-      const localVarOperationServerBasePath =
-        operationServerMap[
-          "AdminApi.adminOperationsControllerListReservationsV1"
-        ]?.[localVarOperationServerIndex]?.url;
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration,
-        )(axios, localVarOperationServerBasePath || basePath);
-    },
-  };
+export const AdminApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = AdminApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @summary Liberar/cancelar reserva pendente
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async adminOperationsControllerCancelReservationV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.adminOperationsControllerCancelReservationV1(id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.adminOperationsControllerCancelReservationV1']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Obter QR Code de um ingresso (uso administrativo)
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async adminOperationsControllerGetTicketQrCodeV1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.adminOperationsControllerGetTicketQrCodeV1(id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.adminOperationsControllerGetTicketQrCodeV1']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Listar reservas pendentes de assentos
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async adminOperationsControllerListReservationsV1(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.adminOperationsControllerListReservationsV1(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.adminOperationsControllerListReservationsV1']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
 };
 
 /**
  * AdminApi - factory interface
  * @export
  */
-export const AdminApiFactory = function (
-  configuration?: Configuration,
-  basePath?: string,
-  axios?: AxiosInstance,
-) {
-  const localVarFp = AdminApiFp(configuration);
-  return {
-    /**
-     *
-     * @summary Liberar/cancelar reserva pendente
-     * @param {AdminApiAdminOperationsControllerCancelReservationV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    adminOperationsControllerCancelReservationV1(
-      requestParameters: AdminApiAdminOperationsControllerCancelReservationV1Request,
-      options?: RawAxiosRequestConfig,
-    ): AxiosPromise<void> {
-      return localVarFp
-        .adminOperationsControllerCancelReservationV1(
-          requestParameters.id,
-          options,
-        )
-        .then((request) => request(axios, basePath));
-    },
-    /**
-     *
-     * @summary Obter QR Code de um ingresso (uso administrativo)
-     * @param {AdminApiAdminOperationsControllerGetTicketQrCodeV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    adminOperationsControllerGetTicketQrCodeV1(
-      requestParameters: AdminApiAdminOperationsControllerGetTicketQrCodeV1Request,
-      options?: RawAxiosRequestConfig,
-    ): AxiosPromise<void> {
-      return localVarFp
-        .adminOperationsControllerGetTicketQrCodeV1(
-          requestParameters.id,
-          options,
-        )
-        .then((request) => request(axios, basePath));
-    },
-    /**
-     *
-     * @summary Listar reservas pendentes de assentos
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    adminOperationsControllerListReservationsV1(
-      options?: RawAxiosRequestConfig,
-    ): AxiosPromise<void> {
-      return localVarFp
-        .adminOperationsControllerListReservationsV1(options)
-        .then((request) => request(axios, basePath));
-    },
-  };
+export const AdminApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = AdminApiFp(configuration)
+    return {
+        /**
+         * 
+         * @summary Liberar/cancelar reserva pendente
+         * @param {AdminApiAdminOperationsControllerCancelReservationV1Request} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        adminOperationsControllerCancelReservationV1(requestParameters: AdminApiAdminOperationsControllerCancelReservationV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.adminOperationsControllerCancelReservationV1(requestParameters.id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Obter QR Code de um ingresso (uso administrativo)
+         * @param {AdminApiAdminOperationsControllerGetTicketQrCodeV1Request} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        adminOperationsControllerGetTicketQrCodeV1(requestParameters: AdminApiAdminOperationsControllerGetTicketQrCodeV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.adminOperationsControllerGetTicketQrCodeV1(requestParameters.id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Listar reservas pendentes de assentos
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        adminOperationsControllerListReservationsV1(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.adminOperationsControllerListReservationsV1(options).then((request) => request(axios, basePath));
+        },
+    };
 };
 
 /**
@@ -353,42 +221,35 @@ export const AdminApiFactory = function (
  * @interface AdminApi
  */
 export interface AdminApiInterface {
-  /**
-   *
-   * @summary Liberar/cancelar reserva pendente
-   * @param {AdminApiAdminOperationsControllerCancelReservationV1Request} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof AdminApiInterface
-   */
-  adminOperationsControllerCancelReservationV1(
-    requestParameters: AdminApiAdminOperationsControllerCancelReservationV1Request,
-    options?: RawAxiosRequestConfig,
-  ): AxiosPromise<void>;
+    /**
+     * 
+     * @summary Liberar/cancelar reserva pendente
+     * @param {AdminApiAdminOperationsControllerCancelReservationV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AdminApiInterface
+     */
+    adminOperationsControllerCancelReservationV1(requestParameters: AdminApiAdminOperationsControllerCancelReservationV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
 
-  /**
-   *
-   * @summary Obter QR Code de um ingresso (uso administrativo)
-   * @param {AdminApiAdminOperationsControllerGetTicketQrCodeV1Request} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof AdminApiInterface
-   */
-  adminOperationsControllerGetTicketQrCodeV1(
-    requestParameters: AdminApiAdminOperationsControllerGetTicketQrCodeV1Request,
-    options?: RawAxiosRequestConfig,
-  ): AxiosPromise<void>;
+    /**
+     * 
+     * @summary Obter QR Code de um ingresso (uso administrativo)
+     * @param {AdminApiAdminOperationsControllerGetTicketQrCodeV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AdminApiInterface
+     */
+    adminOperationsControllerGetTicketQrCodeV1(requestParameters: AdminApiAdminOperationsControllerGetTicketQrCodeV1Request, options?: RawAxiosRequestConfig): AxiosPromise<void>;
 
-  /**
-   *
-   * @summary Listar reservas pendentes de assentos
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof AdminApiInterface
-   */
-  adminOperationsControllerListReservationsV1(
-    options?: RawAxiosRequestConfig,
-  ): AxiosPromise<void>;
+    /**
+     * 
+     * @summary Listar reservas pendentes de assentos
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AdminApiInterface
+     */
+    adminOperationsControllerListReservationsV1(options?: RawAxiosRequestConfig): AxiosPromise<void>;
+
 }
 
 /**
@@ -397,12 +258,12 @@ export interface AdminApiInterface {
  * @interface AdminApiAdminOperationsControllerCancelReservationV1Request
  */
 export interface AdminApiAdminOperationsControllerCancelReservationV1Request {
-  /**
-   *
-   * @type {string}
-   * @memberof AdminApiAdminOperationsControllerCancelReservationV1
-   */
-  readonly id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AdminApiAdminOperationsControllerCancelReservationV1
+     */
+    readonly id: string
 }
 
 /**
@@ -411,12 +272,12 @@ export interface AdminApiAdminOperationsControllerCancelReservationV1Request {
  * @interface AdminApiAdminOperationsControllerGetTicketQrCodeV1Request
  */
 export interface AdminApiAdminOperationsControllerGetTicketQrCodeV1Request {
-  /**
-   *
-   * @type {string}
-   * @memberof AdminApiAdminOperationsControllerGetTicketQrCodeV1
-   */
-  readonly id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AdminApiAdminOperationsControllerGetTicketQrCodeV1
+     */
+    readonly id: string
 }
 
 /**
@@ -426,55 +287,39 @@ export interface AdminApiAdminOperationsControllerGetTicketQrCodeV1Request {
  * @extends {BaseAPI}
  */
 export class AdminApi extends BaseAPI implements AdminApiInterface {
-  /**
-   *
-   * @summary Liberar/cancelar reserva pendente
-   * @param {AdminApiAdminOperationsControllerCancelReservationV1Request} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof AdminApi
-   */
-  public adminOperationsControllerCancelReservationV1(
-    requestParameters: AdminApiAdminOperationsControllerCancelReservationV1Request,
-    options?: RawAxiosRequestConfig,
-  ) {
-    return AdminApiFp(this.configuration)
-      .adminOperationsControllerCancelReservationV1(
-        requestParameters.id,
-        options,
-      )
-      .then((request) => request(this.axios, this.basePath));
-  }
+    /**
+     * 
+     * @summary Liberar/cancelar reserva pendente
+     * @param {AdminApiAdminOperationsControllerCancelReservationV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AdminApi
+     */
+    public adminOperationsControllerCancelReservationV1(requestParameters: AdminApiAdminOperationsControllerCancelReservationV1Request, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).adminOperationsControllerCancelReservationV1(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
+    }
 
-  /**
-   *
-   * @summary Obter QR Code de um ingresso (uso administrativo)
-   * @param {AdminApiAdminOperationsControllerGetTicketQrCodeV1Request} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof AdminApi
-   */
-  public adminOperationsControllerGetTicketQrCodeV1(
-    requestParameters: AdminApiAdminOperationsControllerGetTicketQrCodeV1Request,
-    options?: RawAxiosRequestConfig,
-  ) {
-    return AdminApiFp(this.configuration)
-      .adminOperationsControllerGetTicketQrCodeV1(requestParameters.id, options)
-      .then((request) => request(this.axios, this.basePath));
-  }
+    /**
+     * 
+     * @summary Obter QR Code de um ingresso (uso administrativo)
+     * @param {AdminApiAdminOperationsControllerGetTicketQrCodeV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AdminApi
+     */
+    public adminOperationsControllerGetTicketQrCodeV1(requestParameters: AdminApiAdminOperationsControllerGetTicketQrCodeV1Request, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).adminOperationsControllerGetTicketQrCodeV1(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
+    }
 
-  /**
-   *
-   * @summary Listar reservas pendentes de assentos
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof AdminApi
-   */
-  public adminOperationsControllerListReservationsV1(
-    options?: RawAxiosRequestConfig,
-  ) {
-    return AdminApiFp(this.configuration)
-      .adminOperationsControllerListReservationsV1(options)
-      .then((request) => request(this.axios, this.basePath));
-  }
+    /**
+     * 
+     * @summary Listar reservas pendentes de assentos
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AdminApi
+     */
+    public adminOperationsControllerListReservationsV1(options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).adminOperationsControllerListReservationsV1(options).then((request) => request(this.axios, this.basePath));
+    }
 }
+

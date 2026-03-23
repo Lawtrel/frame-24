@@ -12,42 +12,45 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface CreateJournalEntryDtoItemsInner
  */
 export interface CreateJournalEntryDtoItemsInner {
-  /**
-   * ID da conta
-   * @type {string}
-   * @memberof CreateJournalEntryDtoItemsInner
-   */
-  account_id?: string;
-  /**
-   * Tipo de movimento
-   * @type {string}
-   * @memberof CreateJournalEntryDtoItemsInner
-   */
-  movement_type?: CreateJournalEntryDtoItemsInnerMovementTypeEnum;
-  /**
-   * Valor
-   * @type {number}
-   * @memberof CreateJournalEntryDtoItemsInner
-   */
-  amount?: number;
-  /**
-   * Descrição do item
-   * @type {string}
-   * @memberof CreateJournalEntryDtoItemsInner
-   */
-  item_description?: string;
+    /**
+     * ID da conta
+     * @type {string}
+     * @memberof CreateJournalEntryDtoItemsInner
+     */
+    'account_id'?: string;
+    /**
+     * Tipo de movimento
+     * @type {string}
+     * @memberof CreateJournalEntryDtoItemsInner
+     */
+    'movement_type'?: CreateJournalEntryDtoItemsInnerMovementTypeEnum;
+    /**
+     * Valor
+     * @type {number}
+     * @memberof CreateJournalEntryDtoItemsInner
+     */
+    'amount'?: number;
+    /**
+     * Descrição do item
+     * @type {string}
+     * @memberof CreateJournalEntryDtoItemsInner
+     */
+    'item_description'?: string;
 }
 
 export const CreateJournalEntryDtoItemsInnerMovementTypeEnum = {
-  Debit: "DEBIT",
-  Credit: "CREDIT",
+    Debit: 'DEBIT',
+    Credit: 'CREDIT'
 } as const;
 
-export type CreateJournalEntryDtoItemsInnerMovementTypeEnum =
-  (typeof CreateJournalEntryDtoItemsInnerMovementTypeEnum)[keyof typeof CreateJournalEntryDtoItemsInnerMovementTypeEnum];
+export type CreateJournalEntryDtoItemsInnerMovementTypeEnum = typeof CreateJournalEntryDtoItemsInnerMovementTypeEnum[keyof typeof CreateJournalEntryDtoItemsInnerMovementTypeEnum];
+
+

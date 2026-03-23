@@ -35,6 +35,7 @@ import { AppController } from './app.controller';
       },
     ]),
     ClsModule.forRoot({
+      global: true,
       middleware: {
         mount: true,
       },

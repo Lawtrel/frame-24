@@ -12,70 +12,73 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface CreateDistributorSettlementDto
  */
 export interface CreateDistributorSettlementDto {
-  /**
-   * ID do contrato de exibição
-   * @type {string}
-   * @memberof CreateDistributorSettlementDto
-   */
-  contract_id: string;
-  /**
-   * ID do distribuidor
-   * @type {string}
-   * @memberof CreateDistributorSettlementDto
-   */
-  distributor_id: string;
-  /**
-   * ID do complexo de cinema
-   * @type {string}
-   * @memberof CreateDistributorSettlementDto
-   */
-  cinema_complex_id: string;
-  /**
-   * Data inicial da competência
-   * @type {string}
-   * @memberof CreateDistributorSettlementDto
-   */
-  competence_start_date: string;
-  /**
-   * Data final da competência
-   * @type {string}
-   * @memberof CreateDistributorSettlementDto
-   */
-  competence_end_date: string;
-  /**
-   * Receita bruta de bilheteria
-   * @type {number}
-   * @memberof CreateDistributorSettlementDto
-   */
-  gross_box_office_revenue: number;
-  /**
-   * Percentual do distribuidor (0-100)
-   * @type {number}
-   * @memberof CreateDistributorSettlementDto
-   */
-  distributor_percentage: number;
-  /**
-   * Impostos retidos (ISS, IRRF, etc)
-   * @type {number}
-   * @memberof CreateDistributorSettlementDto
-   */
-  taxes_deducted_amount?: number;
-  /**
-   * Outras deduções aplicadas
-   * @type {number}
-   * @memberof CreateDistributorSettlementDto
-   */
-  deductions_amount?: number;
-  /**
-   * Notas adicionais
-   * @type {string}
-   * @memberof CreateDistributorSettlementDto
-   */
-  notes?: string;
+    /**
+     * ID do contrato de exibição
+     * @type {string}
+     * @memberof CreateDistributorSettlementDto
+     */
+    'contract_id': string;
+    /**
+     * ID do distribuidor
+     * @type {string}
+     * @memberof CreateDistributorSettlementDto
+     */
+    'distributor_id': string;
+    /**
+     * ID do complexo de cinema
+     * @type {string}
+     * @memberof CreateDistributorSettlementDto
+     */
+    'cinema_complex_id': string;
+    /**
+     * Data inicial da competência
+     * @type {string}
+     * @memberof CreateDistributorSettlementDto
+     */
+    'competence_start_date': string;
+    /**
+     * Data final da competência
+     * @type {string}
+     * @memberof CreateDistributorSettlementDto
+     */
+    'competence_end_date': string;
+    /**
+     * Receita bruta de bilheteria
+     * @type {number}
+     * @memberof CreateDistributorSettlementDto
+     */
+    'gross_box_office_revenue': number;
+    /**
+     * Percentual do distribuidor (0-100)
+     * @type {number}
+     * @memberof CreateDistributorSettlementDto
+     */
+    'distributor_percentage': number;
+    /**
+     * Impostos retidos (ISS, IRRF, etc)
+     * @type {number}
+     * @memberof CreateDistributorSettlementDto
+     */
+    'taxes_deducted_amount'?: number;
+    /**
+     * Outras deduções aplicadas
+     * @type {number}
+     * @memberof CreateDistributorSettlementDto
+     */
+    'deductions_amount'?: number;
+    /**
+     * Notas adicionais
+     * @type {string}
+     * @memberof CreateDistributorSettlementDto
+     */
+    'notes'?: string;
 }
+

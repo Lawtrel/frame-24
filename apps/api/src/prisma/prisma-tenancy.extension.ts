@@ -113,7 +113,40 @@ function objectHasCompanyId(value: unknown): boolean {
   if (record.company_id !== undefined && record.company_id !== null)
     return true;
 
+  for (const relationKey of ['company', 'companies']) {
+    const relation = record[relationKey];
+    if (!relation || typeof relation !== 'object' || Array.isArray(relation)) {
+      continue;
+    }
+
+    const relationRecord = relation as Record<string, unknown>;
+    const connect = relationRecord.connect;
+
+    if (
+      connect &&
+      typeof connect === 'object' &&
+      !Array.isArray(connect) &&
+      (connect as Record<string, unknown>).id !== undefined
+    ) {
+      return true;
+    }
+  }
+
   return Object.values(record).some((item) => objectHasCompanyId(item));
+}
+
+function objectHasKey(value: unknown, key: string): boolean {
+  if (value === null || value === undefined) return false;
+  if (Array.isArray(value)) return value.some((item) => objectHasKey(item, key));
+  if (typeof value !== 'object') return false;
+
+  const record = value as Record<string, unknown>;
+
+  if (record[key] !== undefined && record[key] !== null) {
+    return true;
+  }
+
+  return Object.values(record).some((item) => objectHasKey(item, key));
 }
 
 export const tenancyLogic = async (
@@ -129,11 +162,16 @@ export const tenancyLogic = async (
       const hasExplicitCompanyScope =
         objectHasCompanyId(normalizedArgs.where) ||
         objectHasCompanyId(normalizedArgs.data);
+      const hasExplicitIdentityScopeForCompanyUsers =
+        model === 'company_users' &&
+        WHERE_SCOPED_OPERATIONS.has(operation) &&
+        objectHasKey(normalizedArgs.where, 'identity_id');
 
       if (
         (WHERE_SCOPED_OPERATIONS.has(operation) ||
           CREATE_SCOPED_OPERATIONS.has(operation)) &&
-        !hasExplicitCompanyScope
+        !hasExplicitCompanyScope &&
+        !hasExplicitIdentityScopeForCompanyUsers
       ) {
         throw new Error(
           `[TENANCY] Missing company scope for ${model}.${operation}`,

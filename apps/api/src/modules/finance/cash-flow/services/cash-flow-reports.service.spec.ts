@@ -4,7 +4,7 @@ import { CashFlowReportsService } from './cash-flow-reports.service';
 
 describe('CashFlowReportsService', () => {
   let service: CashFlowReportsService;
-  let prisma: jest.Mocked<PrismaService>;
+  let prisma: any;
   let tenantContext: jest.Mocked<TenantContextService>;
 
   beforeEach(() => {
@@ -16,7 +16,7 @@ describe('CashFlowReportsService', () => {
       bank_accounts: {
         findMany: jest.fn(),
       },
-    } as unknown as jest.Mocked<PrismaService>;
+    } as any;
 
     tenantContext = {
       getCompanyId: jest.fn(),

@@ -9,7 +9,6 @@ export const AuthService = {
       loginDto: {
         email,
         password,
-        isCompany: false,
       },
     });
   },

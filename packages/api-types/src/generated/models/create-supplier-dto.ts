@@ -12,82 +12,85 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface CreateSupplierDto
  */
 export interface CreateSupplierDto {
-  /**
-   * Nome jurídico do fornecedor (razão social)
-   * @type {string}
-   * @memberof CreateSupplierDto
-   */
-  corporate_name: string;
-  /**
-   * Nome fantasia (como o fornecedor é conhecido comercialmente)
-   * @type {string}
-   * @memberof CreateSupplierDto
-   */
-  trade_name?: string;
-  /**
-   * CNPJ do fornecedor, apenas números
-   * @type {string}
-   * @memberof CreateSupplierDto
-   */
-  cnpj: string;
-  /**
-   * Telefone principal do fornecedor (DDD + número)
-   * @type {string}
-   * @memberof CreateSupplierDto
-   */
-  phone: string;
-  /**
-   * Email de contato principal do fornecedor
-   * @type {string}
-   * @memberof CreateSupplierDto
-   */
-  email?: string;
-  /**
-   * Endereço comercial completo
-   * @type {string}
-   * @memberof CreateSupplierDto
-   */
-  address?: string;
-  /**
-   * Nome do responsável ou pessoa de contato
-   * @type {string}
-   * @memberof CreateSupplierDto
-   */
-  contact_name?: string;
-  /**
-   * Telefone do contato (DDD + número)
-   * @type {string}
-   * @memberof CreateSupplierDto
-   */
-  contact_phone?: string;
-  /**
-   * Dias médios para entrega
-   * @type {number}
-   * @memberof CreateSupplierDto
-   */
-  delivery_days: number;
-  /**
-   * Indica se o fornecedor atua como distribuidor de filmes
-   * @type {boolean}
-   * @memberof CreateSupplierDto
-   */
-  is_film_distributor: boolean;
-  /**
-   * Identificador do tipo de fornecedor (chave estrangeira)
-   * @type {string}
-   * @memberof CreateSupplierDto
-   */
-  supplier_type_id?: string;
-  /**
-   * Status do fornecedor
-   * @type {boolean}
-   * @memberof CreateSupplierDto
-   */
-  active: boolean;
+    /**
+     * Nome jurídico do fornecedor (razão social)
+     * @type {string}
+     * @memberof CreateSupplierDto
+     */
+    'corporate_name': string;
+    /**
+     * Nome fantasia (como o fornecedor é conhecido comercialmente)
+     * @type {string}
+     * @memberof CreateSupplierDto
+     */
+    'trade_name'?: string;
+    /**
+     * CNPJ do fornecedor, apenas números
+     * @type {string}
+     * @memberof CreateSupplierDto
+     */
+    'cnpj': string;
+    /**
+     * Telefone principal do fornecedor (DDD + número)
+     * @type {string}
+     * @memberof CreateSupplierDto
+     */
+    'phone': string;
+    /**
+     * Email de contato principal do fornecedor
+     * @type {string}
+     * @memberof CreateSupplierDto
+     */
+    'email'?: string;
+    /**
+     * Endereço comercial completo
+     * @type {string}
+     * @memberof CreateSupplierDto
+     */
+    'address'?: string;
+    /**
+     * Nome do responsável ou pessoa de contato
+     * @type {string}
+     * @memberof CreateSupplierDto
+     */
+    'contact_name'?: string;
+    /**
+     * Telefone do contato (DDD + número)
+     * @type {string}
+     * @memberof CreateSupplierDto
+     */
+    'contact_phone'?: string;
+    /**
+     * Dias médios para entrega
+     * @type {number}
+     * @memberof CreateSupplierDto
+     */
+    'delivery_days'?: number;
+    /**
+     * Indica se o fornecedor atua como distribuidor de filmes
+     * @type {boolean}
+     * @memberof CreateSupplierDto
+     */
+    'is_film_distributor'?: boolean;
+    /**
+     * Identificador do tipo de fornecedor (chave estrangeira)
+     * @type {string}
+     * @memberof CreateSupplierDto
+     */
+    'supplier_type_id'?: string;
+    /**
+     * Status do fornecedor
+     * @type {boolean}
+     * @memberof CreateSupplierDto
+     */
+    'active'?: boolean;
 }
+

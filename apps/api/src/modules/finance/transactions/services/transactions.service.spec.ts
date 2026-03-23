@@ -15,7 +15,7 @@ jest.mock('@nestjs-cls/transactional', () => ({
 
 describe('TransactionsService', () => {
   let service: TransactionsService;
-  let prisma: jest.Mocked<PrismaService>;
+  let prisma: any;
   let snowflake: jest.Mocked<SnowflakeService>;
   let receivablesRepository: jest.Mocked<AccountsReceivableRepository>;
   let payablesRepository: jest.Mocked<AccountsPayableRepository>;
@@ -30,7 +30,7 @@ describe('TransactionsService', () => {
       payable_transactions: {
         create: jest.fn(),
       },
-    } as unknown as jest.Mocked<PrismaService>;
+    } as any;
 
     snowflake = {
       generate: jest.fn(),

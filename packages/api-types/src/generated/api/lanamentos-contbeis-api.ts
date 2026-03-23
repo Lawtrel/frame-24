@@ -12,287 +12,173 @@
  * Do not edit the class manually.
  */
 
-import type { Configuration } from "../configuration";
-import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from "axios";
-import globalAxios from "axios";
+
+import type { Configuration } from '../configuration';
+import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from 'axios';
+import globalAxios from 'axios';
 // Some imports not used depending on template conditions
 // @ts-ignore
-import {
-  DUMMY_BASE_URL,
-  assertParamExists,
-  setApiKeyToObject,
-  setBasicAuthToObject,
-  setBearerAuthToObject,
-  setOAuthToObject,
-  setSearchParams,
-  serializeDataIfNeeded,
-  toPathString,
-  createRequestFunction,
-} from "../common";
+import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from '../common';
 // @ts-ignore
-import {
-  BASE_PATH,
-  COLLECTION_FORMATS,
-  type RequestArgs,
-  BaseAPI,
-  RequiredError,
-  operationServerMap,
-} from "../base";
+import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
 // @ts-ignore
-import type { CreateJournalEntryDto } from "../models";
+import type { CreateJournalEntryDto } from '../models';
 /**
  * LanamentosContbeisApi - axios parameter creator
  * @export
  */
-export const LanamentosContbeisApiAxiosParamCreator = function (
-  configuration?: Configuration,
-) {
-  return {
-    /**
-     *
-     * @summary Criar lançamento contábil
-     * @param {CreateJournalEntryDto} createJournalEntryDto
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    journalEntriesControllerCreateV1: async (
-      createJournalEntryDto: CreateJournalEntryDto,
-      options: RawAxiosRequestConfig = {},
-    ): Promise<RequestArgs> => {
-      // verify required parameter 'createJournalEntryDto' is not null or undefined
-      assertParamExists(
-        "journalEntriesControllerCreateV1",
-        "createJournalEntryDto",
-        createJournalEntryDto,
-      );
-      const localVarPath = `/v1/finance/journal-entries`;
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
+export const LanamentosContbeisApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @summary Criar lançamento contábil
+         * @param {CreateJournalEntryDto} createJournalEntryDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        journalEntriesControllerCreateV1: async (createJournalEntryDto: CreateJournalEntryDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'createJournalEntryDto' is not null or undefined
+            assertParamExists('journalEntriesControllerCreateV1', 'createJournalEntryDto', createJournalEntryDto)
+            const localVarPath = `/v1/finance/journal-entries`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
 
-      const localVarRequestOptions = {
-        method: "POST",
-        ...baseOptions,
-        ...options,
-      };
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
 
-      localVarHeaderParameter["Content-Type"] = "application/json";
 
-      setSearchParams(localVarUrlObj, localVarQueryParameter);
-      let headersFromBaseOptions =
-        baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      };
-      localVarRequestOptions.data = serializeDataIfNeeded(
-        createJournalEntryDto,
-        localVarRequestOptions,
-        configuration,
-      );
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
 
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-     *
-     * @summary Listar lançamentos contábeis
-     * @param {string} [cinemaComplexId] Filtrar por complexo
-     * @param {string} [startDate] Data inicial (YYYY-MM-DD)
-     * @param {string} [endDate] Data final (YYYY-MM-DD)
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    journalEntriesControllerFindAllV1: async (
-      cinemaComplexId?: string,
-      startDate?: string,
-      endDate?: string,
-      options: RawAxiosRequestConfig = {},
-    ): Promise<RequestArgs> => {
-      const localVarPath = `/v1/finance/journal-entries`;
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(createJournalEntryDto, localVarRequestOptions, configuration)
 
-      const localVarRequestOptions = {
-        method: "GET",
-        ...baseOptions,
-        ...options,
-      };
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Listar lançamentos contábeis
+         * @param {string} [cinemaComplexId] Filtrar por complexo
+         * @param {string} [startDate] Data inicial (YYYY-MM-DD)
+         * @param {string} [endDate] Data final (YYYY-MM-DD)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        journalEntriesControllerFindAllV1: async (cinemaComplexId?: string, startDate?: string, endDate?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/v1/finance/journal-entries`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
 
-      if (cinemaComplexId !== undefined) {
-        localVarQueryParameter["cinema_complex_id"] = cinemaComplexId;
-      }
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
 
-      if (startDate !== undefined) {
-        localVarQueryParameter["start_date"] = startDate;
-      }
+            if (cinemaComplexId !== undefined) {
+                localVarQueryParameter['cinema_complex_id'] = cinemaComplexId;
+            }
 
-      if (endDate !== undefined) {
-        localVarQueryParameter["end_date"] = endDate;
-      }
+            if (startDate !== undefined) {
+                localVarQueryParameter['start_date'] = startDate;
+            }
 
-      setSearchParams(localVarUrlObj, localVarQueryParameter);
-      let headersFromBaseOptions =
-        baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      };
+            if (endDate !== undefined) {
+                localVarQueryParameter['end_date'] = endDate;
+            }
 
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-  };
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
 };
 
 /**
  * LanamentosContbeisApi - functional programming interface
  * @export
  */
-export const LanamentosContbeisApiFp = function (
-  configuration?: Configuration,
-) {
-  const localVarAxiosParamCreator =
-    LanamentosContbeisApiAxiosParamCreator(configuration);
-  return {
-    /**
-     *
-     * @summary Criar lançamento contábil
-     * @param {CreateJournalEntryDto} createJournalEntryDto
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async journalEntriesControllerCreateV1(
-      createJournalEntryDto: CreateJournalEntryDto,
-      options?: RawAxiosRequestConfig,
-    ): Promise<
-      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>
-    > {
-      const localVarAxiosArgs =
-        await localVarAxiosParamCreator.journalEntriesControllerCreateV1(
-          createJournalEntryDto,
-          options,
-        );
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-      const localVarOperationServerBasePath =
-        operationServerMap[
-          "LanamentosContbeisApi.journalEntriesControllerCreateV1"
-        ]?.[localVarOperationServerIndex]?.url;
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration,
-        )(axios, localVarOperationServerBasePath || basePath);
-    },
-    /**
-     *
-     * @summary Listar lançamentos contábeis
-     * @param {string} [cinemaComplexId] Filtrar por complexo
-     * @param {string} [startDate] Data inicial (YYYY-MM-DD)
-     * @param {string} [endDate] Data final (YYYY-MM-DD)
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async journalEntriesControllerFindAllV1(
-      cinemaComplexId?: string,
-      startDate?: string,
-      endDate?: string,
-      options?: RawAxiosRequestConfig,
-    ): Promise<
-      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<object>>
-    > {
-      const localVarAxiosArgs =
-        await localVarAxiosParamCreator.journalEntriesControllerFindAllV1(
-          cinemaComplexId,
-          startDate,
-          endDate,
-          options,
-        );
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-      const localVarOperationServerBasePath =
-        operationServerMap[
-          "LanamentosContbeisApi.journalEntriesControllerFindAllV1"
-        ]?.[localVarOperationServerIndex]?.url;
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration,
-        )(axios, localVarOperationServerBasePath || basePath);
-    },
-  };
+export const LanamentosContbeisApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = LanamentosContbeisApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @summary Criar lançamento contábil
+         * @param {CreateJournalEntryDto} createJournalEntryDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async journalEntriesControllerCreateV1(createJournalEntryDto: CreateJournalEntryDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.journalEntriesControllerCreateV1(createJournalEntryDto, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['LanamentosContbeisApi.journalEntriesControllerCreateV1']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Listar lançamentos contábeis
+         * @param {string} [cinemaComplexId] Filtrar por complexo
+         * @param {string} [startDate] Data inicial (YYYY-MM-DD)
+         * @param {string} [endDate] Data final (YYYY-MM-DD)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async journalEntriesControllerFindAllV1(cinemaComplexId?: string, startDate?: string, endDate?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<object>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.journalEntriesControllerFindAllV1(cinemaComplexId, startDate, endDate, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['LanamentosContbeisApi.journalEntriesControllerFindAllV1']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
 };
 
 /**
  * LanamentosContbeisApi - factory interface
  * @export
  */
-export const LanamentosContbeisApiFactory = function (
-  configuration?: Configuration,
-  basePath?: string,
-  axios?: AxiosInstance,
-) {
-  const localVarFp = LanamentosContbeisApiFp(configuration);
-  return {
-    /**
-     *
-     * @summary Criar lançamento contábil
-     * @param {LanamentosContbeisApiJournalEntriesControllerCreateV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    journalEntriesControllerCreateV1(
-      requestParameters: LanamentosContbeisApiJournalEntriesControllerCreateV1Request,
-      options?: RawAxiosRequestConfig,
-    ): AxiosPromise<object> {
-      return localVarFp
-        .journalEntriesControllerCreateV1(
-          requestParameters.createJournalEntryDto,
-          options,
-        )
-        .then((request) => request(axios, basePath));
-    },
-    /**
-     *
-     * @summary Listar lançamentos contábeis
-     * @param {LanamentosContbeisApiJournalEntriesControllerFindAllV1Request} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    journalEntriesControllerFindAllV1(
-      requestParameters: LanamentosContbeisApiJournalEntriesControllerFindAllV1Request = {},
-      options?: RawAxiosRequestConfig,
-    ): AxiosPromise<Array<object>> {
-      return localVarFp
-        .journalEntriesControllerFindAllV1(
-          requestParameters.cinemaComplexId,
-          requestParameters.startDate,
-          requestParameters.endDate,
-          options,
-        )
-        .then((request) => request(axios, basePath));
-    },
-  };
+export const LanamentosContbeisApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = LanamentosContbeisApiFp(configuration)
+    return {
+        /**
+         * 
+         * @summary Criar lançamento contábil
+         * @param {LanamentosContbeisApiJournalEntriesControllerCreateV1Request} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        journalEntriesControllerCreateV1(requestParameters: LanamentosContbeisApiJournalEntriesControllerCreateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<object> {
+            return localVarFp.journalEntriesControllerCreateV1(requestParameters.createJournalEntryDto, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Listar lançamentos contábeis
+         * @param {LanamentosContbeisApiJournalEntriesControllerFindAllV1Request} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        journalEntriesControllerFindAllV1(requestParameters: LanamentosContbeisApiJournalEntriesControllerFindAllV1Request = {}, options?: RawAxiosRequestConfig): AxiosPromise<Array<object>> {
+            return localVarFp.journalEntriesControllerFindAllV1(requestParameters.cinemaComplexId, requestParameters.startDate, requestParameters.endDate, options).then((request) => request(axios, basePath));
+        },
+    };
 };
 
 /**
@@ -301,31 +187,26 @@ export const LanamentosContbeisApiFactory = function (
  * @interface LanamentosContbeisApi
  */
 export interface LanamentosContbeisApiInterface {
-  /**
-   *
-   * @summary Criar lançamento contábil
-   * @param {LanamentosContbeisApiJournalEntriesControllerCreateV1Request} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof LanamentosContbeisApiInterface
-   */
-  journalEntriesControllerCreateV1(
-    requestParameters: LanamentosContbeisApiJournalEntriesControllerCreateV1Request,
-    options?: RawAxiosRequestConfig,
-  ): AxiosPromise<object>;
+    /**
+     * 
+     * @summary Criar lançamento contábil
+     * @param {LanamentosContbeisApiJournalEntriesControllerCreateV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof LanamentosContbeisApiInterface
+     */
+    journalEntriesControllerCreateV1(requestParameters: LanamentosContbeisApiJournalEntriesControllerCreateV1Request, options?: RawAxiosRequestConfig): AxiosPromise<object>;
 
-  /**
-   *
-   * @summary Listar lançamentos contábeis
-   * @param {LanamentosContbeisApiJournalEntriesControllerFindAllV1Request} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof LanamentosContbeisApiInterface
-   */
-  journalEntriesControllerFindAllV1(
-    requestParameters?: LanamentosContbeisApiJournalEntriesControllerFindAllV1Request,
-    options?: RawAxiosRequestConfig,
-  ): AxiosPromise<Array<object>>;
+    /**
+     * 
+     * @summary Listar lançamentos contábeis
+     * @param {LanamentosContbeisApiJournalEntriesControllerFindAllV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof LanamentosContbeisApiInterface
+     */
+    journalEntriesControllerFindAllV1(requestParameters?: LanamentosContbeisApiJournalEntriesControllerFindAllV1Request, options?: RawAxiosRequestConfig): AxiosPromise<Array<object>>;
+
 }
 
 /**
@@ -334,12 +215,12 @@ export interface LanamentosContbeisApiInterface {
  * @interface LanamentosContbeisApiJournalEntriesControllerCreateV1Request
  */
 export interface LanamentosContbeisApiJournalEntriesControllerCreateV1Request {
-  /**
-   *
-   * @type {CreateJournalEntryDto}
-   * @memberof LanamentosContbeisApiJournalEntriesControllerCreateV1
-   */
-  readonly createJournalEntryDto: CreateJournalEntryDto;
+    /**
+     * 
+     * @type {CreateJournalEntryDto}
+     * @memberof LanamentosContbeisApiJournalEntriesControllerCreateV1
+     */
+    readonly createJournalEntryDto: CreateJournalEntryDto
 }
 
 /**
@@ -348,26 +229,26 @@ export interface LanamentosContbeisApiJournalEntriesControllerCreateV1Request {
  * @interface LanamentosContbeisApiJournalEntriesControllerFindAllV1Request
  */
 export interface LanamentosContbeisApiJournalEntriesControllerFindAllV1Request {
-  /**
-   * Filtrar por complexo
-   * @type {string}
-   * @memberof LanamentosContbeisApiJournalEntriesControllerFindAllV1
-   */
-  readonly cinemaComplexId?: string;
+    /**
+     * Filtrar por complexo
+     * @type {string}
+     * @memberof LanamentosContbeisApiJournalEntriesControllerFindAllV1
+     */
+    readonly cinemaComplexId?: string
 
-  /**
-   * Data inicial (YYYY-MM-DD)
-   * @type {string}
-   * @memberof LanamentosContbeisApiJournalEntriesControllerFindAllV1
-   */
-  readonly startDate?: string;
+    /**
+     * Data inicial (YYYY-MM-DD)
+     * @type {string}
+     * @memberof LanamentosContbeisApiJournalEntriesControllerFindAllV1
+     */
+    readonly startDate?: string
 
-  /**
-   * Data final (YYYY-MM-DD)
-   * @type {string}
-   * @memberof LanamentosContbeisApiJournalEntriesControllerFindAllV1
-   */
-  readonly endDate?: string;
+    /**
+     * Data final (YYYY-MM-DD)
+     * @type {string}
+     * @memberof LanamentosContbeisApiJournalEntriesControllerFindAllV1
+     */
+    readonly endDate?: string
 }
 
 /**
@@ -376,49 +257,29 @@ export interface LanamentosContbeisApiJournalEntriesControllerFindAllV1Request {
  * @class LanamentosContbeisApi
  * @extends {BaseAPI}
  */
-export class LanamentosContbeisApi
-  extends BaseAPI
-  implements LanamentosContbeisApiInterface
-{
-  /**
-   *
-   * @summary Criar lançamento contábil
-   * @param {LanamentosContbeisApiJournalEntriesControllerCreateV1Request} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof LanamentosContbeisApi
-   */
-  public journalEntriesControllerCreateV1(
-    requestParameters: LanamentosContbeisApiJournalEntriesControllerCreateV1Request,
-    options?: RawAxiosRequestConfig,
-  ) {
-    return LanamentosContbeisApiFp(this.configuration)
-      .journalEntriesControllerCreateV1(
-        requestParameters.createJournalEntryDto,
-        options,
-      )
-      .then((request) => request(this.axios, this.basePath));
-  }
+export class LanamentosContbeisApi extends BaseAPI implements LanamentosContbeisApiInterface {
+    /**
+     * 
+     * @summary Criar lançamento contábil
+     * @param {LanamentosContbeisApiJournalEntriesControllerCreateV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof LanamentosContbeisApi
+     */
+    public journalEntriesControllerCreateV1(requestParameters: LanamentosContbeisApiJournalEntriesControllerCreateV1Request, options?: RawAxiosRequestConfig) {
+        return LanamentosContbeisApiFp(this.configuration).journalEntriesControllerCreateV1(requestParameters.createJournalEntryDto, options).then((request) => request(this.axios, this.basePath));
+    }
 
-  /**
-   *
-   * @summary Listar lançamentos contábeis
-   * @param {LanamentosContbeisApiJournalEntriesControllerFindAllV1Request} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof LanamentosContbeisApi
-   */
-  public journalEntriesControllerFindAllV1(
-    requestParameters: LanamentosContbeisApiJournalEntriesControllerFindAllV1Request = {},
-    options?: RawAxiosRequestConfig,
-  ) {
-    return LanamentosContbeisApiFp(this.configuration)
-      .journalEntriesControllerFindAllV1(
-        requestParameters.cinemaComplexId,
-        requestParameters.startDate,
-        requestParameters.endDate,
-        options,
-      )
-      .then((request) => request(this.axios, this.basePath));
-  }
+    /**
+     * 
+     * @summary Listar lançamentos contábeis
+     * @param {LanamentosContbeisApiJournalEntriesControllerFindAllV1Request} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof LanamentosContbeisApi
+     */
+    public journalEntriesControllerFindAllV1(requestParameters: LanamentosContbeisApiJournalEntriesControllerFindAllV1Request = {}, options?: RawAxiosRequestConfig) {
+        return LanamentosContbeisApiFp(this.configuration).journalEntriesControllerFindAllV1(requestParameters.cinemaComplexId, requestParameters.startDate, requestParameters.endDate, options).then((request) => request(this.axios, this.basePath));
+    }
 }
+

@@ -12,64 +12,67 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface CreateTaxEntryDto
  */
 export interface CreateTaxEntryDto {
-  /**
-   * ID do complexo de cinema
-   * @type {string}
-   * @memberof CreateTaxEntryDto
-   */
-  cinema_complex_id: string;
-  /**
-   * Tipo de origem (ex: SALE, CONCESSION)
-   * @type {string}
-   * @memberof CreateTaxEntryDto
-   */
-  source_type?: string;
-  /**
-   * ID da origem
-   * @type {string}
-   * @memberof CreateTaxEntryDto
-   */
-  source_id?: string;
-  /**
-   * Valor bruto
-   * @type {number}
-   * @memberof CreateTaxEntryDto
-   */
-  gross_amount: number;
-  /**
-   * Valor das deduções
-   * @type {number}
-   * @memberof CreateTaxEntryDto
-   */
-  deductions_amount?: number;
-  /**
-   * Data de competência
-   * @type {string}
-   * @memberof CreateTaxEntryDto
-   */
-  competence_date: string;
-  /**
-   * Tipo de receita
-   * @type {string}
-   * @memberof CreateTaxEntryDto
-   */
-  revenue_type?: string;
-  /**
-   * Regime PIS/COFINS
-   * @type {string}
-   * @memberof CreateTaxEntryDto
-   */
-  pis_cofins_regime?: string;
-  /**
-   * Aplicar ISS
-   * @type {boolean}
-   * @memberof CreateTaxEntryDto
-   */
-  apply_iss?: boolean;
+    /**
+     * ID do complexo de cinema
+     * @type {string}
+     * @memberof CreateTaxEntryDto
+     */
+    'cinema_complex_id': string;
+    /**
+     * Tipo de origem (ex: SALE, CONCESSION)
+     * @type {string}
+     * @memberof CreateTaxEntryDto
+     */
+    'source_type'?: string;
+    /**
+     * ID da origem
+     * @type {string}
+     * @memberof CreateTaxEntryDto
+     */
+    'source_id'?: string;
+    /**
+     * Valor bruto
+     * @type {number}
+     * @memberof CreateTaxEntryDto
+     */
+    'gross_amount': number;
+    /**
+     * Valor das deduções
+     * @type {number}
+     * @memberof CreateTaxEntryDto
+     */
+    'deductions_amount'?: number;
+    /**
+     * Data de competência
+     * @type {string}
+     * @memberof CreateTaxEntryDto
+     */
+    'competence_date': string;
+    /**
+     * Tipo de receita
+     * @type {string}
+     * @memberof CreateTaxEntryDto
+     */
+    'revenue_type'?: string;
+    /**
+     * Regime PIS/COFINS
+     * @type {string}
+     * @memberof CreateTaxEntryDto
+     */
+    'pis_cofins_regime'?: string;
+    /**
+     * Aplicar ISS
+     * @type {boolean}
+     * @memberof CreateTaxEntryDto
+     */
+    'apply_iss'?: boolean;
 }
+

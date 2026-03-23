@@ -7,7 +7,7 @@ import { DistributorSettlementsService } from './distributor-settlements.service
 
 describe('DistributorSettlementsService', () => {
   let service: DistributorSettlementsService;
-  let prisma: jest.Mocked<PrismaService>;
+  let prisma: any;
   let snowflake: jest.Mocked<SnowflakeService>;
   let accountsPayableService: jest.Mocked<AccountsPayableService>;
   let tenantContext: jest.Mocked<TenantContextService>;
@@ -30,7 +30,7 @@ describe('DistributorSettlementsService', () => {
         findMany: jest.fn(),
         create: jest.fn(),
       },
-    } as unknown as jest.Mocked<PrismaService>;
+    } as any;
 
     snowflake = {
       generate: jest.fn(),

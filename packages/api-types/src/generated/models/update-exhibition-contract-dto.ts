@@ -12,110 +12,112 @@
  * Do not edit the class manually.
  */
 
+
 // May contain unused imports in some cases
 // @ts-ignore
-import type { CreateExhibitionContractDtoSlidingScaleInner } from "./create-exhibition-contract-dto-sliding-scale-inner";
+import type { CreateExhibitionContractDtoSlidingScaleInner } from './create-exhibition-contract-dto-sliding-scale-inner';
 
 /**
- *
+ * 
  * @export
  * @interface UpdateExhibitionContractDto
  */
 export interface UpdateExhibitionContractDto {
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateExhibitionContractDto
-   */
-  movie_id?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateExhibitionContractDto
-   */
-  cinema_complex_id?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateExhibitionContractDto
-   */
-  distributor_id?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateExhibitionContractDto
-   */
-  contract_type_id?: string | null;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateExhibitionContractDto
-   */
-  settlement_base_id?: string | null;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateExhibitionContractDto
-   */
-  contract_number?: string | null;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateExhibitionContractDto
-   */
-  start_date?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateExhibitionContractDto
-   */
-  end_date?: string;
-  /**
-   *
-   * @type {number}
-   * @memberof UpdateExhibitionContractDto
-   */
-  distributor_percentage?: number;
-  /**
-   *
-   * @type {number}
-   * @memberof UpdateExhibitionContractDto
-   */
-  exhibitor_percentage?: number;
-  /**
-   *
-   * @type {number}
-   * @memberof UpdateExhibitionContractDto
-   */
-  guaranteed_minimum?: number;
-  /**
-   *
-   * @type {number}
-   * @memberof UpdateExhibitionContractDto
-   */
-  minimum_guarantee?: number;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateExhibitionContractDto
-   */
-  contract_terms?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateExhibitionContractDto
-   */
-  notes?: string;
-  /**
-   *
-   * @type {boolean}
-   * @memberof UpdateExhibitionContractDto
-   */
-  active?: boolean;
-  /**
-   *
-   * @type {Array<CreateExhibitionContractDtoSlidingScaleInner>}
-   * @memberof UpdateExhibitionContractDto
-   */
-  sliding_scale?: Array<CreateExhibitionContractDtoSlidingScaleInner>;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateExhibitionContractDto
+     */
+    'movie_id'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateExhibitionContractDto
+     */
+    'cinema_complex_id'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateExhibitionContractDto
+     */
+    'distributor_id'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateExhibitionContractDto
+     */
+    'contract_type_id'?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateExhibitionContractDto
+     */
+    'settlement_base_id'?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateExhibitionContractDto
+     */
+    'contract_number'?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateExhibitionContractDto
+     */
+    'start_date'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateExhibitionContractDto
+     */
+    'end_date'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof UpdateExhibitionContractDto
+     */
+    'distributor_percentage'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof UpdateExhibitionContractDto
+     */
+    'exhibitor_percentage'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof UpdateExhibitionContractDto
+     */
+    'guaranteed_minimum'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof UpdateExhibitionContractDto
+     */
+    'minimum_guarantee'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateExhibitionContractDto
+     */
+    'contract_terms'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateExhibitionContractDto
+     */
+    'notes'?: string;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof UpdateExhibitionContractDto
+     */
+    'active'?: boolean;
+    /**
+     * 
+     * @type {Array<CreateExhibitionContractDtoSlidingScaleInner>}
+     * @memberof UpdateExhibitionContractDto
+     */
+    'sliding_scale'?: Array<CreateExhibitionContractDtoSlidingScaleInner>;
 }
+

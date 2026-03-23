@@ -12,148 +12,154 @@
  * Do not edit the class manually.
  */
 
+
+// May contain unused imports in some cases
+// @ts-ignore
+import type { CreateUserDtoIpWhitelistInner } from './create-user-dto-ip-whitelist-inner';
+
 /**
- *
+ * 
  * @export
  * @interface UpdateUserDto
  */
 export interface UpdateUserDto {
-  /**
-   * Nome completo
-   * @type {string}
-   * @memberof UpdateUserDto
-   */
-  full_name?: string;
-  /**
-   * CPF
-   * @type {string}
-   * @memberof UpdateUserDto
-   */
-  cpf?: string;
-  /**
-   * Data de nascimento
-   * @type {string}
-   * @memberof UpdateUserDto
-   */
-  birth_date?: string;
-  /**
-   * Telefone
-   * @type {string}
-   * @memberof UpdateUserDto
-   */
-  phone?: string;
-  /**
-   * Celular
-   * @type {string}
-   * @memberof UpdateUserDto
-   */
-  mobile?: string;
-  /**
-   * Email
-   * @type {string}
-   * @memberof UpdateUserDto
-   */
-  email?: string;
-  /**
-   * CEP
-   * @type {string}
-   * @memberof UpdateUserDto
-   */
-  zip_code?: string;
-  /**
-   * Endereço
-   * @type {string}
-   * @memberof UpdateUserDto
-   */
-  street_address?: string;
-  /**
-   * Número
-   * @type {string}
-   * @memberof UpdateUserDto
-   */
-  address_number?: string;
-  /**
-   * Complemento
-   * @type {string}
-   * @memberof UpdateUserDto
-   */
-  address_complement?: string;
-  /**
-   * Bairro
-   * @type {string}
-   * @memberof UpdateUserDto
-   */
-  neighborhood?: string;
-  /**
-   * Cidade
-   * @type {string}
-   * @memberof UpdateUserDto
-   */
-  city?: string;
-  /**
-   * Estado (UF)
-   * @type {string}
-   * @memberof UpdateUserDto
-   */
-  state?: string;
-  /**
-   * País
-   * @type {string}
-   * @memberof UpdateUserDto
-   */
-  country?: string;
-  /**
-   * ID da role
-   * @type {string}
-   * @memberof UpdateUserDto
-   */
-  role_id?: string;
-  /**
-   * Departamento
-   * @type {string}
-   * @memberof UpdateUserDto
-   */
-  department?: string;
-  /**
-   * Cargo/nível
-   * @type {string}
-   * @memberof UpdateUserDto
-   */
-  job_level?: string;
-  /**
-   * Localização
-   * @type {string}
-   * @memberof UpdateUserDto
-   */
-  location?: string;
-  /**
-   * Complexos permitidos
-   * @type {Array<string>}
-   * @memberof UpdateUserDto
-   */
-  allowed_complexes?: Array<string>;
-  /**
-   * IPs permitidos
-   * @type {Array<string>}
-   * @memberof UpdateUserDto
-   */
-  ip_whitelist?: Array<string>;
-  /**
-   * Status
-   * @type {boolean}
-   * @memberof UpdateUserDto
-   */
-  active?: boolean;
-  /**
-   * Data de início
-   * @type {string}
-   * @memberof UpdateUserDto
-   */
-  start_date?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateUserDto
-   */
-  end_date?: string | null;
+    /**
+     * Nome completo
+     * @type {string}
+     * @memberof UpdateUserDto
+     */
+    'full_name'?: string;
+    /**
+     * CPF
+     * @type {string}
+     * @memberof UpdateUserDto
+     */
+    'cpf'?: string;
+    /**
+     * Data de nascimento
+     * @type {string}
+     * @memberof UpdateUserDto
+     */
+    'birth_date'?: string;
+    /**
+     * Telefone
+     * @type {string}
+     * @memberof UpdateUserDto
+     */
+    'phone'?: string;
+    /**
+     * Celular
+     * @type {string}
+     * @memberof UpdateUserDto
+     */
+    'mobile'?: string;
+    /**
+     * Email
+     * @type {string}
+     * @memberof UpdateUserDto
+     */
+    'email'?: string;
+    /**
+     * CEP
+     * @type {string}
+     * @memberof UpdateUserDto
+     */
+    'zip_code'?: string;
+    /**
+     * Endereço
+     * @type {string}
+     * @memberof UpdateUserDto
+     */
+    'street_address'?: string;
+    /**
+     * Número
+     * @type {string}
+     * @memberof UpdateUserDto
+     */
+    'address_number'?: string;
+    /**
+     * Complemento
+     * @type {string}
+     * @memberof UpdateUserDto
+     */
+    'address_complement'?: string;
+    /**
+     * Bairro
+     * @type {string}
+     * @memberof UpdateUserDto
+     */
+    'neighborhood'?: string;
+    /**
+     * Cidade
+     * @type {string}
+     * @memberof UpdateUserDto
+     */
+    'city'?: string;
+    /**
+     * Estado (UF)
+     * @type {string}
+     * @memberof UpdateUserDto
+     */
+    'state'?: string;
+    /**
+     * País
+     * @type {string}
+     * @memberof UpdateUserDto
+     */
+    'country'?: string;
+    /**
+     * ID da role
+     * @type {string}
+     * @memberof UpdateUserDto
+     */
+    'role_id'?: string;
+    /**
+     * Departamento
+     * @type {string}
+     * @memberof UpdateUserDto
+     */
+    'department'?: string;
+    /**
+     * Cargo/nível
+     * @type {string}
+     * @memberof UpdateUserDto
+     */
+    'job_level'?: string;
+    /**
+     * Localização
+     * @type {string}
+     * @memberof UpdateUserDto
+     */
+    'location'?: string;
+    /**
+     * Complexos permitidos
+     * @type {Array<string>}
+     * @memberof UpdateUserDto
+     */
+    'allowed_complexes'?: Array<string>;
+    /**
+     * IPs permitidos
+     * @type {Array<CreateUserDtoIpWhitelistInner>}
+     * @memberof UpdateUserDto
+     */
+    'ip_whitelist'?: Array<CreateUserDtoIpWhitelistInner>;
+    /**
+     * Status
+     * @type {boolean}
+     * @memberof UpdateUserDto
+     */
+    'active'?: boolean;
+    /**
+     * Data de início
+     * @type {string}
+     * @memberof UpdateUserDto
+     */
+    'start_date'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateUserDto
+     */
+    'end_date'?: string | null;
 }
+

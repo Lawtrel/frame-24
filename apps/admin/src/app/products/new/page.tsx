@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { SalesService } from "@/services/sales-service";
+import { SalesService } from "@/services/sales-services";
 
 export default function NewProductPage() {
   const router = useRouter();

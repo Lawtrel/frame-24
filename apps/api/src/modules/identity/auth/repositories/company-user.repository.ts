@@ -91,9 +91,9 @@ export class CompanyUserRepository {
     const raw = await this.prisma.company_users.create({
       data: {
         id: this.snowflake.generate(),
-        identities: { connect: { id: identityId } },
-        companies: { connect: { id: companyId } },
-        custom_roles: { connect: { id: roleId } },
+        identity_id: identityId,
+        company_id: companyId,
+        role_id: roleId,
         employee_id: employeeId,
         active: true,
         start_date: new Date(),
@@ -119,9 +119,9 @@ export class CompanyUserRepository {
     const raw = await this.prisma.company_users.create({
       data: {
         id: this.snowflake.generate(),
-        identities: { connect: { id: data.identityId } },
-        companies: { connect: { id: data.companyId } },
-        custom_roles: { connect: { id: data.roleId } },
+        identity_id: data.identityId,
+        company_id: data.companyId,
+        role_id: data.roleId,
         employee_id: data.employeeId,
         department: data.department,
         job_level: data.jobLevel,

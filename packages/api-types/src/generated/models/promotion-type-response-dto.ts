@@ -12,46 +12,49 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface PromotionTypeResponseDto
  */
 export interface PromotionTypeResponseDto {
-  /**
-   * Identificador do tipo
-   * @type {string}
-   * @memberof PromotionTypeResponseDto
-   */
-  id: string;
-  /**
-   * Código interno único
-   * @type {string}
-   * @memberof PromotionTypeResponseDto
-   */
-  code: string;
-  /**
-   * Nome apresentado no dashboard
-   * @type {string}
-   * @memberof PromotionTypeResponseDto
-   */
-  name: string;
-  /**
-   * Descrição detalhada
-   * @type {string}
-   * @memberof PromotionTypeResponseDto
-   */
-  description?: string | null;
-  /**
-   * Status do tipo de promoção
-   * @type {boolean}
-   * @memberof PromotionTypeResponseDto
-   */
-  active: boolean | null;
-  /**
-   * Data de criação
-   * @type {string}
-   * @memberof PromotionTypeResponseDto
-   */
-  created_at: string | null;
+    /**
+     * Identificador do tipo
+     * @type {string}
+     * @memberof PromotionTypeResponseDto
+     */
+    'id': string;
+    /**
+     * Código interno único
+     * @type {string}
+     * @memberof PromotionTypeResponseDto
+     */
+    'code': string;
+    /**
+     * Nome apresentado no dashboard
+     * @type {string}
+     * @memberof PromotionTypeResponseDto
+     */
+    'name': string;
+    /**
+     * Descrição detalhada
+     * @type {string}
+     * @memberof PromotionTypeResponseDto
+     */
+    'description'?: string | null;
+    /**
+     * Status do tipo de promoção
+     * @type {boolean}
+     * @memberof PromotionTypeResponseDto
+     */
+    'active': boolean | null;
+    /**
+     * Data de criação
+     * @type {string}
+     * @memberof PromotionTypeResponseDto
+     */
+    'created_at': string | null;
 }
+

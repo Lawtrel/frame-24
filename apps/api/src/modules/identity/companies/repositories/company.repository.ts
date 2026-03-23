@@ -1,16 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { companies, Prisma } from '@repo/db';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { CompanyMapper } from 'src/modules/identity/auth/infraestructure/mappers/company.mapper';
 import { Company } from 'src/modules/identity/auth/domain/entities/company.entity';
 
 @Injectable()
 export class CompanyRepository {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly snowflake: SnowflakeService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async findById(id: string): Promise<Company | null> {
     const raw = await this.prisma.companies.findUnique({
@@ -45,10 +41,7 @@ export class CompanyRepository {
 
   async create(data: Prisma.companiesCreateInput): Promise<companies> {
     return this.prisma.companies.create({
-      data: {
-        id: this.snowflake.generate(),
-        ...data,
-      },
+      data,
     });
   }
 

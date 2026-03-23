@@ -12,58 +12,61 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface CreateShowtimeDto
  */
 export interface CreateShowtimeDto {
-  /**
-   * ID do filme que será exibido
-   * @type {string}
-   * @memberof CreateShowtimeDto
-   */
-  movie_id: string;
-  /**
-   * ID da sala onde a sessão será exibida
-   * @type {string}
-   * @memberof CreateShowtimeDto
-   */
-  room_id: string;
-  /**
-   * Data e hora de início da sessão no formato ISO 8601 (em UTC)
-   * @type {string}
-   * @memberof CreateShowtimeDto
-   */
-  start_time: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CreateShowtimeDto
-   */
-  projection_type?: string | null;
-  /**
-   *
-   * @type {string}
-   * @memberof CreateShowtimeDto
-   */
-  audio_type?: string | null;
-  /**
-   * Idioma da sessão (Legendado, Dublado, Original)
-   * @type {string}
-   * @memberof CreateShowtimeDto
-   */
-  session_language: string;
-  /**
-   * Preço base do ingresso para esta sessão
-   * @type {number}
-   * @memberof CreateShowtimeDto
-   */
-  base_ticket_price: number;
-  /**
-   * Status da sessão. Se não informado, será definido como padrão
-   * @type {string}
-   * @memberof CreateShowtimeDto
-   */
-  status?: string;
+    /**
+     * ID do filme que será exibido
+     * @type {string}
+     * @memberof CreateShowtimeDto
+     */
+    'movie_id': string;
+    /**
+     * ID da sala onde a sessão será exibida
+     * @type {string}
+     * @memberof CreateShowtimeDto
+     */
+    'room_id': string;
+    /**
+     * Data e hora de início da sessão no formato ISO 8601 (em UTC)
+     * @type {string}
+     * @memberof CreateShowtimeDto
+     */
+    'start_time': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateShowtimeDto
+     */
+    'projection_type'?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateShowtimeDto
+     */
+    'audio_type'?: string | null;
+    /**
+     * Idioma da sessão (Legendado, Dublado, Original)
+     * @type {string}
+     * @memberof CreateShowtimeDto
+     */
+    'session_language': string;
+    /**
+     * Preço base do ingresso para esta sessão
+     * @type {number}
+     * @memberof CreateShowtimeDto
+     */
+    'base_ticket_price': number;
+    /**
+     * Status da sessão. Se não informado, será definido como padrão
+     * @type {string}
+     * @memberof CreateShowtimeDto
+     */
+    'status'?: string;
 }
+

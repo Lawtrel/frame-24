@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { SalesService } from "@/services/sales-services";
-import { Plus, Trash2, Ticket } from "lucide-react";
+import { Edit2, Plus, Trash2, Ticket } from "lucide-react";
 import Link from "next/link";
 
 export default function TicketTypesPage() {
@@ -61,6 +61,12 @@ export default function TicketTypesPage() {
                 </td>
                 <td className="px-6 py-4">{t.discount_percentage}%</td>
                 <td className="px-6 py-4 text-right">
+                  <Link
+                    href={`/ticket-types/${t.id}`}
+                    className="inline-flex text-zinc-400 hover:text-white mr-3"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </Link>
                   <button
                     onClick={() => handleDelete(t.id)}
                     className="text-zinc-400 hover:text-red-500"

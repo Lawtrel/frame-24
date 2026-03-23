@@ -16,7 +16,7 @@ describe('CustomerPurchasesService', () => {
   let salesService: jest.Mocked<SalesService>;
   let salesRepository: jest.Mocked<SalesRepository>;
   let companyCustomersRepository: jest.Mocked<CompanyCustomersRepository>;
-  let prisma: jest.Mocked<PrismaService>;
+  let prisma: any;
   let logger: jest.Mocked<LoggerService>;
   let cls: jest.Mocked<ClsService>;
 
@@ -53,7 +53,7 @@ describe('CustomerPurchasesService', () => {
       movies: {
         findMany: jest.fn(),
       },
-    } as unknown as jest.Mocked<PrismaService>;
+    } as any;
 
     logger = {
       log: jest.fn(),

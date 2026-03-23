@@ -12,28 +12,31 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface UpdateCustomerProfileDto
  */
 export interface UpdateCustomerProfileDto {
-  /**
-   * Nome completo do cliente
-   * @type {string}
-   * @memberof UpdateCustomerProfileDto
-   */
-  full_name?: string;
-  /**
-   * Telefone do cliente
-   * @type {string}
-   * @memberof UpdateCustomerProfileDto
-   */
-  phone?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateCustomerProfileDto
-   */
-  birth_date?: string | null;
+    /**
+     * Nome completo do cliente
+     * @type {string}
+     * @memberof UpdateCustomerProfileDto
+     */
+    'full_name'?: string;
+    /**
+     * Telefone do cliente
+     * @type {string}
+     * @memberof UpdateCustomerProfileDto
+     */
+    'phone'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateCustomerProfileDto
+     */
+    'birth_date'?: string | null;
 }
+

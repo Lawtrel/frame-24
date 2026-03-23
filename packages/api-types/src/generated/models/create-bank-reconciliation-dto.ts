@@ -12,46 +12,49 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface CreateBankReconciliationDto
  */
 export interface CreateBankReconciliationDto {
-  /**
-   *
-   * @type {string}
-   * @memberof CreateBankReconciliationDto
-   */
-  bank_account_id: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CreateBankReconciliationDto
-   */
-  reference_month: string;
-  /**
-   *
-   * @type {number}
-   * @memberof CreateBankReconciliationDto
-   */
-  opening_balance: number;
-  /**
-   *
-   * @type {number}
-   * @memberof CreateBankReconciliationDto
-   */
-  closing_balance: number;
-  /**
-   *
-   * @type {number}
-   * @memberof CreateBankReconciliationDto
-   */
-  bank_statement_balance: number;
-  /**
-   *
-   * @type {string}
-   * @memberof CreateBankReconciliationDto
-   */
-  notes?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateBankReconciliationDto
+     */
+    'bank_account_id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateBankReconciliationDto
+     */
+    'reference_month': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof CreateBankReconciliationDto
+     */
+    'opening_balance': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof CreateBankReconciliationDto
+     */
+    'closing_balance': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof CreateBankReconciliationDto
+     */
+    'bank_statement_balance': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateBankReconciliationDto
+     */
+    'notes'?: string;
 }
+

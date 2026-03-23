@@ -22,7 +22,7 @@ export default function UsersPage() {
     if (!confirm("Tem certeza que deseja deletar este usuário?")) return;
     try {
       await UsersService.delete(id);
-      setData((prev) => prev.filter((i) => i.id !== id));
+      setData((prev) => prev.filter((i) => i.employee_id !== id));
     } catch (error) {
       alert("Erro ao deletar usuário.");
     }
@@ -65,22 +65,24 @@ export default function UsersPage() {
               </tr>
             ) : (
               data.map((item) => (
-                <tr key={item.id} className="hover:bg-zinc-800/50">
+                <tr key={item.employee_id} className="hover:bg-zinc-800/50">
                   <td className="px-6 py-4 font-medium flex items-center gap-2">
                     <User className="w-4 h-4 text-zinc-500" />{" "}
-                    {item.person?.full_name || "N/D"}
+                    {item.full_name || "N/D"}
                   </td>
                   <td className="px-6 py-4 text-zinc-400">{item.email}</td>
-                  {/* A API de Users deve retornar o nome da Role (custom_roles.name) */}
                   <td className="px-6 py-4 text-zinc-400">
-                    {item.company_user?.custom_roles?.name || "N/D"}
+                    {item.company_user?.role_name || "N/D"}
                   </td>
                   <td className="px-6 py-4 text-right flex justify-end gap-2">
-                    <Link href={`/identity/users/${item.id}`} className="p-1">
+                    <Link
+                      href={`/identity/users/${item.employee_id}`}
+                      className="p-1"
+                    >
                       <Edit2 className="w-4 h-4 text-zinc-500 hover:text-white" />
                     </Link>
                     <button
-                      onClick={() => handleDelete(item.id)}
+                      onClick={() => handleDelete(item.employee_id)}
                       className="p-1"
                     >
                       <Trash2 className="w-4 h-4 text-zinc-500 hover:text-red-500" />

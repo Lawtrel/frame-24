@@ -30,7 +30,7 @@ describe('CustomerAuthService', () => {
   let companyCustomersRepository: jest.Mocked<CompanyCustomersRepository>;
   let identityRepository: jest.Mocked<IdentityRepository>;
   let jwtService: jest.Mocked<JwtService>;
-  let prisma: jest.Mocked<PrismaService>;
+  let prisma: any;
   let snowflake: jest.Mocked<SnowflakeService>;
   let logger: jest.Mocked<LoggerService>;
 
@@ -65,7 +65,7 @@ describe('CustomerAuthService', () => {
       user_sessions: {
         create: jest.fn(),
       },
-    } as unknown as jest.Mocked<PrismaService>;
+    } as any;
 
     snowflake = {
       generate: jest.fn(),

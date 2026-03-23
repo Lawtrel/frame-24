@@ -12,73 +12,76 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface UpdateBankAccountDto
  */
 export interface UpdateBankAccountDto {
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateBankAccountDto
-   */
-  bank_name?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateBankAccountDto
-   */
-  bank_code?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateBankAccountDto
-   */
-  agency?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateBankAccountDto
-   */
-  agency_digit?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateBankAccountDto
-   */
-  account_number?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateBankAccountDto
-   */
-  account_digit?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateBankAccountDto
-   */
-  account_type?: UpdateBankAccountDtoAccountTypeEnum;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateBankAccountDto
-   */
-  description?: string;
-  /**
-   *
-   * @type {boolean}
-   * @memberof UpdateBankAccountDto
-   */
-  active?: boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateBankAccountDto
+     */
+    'bank_name'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateBankAccountDto
+     */
+    'bank_code'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateBankAccountDto
+     */
+    'agency'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateBankAccountDto
+     */
+    'agency_digit'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateBankAccountDto
+     */
+    'account_number'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateBankAccountDto
+     */
+    'account_digit'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateBankAccountDto
+     */
+    'account_type'?: UpdateBankAccountDtoAccountTypeEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateBankAccountDto
+     */
+    'description'?: string;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof UpdateBankAccountDto
+     */
+    'active'?: boolean;
 }
 
 export const UpdateBankAccountDtoAccountTypeEnum = {
-  Checking: "checking",
-  Savings: "savings",
-  Investment: "investment",
+    Checking: 'checking',
+    Savings: 'savings',
+    Investment: 'investment'
 } as const;
 
-export type UpdateBankAccountDtoAccountTypeEnum =
-  (typeof UpdateBankAccountDtoAccountTypeEnum)[keyof typeof UpdateBankAccountDtoAccountTypeEnum];
+export type UpdateBankAccountDtoAccountTypeEnum = typeof UpdateBankAccountDtoAccountTypeEnum[keyof typeof UpdateBankAccountDtoAccountTypeEnum];
+
+

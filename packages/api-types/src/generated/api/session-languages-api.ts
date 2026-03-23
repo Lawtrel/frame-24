@@ -12,146 +12,95 @@
  * Do not edit the class manually.
  */
 
-import type { Configuration } from "../configuration";
-import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from "axios";
-import globalAxios from "axios";
+
+import type { Configuration } from '../configuration';
+import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from 'axios';
+import globalAxios from 'axios';
 // Some imports not used depending on template conditions
 // @ts-ignore
-import {
-  DUMMY_BASE_URL,
-  assertParamExists,
-  setApiKeyToObject,
-  setBasicAuthToObject,
-  setBearerAuthToObject,
-  setOAuthToObject,
-  setSearchParams,
-  serializeDataIfNeeded,
-  toPathString,
-  createRequestFunction,
-} from "../common";
+import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from '../common';
 // @ts-ignore
-import {
-  BASE_PATH,
-  COLLECTION_FORMATS,
-  type RequestArgs,
-  BaseAPI,
-  RequiredError,
-  operationServerMap,
-} from "../base";
+import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
+// @ts-ignore
+import type { SessionLanguageResponseDto } from '../models';
 /**
  * SessionLanguagesApi - axios parameter creator
  * @export
  */
-export const SessionLanguagesApiAxiosParamCreator = function (
-  configuration?: Configuration,
-) {
-  return {
-    /**
-     *
-     * @summary Listar todas as linguagens de sessão disponíveis para a empresa
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    sessionLanguagesControllerFindAllV1: async (
-      options: RawAxiosRequestConfig = {},
-    ): Promise<RequestArgs> => {
-      const localVarPath = `/v1/session-languages`;
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
+export const SessionLanguagesApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @summary Listar todas as linguagens de sessão disponíveis para a empresa
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        sessionLanguagesControllerFindAllV1: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/v1/session-languages`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
 
-      const localVarRequestOptions = {
-        method: "GET",
-        ...baseOptions,
-        ...options,
-      };
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
 
-      setSearchParams(localVarUrlObj, localVarQueryParameter);
-      let headersFromBaseOptions =
-        baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      };
 
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-  };
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
 };
 
 /**
  * SessionLanguagesApi - functional programming interface
  * @export
  */
-export const SessionLanguagesApiFp = function (configuration?: Configuration) {
-  const localVarAxiosParamCreator =
-    SessionLanguagesApiAxiosParamCreator(configuration);
-  return {
-    /**
-     *
-     * @summary Listar todas as linguagens de sessão disponíveis para a empresa
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async sessionLanguagesControllerFindAllV1(
-      options?: RawAxiosRequestConfig,
-    ): Promise<
-      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
-    > {
-      const localVarAxiosArgs =
-        await localVarAxiosParamCreator.sessionLanguagesControllerFindAllV1(
-          options,
-        );
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-      const localVarOperationServerBasePath =
-        operationServerMap[
-          "SessionLanguagesApi.sessionLanguagesControllerFindAllV1"
-        ]?.[localVarOperationServerIndex]?.url;
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration,
-        )(axios, localVarOperationServerBasePath || basePath);
-    },
-  };
+export const SessionLanguagesApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = SessionLanguagesApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @summary Listar todas as linguagens de sessão disponíveis para a empresa
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async sessionLanguagesControllerFindAllV1(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<SessionLanguageResponseDto>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.sessionLanguagesControllerFindAllV1(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['SessionLanguagesApi.sessionLanguagesControllerFindAllV1']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
 };
 
 /**
  * SessionLanguagesApi - factory interface
  * @export
  */
-export const SessionLanguagesApiFactory = function (
-  configuration?: Configuration,
-  basePath?: string,
-  axios?: AxiosInstance,
-) {
-  const localVarFp = SessionLanguagesApiFp(configuration);
-  return {
-    /**
-     *
-     * @summary Listar todas as linguagens de sessão disponíveis para a empresa
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    sessionLanguagesControllerFindAllV1(
-      options?: RawAxiosRequestConfig,
-    ): AxiosPromise<void> {
-      return localVarFp
-        .sessionLanguagesControllerFindAllV1(options)
-        .then((request) => request(axios, basePath));
-    },
-  };
+export const SessionLanguagesApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = SessionLanguagesApiFp(configuration)
+    return {
+        /**
+         * 
+         * @summary Listar todas as linguagens de sessão disponíveis para a empresa
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        sessionLanguagesControllerFindAllV1(options?: RawAxiosRequestConfig): AxiosPromise<Array<SessionLanguageResponseDto>> {
+            return localVarFp.sessionLanguagesControllerFindAllV1(options).then((request) => request(axios, basePath));
+        },
+    };
 };
 
 /**
@@ -160,16 +109,15 @@ export const SessionLanguagesApiFactory = function (
  * @interface SessionLanguagesApi
  */
 export interface SessionLanguagesApiInterface {
-  /**
-   *
-   * @summary Listar todas as linguagens de sessão disponíveis para a empresa
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof SessionLanguagesApiInterface
-   */
-  sessionLanguagesControllerFindAllV1(
-    options?: RawAxiosRequestConfig,
-  ): AxiosPromise<void>;
+    /**
+     * 
+     * @summary Listar todas as linguagens de sessão disponíveis para a empresa
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof SessionLanguagesApiInterface
+     */
+    sessionLanguagesControllerFindAllV1(options?: RawAxiosRequestConfig): AxiosPromise<Array<SessionLanguageResponseDto>>;
+
 }
 
 /**
@@ -178,20 +126,16 @@ export interface SessionLanguagesApiInterface {
  * @class SessionLanguagesApi
  * @extends {BaseAPI}
  */
-export class SessionLanguagesApi
-  extends BaseAPI
-  implements SessionLanguagesApiInterface
-{
-  /**
-   *
-   * @summary Listar todas as linguagens de sessão disponíveis para a empresa
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof SessionLanguagesApi
-   */
-  public sessionLanguagesControllerFindAllV1(options?: RawAxiosRequestConfig) {
-    return SessionLanguagesApiFp(this.configuration)
-      .sessionLanguagesControllerFindAllV1(options)
-      .then((request) => request(this.axios, this.basePath));
-  }
+export class SessionLanguagesApi extends BaseAPI implements SessionLanguagesApiInterface {
+    /**
+     * 
+     * @summary Listar todas as linguagens de sessão disponíveis para a empresa
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof SessionLanguagesApi
+     */
+    public sessionLanguagesControllerFindAllV1(options?: RawAxiosRequestConfig) {
+        return SessionLanguagesApiFp(this.configuration).sessionLanguagesControllerFindAllV1(options).then((request) => request(this.axios, this.basePath));
+    }
 }
+

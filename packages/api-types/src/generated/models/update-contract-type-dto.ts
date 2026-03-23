@@ -12,22 +12,25 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface UpdateContractTypeDto
  */
 export interface UpdateContractTypeDto {
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateContractTypeDto
-   */
-  name?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateContractTypeDto
-   */
-  description?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateContractTypeDto
+     */
+    'name'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateContractTypeDto
+     */
+    'description'?: string;
 }
+

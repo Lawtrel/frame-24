@@ -12,40 +12,43 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface CreateMovieDtoCastInner
  */
 export interface CreateMovieDtoCastInner {
-  /**
-   *
-   * @type {string}
-   * @memberof CreateMovieDtoCastInner
-   */
-  cast_type: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CreateMovieDtoCastInner
-   */
-  artist_name: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CreateMovieDtoCastInner
-   */
-  character_name?: string;
-  /**
-   *
-   * @type {number}
-   * @memberof CreateMovieDtoCastInner
-   */
-  credit_order?: number;
-  /**
-   *
-   * @type {string}
-   * @memberof CreateMovieDtoCastInner
-   */
-  photo_url?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateMovieDtoCastInner
+     */
+    'cast_type': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateMovieDtoCastInner
+     */
+    'artist_name': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateMovieDtoCastInner
+     */
+    'character_name'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof CreateMovieDtoCastInner
+     */
+    'credit_order'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateMovieDtoCastInner
+     */
+    'photo_url'?: string;
 }
+

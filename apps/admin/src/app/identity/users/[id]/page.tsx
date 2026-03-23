@@ -39,7 +39,7 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
         setRoles(rolesData as any[]);
 
         setFormData({
-          full_name: userData.person?.full_name || "",
+          full_name: userData.full_name || "",
           email: userData.email,
           role_id:
             userData.company_user?.role_id ||

@@ -1,18 +1,29 @@
 import { apiConfig } from "./api-config";
-import { MoviesApi } from "@repo/api-types";
+import { MovieCategoriesApi, MoviesApi } from "@repo/api-types";
 
 const moviesApi = new MoviesApi(apiConfig);
+const movieCategoriesApi = new MovieCategoriesApi(apiConfig);
 
 export const CatalogService = {
   async getMovies() {
     // A chamada deve ser findAllV1 e passar um objeto vazio {} se necessário
     const response = await moviesApi.moviesControllerFindAllV1();
-    return response.data;
+    return (response.data ?? []) as any[];
   },
 
   async getMovieById(id: string) {
-    const response = await moviesApi.moviesControllerFindOneV1(id);
-    return response.data;
+    const response = await moviesApi.moviesControllerFindOneV1({ id });
+    return response.data as any;
+  },
+
+  async getAgeRatings() {
+    const response = await moviesApi.moviesControllerGetAgeRatingsV1();
+    return (response.data ?? []) as any[];
+  },
+
+  async getCategories() {
+    const response = await movieCategoriesApi.movieCategoriesControllerFindAllV1();
+    return (response.data ?? []) as any[];
   },
 
   async createMovie(data: any) {
@@ -27,6 +38,6 @@ export const CatalogService = {
   },
 
   async deleteMovie(id: string) {
-    return await moviesApi.moviesControllerDeleteV1(id);
+    return await moviesApi.moviesControllerDeleteV1({ id });
   },
 };

@@ -12,58 +12,61 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface UpdateAccountPayableDto
  */
 export interface UpdateAccountPayableDto {
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateAccountPayableDto
-   */
-  document_number?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateAccountPayableDto
-   */
-  description?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateAccountPayableDto
-   */
-  issue_date?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateAccountPayableDto
-   */
-  due_date?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateAccountPayableDto
-   */
-  competence_date?: string;
-  /**
-   *
-   * @type {number}
-   * @memberof UpdateAccountPayableDto
-   */
-  interest_amount?: number;
-  /**
-   *
-   * @type {number}
-   * @memberof UpdateAccountPayableDto
-   */
-  penalty_amount?: number;
-  /**
-   *
-   * @type {number}
-   * @memberof UpdateAccountPayableDto
-   */
-  discount_amount?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateAccountPayableDto
+     */
+    'document_number'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateAccountPayableDto
+     */
+    'description'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateAccountPayableDto
+     */
+    'issue_date'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateAccountPayableDto
+     */
+    'due_date'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateAccountPayableDto
+     */
+    'competence_date'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof UpdateAccountPayableDto
+     */
+    'interest_amount'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof UpdateAccountPayableDto
+     */
+    'penalty_amount'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof UpdateAccountPayableDto
+     */
+    'discount_amount'?: number;
 }
+

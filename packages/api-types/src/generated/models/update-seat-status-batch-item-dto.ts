@@ -12,22 +12,25 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface UpdateSeatStatusBatchItemDto
  */
 export interface UpdateSeatStatusBatchItemDto {
-  /**
-   *
-   * @type {string}
-   * @memberof UpdateSeatStatusBatchItemDto
-   */
-  seat_id: string;
-  /**
-   *
-   * @type {boolean}
-   * @memberof UpdateSeatStatusBatchItemDto
-   */
-  active: boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateSeatStatusBatchItemDto
+     */
+    'seat_id': string;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof UpdateSeatStatusBatchItemDto
+     */
+    'active': boolean;
 }
+

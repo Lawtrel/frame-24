@@ -12,46 +12,49 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface CreateCampaignDto
  */
 export interface CreateCampaignDto {
-  /**
-   * ID do tipo de promoção (ex.: percentual, valor fixo)
-   * @type {string}
-   * @memberof CreateCampaignDto
-   */
-  promotion_type_id: string;
-  /**
-   * Código único da campanha por empresa
-   * @type {string}
-   * @memberof CreateCampaignDto
-   */
-  campaign_code: string;
-  /**
-   * Nome público da campanha
-   * @type {string}
-   * @memberof CreateCampaignDto
-   */
-  name: string;
-  /**
-   * Descrição detalhada apresentada no dashboard
-   * @type {string}
-   * @memberof CreateCampaignDto
-   */
-  description?: string;
-  /**
-   * Data/hora inicial de validade (ISO 8601)
-   * @type {string}
-   * @memberof CreateCampaignDto
-   */
-  start_date: string;
-  /**
-   * Data/hora final da campanha (ISO 8601)
-   * @type {string}
-   * @memberof CreateCampaignDto
-   */
-  end_date: string;
+    /**
+     * ID do tipo de promoção (ex.: percentual, valor fixo)
+     * @type {string}
+     * @memberof CreateCampaignDto
+     */
+    'promotion_type_id': string;
+    /**
+     * Código único da campanha por empresa
+     * @type {string}
+     * @memberof CreateCampaignDto
+     */
+    'campaign_code': string;
+    /**
+     * Nome público da campanha
+     * @type {string}
+     * @memberof CreateCampaignDto
+     */
+    'name': string;
+    /**
+     * Descrição detalhada apresentada no dashboard
+     * @type {string}
+     * @memberof CreateCampaignDto
+     */
+    'description'?: string;
+    /**
+     * Data/hora inicial de validade (ISO 8601)
+     * @type {string}
+     * @memberof CreateCampaignDto
+     */
+    'start_date': string;
+    /**
+     * Data/hora final da campanha (ISO 8601)
+     * @type {string}
+     * @memberof CreateCampaignDto
+     */
+    'end_date': string;
 }
+

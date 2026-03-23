@@ -12,34 +12,37 @@
  * Do not edit the class manually.
  */
 
+
+
 /**
- *
+ * 
  * @export
  * @interface UpdateMovieCategoryDto
  */
 export interface UpdateMovieCategoryDto {
-  /**
-   * Nome da categoria
-   * @type {string}
-   * @memberof UpdateMovieCategoryDto
-   */
-  name?: string;
-  /**
-   * Descrição da categoria
-   * @type {string}
-   * @memberof UpdateMovieCategoryDto
-   */
-  description?: string;
-  /**
-   * Idade mínima recomendada
-   * @type {number}
-   * @memberof UpdateMovieCategoryDto
-   */
-  minimum_age?: number;
-  /**
-   * Categoria ativa?
-   * @type {boolean}
-   * @memberof UpdateMovieCategoryDto
-   */
-  active?: boolean;
+    /**
+     * Nome da categoria
+     * @type {string}
+     * @memberof UpdateMovieCategoryDto
+     */
+    'name'?: string;
+    /**
+     * Descrição da categoria
+     * @type {string}
+     * @memberof UpdateMovieCategoryDto
+     */
+    'description'?: string;
+    /**
+     * Idade mínima recomendada
+     * @type {number}
+     * @memberof UpdateMovieCategoryDto
+     */
+    'minimum_age'?: number;
+    /**
+     * Categoria ativa?
+     * @type {boolean}
+     * @memberof UpdateMovieCategoryDto
+     */
+    'active'?: boolean;
 }
+

@@ -1,5 +1,6 @@
 import {
   Injectable,
+  BadRequestException,
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
@@ -15,6 +16,29 @@ import { Company } from 'src/modules/identity/auth/domain/entities/company.entit
 
 @Injectable()
 export class CompanyService {
+  private static readonly TENANT_SLUG_MAX_LENGTH = 50;
+  private static readonly STRING_FIELD_LIMITS: Record<string, number> = {
+    corporate_name: 200,
+    trade_name: 200,
+    cnpj: 18,
+    zip_code: 10,
+    street_address: 300,
+    address_number: 20,
+    address_complement: 100,
+    neighborhood: 100,
+    city: 100,
+    state: 2,
+    country: 2,
+    phone: 20,
+    mobile: 20,
+    email: 100,
+    website: 200,
+    state_registration: 20,
+    municipal_registration: 20,
+    tenant_slug: 50,
+    logo_url: 500,
+  };
+
   constructor(
     private readonly repository: CompanyRepository,
     private readonly brasilApiService: BrasilApiService,
@@ -63,6 +87,8 @@ export class CompanyService {
       tax_regime: determinedTaxRegime,
       active: true,
     };
+
+    this.assertColumnLengths(data);
 
     const company = await this.repository.create(data);
 
@@ -137,7 +163,50 @@ export class CompanyService {
       .replace(/^-+|-+$/g, ''); // Remove hífens nas pontas
 
     // Adiciona sufixo único do CNPJ
-    const suffix = cnpj.replace(/\D/g, '').slice(-4);
-    return `${slug}-${suffix}`;
+    const suffix = cnpj.replace(/\D/g, '').slice(-4) || '0000';
+    const maxBaseLength =
+      CompanyService.TENANT_SLUG_MAX_LENGTH - (suffix.length + 1);
+    const base = (slug || 'empresa').slice(0, Math.max(1, maxBaseLength));
+
+    return `${base}-${suffix}`;
+  }
+
+  private assertColumnLengths(data: Prisma.companiesCreateInput): void {
+    const oversizedFields = Object.entries(CompanyService.STRING_FIELD_LIMITS)
+      .map(([field, maxLength]) => {
+        const value = data[field as keyof Prisma.companiesCreateInput];
+
+        if (typeof value !== 'string' || value.length <= maxLength) {
+          return null;
+        }
+
+        return {
+          field,
+          maxLength,
+          actualLength: value.length,
+        };
+      })
+      .filter((item) => item !== null);
+
+    if (oversizedFields.length === 0) {
+      return;
+    }
+
+    const details = oversizedFields
+      .map(
+        ({ field, actualLength, maxLength }) =>
+          `${field} (${actualLength}/${maxLength})`,
+      )
+      .join(', ');
+
+    this.logger.error(
+      `Company payload has oversized fields: ${details}`,
+      undefined,
+      CompanyService.name,
+    );
+
+    throw new BadRequestException(
+      `Os seguintes campos excedem o tamanho permitido: ${details}.`,
+    );
   }
 }

@@ -65,7 +65,7 @@ describe('JwtAuthGuard', () => {
       company_id: 'company-1',
       company_user_id: 'user-1',
       session_context: 'EMPLOYEE',
-    };
+    } as any;
 
     jest
       .spyOn(Object.getPrototypeOf(JwtAuthGuard.prototype), 'handleRequest')
@@ -84,7 +84,7 @@ describe('JwtAuthGuard', () => {
       .spyOn(Object.getPrototypeOf(JwtAuthGuard.prototype), 'handleRequest')
       .mockReturnValue(undefined);
 
-    const result = guard.handleRequest(null, undefined, null, context);
+    const result = guard.handleRequest(null, undefined as any, null, context);
 
     expect(result).toBeUndefined();
     expect(tenantContext.setContext).not.toHaveBeenCalled();

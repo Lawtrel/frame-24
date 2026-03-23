@@ -19,7 +19,7 @@ export const OperationsService = {
   // --- Complexos ---
   async getComplexes() {
     const response = await complexesApi.cinemaComplexesControllerFindAllV1();
-    return response.data;
+    return (response.data ?? []) as any[];
   },
 
   async createComplex(data: any) {
@@ -30,12 +30,12 @@ export const OperationsService = {
 
   async getSessionLanguages() {
     const response = await languageApi.sessionLanguagesControllerFindAllV1();
-    return response.data;
+    return (response.data ?? []) as any[];
   },
 
   async getSessionStatuses() {
     const response = await statusApi.sessionStatusControllerFindAllV1();
-    return response.data;
+    return (response.data ?? []) as any[];
   },
 
   // --- Salas ---
@@ -43,7 +43,7 @@ export const OperationsService = {
     const response = await roomsApi.roomsControllerFindAllV1({
       cinemaComplexId: complexId,
     });
-    return response.data;
+    return (response.data ?? []) as any[];
   },
 
   async createRoom(cinemaComplexId: string, data: any) {
@@ -86,7 +86,6 @@ export const OperationsService = {
 
     return await roomsApi.roomsControllerCreateV1({
       cinemaComplexId,
-      complexId: cinemaComplexId,
       roomNumber: data.room_number,
       name: data.name,
       capacity: capacity,
@@ -97,12 +96,12 @@ export const OperationsService = {
   async getProjectionTypes() {
     // Busca tipos de projeção (2D, 3D, IMAX...)
     const response = await projectionApi.projectionTypesControllerFindAllV1();
-    return response.data;
+    return (response.data ?? []) as any[];
   },
 
   async getAudioTypes() {
     // Busca tipos de áudio (Dolby, Atmos...)
     const response = await audioApi.audioTypesControllerFindAllV1();
-    return response.data;
+    return (response.data ?? []) as any[];
   },
 };

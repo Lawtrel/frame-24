@@ -12,154 +12,160 @@
  * Do not edit the class manually.
  */
 
+
+// May contain unused imports in some cases
+// @ts-ignore
+import type { CreateUserDtoIpWhitelistInner } from './create-user-dto-ip-whitelist-inner';
+
 /**
- *
+ * 
  * @export
  * @interface CreateUserDto
  */
 export interface CreateUserDto {
-  /**
-   * Nome completo do usuário
-   * @type {string}
-   * @memberof CreateUserDto
-   */
-  full_name: string;
-  /**
-   * CPF (com ou sem formatação)
-   * @type {string}
-   * @memberof CreateUserDto
-   */
-  cpf?: string;
-  /**
-   * Data de nascimento (ISO 8601)
-   * @type {string}
-   * @memberof CreateUserDto
-   */
-  birth_date?: string;
-  /**
-   * Telefone fixo
-   * @type {string}
-   * @memberof CreateUserDto
-   */
-  phone?: string;
-  /**
-   * Celular
-   * @type {string}
-   * @memberof CreateUserDto
-   */
-  mobile?: string;
-  /**
-   * Email (será usado para login)
-   * @type {string}
-   * @memberof CreateUserDto
-   */
-  email: string;
-  /**
-   * CEP
-   * @type {string}
-   * @memberof CreateUserDto
-   */
-  zip_code?: string;
-  /**
-   * Endereço (rua)
-   * @type {string}
-   * @memberof CreateUserDto
-   */
-  street_address?: string;
-  /**
-   * Número
-   * @type {string}
-   * @memberof CreateUserDto
-   */
-  address_number?: string;
-  /**
-   * Complemento
-   * @type {string}
-   * @memberof CreateUserDto
-   */
-  address_complement?: string;
-  /**
-   * Bairro
-   * @type {string}
-   * @memberof CreateUserDto
-   */
-  neighborhood?: string;
-  /**
-   * Cidade
-   * @type {string}
-   * @memberof CreateUserDto
-   */
-  city?: string;
-  /**
-   * Estado (UF)
-   * @type {string}
-   * @memberof CreateUserDto
-   */
-  state?: string;
-  /**
-   * País (código ISO)
-   * @type {string}
-   * @memberof CreateUserDto
-   */
-  country: string;
-  /**
-   * Senha (mín. 8 caracteres, maiúscula, minúscula e número)
-   * @type {string}
-   * @memberof CreateUserDto
-   */
-  password: string;
-  /**
-   * ID da role
-   * @type {string}
-   * @memberof CreateUserDto
-   */
-  role_id: string;
-  /**
-   * Departamento
-   * @type {string}
-   * @memberof CreateUserDto
-   */
-  department?: string;
-  /**
-   * Cargo/nível
-   * @type {string}
-   * @memberof CreateUserDto
-   */
-  job_level?: string;
-  /**
-   * Localização/unidade
-   * @type {string}
-   * @memberof CreateUserDto
-   */
-  location?: string;
-  /**
-   * IDs dos complexos permitidos
-   * @type {Array<string>}
-   * @memberof CreateUserDto
-   */
-  allowed_complexes?: Array<string>;
-  /**
-   * Lista de IPs permitidos
-   * @type {Array<string>}
-   * @memberof CreateUserDto
-   */
-  ip_whitelist?: Array<string>;
-  /**
-   * Data de início do vínculo (ISO 8601)
-   * @type {string}
-   * @memberof CreateUserDto
-   */
-  start_date?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CreateUserDto
-   */
-  end_date?: string | null;
-  /**
-   * Status do usuário
-   * @type {boolean}
-   * @memberof CreateUserDto
-   */
-  active: boolean;
+    /**
+     * Nome completo do usuário
+     * @type {string}
+     * @memberof CreateUserDto
+     */
+    'full_name': string;
+    /**
+     * CPF (com ou sem formatação)
+     * @type {string}
+     * @memberof CreateUserDto
+     */
+    'cpf'?: string;
+    /**
+     * Data de nascimento (ISO 8601)
+     * @type {string}
+     * @memberof CreateUserDto
+     */
+    'birth_date'?: string;
+    /**
+     * Telefone fixo
+     * @type {string}
+     * @memberof CreateUserDto
+     */
+    'phone'?: string;
+    /**
+     * Celular
+     * @type {string}
+     * @memberof CreateUserDto
+     */
+    'mobile'?: string;
+    /**
+     * Email (será usado para login)
+     * @type {string}
+     * @memberof CreateUserDto
+     */
+    'email': string;
+    /**
+     * CEP
+     * @type {string}
+     * @memberof CreateUserDto
+     */
+    'zip_code'?: string;
+    /**
+     * Endereço (rua)
+     * @type {string}
+     * @memberof CreateUserDto
+     */
+    'street_address'?: string;
+    /**
+     * Número
+     * @type {string}
+     * @memberof CreateUserDto
+     */
+    'address_number'?: string;
+    /**
+     * Complemento
+     * @type {string}
+     * @memberof CreateUserDto
+     */
+    'address_complement'?: string;
+    /**
+     * Bairro
+     * @type {string}
+     * @memberof CreateUserDto
+     */
+    'neighborhood'?: string;
+    /**
+     * Cidade
+     * @type {string}
+     * @memberof CreateUserDto
+     */
+    'city'?: string;
+    /**
+     * Estado (UF)
+     * @type {string}
+     * @memberof CreateUserDto
+     */
+    'state'?: string;
+    /**
+     * País (código ISO)
+     * @type {string}
+     * @memberof CreateUserDto
+     */
+    'country': string;
+    /**
+     * Senha (mín. 8 caracteres, maiúscula, minúscula e número)
+     * @type {string}
+     * @memberof CreateUserDto
+     */
+    'password': string;
+    /**
+     * ID da role
+     * @type {string}
+     * @memberof CreateUserDto
+     */
+    'role_id': string;
+    /**
+     * Departamento
+     * @type {string}
+     * @memberof CreateUserDto
+     */
+    'department'?: string;
+    /**
+     * Cargo/nível
+     * @type {string}
+     * @memberof CreateUserDto
+     */
+    'job_level'?: string;
+    /**
+     * Localização/unidade
+     * @type {string}
+     * @memberof CreateUserDto
+     */
+    'location'?: string;
+    /**
+     * IDs dos complexos permitidos
+     * @type {Array<string>}
+     * @memberof CreateUserDto
+     */
+    'allowed_complexes'?: Array<string>;
+    /**
+     * Lista de IPs permitidos
+     * @type {Array<CreateUserDtoIpWhitelistInner>}
+     * @memberof CreateUserDto
+     */
+    'ip_whitelist'?: Array<CreateUserDtoIpWhitelistInner>;
+    /**
+     * Data de início do vínculo (ISO 8601)
+     * @type {string}
+     * @memberof CreateUserDto
+     */
+    'start_date'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateUserDto
+     */
+    'end_date'?: string | null;
+    /**
+     * Status do usuário
+     * @type {boolean}
+     * @memberof CreateUserDto
+     */
+    'active': boolean;
 }
+
