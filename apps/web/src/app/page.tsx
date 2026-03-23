@@ -17,14 +17,16 @@ interface Company {
 export default function Home() {
   const { data: companies, isLoading } = useCompanies();
   const router = useRouter();
+  const companiesList = (companies as unknown as Company[] | undefined) ?? [];
 
   // Se houver apenas uma empresa, redireciona automaticamente
   useEffect(() => {
-    if (companies && (companies as unknown as Company[]).length === 1) {
-      const company = (companies as unknown as Company[])[0];
+    const [company] = companiesList;
+
+    if (companiesList.length === 1 && company) {
       router.push(`/${company.tenant_slug}`);
     }
-  }, [companies, router]);
+  }, [companiesList, router]);
 
   if (isLoading) {
     return (
@@ -34,10 +36,8 @@ export default function Home() {
     );
   }
 
-  const companiesList = companies as unknown as Company[];
-
   // Se só tem uma empresa, mostra loading enquanto redireciona
-  if (companiesList?.length === 1) {
+  if (companiesList.length === 1) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-950">
         <div className="text-white text-xl">Redirecionando...</div>
@@ -56,7 +56,7 @@ export default function Home() {
         </div>
 
         <div className="space-y-4">
-          {companiesList?.map((company) => (
+          {companiesList.map((company) => (
             <button
               key={company.id}
               onClick={() => router.push(`/${company.tenant_slug}`)}

@@ -49,10 +49,8 @@ export default function ShowtimePage({
 
   // Agrupar assentos por linha
   const seatsByRow = seats.reduce((acc: Record<string, Seat[]>, seat: Seat) => {
-    if (!acc[seat.row_code]) {
-      acc[seat.row_code] = [];
-    }
-    acc[seat.row_code].push(seat);
+    const row = acc[seat.row_code] ?? (acc[seat.row_code] = []);
+    row.push(seat);
     return acc;
   }, {});
 
