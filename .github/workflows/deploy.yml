@@ -43,13 +43,13 @@ jobs:
       - name: ✅ Notificar Sucesso no Discord
         if: success()
         run: |
-          curl -X POST ${{ secrets.N8N_WEBHOOK_URL }} \
+          curl -X POST "${{ secrets.N8N_WEBHOOK_URL }}" \
           -H "Content-Type: application/json" \
           -d '{"status":"success", "message":"Nova versão do Frame 24 compilada e online!"}'
 
       - name: ❌ Notificar Falha no Discord
         if: failure()
         run: |
-          curl -X POST ${{ secrets.N8N_WEBHOOK_URL }} \
+          curl -X POST "${{ secrets.N8N_WEBHOOK_URL }}" \
           -H "Content-Type: application/json" \
           -d '{"status":"error", "message":"O deploy falhou. O build quebrou ou a VPS ficou sem memória."}'
