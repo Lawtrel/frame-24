@@ -3,7 +3,7 @@ name: Deploy Frame 24 to DigitalOcean
 on:
   push:
     branches:
-      - main  # Mude para 'master' se a sua branch principal tiver esse nome
+      - main
 
 jobs:
   deploy:
@@ -16,7 +16,6 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            # Carrega o Node.js no ambiente SSH
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             
@@ -28,11 +27,6 @@ jobs:
             git pull origin main
             pnpm install
             
-            # Se esse comando falhar, o GitHub cancela o resto do bloco na hora
-            pnpm build
-            
-            # Gerencia o PM2
-            pm2 describe frame24 > /dev/null
             # Compila o monorepo
             pnpm build
             
@@ -52,4 +46,4 @@ jobs:
         run: |
           curl -X POST "${{ secrets.N8N_WEBHOOK_URL }}" \
           -H "Content-Type: application/json" \
-          -d '{"status":"error", "message":"O deploy falhou. O build quebrou ou a VPS ficou sem memória."}'
+          -d '{"status":"error", "message":"O deploy falhou. O build quebrou ou a VPS não conectou."}'
