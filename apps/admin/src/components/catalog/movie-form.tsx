@@ -115,10 +115,21 @@ export function MovieForm({ initialData, isEditing = false }: MovieFormProps) {
   const handleTmdbSearch = async () => {
     if (!tmdbQuery) return;
     setImporting(true);
+    console.log("🔎 Iniciando busca no serviço TMDB por:", tmdbQuery);
+    
     try {
       const results = await tmdbService.searchMovie(tmdbQuery);
-      setTmdbResults(results);
+      console.log("✅ Resultados recebidos:", results);
+      
+      if (!results || results.length === 0) {
+         alert("Nenhum filme encontrado com esse nome!");
+      }
+      
+      setTmdbResults(results || []);
       setShowTmdbResults(true);
+    } catch (error) {
+      console.error("🚨 Erro fatal ao buscar no TMDB:", error);
+      alert("Ocorreu um erro na busca! Olhe o console (F12) para ver os detalhes vermelhos.");
     } finally {
       setImporting(false);
     }
