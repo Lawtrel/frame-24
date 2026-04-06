@@ -4,13 +4,13 @@
 
 ### Sistema de Gestão Integrada para Cinema
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0.2-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![NestJS](https://img.shields.io/badge/NestJS-11-E0234E?logo=nestjs&logoColor=white)](https://nestjs.com/)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js&logoColor=white)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![Prisma](https://img.shields.io/badge/Prisma-7-2D3748?logo=prisma&logoColor=white)](https://www.prisma.io/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![pnpm](https://img.shields.io/badge/pnpm-10.20.0-F69220?logo=pnpm&logoColor=white)](https://pnpm.io/)
+[![pnpm](https://img.shields.io/badge/pnpm-10.33.0-F69220?logo=pnpm&logoColor=white)](https://pnpm.io/)
 [![Turborepo](https://img.shields.io/badge/Turborepo-2.x-EF4444?logo=turborepo&logoColor=white)](https://turbo.build/)
 
 Monorepo full-stack com TypeScript para operação de redes de cinema, com arquitetura multi-tenant, API REST versionada, dashboard web e landing page.
@@ -78,8 +78,8 @@ O repositório utiliza Turborepo + pnpm workspaces, organizado em apps e package
 ### Core
 
 - Node.js `>= 18`
-- TypeScript `5.9.3`
-- pnpm `10.20.0`
+- TypeScript `6.0.2`
+- pnpm `10.33.0`
 - Turborepo `2.x`
 
 ### Backend
@@ -95,7 +95,7 @@ O repositório utiliza Turborepo + pnpm workspaces, organizado em apps e package
 - React `19`
 - Tailwind CSS `4`
 
-### Infraestrutura local (Docker)
+### Infraestrutura local (Podman)
 
 - PostgreSQL
 - RabbitMQ
@@ -107,8 +107,8 @@ O repositório utiliza Turborepo + pnpm workspaces, organizado em apps e package
 | Ferramenta | Versão mínima |
 | --- | --- |
 | Node.js | `>= 18` |
-| pnpm | `10.20.0` |
-| Docker / Docker Compose | latest |
+| pnpm | `10.33.0` |
+| Podman / Podman Compose | latest |
 | Git | latest |
 
 ### Instalar pnpm
@@ -116,7 +116,7 @@ O repositório utiliza Turborepo + pnpm workspaces, organizado em apps e package
 Via npm:
 
 ```bash
-npm install -g pnpm@10.20.0
+npm install -g pnpm@10.33.0
 ```
 
 Via Homebrew (macOS/Linux):
@@ -149,8 +149,8 @@ cd frame-24
 ### 2. Suba a infraestrutura
 
 ```bash
-docker-compose up -d
-docker-compose ps
+podman compose -f docker-compose.yaml up -d
+podman compose -f docker-compose.yaml ps
 ```
 
 ### 3. Configure variáveis de ambiente
@@ -246,12 +246,12 @@ pnpm db:reset
 
 | Serviço | URL | Credenciais |
 | --- | --- | --- |
-| API (Swagger) | http://localhost:4000/api/docs | - |
-| Web App | http://localhost:3000 | - |
-| Admin App | http://localhost:3004 | - |
-| Landing Page | http://localhost:3003 | - |
-| RabbitMQ Management | http://localhost:15672 | `frame24` / `frame24pass` |
-| MailHog | http://localhost:8025 | - |
+| API (Swagger) | <http://localhost:4000/api/docs> | - |
+| Web App | <http://localhost:3000> | - |
+| Admin App | <http://localhost:3004> | - |
+| Landing Page | <http://localhost:3003> | - |
+| RabbitMQ Management | <http://localhost:15672> | `frame24` / `frame24pass` |
+| MailHog | <http://localhost:8025> | - |
 
 Prisma Studio:
 
@@ -282,14 +282,29 @@ Schemas principais:
 
 ## Autenticação
 
-Fluxo básico JWT na API:
+Contrato de autenticação (padrão do projeto):
 
-1. `POST /v1/auth/signup`
-2. `POST /v1/auth/login`
-3. Enviar o token no header:
+- Cadastro admin legado: `POST /v1/auth/register`
+- Cadastro cliente legado: `POST /v1/customer/auth/register`
+- Login/cadastro oficial: Better Auth em `/api/auth/*` (email/senha, sessão e recuperação de sessão).
+- Endpoints legados de login (`/v1/auth/login` e `/v1/customer/auth/login`) foram removidos.
+
+Headers aceitos na API:
 
 ```http
-Authorization: Bearer <seu-token-jwt>
+Authorization: Bearer <access-token>
+```
+
+Variáveis principais da API:
+
+```env
+JWT_SECRET=change-me-to-a-long-random-secret
+JWT_AUDIENCE=frame24-api
+JWT_ISSUER=frame24-api
+JWT_EXPIRES_IN=8h
+BETTER_AUTH_SECRET=change-me-to-a-long-random-secret
+BETTER_AUTH_SECRETS=change-me-old-secret,change-me-new-secret
+BETTER_AUTH_URL=http://localhost:4000
 ```
 
 ## Multi-Tenancy
@@ -306,7 +321,7 @@ Arquitetura multi-tenant com separação lógica de dados por empresa:
 ### Porta em uso
 
 ```bash
-docker-compose ps
+podman compose -f docker-compose.yaml ps
 ```
 
 Se necessário, ajuste portas no `docker-compose.yaml` e arquivos `.env`.
@@ -314,15 +329,15 @@ Se necessário, ajuste portas no `docker-compose.yaml` e arquivos `.env`.
 ### Banco não conecta
 
 ```bash
-docker-compose ps postgres
-docker-compose restart postgres
+podman compose -f docker-compose.yaml ps postgres
+podman compose -f docker-compose.yaml restart postgres
 ```
 
 ### RabbitMQ indisponível
 
 ```bash
-docker-compose ps rabbitmq
-docker-compose logs -f rabbitmq
+podman compose -f docker-compose.yaml ps rabbitmq
+podman compose -f docker-compose.yaml logs -f rabbitmq
 ```
 
 ### Prisma Client desatualizado
@@ -332,6 +347,80 @@ cd packages/db
 pnpm db:generate
 pnpm build
 ```
+
+## Deploy Docker (Coolify/VPS)
+
+### Arquivos de deploy
+
+- `dockerfile`: imagem de produção da API (`apps/api`) com build NestJS.
+- `scripts/docker/api-entrypoint.sh`: aplica `prisma migrate deploy` antes de iniciar a API.
+- `docker-compose.coolify.yml`: stack de produção com `api` + `postgres` + `minio`.
+- `.env.coolify.example`: template de variáveis para produção.
+
+### Subir na VPS com Docker Compose
+
+```bash
+cp .env.coolify.example .env.coolify
+# ajuste os secrets e domínios no arquivo .env.coolify
+docker compose --env-file .env.coolify -f docker-compose.coolify.yml up -d --build
+```
+
+Portas publicadas no host podem ser ajustadas no `.env.coolify`:
+
+- `API_HOST_PORT` (default: `4000`)
+- `POSTGRES_HOST_PORT` (default: `5432`)
+- `MINIO_HOST_PORT` (default: `9000`)
+- `MINIO_CONSOLE_HOST_PORT` (default: `9001`)
+
+Topologia de produção recomendada:
+
+- Coolify/VPS: `api` + `postgres` + `minio`.
+- Redis: serviço externo gerenciado.
+- RabbitMQ: serviço externo gerenciado.
+- Frontends (`web`, `admin`, `landing-page`): hospedados na Vercel.
+
+Atualização após novo push no `main`:
+
+```bash
+git pull origin main
+docker compose --env-file .env.coolify -f docker-compose.coolify.yml pull api postgres minio
+docker compose --env-file .env.coolify -f docker-compose.coolify.yml up -d --remove-orphans
+```
+
+### Integração com GitHub Actions
+
+O workflow [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) publica a imagem em `ghcr.io/<owner>/frame-24-api` e suporta dois modos:
+
+- Coolify por webhook (`COOLIFY_DEPLOY_WEBHOOK_URL`).
+- VPS por SSH + Docker Compose (`VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`, `GHCR_USERNAME`, `GHCR_TOKEN`).
+
+No modo VPS, o limite de 1GB fica definido diretamente no `docker-compose.coolify.yml` via limites de memória dos serviços, distribuido entre `api + postgres + minio`.
+
+Secrets recomendados no GitHub:
+
+- `COOLIFY_DEPLOY_WEBHOOK_URL` (opcional, para deploy automático no Coolify)
+- `VPS_HOST`
+- `VPS_USER`
+- `VPS_SSH_KEY`
+- `GHCR_USERNAME`
+- `GHCR_TOKEN` (PAT com `read:packages`)
+- `N8N_WEBHOOK_URL` (opcional para notificação de falha)
+
+### Variáveis obrigatórias de produção
+
+No mínimo:
+
+- `JWT_SECRET`
+- `BETTER_AUTH_SECRET`
+- `BETTER_AUTH_URL` ou `API_URL`
+- `DATABASE_URL`
+- `DIRECT_URL`
+- `FRONTEND_URL` (domínios Vercel permitidos por CORS, separados por vírgula)
+- `REDIS_URL` + `REDIS_HOST` + `REDIS_PORT` (externos)
+- `RABBITMQ_URI` + `RABBITMQ_HOST` + `RABBITMQ_PORT` + `RABBITMQ_USER` + `RABBITMQ_PASSWORD` (externos)
+- `MINIO_ACCESS_KEY` + `MINIO_SECRET_KEY` + (`STORAGE_PUBLIC_URL` ou `MINIO_PUBLIC_URL`) (MinIO no VPS)
+
+Em produção, use secrets fortes (>= 32 caracteres para `JWT_SECRET` e `BETTER_AUTH_SECRET`).
 
 ## Documentação Complementar
 

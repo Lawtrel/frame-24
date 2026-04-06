@@ -12,8 +12,20 @@ import { LoggerService } from 'src/common/services/logger.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SessionSeatStatusRepository } from 'src/modules/operations/session_seat_status/repositories/session-seat-status.repository';
 import { SeatStatusRepository } from 'src/modules/operations/seat-status/repositories/seat-status.repository';
+import { SeatReservationStoreService } from '../services/seat-reservation-store.service';
 import { OnModuleInit } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import jwt from 'jsonwebtoken';
+import { auth } from 'src/lib/auth';
+import { fromNodeHeaders } from 'better-auth/node';
+
+interface JwtPayloadWithClaims {
+  sub?: string;
+  identity_id?: string;
+  customer_id?: string;
+  session_context?: 'EMPLOYEE' | 'CUSTOMER';
+  company_id?: string;
+  tenant_slug?: string;
+}
 
 interface SeatReservation {
   showtime_id: string;
@@ -28,6 +40,12 @@ interface SeatReservation {
 interface SocketAuthContext {
   userId: string;
   companyId: string;
+}
+
+interface SocketUserContext {
+  sub: string;
+  company_id: string;
+  tenant_slug?: string;
 }
 
 const isDev = process.env.NODE_ENV !== 'production';
@@ -80,12 +98,167 @@ export class SeatsReservationGateway
     private readonly prisma: PrismaService,
     private readonly sessionSeatStatusRepository: SessionSeatStatusRepository,
     private readonly seatStatusRepository: SeatStatusRepository,
-    private readonly jwtService: JwtService,
+    private readonly seatReservationStore: SeatReservationStoreService,
   ) {
     // Limpar reservas expiradas a cada minuto
     setInterval(() => {
-      this.cleanExpiredReservations();
+      void this.cleanExpiredReservations();
     }, 60000);
+  }
+
+  private async buildSocketUserContext(
+    token: string,
+  ): Promise<SocketUserContext> {
+    const payload = jwt.verify(
+      token,
+      process.env.JWT_SECRET ?? 'test-jwt-secret',
+      {
+        algorithms: ['HS256'],
+      },
+    ) as JwtPayloadWithClaims;
+
+    const userId = payload.identity_id ?? payload.sub;
+
+    if (!userId) {
+      throw new Error('Invalid token payload: missing sub');
+    }
+
+    if (payload.company_id) {
+      return {
+        sub: userId,
+        company_id: payload.company_id,
+        tenant_slug: payload.tenant_slug,
+      };
+    }
+
+    const identity = await this.prisma.identities.findFirst({
+      where: {
+        external_id: userId,
+        active: true,
+      },
+      include: {
+        company_users: {
+          where: { active: true },
+          include: {
+            companies: true,
+          },
+          orderBy: {
+            created_at: 'asc',
+          },
+          take: 1,
+        },
+      },
+    });
+
+    const companyUser = identity?.company_users?.[0];
+
+    if (!companyUser) {
+      throw new Error('Identity not linked to an active company user');
+    }
+
+    return {
+      sub: userId,
+      company_id: companyUser.company_id,
+      tenant_slug: companyUser.companies?.tenant_slug,
+    };
+  }
+
+  private async buildSocketUserContextFromSession(
+    email: string,
+    requestedCompanyIdHeader?: string | string[],
+    requestedTenantSlugHeader?: string | string[],
+  ): Promise<SocketUserContext> {
+    const requestedCompanyId = Array.isArray(requestedCompanyIdHeader)
+      ? requestedCompanyIdHeader[0]
+      : requestedCompanyIdHeader;
+    const requestedTenantSlug = Array.isArray(requestedTenantSlugHeader)
+      ? requestedTenantSlugHeader[0]
+      : requestedTenantSlugHeader;
+
+    const identity = await this.prisma.identities.findFirst({
+      where: {
+        email: email.trim().toLowerCase(),
+        active: true,
+      },
+      include: {
+        company_users: {
+          where: {
+            active: true,
+            ...(requestedCompanyId ? { company_id: requestedCompanyId } : {}),
+          },
+          include: {
+            companies: true,
+          },
+          orderBy: {
+            created_at: 'asc',
+          },
+        },
+      },
+    });
+
+    const companyUser = identity?.company_users?.find(
+      (link) =>
+        !!link.companies &&
+        link.companies.active &&
+        !link.companies.suspended &&
+        (!requestedTenantSlug ||
+          link.companies.tenant_slug === requestedTenantSlug),
+    );
+
+    if (identity?.id && companyUser?.company_id) {
+      return {
+        sub: identity.id,
+        company_id: companyUser.company_id,
+        tenant_slug: companyUser.companies?.tenant_slug,
+      };
+    }
+
+    if (!identity?.id) {
+      throw new Error('Sessão sem identidade ativa');
+    }
+
+    const customer = await this.prisma.customers.findFirst({
+      where: {
+        identity_id: identity.id,
+        active: true,
+        blocked: false,
+      },
+      include: {
+        company_customers: {
+          where: {
+            is_active_in_loyalty: true,
+            ...(requestedCompanyId ? { company_id: requestedCompanyId } : {}),
+          },
+          orderBy: {
+            created_at: 'asc',
+          },
+        },
+      },
+    });
+
+    const companyCustomer = customer?.company_customers?.find(Boolean);
+
+    if (!companyCustomer?.company_id) {
+      throw new Error('Sessão não vinculada a empresa ativa');
+    }
+
+    const company = await this.prisma.companies.findUnique({
+      where: { id: companyCustomer.company_id },
+    });
+
+    if (!company || !company.active || company.suspended) {
+      throw new Error('Empresa inativa para sessão');
+    }
+
+    if (requestedTenantSlug && company.tenant_slug !== requestedTenantSlug) {
+      throw new Error('Sessão vinculada a tenant diferente do solicitado');
+    }
+
+    return {
+      sub: identity.id,
+      company_id: company.id,
+      tenant_slug: company.tenant_slug,
+    };
   }
 
   async onModuleInit() {
@@ -142,6 +315,8 @@ export class SeatsReservationGateway
 
       for (const res of Object.values(grouped)) {
         this.reservations.set(res.reservation_uuid, res);
+        await this.seatReservationStore.saveReservation(res);
+        await this.seatReservationStore.syncSeatLocks(res);
       }
 
       this.logger.log(
@@ -150,26 +325,52 @@ export class SeatsReservationGateway
       );
     } catch (error) {
       this.logger.error(
-        `Failed to load active reservations: ${error}`,
+        `Failed to load active reservations: ${error instanceof Error ? error.message : String(error)}`,
         '',
         'SeatsReservationGateway',
       );
     }
   }
 
-  handleConnection(client: Socket) {
+  async handleConnection(client: Socket): Promise<void> {
     try {
       // Allow passing auth via token or headers
+      const headerAuthorization = client.handshake.headers['authorization'];
       const token =
-        client.handshake.auth?.token ||
-        client.handshake.headers['authorization']?.split(' ')[1];
+        (typeof client.handshake.auth?.token === 'string'
+          ? client.handshake.auth.token
+          : undefined) ||
+        (typeof headerAuthorization === 'string'
+          ? headerAuthorization.split(' ')[1]
+          : undefined);
 
       if (!token) {
-        throw new Error('Unauthorized - Token not provided');
+        const session = await auth.api.getSession({
+          headers: fromNodeHeaders(client.handshake.headers),
+        });
+
+        if (!session?.user?.email) {
+          throw new Error('Unauthorized - Session not provided');
+        }
+
+        const payload = await this.buildSocketUserContextFromSession(
+          session.user.email,
+          client.handshake.headers['x-company-id'],
+          client.handshake.headers['x-tenant-slug'],
+        );
+        const socketData = client.data as { user?: SocketUserContext };
+        socketData.user = payload;
+
+        this.logger.log(
+          `WebSocket client connected via session: ${client.id} (User: ${payload.sub || 'guest'})`,
+          'SeatsReservationGateway',
+        );
+        return;
       }
 
-      const payload = this.jwtService.verify(token);
-      client.data.user = payload; // Attach user to socket connection
+      const payload = await this.buildSocketUserContext(token);
+      const socketData = client.data as { user?: SocketUserContext };
+      socketData.user = payload; // Attach user to socket connection
 
       this.logger.log(
         `WebSocket client connected: ${client.id} (User: ${payload.sub || 'guest'})`,
@@ -194,7 +395,8 @@ export class SeatsReservationGateway
   }
 
   private getSocketAuthContext(client: Socket): SocketAuthContext {
-    const user = client.data.user as
+    const socketData = client.data as { user?: SocketUserContext };
+    const user = socketData.user as
       | { sub?: string; company_id?: string }
       | undefined;
 
@@ -234,7 +436,7 @@ export class SeatsReservationGateway
     const { showtime_id } = payload;
     const auth = this.getSocketAuthContext(client);
 
-    client.join(`showtime:${showtime_id}`);
+    void client.join(`showtime:${showtime_id}`);
     this.logger.debug(
       `Client ${client.id} joined showtime ${showtime_id} (User: ${auth.userId})`,
       'SeatsReservationGateway',
@@ -272,6 +474,29 @@ export class SeatsReservationGateway
         return; // Assumindo apenas uma reserva ativa por vez por usuário/sessão
       }
     }
+
+    void this.seatReservationStore
+      .findUserReservation(userId, showtimeId)
+      .then((reservation) => {
+        if (!reservation) {
+          return;
+        }
+
+        reservation.socket_id = client.id;
+        this.reservations.set(reservation.reservation_uuid, reservation);
+
+        client.emit('reservation-restored', {
+          reservation_uuid: reservation.reservation_uuid,
+          expires_at: reservation.expires_at.toISOString(),
+          seat_ids: reservation.seat_ids,
+        });
+      })
+      .catch((error: unknown) => {
+        this.logger.warn(
+          `Failed to restore reservation from Redis: ${error instanceof Error ? error.message : String(error)}`,
+          'SeatsReservationGateway',
+        );
+      });
   }
 
   @SubscribeMessage('reserve-seats')
@@ -330,75 +555,98 @@ export class SeatsReservationGateway
 
       const reservationUuid = `${showtime_id}-${Date.now()}-${Math.random().toString(36).substring(7)}`;
       const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 min
+      const lockResult = await this.seatReservationStore.tryAcquireSeatLocks({
+        showtimeId: showtime_id,
+        seatIds: seat_ids,
+        reservationUuid,
+        expiresAt,
+      });
+
+      if (!lockResult.acquired) {
+        throw new Error(
+          `Assento(s) ${lockResult.conflictingSeatIds.join(', ')} não está(ão) disponível(is) no momento`,
+        );
+      }
 
       // Transação Atômica para garantir consistência
-      await this.prisma.$transaction(async (tx) => {
-        // Verificar disponibilidade e reservar atomicamente
-        // Usamos updateMany com filtro para garantir que só atualiza se estiver disponível
-        // Disponível = sale_id NULL E (reservation_uuid NULL OU expiration_date < NOW)
+      try {
+        await this.prisma.$transaction(async (tx) => {
+          // Verificar disponibilidade e reservar atomicamente
+          // Usamos updateMany com filtro para garantir que só atualiza se estiver disponível
+          // Disponível = sale_id NULL E (reservation_uuid NULL OU expiration_date < NOW)
 
-        const now = new Date();
+          const now = new Date();
 
-        // Para cada assento, tentamos atualizar. Se algum falhar, a transação falha (mas updateMany retorna count)
-        // Melhor abordagem: Verificar disponibilidade com lock ou update condicional
+          // Para cada assento, tentamos atualizar. Se algum falhar, a transação falha (mas updateMany retorna count)
+          // Melhor abordagem: Verificar disponibilidade com lock ou update condicional
 
-        // Vamos verificar primeiro se todos estão disponíveis
-        const unavailable = await tx.session_seat_status.findFirst({
-          where: {
-            showtime_id,
-            seat_id: { in: seat_ids },
-            OR: [
-              { sale_id: { not: null } },
-              {
-                AND: [
-                  { reservation_uuid: { not: null } },
-                  { expiration_date: { gt: now } },
-                ],
-              },
-            ],
-          },
+          // Vamos verificar primeiro se todos estão disponíveis
+          const unavailable = await tx.session_seat_status.findFirst({
+            where: {
+              showtime_id,
+              seat_id: { in: seat_ids },
+              OR: [
+                { sale_id: { not: null } },
+                {
+                  AND: [
+                    { reservation_uuid: { not: null } },
+                    { expiration_date: { gt: now } },
+                  ],
+                },
+              ],
+            },
+          });
+
+          if (unavailable) {
+            throw new Error(
+              `Assento ${unavailable.seat_id} não está disponível`,
+            );
+          }
+
+          // Se chegou aqui, teoricamente estão livres, mas precisamos garantir atomicidade no update
+          // O updateMany não garante que TODOS foram atualizados se a condição for parcial,
+          // mas como fizemos a verificação antes dentro da mesma transação (com nível de isolamento padrão),
+          // deve ser seguro o suficiente para este caso de uso.
+          // Para ser 100% bulletproof, deveríamos fazer um update com where clause estrita.
+
+          const updateResult = await tx.session_seat_status.updateMany({
+            where: {
+              showtime_id,
+              seat_id: { in: seat_ids },
+              sale_id: null,
+              OR: [
+                { reservation_uuid: null },
+                { expiration_date: null },
+                { expiration_date: { lte: now } },
+              ],
+            },
+            data: {
+              status: reservedStatus.id,
+              reservation_uuid: reservationUuid,
+              reservation_date: new Date(),
+              expiration_date: expiresAt,
+            },
+          });
+
+          if (updateResult.count !== seat_ids.length) {
+            throw new Error(
+              'Não foi possível reservar todos os assentos (concorrência detectada)',
+            );
+          }
         });
-
-        if (unavailable) {
-          throw new Error(`Assento ${unavailable.seat_id} não está disponível`);
-        }
-
-        // Se chegou aqui, teoricamente estão livres, mas precisamos garantir atomicidade no update
-        // O updateMany não garante que TODOS foram atualizados se a condição for parcial,
-        // mas como fizemos a verificação antes dentro da mesma transação (com nível de isolamento padrão),
-        // deve ser seguro o suficiente para este caso de uso.
-        // Para ser 100% bulletproof, deveríamos fazer um update com where clause estrita.
-
-        const updateResult = await tx.session_seat_status.updateMany({
-          where: {
-            showtime_id,
-            seat_id: { in: seat_ids },
-            sale_id: null,
-            OR: [
-              { reservation_uuid: null },
-              { expiration_date: null },
-              { expiration_date: { lte: now } },
-            ],
-          },
-          data: {
-            status: reservedStatus.id,
-            reservation_uuid: reservationUuid,
-            reservation_date: new Date(),
-            expiration_date: expiresAt,
-          },
-        });
-
-        if (updateResult.count !== seat_ids.length) {
-          throw new Error(
-            'Não foi possível reservar todos os assentos (concorrência detectada)',
-          );
-        }
-      });
+      } catch (error) {
+        await this.seatReservationStore.releaseSeatLocks(
+          showtime_id,
+          seat_ids,
+          reservationUuid,
+        );
+        throw error;
+      }
 
       // Sucesso na transação
 
       // Armazenar reserva em memória
-      this.reservations.set(reservationUuid, {
+      const createdReservation = {
         showtime_id,
         seat_ids,
         expires_at: expiresAt,
@@ -406,7 +654,9 @@ export class SeatsReservationGateway
         reservation_uuid: reservationUuid,
         user_id: auth.userId,
         company_id: auth.companyId,
-      });
+      };
+      this.reservations.set(reservationUuid, createdReservation);
+      await this.seatReservationStore.saveReservation(createdReservation);
 
       // Notificar outros clientes na mesma sessão
       this.server.to(`showtime:${showtime_id}`).emit('seats-reserved', {
@@ -427,7 +677,7 @@ export class SeatsReservationGateway
       );
     } catch (error) {
       this.logger.error(
-        `Error reserving seats: ${error}`,
+        `Error reserving seats: ${error instanceof Error ? error.message : String(error)}`,
         'SeatsReservationGateway',
       );
       client.emit('reservation-error', {
@@ -503,6 +753,16 @@ export class SeatsReservationGateway
 
       // Remover da memória
       this.reservations.delete(reservation_uuid);
+      await this.seatReservationStore.removeReservation({
+        reservationUuid: reservation_uuid,
+        userId: reservation.user_id,
+        showtimeId: reservation.showtime_id,
+      });
+      await this.seatReservationStore.releaseSeatLocks(
+        reservation.showtime_id,
+        reservation.seat_ids,
+        reservation_uuid,
+      );
 
       // Notificar outros clientes
       this.server
@@ -518,7 +778,7 @@ export class SeatsReservationGateway
       });
     } catch (error) {
       this.logger.error(
-        `Error confirming reservation: ${error}`,
+        `Error confirming reservation: ${error instanceof Error ? error.message : String(error)}`,
         '',
         'SeatsReservationGateway',
       );
@@ -620,6 +880,16 @@ export class SeatsReservationGateway
           });
 
         this.reservations.delete(reservationUuid);
+        await this.seatReservationStore.removeReservation({
+          reservationUuid,
+          userId: reservation.user_id,
+          showtimeId: reservation.showtime_id,
+        });
+        await this.seatReservationStore.releaseSeatLocks(
+          reservation.showtime_id,
+          reservation.seat_ids,
+          reservationUuid,
+        );
       } else {
         // Fallback: limpar pelo UUID diretamente (pode ser necessário buscar showtime_id antes para notificar)
         const seatsToFree = await this.prisma.session_seat_status.findMany({
@@ -648,6 +918,11 @@ export class SeatsReservationGateway
             seat_ids: seatIds,
             reservation_uuid: reservationUuid,
           });
+          await this.seatReservationStore.releaseSeatLocks(
+            showtimeId,
+            seatIds,
+            reservationUuid,
+          );
         }
       }
 
@@ -657,7 +932,7 @@ export class SeatsReservationGateway
       );
     } catch (error) {
       this.logger.error(
-        `Error expiring reservation: ${error}`,
+        `Error expiring reservation: ${error instanceof Error ? error.message : String(error)}`,
         '',
         'SeatsReservationGateway',
       );
@@ -768,7 +1043,6 @@ export class SeatsReservationGateway
         );
 
         for (const [showtimeId, seats] of Object.entries(byShowtime)) {
-          const seatIds = seats.map((s) => s.seat_id);
           // Podemos emitir múltiplos eventos ou um agrupado.
           // O front espera { seat_ids, reservation_uuid }.
           // Se mandarmos array de seat_ids e um uuid null ou genérico, o front entende?
@@ -799,7 +1073,20 @@ export class SeatsReservationGateway
 
       // 5. Remover da memória
       for (const uuid of expiredUuids) {
+        const reservation = this.reservations.get(uuid);
         this.reservations.delete(uuid);
+        await this.seatReservationStore.removeReservation({
+          reservationUuid: uuid,
+          userId: reservation?.user_id,
+          showtimeId: reservation?.showtime_id,
+        });
+        if (reservation) {
+          await this.seatReservationStore.releaseSeatLocks(
+            reservation.showtime_id,
+            reservation.seat_ids,
+            uuid,
+          );
+        }
       }
 
       this.logger.log(
@@ -808,7 +1095,7 @@ export class SeatsReservationGateway
       );
     } catch (error) {
       this.logger.error(
-        `Error cleaning expired reservations: ${error}`,
+        `Error cleaning expired reservations: ${error instanceof Error ? error.message : String(error)}`,
         '',
         'SeatsReservationGateway',
       );

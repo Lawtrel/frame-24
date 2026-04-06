@@ -4,11 +4,13 @@ import { AuthGuard } from '@nestjs/passport';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { TenantContextService } from '../services/tenant-context.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 describe('JwtAuthGuard', () => {
   let guard: JwtAuthGuard;
   let reflector: jest.Mocked<Reflector>;
   let tenantContext: jest.Mocked<TenantContextService>;
+  let prisma: jest.Mocked<PrismaService>;
 
   beforeEach(() => {
     reflector = {
@@ -19,17 +21,28 @@ describe('JwtAuthGuard', () => {
       setContext: jest.fn(),
     } as unknown as jest.Mocked<TenantContextService>;
 
-    guard = new JwtAuthGuard(reflector, tenantContext);
+    prisma = {} as jest.Mocked<PrismaService>;
+
+    guard = new JwtAuthGuard(reflector, tenantContext, prisma);
   });
 
-  const createContext = (): ExecutionContext =>
-    ({
+  const createContext = (authorization?: string): ExecutionContext => {
+    const request = {
+      headers: {
+        ...(authorization ? { authorization } : {}),
+      },
+    } as any;
+
+    return {
       getHandler: jest.fn(),
       getClass: jest.fn(),
-      switchToHttp: jest.fn(),
-    }) as unknown as ExecutionContext;
+      switchToHttp: jest.fn().mockReturnValue({
+        getRequest: jest.fn().mockReturnValue(request),
+      }),
+    } as unknown as ExecutionContext;
+  };
 
-  it('should allow public routes without calling passport strategy', () => {
+  it('should allow public routes without calling passport strategy', async () => {
     const context = createContext();
     reflector.getAllAndOverride.mockReturnValue(true);
 
@@ -38,7 +51,7 @@ describe('JwtAuthGuard', () => {
       'canActivate',
     );
 
-    expect(guard.canActivate(context)).toBe(true);
+    await expect(guard.canActivate(context)).resolves.toBe(true);
     expect(reflector.getAllAndOverride).toHaveBeenCalledWith(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -46,15 +59,15 @@ describe('JwtAuthGuard', () => {
     expect(parentCanActivate).not.toHaveBeenCalled();
   });
 
-  it('should call passport canActivate for protected routes', () => {
-    const context = createContext();
+  it('should call passport canActivate for protected routes with bearer token', async () => {
+    const context = createContext('Bearer token');
     reflector.getAllAndOverride.mockReturnValue(false);
 
     const parentCanActivate = jest
       .spyOn(Object.getPrototypeOf(JwtAuthGuard.prototype), 'canActivate')
       .mockReturnValue(true);
 
-    expect(guard.canActivate(context)).toBe(true);
+    await expect(guard.canActivate(context)).resolves.toBe(true);
     expect(parentCanActivate).toHaveBeenCalledWith(context);
   });
 

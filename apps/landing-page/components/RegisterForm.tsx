@@ -6,6 +6,8 @@ import Input from "@/components/Input";
 import { ChangeEvent, useActionState, useState } from "react";
 import axios from "axios";
 
+const ADMIN_URL = process.env.NEXT_PUBLIC_ADMIN_URL ?? "http://localhost:3004";
+
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
@@ -142,7 +144,7 @@ export default function RegisterForm() {
             Sua conta foi criada com sucesso! Você já pode fazer login.
           </p>
           <a
-            href="https://frame-24-front.vercel.app/login"
+            href={`${ADMIN_URL}/login`}
             className="inline-block px-6 py-3 bg-red-700 hover:bg-red-600 text-white rounded-lg font-semibold transition"
           >
             Fazer Login

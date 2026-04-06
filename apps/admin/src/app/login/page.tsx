@@ -1,128 +1,113 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { AuthService } from "@/services/auth-service";
-import { Loader2, AlertCircle } from "lucide-react";
+import { FormEvent, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Loader2 } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const searchParams = useSearchParams();
+  const rawCallbackUrl = searchParams.get("callbackUrl");
+  const callbackUrl =
+    rawCallbackUrl && rawCallbackUrl.startsWith("/") ? rawCallbackUrl : "/";
+  const { data: session, isPending } = authClient.useSession();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  useEffect(() => {
+    if (!isPending && session) {
+      router.replace(callbackUrl);
+    }
+  }, [callbackUrl, isPending, router, session]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     setError("");
+    setIsSubmitting(true);
 
     try {
-      const response = await AuthService.login(
-        formData.email,
-        formData.password,
-      );
+      const result = await authClient.signIn.email({
+        email: email.trim().toLowerCase(),
+        password,
+      });
 
-      const token = response.data?.access_token;
-
-      if (token) {
-        // Salvar token
-        localStorage.setItem("admin_token", token);
-        document.cookie = `admin_token=${token}; path=/; max-age=86400; SameSite=Strict`;
-
-        router.replace("/");
-        router.refresh();
-      } else {
-        setError("Erro: Token de acesso não recebido.");
+      if (result.error) {
+        setError(result.error.message || "Falha ao autenticar. Verifique seus dados.");
+        return;
       }
-    } catch (err: unknown) {
-      const apiMessage =
-        typeof err === "object" &&
-        err !== null &&
-        "response" in err &&
-        typeof (err as { response?: unknown }).response === "object" &&
-        (err as { response?: { data?: { message?: unknown } } }).response?.data
-          ?.message;
 
-      const msg = apiMessage || "Credenciais inválidas ou erro no servidor.";
-      setError(Array.isArray(msg) ? String(msg[0]) : String(msg));
+      router.replace(callbackUrl);
+    } catch {
+      setError("Falha ao autenticar. Tente novamente.");
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
-  };
+  }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-      <div className="w-full max-w-sm space-y-8 border border-border bg-zinc-900/50 p-8 rounded-xl backdrop-blur-sm">
+      <div className="w-full max-w-sm space-y-8 rounded-xl border border-border bg-zinc-900/50 p-8 backdrop-blur-sm">
         <div className="text-center">
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Lawtrel <span className="text-accent-red">Admin</span>
+            Frame24 <span className="text-accent-red">Admin</span>
           </h1>
-          <p className="mt-2 text-sm text-zinc-400">
-            Entre com as suas credenciais de administrador
-          </p>
+          <p className="mt-2 text-sm text-zinc-400">Acesse sua conta</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-          <div className="space-y-4">
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-zinc-300"
-              >
-                Email
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                className="mt-1 block w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-accent-red focus:outline-none focus:ring-1 focus:ring-accent-red"
-                placeholder="admin@lawtrel.com"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-              />
-            </div>
+        {error ? (
+          <div className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+            {error}
+          </div>
+        ) : null}
 
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-zinc-300"
-              >
-                Senha
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                className="mt-1 block w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-accent-red focus:outline-none focus:ring-1 focus:ring-accent-red"
-                value={formData.password}
-                onChange={(e) =>
-                  setFormData({ ...formData, password: e.target.value })
-                }
-              />
-            </div>
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          <div className="space-y-2">
+            <label className="text-sm text-zinc-300" htmlFor="email">
+              E-mail
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-white outline-none focus:border-red-500"
+              autoComplete="email"
+              required
+            />
           </div>
 
-          {error && (
-            <div className="flex items-center gap-2 rounded-md bg-red-500/10 p-3 text-sm text-red-500 border border-red-500/20">
-              <AlertCircle className="h-4 w-4" />
-              <span>{error}</span>
-            </div>
-          )}
+          <div className="space-y-2">
+            <label className="text-sm text-zinc-300" htmlFor="password">
+              Senha
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-white outline-none focus:border-red-500"
+              autoComplete="current-password"
+              required
+            />
+          </div>
 
           <button
             type="submit"
-            disabled={loading}
-            className="flex w-full justify-center rounded-md bg-accent-red px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-accent-red-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-red disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            disabled={isSubmitting}
+            className="flex w-full items-center justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-500 disabled:opacity-50"
           >
-            {loading ? <Loader2 className="animate-spin h-5 w-5" /> : "Entrar"}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Entrando...
+              </>
+            ) : (
+              "Entrar"
+            )}
           </button>
         </form>
       </div>

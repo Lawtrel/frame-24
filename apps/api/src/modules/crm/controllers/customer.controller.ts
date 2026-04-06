@@ -16,6 +16,7 @@ import {
 import { ClsService } from 'nestjs-cls';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { CustomerGuard } from 'src/common/guards/customer.guard';
+import { AllowAnonymousSession } from 'src/common/decorators/allow-anonymous-session.decorator';
 import { CustomersRepository } from '../repositories/customers.repository';
 import { CompanyCustomersRepository } from '../repositories/company-customers.repository';
 import { UpdateCustomerProfileDto } from '../dto/update-customer-profile.dto';
@@ -23,7 +24,6 @@ import { UpdateCustomerProfileDto } from '../dto/update-customer-profile.dto';
 @ApiTags('Customer')
 @ApiBearerAuth()
 @Controller({ path: 'customer', version: '1' })
-@UseGuards(JwtAuthGuard, CustomerGuard)
 export class CustomerController {
   constructor(
     private readonly customersRepository: CustomersRepository,
@@ -47,7 +47,29 @@ export class CustomerController {
     return { companyId, customerId, tenantSlug };
   }
 
+  @Get('profile/resolve')
+  @UseGuards(JwtAuthGuard)
+  @AllowAnonymousSession()
+  @ApiOperation({
+    summary: 'Resolver perfil do cliente para sessão atual',
+    description:
+      'Retorna o perfil quando a sessão atual é de cliente. Para sessão de funcionário, retorna null.',
+  })
+  async resolveProfile() {
+    const sessionContext = this.cls.get<'EMPLOYEE' | 'CUSTOMER'>(
+      'sessionContext',
+    );
+
+    if (sessionContext !== 'CUSTOMER') {
+      return { profile: null };
+    }
+
+    const profile = await this.getProfile();
+    return { profile };
+  }
+
   @Get('profile')
+  @UseGuards(JwtAuthGuard, CustomerGuard)
   @ApiOperation({
     summary: 'Obter perfil do cliente',
     description: 'Retorna os dados do cliente autenticado',
@@ -82,6 +104,7 @@ export class CustomerController {
   }
 
   @Get('points')
+  @UseGuards(JwtAuthGuard, CustomerGuard)
   @ApiOperation({
     summary: 'Obter pontos de fidelidade',
     description: 'Retorna os pontos acumulados do cliente',
@@ -101,6 +124,7 @@ export class CustomerController {
   }
 
   @Put('profile')
+  @UseGuards(JwtAuthGuard, CustomerGuard)
   @ApiOperation({
     summary: 'Atualizar perfil do cliente',
     description: 'Permite que o cliente atualize seus próprios dados básicos',

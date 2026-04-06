@@ -40,3 +40,6 @@ yarn-error.log*
 *.pem
 *.tsbuildinfo
 
+# Security scanner caches
+security/.cache/
+

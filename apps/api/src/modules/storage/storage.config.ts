@@ -19,5 +19,5 @@ export const storageConfig: StorageConfig = {
   useSSL: process.env.MINIO_USE_SSL === 'true',
   bucket: requireEnv('MINIO_BUCKET', 'frame24-uploads'),
   region: process.env.MINIO_REGION,
-  publicUrl: process.env.STORAGE_PUBLIC_URL,
+  publicUrl: process.env.STORAGE_PUBLIC_URL ?? process.env.MINIO_PUBLIC_URL,
 };

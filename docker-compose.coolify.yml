@@ -1,0 +1,158 @@
+services:
+  api:
+    image: ${API_IMAGE:-ghcr.io/lawtrel/frame-24-api:latest}
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: frame24-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      API_URL: ${API_URL:-http://localhost:4000}
+      FRONTEND_URL: ${FRONTEND_URL}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://frame24:frame24pass@postgres:5432/frame24?schema=public&connection_limit=30}
+      DIRECT_URL: ${DIRECT_URL:-postgresql://frame24:frame24pass@postgres:5432/frame24?schema=public&connection_limit=30}
+      REDIS_URL: ${REDIS_URL}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_DB: ${REDIS_DB:-0}
+      RABBITMQ_URI: ${RABBITMQ_URI}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-minio}
+      MINIO_PORT: ${MINIO_PORT:-9000}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_USE_SSL: ${MINIO_USE_SSL:-false}
+      MINIO_BUCKET: ${MINIO_BUCKET:-frame24-uploads}
+      MINIO_REGION: ${MINIO_REGION:-us-east-1}
+      STORAGE_PUBLIC_URL: ${STORAGE_PUBLIC_URL:-http://localhost:9000}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-frame24-api}
+      JWT_ISSUER: ${JWT_ISSUER:-frame24-api}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+      EMAIL_FROM: ${EMAIL_FROM}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      WORKER_ID: ${WORKER_ID:-1}
+    ports:
+      - "${API_HOST_PORT:-4000}:4000"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:4000/api/openapi.json || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    networks:
+      - frame24-network
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: frame24-postgres
+    restart: unless-stopped
+    shm_size: 128m
+    command:
+      - postgres
+      - -c
+      - max_connections=${POSTGRES_MAX_CONNECTIONS:-100}
+      - -c
+      - shared_buffers=${POSTGRES_SHARED_BUFFERS:-64MB}
+      - -c
+      - effective_cache_size=${POSTGRES_EFFECTIVE_CACHE_SIZE:-192MB}
+      - -c
+      - work_mem=${POSTGRES_WORK_MEM:-4MB}
+      - -c
+      - maintenance_work_mem=${POSTGRES_MAINTENANCE_WORK_MEM:-32MB}
+      - -c
+      - random_page_cost=${POSTGRES_RANDOM_PAGE_COST:-1.1}
+      - -c
+      - checkpoint_completion_target=${POSTGRES_CHECKPOINT_COMPLETION_TARGET:-0.9}
+      - -c
+      - wal_compression=${POSTGRES_WAL_COMPRESSION:-on}
+      - -c
+      - max_wal_size=${POSTGRES_MAX_WAL_SIZE:-1GB}
+      - -c
+      - min_wal_size=${POSTGRES_MIN_WAL_SIZE:-80MB}
+      - -c
+      - autovacuum=${POSTGRES_AUTOVACUUM:-on}
+      - -c
+      - autovacuum_naptime=${POSTGRES_AUTOVACUUM_NAPTIME:-10s}
+      - -c
+      - log_min_duration_statement=${POSTGRES_LOG_MIN_DURATION_STATEMENT:-500}
+      - -c
+      - log_checkpoints=${POSTGRES_LOG_CHECKPOINTS:-on}
+      - -c
+      - log_connections=${POSTGRES_LOG_CONNECTIONS:-off}
+      - -c
+      - log_disconnections=${POSTGRES_LOG_DISCONNECTIONS:-off}
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-frame24}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-frame24pass}
+      POSTGRES_DB: ${POSTGRES_DB:-frame24}
+    ports:
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-frame24} -d ${POSTGRES_DB:-frame24}"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    networks:
+      - frame24-network
+
+  minio:
+    image: alpine/minio:RELEASE.2025-10-15T17-29-55Z
+    container_name: frame24-minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    command: server /data --console-address ":9001"
+    ports:
+      - "${MINIO_HOST_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_HOST_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:9000/minio/health/live || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 6
+    networks:
+      - frame24-network
+
+volumes:
+  postgres_data:
+  minio_data:
+
+networks:
+  frame24-network:
+    driver: bridge

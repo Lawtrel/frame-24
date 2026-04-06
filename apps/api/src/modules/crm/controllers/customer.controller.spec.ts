@@ -21,7 +21,7 @@ describe('CustomerController', () => {
     } as unknown as jest.Mocked<CompanyCustomersRepository>;
 
     cls = {
-      get: jest.fn((key: string) => {
+      get: jest.fn((key?: string | symbol) => {
         if (key === 'companyId') return 'company-1';
         if (key === 'customerId') return 'customer-1';
         if (key === 'tenantSlug') return 'cinema-central';
@@ -67,8 +67,59 @@ describe('CustomerController', () => {
     await expect(controller.getProfile()).rejects.toThrow(NotFoundException);
   });
 
+  it('should return null when resolving profile for EMPLOYEE session', async () => {
+    cls.get.mockImplementation((key?: string | symbol) => {
+      if (key === 'sessionContext') return 'EMPLOYEE';
+      if (key === 'companyId') return 'company-1';
+      if (key === 'customerId') return 'customer-1';
+      if (key === 'tenantSlug') return 'cinema-central';
+      return undefined;
+    });
+
+    const result = await controller.resolveProfile();
+
+    expect(result).toEqual({ profile: null });
+    expect(customersRepository.findById).not.toHaveBeenCalled();
+  });
+
+  it('should return profile when resolving for CUSTOMER session', async () => {
+    cls.get.mockImplementation((key?: string | symbol) => {
+      if (key === 'sessionContext') return 'CUSTOMER';
+      if (key === 'companyId') return 'company-1';
+      if (key === 'customerId') return 'customer-1';
+      if (key === 'tenantSlug') return 'cinema-central';
+      return undefined;
+    });
+
+    customersRepository.findById.mockResolvedValue({
+      id: 'customer-1',
+      email: 'maria@x.com',
+      full_name: 'Maria',
+      phone: '11999999999',
+      birth_date: null,
+    } as never);
+    companyCustomersRepository.findByCompanyAndCustomer.mockResolvedValue({
+      loyalty_level: 'SILVER',
+      accumulated_points: 120,
+    } as never);
+
+    const result = await controller.resolveProfile();
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        profile: expect.objectContaining({
+          id: 'customer-1',
+          loyalty_level: 'SILVER',
+          accumulated_points: 120,
+        }),
+      }),
+    );
+  });
+
   it('should update profile mapping optional birth_date', async () => {
-    customersRepository.findById.mockResolvedValue({ id: 'customer-1' } as never);
+    customersRepository.findById.mockResolvedValue({
+      id: 'customer-1',
+    } as never);
     customersRepository.update.mockResolvedValue({
       id: 'customer-1',
       email: 'maria@x.com',

@@ -98,6 +98,7 @@ export class StorageService implements OnModuleInit {
         const isMinIO =
           !storageConfig.useSSL &&
           (storageConfig.endpoint === 'localhost' ||
+            storageConfig.endpoint === 'minio' ||
             storageConfig.endpoint.includes('127.0.0.1'));
 
         if (isMinIO) {

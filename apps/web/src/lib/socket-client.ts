@@ -56,7 +56,7 @@ let socketInstance: SeatsSocket | null = null;
 /**
  * Retorna uma instância singleton do Socket.IO conectado ao namespace /seats
  */
-export const getSeatsSocket = (): SeatsSocket => {
+export const getSeatsSocket = async (): Promise<SeatsSocket> => {
   if (!socketInstance) {
     const socketUrl =
       process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:4000";
@@ -64,16 +64,8 @@ export const getSeatsSocket = (): SeatsSocket => {
     socketInstance = io(`${socketUrl}/seats`, {
       transports: ["websocket", "polling"],
       autoConnect: false, // Conexão manual para controle
+      withCredentials: true,
     }) as SeatsSocket;
-  }
-
-  // Attempt to grab token from localStorage if we are in the browser
-  if (typeof window !== "undefined") {
-    const token =
-      localStorage.getItem("token") || localStorage.getItem("access_token");
-    if (token) {
-      socketInstance.auth = { token };
-    }
   }
 
   return socketInstance;

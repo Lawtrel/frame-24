@@ -6,7 +6,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { TenantContextService } from 'src/common/services/tenant-context.service';
-import { ClsService } from 'nestjs-cls';
 import {
   movies,
   Prisma,
@@ -225,7 +224,7 @@ export class ShowtimesService {
   async preview(dto: CreateShowtimeDto): Promise<ShowtimeFinancialBreakdown> {
     const companyId = this.tenantContext.getCompanyId();
 
-    const { movie, room } = await this.loadMovieAndRoom(
+    const { room } = await this.loadMovieAndRoom(
       dto.movie_id,
       dto.room_id,
       companyId,
@@ -916,7 +915,9 @@ export class ShowtimesService {
       )) || (await this.seatStatusRepository.findDefaultByCompany(companyId));
 
     if (!availableStatus) {
-      throw new NotFoundException('Status de assento "Disponível" não configurado');
+      throw new NotFoundException(
+        'Status de assento "Disponível" não configurado',
+      );
     }
 
     if (status === 'Bloqueado' && !blockedStatus) {
@@ -946,10 +947,11 @@ export class ShowtimesService {
       status === 'Bloqueado' &&
       currentSeatStatus.status === availableStatus.id
     ) {
-      const didBlock = await this.showtimesRepository.blockSeatsCountersAtomically(
-        showtime_id,
-        1,
-      );
+      const didBlock =
+        await this.showtimesRepository.blockSeatsCountersAtomically(
+          showtime_id,
+          1,
+        );
       if (!didBlock) {
         throw new ConflictException(
           'Não foi possível bloquear assento: não há assentos disponíveis suficientes.',

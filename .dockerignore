@@ -1,10 +1,17 @@
 # Ficheiros e pastas a serem ignorados pelo Docker
 node_modules
-.turbo
+**/node_modules
+**/.turbo
 dist
+**/dist
 build
+**/build
 .next
+**/.next
 .vercel
+**/.vercel
+coverage
+**/coverage
 apps/frontend/dist
 *.log
 

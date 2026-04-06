@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { CommonModule } from 'src/common/common.module';
 import { AuthModule } from 'src/modules/identity/auth/auth.module';
@@ -11,19 +10,9 @@ import { CustomerPurchasesService } from './services/customer-purchases.service'
 import { CustomersRepository } from './repositories/customers.repository';
 import { CompanyCustomersRepository } from './repositories/company-customers.repository';
 import { SalesModule } from 'src/modules/sales/sales.module';
-import { requireEnv } from 'src/config/env.util';
 
 @Module({
-  imports: [
-    PrismaModule,
-    CommonModule,
-    AuthModule,
-    SalesModule,
-    JwtModule.register({
-      secret: requireEnv('JWT_SECRET', 'test-jwt-secret'),
-      signOptions: { expiresIn: '8h' },
-    }),
-  ],
+  imports: [PrismaModule, CommonModule, AuthModule, SalesModule],
   controllers: [
     CustomerAuthController,
     CustomerController,

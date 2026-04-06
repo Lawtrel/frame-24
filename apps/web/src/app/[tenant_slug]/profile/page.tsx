@@ -11,14 +11,18 @@ export default function ProfilePage({
   params: Promise<{ tenant_slug: string }>;
 }) {
   const { tenant_slug } = use(params);
-  const { user, logout, isAuthenticated, isLoading } = useAuth();
+  const { user, logout, isAuthenticated, hasSession, isLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push(`/${tenant_slug}/auth/login`);
+      if (hasSession) {
+        router.push(`/${tenant_slug}/auth/register?intent=activate`);
+      } else {
+        router.push(`/${tenant_slug}/auth/login`);
+      }
     }
-  }, [isAuthenticated, isLoading, router, tenant_slug]);
+  }, [hasSession, isAuthenticated, isLoading, router, tenant_slug]);
 
   if (isLoading) {
     return (

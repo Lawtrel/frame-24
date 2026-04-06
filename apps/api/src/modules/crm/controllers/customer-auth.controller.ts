@@ -1,10 +1,30 @@
-import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  Headers,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorator';
 import { CustomerAuthService } from '../services/customer-auth.service';
 import { RegisterCustomerDto } from '../dto/register-customer.dto';
-import { LoginCustomerDto } from '../dto/login-customer.dto';
-import { CustomerAuthResponseDto } from '../dto/customer-auth-response.dto';
+import { CustomerRegisterResponseDto } from '../dto/customer-register-response.dto';
+import { auth } from 'src/lib/auth';
+import { fromNodeHeaders } from 'better-auth/node';
+
+type ActivateCustomerAccessDto = {
+  company_id: string;
+  full_name: string;
+  cpf: string;
+  phone?: string;
+  birth_date?: string;
+  accepts_marketing?: boolean;
+  accepts_email?: boolean;
+  accepts_sms?: boolean;
+};
 
 @ApiTags('Customer Auth')
 @Controller({ path: 'customer/auth', version: '1' })
@@ -21,7 +41,7 @@ export class CustomerAuthController {
   @ApiResponse({
     status: 201,
     description: 'Cliente registrado com sucesso',
-    type: CustomerAuthResponseDto,
+    type: CustomerRegisterResponseDto,
   })
   @ApiResponse({
     status: 409,
@@ -29,27 +49,36 @@ export class CustomerAuthController {
   })
   async register(
     @Body() dto: RegisterCustomerDto,
-  ): Promise<CustomerAuthResponseDto> {
+  ): Promise<CustomerRegisterResponseDto> {
     return this.customerAuthService.register(dto);
   }
 
-  @Post('login')
+  @Post('activate')
   @Public()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Login de cliente',
-    description: 'Autentica um cliente e retorna token JWT',
+    summary: 'Ativar acesso de cliente na empresa atual',
+    description:
+      'Usa sessão já autenticada para validar e vincular o usuário ao CRM da empresa sem recriar conta.',
   })
   @ApiResponse({
     status: 200,
-    description: 'Login realizado com sucesso',
-    type: CustomerAuthResponseDto,
+    description: 'Acesso ativado com sucesso',
+    type: CustomerRegisterResponseDto,
   })
-  @ApiResponse({
-    status: 401,
-    description: 'Credenciais inválidas',
-  })
-  async login(@Body() dto: LoginCustomerDto): Promise<CustomerAuthResponseDto> {
-    return this.customerAuthService.login(dto);
+  async activate(
+    @Headers() headers: Record<string, string | string[] | undefined>,
+    @Body() dto: ActivateCustomerAccessDto,
+  ): Promise<CustomerRegisterResponseDto> {
+    const session = await auth.api.getSession({
+      headers: fromNodeHeaders(headers),
+    });
+
+    const sessionEmail = session?.user?.email?.trim().toLowerCase();
+    if (!sessionEmail) {
+      throw new UnauthorizedException('Sessão inválida ou ausente');
+    }
+
+    return this.customerAuthService.activateAccess(dto, sessionEmail);
   }
 }

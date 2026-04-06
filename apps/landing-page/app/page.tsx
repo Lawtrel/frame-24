@@ -6,6 +6,8 @@ import Footer from "@/components/Footer";
 import React from "react";
 import Link from "next/link";
 
+const ADMIN_URL = process.env.NEXT_PUBLIC_ADMIN_URL ?? "http://localhost:3004";
+
 const LandingPageLayout = ({ children }: { children: React.ReactNode }) => (
   <div className="min-h-screen bg-gray-950 text-gray-100">
     <header className="sticky top-0 z-20 bg-gray-950/90 backdrop-blur-md border-b border-gray-800">
@@ -20,6 +22,12 @@ const LandingPageLayout = ({ children }: { children: React.ReactNode }) => (
 
         {/* Links de navegação */}
         <div className="hidden md:flex items-center space-x-8 text-sm font-medium">
+          <Link
+            href={`${ADMIN_URL}/login`}
+            className="text-gray-300 hover:text-white transition-colors"
+          >
+            Entrar
+          </Link>
           <Link
             href="#features"
             className="text-gray-300 hover:text-white transition-colors"
