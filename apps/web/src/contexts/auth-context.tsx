@@ -1,30 +1,36 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  ReactNode,
-} from "react";
-import { useRouter } from "next/navigation";
-import { authApi } from "@/lib/api-client";
+import { createContext, useContext, ReactNode, useEffect, useState } from "react";
+import { resolveCustomerProfile } from "@/lib/api-client";
+import { authClient } from "@/lib/auth-client";
+import { usePathname } from "next/navigation";
 
 interface User {
   id: string;
-  email: string;
-  name: string;
-  company_id: string;
-  tenant_slug: string;
-  loyalty_level: string;
-  accumulated_points: number;
+  email?: string;
+  name?: string;
+  company_id?: string;
+  tenant_slug?: string;
+  loyalty_level?: string;
+  accumulated_points?: number;
 }
+
+type CustomerProfile = {
+  id: string;
+  email?: string;
+  full_name?: string;
+  loyalty_level?: string;
+  accumulated_points?: number;
+  company_id?: string;
+  tenant_slug?: string;
+};
 
 interface AuthContextType {
   user: User | null;
   token: string | null;
   isLoading: boolean;
-  login: (token: string, user: User) => void;
+  hasSession: boolean;
+  login: (_token: string, _user: User) => void;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -32,68 +38,103 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
+  const pathname = usePathname();
+  const { data: session, isPending } = authClient.useSession();
+  const [profile, setProfile] = useState<CustomerProfile | null>(null);
+  const [isProfileLoading, setIsProfileLoading] = useState(false);
+
+  const tenantSlug = pathname
+    ?.split("/")
+    .filter(Boolean)[0]
+    ?.trim() || null;
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("auth_token");
-    const storedUser = localStorage.getItem("auth_user");
+    if (isPending) {
+      return;
+    }
 
-    if (storedToken && storedUser) {
+    if (!session) {
+      setProfile(null);
+      setIsProfileLoading(false);
+      return;
+    }
+
+    if (!tenantSlug) {
+      setProfile(null);
+      setIsProfileLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+
+    const loadProfile = async () => {
+      setIsProfileLoading(true);
       try {
-        setToken(storedToken);
-
-        const parsedUser = JSON.parse(storedUser);
-        if (!parsedUser || typeof parsedUser !== "object") {
-          throw new Error("Formato de usuário inválido");
+        const data = (await resolveCustomerProfile(
+          tenantSlug,
+        )) as CustomerProfile | null;
+        if (isMounted) {
+          setProfile(data);
         }
-
-        setUser(parsedUser);
-      } catch (error) {
-        console.error("Erro ao restaurar sessão:", error);
-        localStorage.removeItem("auth_token");
-        localStorage.removeItem("auth_user");
-        setToken(null);
-        setUser(null);
+      } catch {
+        if (isMounted) {
+          setProfile(null);
+        }
+      } finally {
+        if (isMounted) {
+          setIsProfileLoading(false);
+        }
       }
-    }
-    setIsLoading(false);
-  }, []);
+    };
 
-  const login = (newToken: string, newUser: User) => {
-    setToken(newToken);
-    setUser(newUser);
-    localStorage.setItem("auth_token", newToken);
-    localStorage.setItem("auth_user", JSON.stringify(newUser));
+    void loadProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isPending, session, tenantSlug]);
+
+  const logout = () => {
+    void authClient.signOut();
+    setProfile(null);
+    setIsProfileLoading(false);
   };
 
-  const logout = async () => {
-    try {
-      if (token) {
-        await authApi.authControllerLogoutV1();
+  const user: User | null = profile
+    ? {
+        id: profile.id,
+        email: profile.email,
+        name: profile.full_name,
+        company_id: profile.company_id,
+        tenant_slug: profile.tenant_slug,
+        loyalty_level: profile.loyalty_level,
+        accumulated_points: profile.accumulated_points,
       }
-    } catch (error) {
-      console.error("Erro ao fazer logout no servidor:", error);
-    } finally {
-      setToken(null);
-      setUser(null);
-      localStorage.removeItem("auth_token");
-      localStorage.removeItem("auth_user");
-      router.push("/");
-    }
-  };
+    : session?.user?.id
+      ? {
+          id: session.user.id,
+          email: session.user.email ?? undefined,
+          name: session.user.name ?? undefined,
+        }
+    : null;
+
+  // In customer-facing web app, authenticated means: valid session + active customer profile.
+  const isAuthenticated = !!profile;
+  const hasSession = !!session;
+  const isLoading = isPending || (!!session && !!tenantSlug && isProfileLoading);
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        token,
+        token: null,
         isLoading,
-        login,
+        hasSession,
+        login: () => {
+          // Login is now handled directly via Better Auth client.
+        },
         logout,
-        isAuthenticated: !!user,
+        isAuthenticated,
       }}
     >
       {children}

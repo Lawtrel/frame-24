@@ -1,7 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { publicApi } from "@/lib/api-client";
 
-export const useComplexes = (tenantSlug: string) => {
+export const useComplexes = (
+  tenantSlug: string,
+  options?: { enabled?: boolean },
+) => {
   return useQuery({
     queryKey: ["complexes", tenantSlug],
     queryFn: async () => {
@@ -10,6 +13,9 @@ export const useComplexes = (tenantSlug: string) => {
       });
       return response.data;
     },
-    enabled: !!tenantSlug,
+    enabled: !!tenantSlug && (options?.enabled ?? true),
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 0,
   });
 };

@@ -24,16 +24,18 @@ import { StockModule } from 'src/modules/stock/stock.module';
 import { PublicModule } from 'src/modules/public/public.module';
 import { CrmModule } from 'src/modules/crm/crm.module';
 import { AppController } from './app.controller';
+import { createThrottlerConfig } from './common/config/throttler.config';
+import { RedisThrottlerStorageService } from './common/redis/redis-throttler-storage.service';
 
 @Module({
   imports: [
     // Security: Rate limiting
-    ThrottlerModule.forRoot([
-      {
-        ttl: 60000, // 1 minute
-        limit: 100, // 100 requests per minute
-      },
-    ]),
+    ThrottlerModule.forRootAsync({
+      imports: [CommonModule],
+      inject: [RedisThrottlerStorageService],
+      useFactory: (storage: RedisThrottlerStorageService) =>
+        createThrottlerConfig(storage),
+    }),
     ClsModule.forRoot({
       global: true,
       middleware: {

@@ -3,5 +3,15 @@
     {
       "mode": "auto"
     }
+  ],
+  "chat.tools.terminal.autoApprove": {
+    "pnpm": true
+  },
+  "cSpell.words": [
+    "healthcheck",
+    "nestjs",
+    "postgres",
+    "turbopack",
+    "uuid"
   ]
 }

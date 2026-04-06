@@ -88,10 +88,10 @@ describe('tenancyLogic', () => {
     });
   });
 
-  it('throws when a company-scoped create has no explicit scope and no CLS company context', async () => {
+  it('throws when a company-scoped create has no explicit scope and no CLS company context', () => {
     const query = jest.fn();
 
-    await expect(
+    expect(() =>
       tenancyLogic(clsWithoutCompany as any, {
         model: 'custom_roles',
         operation: 'create',
@@ -102,7 +102,7 @@ describe('tenancyLogic', () => {
         },
         query,
       }),
-    ).rejects.toThrow('[TENANCY] Missing company scope for custom_roles.create');
+    ).toThrow('[TENANCY] Missing company scope for custom_roles.create');
 
     expect(query).not.toHaveBeenCalled();
   });

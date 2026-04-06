@@ -1,6 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": ["**/.env*"],
+  "globalDependencies": ["**/.env*", ".editorconfig", ".prettierrc.json", "tsconfig.base.json"],
   "globalEnv": [
     "NODE_ENV",
     "PORT",
@@ -48,6 +48,7 @@
       "dependsOn": ["^check-types"]
     },
     "test": {
+      "dependsOn": ["^build"],
       "outputs": ["coverage/**"],
       "cache": false
     }

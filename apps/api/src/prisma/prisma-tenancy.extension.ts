@@ -93,7 +93,7 @@ interface TenancyParams {
   model: string;
   operation: string;
   args?: TenancyArgs;
-  query: (args: TenancyArgs) => unknown | Promise<unknown>;
+  query: (args: TenancyArgs) => Promise<unknown>;
 }
 
 function ensureRecord(value: unknown): Record<string, unknown> {
@@ -137,7 +137,8 @@ function objectHasCompanyId(value: unknown): boolean {
 
 function objectHasKey(value: unknown, key: string): boolean {
   if (value === null || value === undefined) return false;
-  if (Array.isArray(value)) return value.some((item) => objectHasKey(item, key));
+  if (Array.isArray(value))
+    return value.some((item) => objectHasKey(item, key));
   if (typeof value !== 'object') return false;
 
   const record = value as Record<string, unknown>;
@@ -149,7 +150,7 @@ function objectHasKey(value: unknown, key: string): boolean {
   return Object.values(record).some((item) => objectHasKey(item, key));
 }
 
-export const tenancyLogic = async (
+export const tenancyLogic = (
   cls: ClsService,
   { model, operation, args, query }: TenancyParams,
 ) => {

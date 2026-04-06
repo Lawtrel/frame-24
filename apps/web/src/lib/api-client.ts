@@ -11,18 +11,10 @@ import axios from "axios";
 // (eles já adicionam /v1 automaticamente)
 const apiInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000",
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
-});
-
-// Interceptor para adicionar token JWT
-apiInstance.interceptors.request.use((config) => {
-  const token = localStorage.getItem("auth_token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
 });
 
 // Configuração da API
@@ -39,6 +31,26 @@ export const customerAuthApi = new CustomerAuthApi(
 );
 export const customerApi = new CustomerApi(apiConfig, undefined, apiInstance);
 export const authApi = new AuthApi(apiConfig, undefined, apiInstance);
+
+export const resolveCustomerProfile = async (tenantSlug?: string | null) => {
+  const response = await apiInstance.get("/v1/customer/profile/resolve", {
+    headers: tenantSlug
+      ? {
+          "x-tenant-slug": tenantSlug,
+        }
+      : undefined,
+  });
+  const data = response.data as
+    | { profile?: unknown }
+    | null
+    | undefined;
+
+  if (data && typeof data === "object" && "profile" in data) {
+    return data.profile ?? null;
+  }
+
+  return data ?? null;
+};
 
 // Helper para extrair dados da resposta
 export const unwrapResponse = <T>(response: { data: T }): T => response.data;

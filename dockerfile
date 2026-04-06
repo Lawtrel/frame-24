@@ -1,27 +1,57 @@
-# Usa uma imagem oficial do Node.js como base
-FROM node:18-alpine
+FROM node:20-alpine AS builder
 
-# Define o diretório de trabalho dentro do contentor
 WORKDIR /app
 
-# Instala o pnpm globalmente
-RUN npm install -g pnpm
+RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 
-# Copia os ficheiros de definição de dependências
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.base.json ./
+COPY apps/api/package.json ./apps/api/package.json
+COPY packages/db/package.json ./packages/db/package.json
 
-# Instala todas as dependências do monorepo
-# Este passo será guardado em cache se estes ficheiros não mudarem
-RUN pnpm install
+RUN pnpm install --frozen-lockfile --filter api... --filter @repo/db...
 
-# Copia o resto do código para dentro do contentor
-COPY . .
+COPY apps/api ./apps/api
+COPY packages/db ./packages/db
+COPY scripts/docker/api-entrypoint.sh ./scripts/docker/api-entrypoint.sh
 
-# Gera o Prisma Client para que a aplicação possa comunicar com o banco de dados
-WORKDIR /app/apps/api
-RUN pnpm exec prisma generate
+RUN pnpm --filter @repo/db run build
+RUN pnpm --filter api run build
 
-# Expõe a porta em que a aplicação irá correr
-EXPOSE 3001
-CMD ["pnpm", "run", "dev"]
-# O comando para iniciar a aplicação será definido no docker-compose.yml
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=4000
+
+RUN apk add --no-cache dumb-init openssl \
+	&& apk upgrade --no-cache zlib \
+	&& corepack enable \
+	&& corepack prepare pnpm@10.33.0 --activate
+
+COPY --from=builder /app/package.json /app/package.json
+COPY --from=builder /app/pnpm-lock.yaml /app/pnpm-lock.yaml
+COPY --from=builder /app/pnpm-workspace.yaml /app/pnpm-workspace.yaml
+COPY --from=builder /app/apps/api/package.json /app/apps/api/package.json
+COPY --from=builder /app/packages/db/package.json /app/packages/db/package.json
+
+RUN pnpm install --prod --frozen-lockfile --filter api... --filter @repo/db...
+
+# Runtime does not use npm/corepack; remove their files to reduce CVE surface.
+RUN rm -rf /root/.cache/node/corepack \
+	&& rm -rf /usr/local/lib/node_modules/npm \
+	&& rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack /usr/local/bin/pnpm /usr/local/bin/pnpx
+
+COPY --from=builder /app/apps/api/dist /app/apps/api/dist
+COPY --from=builder /app/packages/db/dist /app/packages/db/dist
+COPY --from=builder /app/packages/db/prisma /app/packages/db/prisma
+COPY --from=builder /app/packages/db/prisma.config.ts /app/packages/db/prisma.config.ts
+COPY --from=builder /app/scripts/docker/api-entrypoint.sh /app/scripts/docker/api-entrypoint.sh
+
+RUN chmod +x /app/scripts/docker/api-entrypoint.sh
+
+USER node
+
+EXPOSE 4000
+
+ENTRYPOINT ["dumb-init", "/app/scripts/docker/api-entrypoint.sh"]

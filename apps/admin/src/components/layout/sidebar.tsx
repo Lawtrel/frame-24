@@ -15,7 +15,7 @@ import {
   Popcorn,
   Truck,
 } from "lucide-react";
-import { AuthService } from "@/services/auth-service";
+import { authClient } from "@/lib/auth-client";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/" },
@@ -35,61 +35,46 @@ export function Sidebar() {
   const router = useRouter();
 
   const handleLogout = async () => {
-    try {
-      // Tenta avisar o backend (opcional, mas boa prática)
-      await AuthService.logout();
-    } catch (error) {
-      console.error("Erro silencioso no logout:", error);
-    } finally {
-      // Limpeza local obrigatória
-      localStorage.removeItem("admin_token");
-
-      // Limpa o cookie forçando a expiração
-      document.cookie = "admin_token=; path=/; max-age=0; SameSite=Strict";
-
-      router.replace("/login");
-      router.refresh();
-    }
+    await authClient.signOut();
+    router.replace("/login");
   };
 
   return (
-    <div className="flex flex-col h-full py-4">
-      {/* Cabeçalho da Sidebar */}
-      <div className="px-6 mb-8">
+    <div className="flex h-full flex-col py-4">
+      <div className="mb-8 px-6">
         <h1 className="text-xl font-bold text-foreground">
           Frame24 <span className="text-accent-red">Admin</span>
         </h1>
       </div>
 
-      {/* Navegação Principal */}
-      <nav className="flex-1 px-4 space-y-2">
+      <nav className="flex-1 space-y-2 px-4">
         {menuItems.map((item) => {
           const isActive =
             pathname === item.href || pathname.startsWith(`${item.href}/`);
+
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+              className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
                 isActive
                   ? "bg-accent-red/10 text-accent-red"
                   : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
               }`}
             >
-              <item.icon className="w-5 h-5" />
+              <item.icon className="h-5 w-5" />
               {item.label}
             </Link>
           );
         })}
       </nav>
 
-      {/* Botão de Logout (Rodapé da Sidebar) */}
-      <div className="px-4 mt-auto border-t border-zinc-800 pt-4">
+      <div className="mt-auto border-t border-zinc-800 px-4 pt-4">
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium text-zinc-400 rounded-lg hover:bg-red-950/30 hover:text-red-500 transition-colors"
+          className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-zinc-400 transition-colors hover:bg-red-950/30 hover:text-red-500"
         >
-          <LogOut className="w-5 h-5" />
+          <LogOut className="h-5 w-5" />
           Sair
         </button>
       </div>
