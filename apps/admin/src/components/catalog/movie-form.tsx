@@ -167,9 +167,9 @@ export function MovieForm({ initialData, isEditing = false }: MovieFormProps) {
 
     // IDs fixos (UUIDs reais do seu banco)
     const MEDIA_IDS = {
-      POSTER: "8f9507e0-0147-4b9b-997a-10b991ce438a",
-      BACKDROP: "3a92e481-2432-466c-afa0-2ca74d830e09",
-      TRAILER: "d14386ef-24d4-4aff-ae9c-54f9ec8de98d",
+      POSTER: "9a07e442-d661-4068-b373-79a0afc5b730",
+      BACKDROP: "a5740fec-43a6-4f3e-9163-9fdac807d176",
+      TRAILER: "17188fca-5894-4b9e-a9ee-54c72c909b25",
     };
 
     try {
