@@ -1,8 +1,11 @@
 import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import { ParseOptionalEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
+import { ParseOptionalIsoDatePipe } from 'src/common/pipes/parse-optional-iso-date.pipe';
 import {
   ApiBearerAuth,
   ApiOperation,
   ApiQuery,
+  ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
@@ -31,22 +34,29 @@ export class JournalEntriesController {
   @ApiQuery({
     name: 'cinema_complex_id',
     required: false,
-    description: 'Filtrar por complexo',
+    description: 'Filtrar por complexo (UUID ou Snowflake)',
   })
   @ApiQuery({
     name: 'start_date',
     required: false,
-    description: 'Data inicial (YYYY-MM-DD)',
+    description: 'Data inicial do intervalo (ISO-8601)',
   })
   @ApiQuery({
     name: 'end_date',
     required: false,
-    description: 'Data final (YYYY-MM-DD)',
+    description: 'Data final do intervalo (ISO-8601)',
   })
+  @ApiResponse({ status: 400, description: 'Parâmetros de consulta inválidos' })
+  @ApiResponse({
+    status: 403,
+    description: 'Complexo informado não pertence ao tenant atual',
+  })
+  @ApiResponse({ status: 429, description: 'Limite de requisições excedido' })
   async findAll(
-    @Query('cinema_complex_id') cinema_complex_id?: string,
-    @Query('start_date') start_date?: string,
-    @Query('end_date') end_date?: string,
+    @Query('cinema_complex_id', new ParseOptionalEntityIdPipe())
+    cinema_complex_id?: string,
+    @Query('start_date', new ParseOptionalIsoDatePipe()) start_date?: Date,
+    @Query('end_date', new ParseOptionalIsoDatePipe()) end_date?: Date,
   ) {
     return this.journalEntries.findAll({
       cinema_complex_id,

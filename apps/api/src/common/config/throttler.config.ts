@@ -12,6 +12,21 @@ const throttlers = [
     limit: 10, // 10 requests per minute for auth endpoints
   },
   {
+    name: 'signup',
+    ttl: 60000,
+    limit: 5,
+  },
+  {
+    name: 'customerSignup',
+    ttl: 60000,
+    limit: 8,
+  },
+  {
+    name: 'provisioning',
+    ttl: 60000,
+    limit: 15,
+  },
+  {
     name: 'public',
     ttl: 60000, // 60 seconds
     limit: 300, // higher read throughput for storefront browsing

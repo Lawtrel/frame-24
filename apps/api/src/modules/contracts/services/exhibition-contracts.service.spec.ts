@@ -47,6 +47,10 @@ describe('ExhibitionContractsService', () => {
     getSessionContext: jest.fn(),
   } as unknown as jest.Mocked<TenantContextService>;
 
+  const tenantResource = {
+    assertCinemaComplexBelongsToCompany: jest.fn().mockResolvedValue(undefined),
+  } as any;
+
   const service = new ExhibitionContractsService(
     repository,
     movieRepository,
@@ -55,12 +59,16 @@ describe('ExhibitionContractsService', () => {
     contractTypesRepository,
     snowflake,
     cls,
+    tenantResource,
   );
 
   beforeEach(() => {
     jest.clearAllMocks();
     cls.getCompanyId.mockReturnValue('company-123');
     snowflake.generate.mockReturnValue('id-1');
+    tenantResource.assertCinemaComplexBelongsToCompany.mockResolvedValue(
+      undefined,
+    );
   });
 
   it('deve listar usando company_id do contexto', async () => {

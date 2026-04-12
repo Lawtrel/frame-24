@@ -181,23 +181,11 @@ export class CampaignsService {
     result: PromotionApplicationResult,
     customer_id?: string,
   ): Promise<void> {
-    await this.campaignsRepository.createPromotionUsage({
-      id: this.snowflake.generate(),
-      sale_id,
-      campaign_id: result.campaign_id,
-      coupon_id: result.coupon_id,
-      customer_id: customer_id ?? undefined,
-      promotion_type_code: result.code,
-      discount_applied: result.discount_amount,
-      original_value: result.original_amount,
-      final_value: result.final_amount,
-      usage_date: new Date(),
+    await this.campaignsRepository.finalizePromotionForSale({
+      usageId: this.snowflake.generate(),
+      saleId: sale_id,
+      result,
+      customerId: customer_id,
     });
-
-    await this.campaignsRepository.incrementCampaignUsage(result.campaign_id);
-
-    if (result.coupon_id) {
-      await this.campaignsRepository.markCouponAsUsed(result.coupon_id);
-    }
   }
 }

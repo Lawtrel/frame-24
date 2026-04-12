@@ -2,6 +2,8 @@ import { z } from 'zod';
 import { createZodDto } from 'nestjs-zod';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+const AuditValuesSchema = z.object({}).catchall(z.unknown());
+
 const AuditLogSchema = z.object({
   id: z.string(),
   company_id: z.string(),
@@ -11,8 +13,8 @@ const AuditLogSchema = z.object({
   action: z.string(),
   user_id: z.string().optional(),
   correlation_id: z.string().optional(),
-  old_values: z.record(z.string(), z.unknown()).optional(),
-  new_values: z.record(z.string(), z.unknown()).optional(),
+  old_values: AuditValuesSchema.optional(),
+  new_values: AuditValuesSchema.optional(),
   created_at: z.string().datetime(), // ✅ String em vez de Date
 });
 

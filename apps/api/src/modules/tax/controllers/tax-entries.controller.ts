@@ -1,6 +1,15 @@
 import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
-import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ParseEntityIdPipe,
+  ParseOptionalEntityIdPipe,
+} from 'src/common/pipes/parse-entity-id.pipe';
+import { ParseOptionalIsoDatePipe } from 'src/common/pipes/parse-optional-iso-date.pipe';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiResponse,
+} from '@nestjs/swagger';
 
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
@@ -19,12 +28,19 @@ export class TaxEntriesController {
   @Get()
   @RequirePermission('tax', 'read')
   @ApiOperation({ summary: 'Listar lançamentos fiscais' })
+  @ApiResponse({ status: 400, description: 'Parâmetros de consulta inválidos' })
+  @ApiResponse({
+    status: 403,
+    description: 'Filtro de complexo não pertence ao tenant atual',
+  })
+  @ApiResponse({ status: 429, description: 'Limite de requisições excedido' })
   async findAll(
-    @Query('cinema_complex_id') cinema_complex_id?: string,
+    @Query('cinema_complex_id', new ParseOptionalEntityIdPipe())
+    cinema_complex_id?: string,
     @Query('source_type') source_type?: string,
-    @Query('source_id') source_id?: string,
-    @Query('start_date') start_date?: string,
-    @Query('end_date') end_date?: string,
+    @Query('source_id', new ParseOptionalEntityIdPipe()) source_id?: string,
+    @Query('start_date', new ParseOptionalIsoDatePipe()) start_date?: Date,
+    @Query('end_date', new ParseOptionalIsoDatePipe()) end_date?: Date,
     @Query('processed') processed?: string,
   ): Promise<TaxEntryResponseDto[]> {
     const filters: {
@@ -38,8 +54,8 @@ export class TaxEntriesController {
     if (cinema_complex_id) filters.cinema_complex_id = cinema_complex_id;
     if (source_type) filters.source_type = source_type;
     if (source_id) filters.source_id = source_id;
-    if (start_date) filters.start_date = new Date(start_date);
-    if (end_date) filters.end_date = new Date(end_date);
+    if (start_date) filters.start_date = start_date;
+    if (end_date) filters.end_date = end_date;
     if (processed !== undefined)
       filters.processed = processed === 'true' ? true : false;
 

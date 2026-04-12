@@ -46,33 +46,25 @@ export class AuditWorkerService implements OnModuleInit {
   onModuleInit(): void {}
 
   async handleAuditEvent(message: AuditEvent): Promise<void> {
-    try {
-      this.validateMessage(message);
-      const parts = this.parsePattern(message.pattern);
-      const resourceId = this.getResourceId(message.data);
+    this.validateMessage(message);
+    const parts = this.parsePattern(message.pattern);
+    const resourceId = this.getResourceId(message.data);
 
-      const oldValues = this.extractOldValues(message.data);
-      const newValues = this.extractNewValues(message.data);
+    const oldValues = this.extractOldValues(message.data);
+    const newValues = this.extractNewValues(message.data);
 
-      await this.saveToDatabase(
-        message,
-        parts,
-        resourceId,
-        oldValues,
-        newValues,
-      );
+    await this.saveToDatabase(
+      message,
+      parts,
+      resourceId,
+      oldValues,
+      newValues,
+    );
 
-      this.logger.log(
-        `Audit saved: ${message.pattern} | ${parts.resource}:${resourceId}`,
-        'AuditWorker',
-      );
-    } catch (error) {
-      this.logger.error(
-        `Failed to save audit: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        error instanceof Error ? error.stack : '',
-        'AuditWorker',
-      );
-    }
+    this.logger.log(
+      `Audit saved: ${message.pattern} | ${parts.resource}:${resourceId}`,
+      'AuditWorker',
+    );
   }
 
   private validateMessage(message: AuditEvent): void {

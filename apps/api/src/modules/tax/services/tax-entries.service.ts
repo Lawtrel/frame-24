@@ -20,12 +20,14 @@ import { RabbitMQPublisherService } from 'src/common/rabbitmq/rabbitmq-publisher
 
 import { CashFlowEntriesService } from 'src/modules/finance/cash-flow/services/cash-flow-entries.service';
 import { BankAccountsRepository } from 'src/modules/finance/cash-flow/repositories/bank-accounts.repository';
+import { TenantResourceService } from 'src/common/services/tenant-resource.service';
 
 @Injectable()
 export class TaxEntriesService {
   constructor(
     private readonly taxEntriesRepository: TaxEntriesRepository,
     private readonly taxCalculationService: TaxCalculationService,
+    private readonly tenantResource: TenantResourceService,
     private readonly cinemaComplexesRepository: CinemaComplexesRepository,
     private readonly logger: LoggerService,
     private readonly rabbitmq: RabbitMQPublisherService,
@@ -42,10 +44,14 @@ export class TaxEntriesService {
     end_date?: Date;
     processed?: boolean;
   }): Promise<TaxEntryResponseDto[]> {
-    const entries = await this.taxEntriesRepository.findAll(
-      this.tenantContext.getCompanyId(),
-      filters,
-    );
+    const companyId = this.tenantContext.getCompanyId();
+    if (filters?.cinema_complex_id) {
+      await this.tenantResource.assertCinemaComplexBelongsToCompany(
+        companyId,
+        filters.cinema_complex_id,
+      );
+    }
+    const entries = await this.taxEntriesRepository.findAll(companyId, filters);
 
     return entries.map((entry) => this.mapToDto(entry));
   }
@@ -74,7 +80,10 @@ export class TaxEntriesService {
     const companyId = this.tenantContext.getCompanyId();
     const userId = this.tenantContext.getRequiredUserId();
 
-    await this.ensureComplexBelongsToCompany(companyId, dto.cinema_complex_id);
+    await this.tenantResource.assertCinemaComplexBelongsToCompany(
+      companyId,
+      dto.cinema_complex_id,
+    );
     await this.ensureSourceUniqueness(dto);
 
     const calculation = await this.taxCalculationService.calculateTaxes(
@@ -138,17 +147,6 @@ export class TaxEntriesService {
       processed: entry.processed || false,
       created_at: entry.created_at?.toISOString() || new Date().toISOString(),
     };
-  }
-
-  private async ensureComplexBelongsToCompany(
-    companyId: string,
-    cinemaComplexId: string,
-  ): Promise<void> {
-    const complex =
-      await this.cinemaComplexesRepository.findById(cinemaComplexId);
-    if (!complex || complex.company_id !== companyId) {
-      throw new NotFoundException('Complexo de cinema não encontrado');
-    }
   }
 
   private async ensureSourceUniqueness(dto: CreateTaxEntryDto): Promise<void> {

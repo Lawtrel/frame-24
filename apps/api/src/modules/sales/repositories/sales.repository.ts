@@ -121,11 +121,12 @@ export class SalesRepository {
     });
     const complexIds = complexes.map((c) => c.id);
 
+    const cinemaScope: Prisma.StringFilter | string = filters?.cinema_complex_id
+      ? filters.cinema_complex_id
+      : { in: complexIds };
+
     const where: Prisma.salesWhereInput = {
-      cinema_complex_id: { in: complexIds },
-      ...(filters?.cinema_complex_id && {
-        cinema_complex_id: filters.cinema_complex_id,
-      }),
+      cinema_complex_id: cinemaScope,
       ...(filters?.customer_id && { customer_id: filters.customer_id }),
       ...(filters?.start_date &&
         filters?.end_date && {
@@ -297,6 +298,10 @@ export class SalesRepository {
   }
 
   async generateSaleNumber(company_id: string): Promise<string> {
+    await this.prisma.$executeRaw`
+      SELECT pg_advisory_xact_lock(hashtext(${company_id}::text))
+    `;
+
     const today = new Date();
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, '0');

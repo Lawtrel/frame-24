@@ -30,8 +30,8 @@ describe('TaxEntriesController', () => {
       'complex-1',
       'SALE',
       'sale-1',
-      '2026-03-01',
-      '2026-03-31',
+      new Date('2026-03-01'),
+      new Date('2026-03-31'),
       'true',
     );
 

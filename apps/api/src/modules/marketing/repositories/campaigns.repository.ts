@@ -1,4 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   promotional_campaigns as Campaign,
   promotional_coupons as Coupon,
@@ -108,6 +113,96 @@ export class CampaignsRepository {
     data: Prisma.promotions_usedUncheckedCreateInput,
   ): Promise<void> {
     await this.prisma.promotions_used.create({ data });
+  }
+
+  /**
+   * Consolida cupom + contadores sob lock de transação (mesma transação da venda quando propagada pelo CLS).
+   */
+  async finalizePromotionForSale(params: {
+    usageId: string;
+    saleId: string;
+    result: {
+      campaign_id: string;
+      coupon_id?: string;
+      code: string;
+      discount_amount: number;
+      original_amount: number;
+      final_amount: number;
+    };
+    customerId?: string;
+  }): Promise<void> {
+    const { usageId, saleId, result, customerId } = params;
+
+    await this.prisma.$executeRaw`
+      SELECT pg_advisory_xact_lock(hashtext(${result.campaign_id}::text))
+    `;
+
+    const campaign = await this.prisma.promotional_campaigns.findUnique({
+      where: { id: result.campaign_id },
+    });
+    if (!campaign) {
+      throw new NotFoundException('Campanha não encontrada');
+    }
+
+    const usedCount = campaign.used_count ?? 0;
+    if (
+      campaign.max_total_uses != null &&
+      usedCount >= campaign.max_total_uses
+    ) {
+      throw new BadRequestException(
+        'Promoção esgotada durante a finalização do pedido',
+      );
+    }
+
+    if (customerId && campaign.max_uses_per_customer) {
+      const usageCnt = await this.prisma.promotions_used.count({
+        where: {
+          campaign_id: result.campaign_id,
+          customer_id: customerId,
+        },
+      });
+      if (usageCnt >= campaign.max_uses_per_customer) {
+        throw new BadRequestException(
+          'Limite de uso por cliente atingido para esta promoção',
+        );
+      }
+    }
+
+    if (result.coupon_id) {
+      const couponUpdate = await this.prisma.promotional_coupons.updateMany({
+        where: { id: result.coupon_id, used: false },
+        data: {
+          used: true,
+          used_count: { increment: 1 },
+          last_use_date: new Date(),
+        },
+      });
+      if (couponUpdate.count !== 1) {
+        throw new ConflictException(
+          'Cupom já foi utilizado ou não está mais disponível',
+        );
+      }
+    }
+
+    await this.prisma.promotional_campaigns.update({
+      where: { id: result.campaign_id },
+      data: { used_count: { increment: 1 } },
+    });
+
+    await this.prisma.promotions_used.create({
+      data: {
+        id: usageId,
+        sale_id: saleId,
+        campaign_id: result.campaign_id,
+        coupon_id: result.coupon_id,
+        customer_id: customerId,
+        promotion_type_code: result.code,
+        discount_applied: result.discount_amount,
+        original_value: result.original_amount,
+        final_value: result.final_amount,
+        usage_date: new Date(),
+      },
+    });
   }
 
   async countCustomerUsage(

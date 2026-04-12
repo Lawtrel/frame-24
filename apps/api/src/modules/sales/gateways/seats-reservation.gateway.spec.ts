@@ -70,7 +70,7 @@ describe('SeatsReservationGateway', () => {
       removeReservation: jest.fn(),
       findUserReservation: jest.fn(),
       tryAcquireSeatLocks: jest.fn().mockResolvedValue({ acquired: true }),
-      syncSeatLocks: jest.fn(),
+      syncSeatLocks: jest.fn().mockResolvedValue({ acquired: true }),
       releaseSeatLocks: jest.fn(),
     } as unknown as jest.Mocked<SeatReservationStoreService>;
 

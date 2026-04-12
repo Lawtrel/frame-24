@@ -316,7 +316,13 @@ export class SeatsReservationGateway
       for (const res of Object.values(grouped)) {
         this.reservations.set(res.reservation_uuid, res);
         await this.seatReservationStore.saveReservation(res);
-        await this.seatReservationStore.syncSeatLocks(res);
+        const lockReplay = await this.seatReservationStore.syncSeatLocks(res);
+        if (!lockReplay.acquired) {
+          this.logger.warn(
+            `Não foi possível recriar lock Redis para reserva ${res.reservation_uuid} (concorrência ou TTL); DB permanece como fonte de verdade.`,
+            'SeatsReservationGateway',
+          );
+        }
       }
 
       this.logger.log(

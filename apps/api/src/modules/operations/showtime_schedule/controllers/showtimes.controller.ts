@@ -12,7 +12,11 @@ import {
   Delete,
   Put,
 } from '@nestjs/common';
-import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
+import {
+  ParseEntityIdPipe,
+  ParseOptionalEntityIdPipe,
+} from 'src/common/pipes/parse-entity-id.pipe';
+import { ParseOptionalIsoDatePipe } from 'src/common/pipes/parse-optional-iso-date.pipe';
 import {
   ApiTags,
   ApiOperation,
@@ -82,21 +86,38 @@ export class ShowtimesController {
   @Get()
   @RequirePermission('showtimes', 'read')
   @ApiOperation({ summary: 'Listar todas as sessões' })
-  @ApiQuery({ name: 'cinema_complex_id', required: false })
-  @ApiQuery({ name: 'room_id', required: false })
-  @ApiQuery({ name: 'movie_id', required: false })
   @ApiQuery({
-    name: 'session_date',
+    name: 'cinema_complex_id',
     required: false,
-    type: 'string',
-    format: 'date',
+    description: 'UUID ou Snowflake do complexo (deve pertencer ao tenant)',
+  })
+  @ApiQuery({
+    name: 'room_id',
+    required: false,
+    description: 'Sala (UUID/Snowflake) — deve pertencer a um complexo do tenant',
+  })
+  @ApiQuery({
+    name: 'movie_id',
+    required: false,
+    description: 'Filme (UUID/Snowflake) — deve pertencer ao catálogo do tenant',
+  })
+  @ApiQuery({
+    name: 'start_time',
+    required: false,
+    description: 'Filtrar sessões a partir deste instante (ISO-8601)',
   })
   @ApiQuery({ name: 'status', required: false })
+  @ApiResponse({ status: 400, description: 'Parâmetros de consulta inválidos' })
+  @ApiForbiddenResponse({
+    description: 'Filtro referencia recurso de outro tenant.',
+  })
+  @ApiResponse({ status: 429, description: 'Limite de requisições excedido' })
   async findAll(
-    @Query('cinema_complex_id') cinema_complex_id?: string,
-    @Query('room_id') room_id?: string,
-    @Query('movie_id') movie_id?: string,
-    @Query('start_time') start_time?: Date,
+    @Query('cinema_complex_id', new ParseOptionalEntityIdPipe())
+    cinema_complex_id?: string,
+    @Query('room_id', new ParseOptionalEntityIdPipe()) room_id?: string,
+    @Query('movie_id', new ParseOptionalEntityIdPipe()) movie_id?: string,
+    @Query('start_time', new ParseOptionalIsoDatePipe()) start_time?: Date,
     @Query('status') status?: string,
   ) {
     return this.service.findAll({

@@ -19,6 +19,7 @@ import { MovieRepository } from 'src/modules/catalog/movies/repositories/movie.r
 import { CinemaComplexesRepository } from 'src/modules/operations/cinema-complexes/repositories/cinema-complexes.repository';
 import { SupplierRepository } from 'src/modules/inventory/suppliers/repositories/supplier.repository';
 import { ContractTypesRepository } from '../repositories/contract-types.repository';
+import { TenantResourceService } from 'src/common/services/tenant-resource.service';
 
 interface ExhibitionContractFilters {
   movie_id?: string;
@@ -37,6 +38,7 @@ export class ExhibitionContractsService {
     private readonly contractTypesRepository: ContractTypesRepository,
     private readonly snowflake: SnowflakeService,
     private readonly tenantContext: TenantContextService,
+    private readonly tenantResource: TenantResourceService,
   ) {}
 
   async create(
@@ -109,6 +111,18 @@ export class ExhibitionContractsService {
     filters: ExhibitionContractFilters,
   ): Promise<ExhibitionContractWithRelations[]> {
     const companyId = this.tenantContext.getCompanyId();
+
+    await Promise.all([
+      filters.movie_id
+        ? this.validateMovie(filters.movie_id, companyId)
+        : Promise.resolve(),
+      filters.cinema_complex_id
+        ? this.validateCinemaComplex(filters.cinema_complex_id, companyId)
+        : Promise.resolve(),
+      filters.distributor_id
+        ? this.assertSupplierInCompany(filters.distributor_id, companyId)
+        : Promise.resolve(),
+    ]);
 
     const where: Prisma.exhibition_contractsWhereInput = {
       cinema_complexes: { company_id: companyId },
@@ -259,12 +273,10 @@ export class ExhibitionContractsService {
   }
 
   private async validateCinemaComplex(complexId: string, companyId: string) {
-    const complex = await this.cinemaComplexesRepository.findById(complexId);
-    if (!complex || complex.company_id !== companyId) {
-      throw new ForbiddenException(
-        'O complexo informado não pertence à empresa.',
-      );
-    }
+    await this.tenantResource.assertCinemaComplexBelongsToCompany(
+      companyId,
+      complexId,
+    );
   }
 
   private async validateDistributor(distributorId: string, companyId: string) {
@@ -275,6 +287,18 @@ export class ExhibitionContractsService {
     if (!distributor.is_film_distributor) {
       throw new BadRequestException(
         'O fornecedor informado não está marcado como distribuidor de filmes.',
+      );
+    }
+  }
+
+  private async assertSupplierInCompany(
+    supplierId: string,
+    companyId: string,
+  ): Promise<void> {
+    const supplier = await this.supplierRepository.findById(supplierId);
+    if (!supplier || supplier.company_id !== companyId) {
+      throw new ForbiddenException(
+        'O fornecedor informado não pertence à empresa atual.',
       );
     }
   }
