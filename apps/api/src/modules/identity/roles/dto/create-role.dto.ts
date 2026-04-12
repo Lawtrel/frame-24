@@ -39,7 +39,7 @@ export class CreateRoleDto extends createZodDto(CreateRoleSchema) {
     description:
       'List of permission codes (use GET /admin/permissions to list available)',
     example: ['users:read', 'users:create', 'reports:read'],
-    isArray: true,
+    type: [String],
   })
   permissions!: string[];
 

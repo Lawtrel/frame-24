@@ -24,6 +24,7 @@ describe('PublicRegistrationService', () => {
   let employeeIdGenerator: jest.Mocked<EmployeeIdGeneratorService>;
   let masterDataSetupService: jest.Mocked<MasterDataSetupService>;
   let taxSetupService: jest.Mocked<TaxSetupService>;
+  const signUpEmailMock = auth.api.signUpEmail as unknown as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -109,7 +110,7 @@ describe('PublicRegistrationService', () => {
       tenant_slug: 'tenant-1',
       tax_regime: 'SIMPLES_NACIONAL',
     } as any);
-    (auth.api.signUpEmail as jest.Mock).mockResolvedValue({
+    signUpEmailMock.mockResolvedValue({
       user: { id: 'auth-user-1' },
       token: null,
     });
@@ -203,7 +204,7 @@ describe('PublicRegistrationService', () => {
       tenant_slug: 'tenant-1',
       tax_regime: 'SIMPLES_NACIONAL',
     } as any);
-    (auth.api.signUpEmail as jest.Mock).mockResolvedValue({
+    signUpEmailMock.mockResolvedValue({
       user: { id: 'auth-user-rollback' },
       token: null,
     });

@@ -50,4 +50,25 @@ export class CompanyCustomersRepository {
       data,
     });
   }
+
+  /** Decrementa pontos só se o saldo atual for >= `points` (uma única operação atômica). */
+  async decrementAccumulatedPointsIfAtLeast(
+    company_id: string,
+    customer_id: string,
+    points: number,
+  ): Promise<boolean> {
+    const result = await this.prisma.company_customers.updateMany({
+      where: {
+        company_id_customer_id: {
+          company_id,
+          customer_id,
+        },
+        accumulated_points: { gte: points },
+      },
+      data: {
+        accumulated_points: { decrement: points },
+      },
+    });
+    return result.count === 1;
+  }
 }

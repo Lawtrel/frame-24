@@ -11,7 +11,10 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
+import {
+  ParseEntityIdPipe,
+  ParseOptionalEntityIdPipe,
+} from 'src/common/pipes/parse-entity-id.pipe';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -19,6 +22,8 @@ import {
   ApiQuery,
   ApiResponse,
   ApiTags,
+  ApiBadRequestResponse,
+  ApiForbiddenResponse,
 } from '@nestjs/swagger';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
@@ -49,10 +54,17 @@ export class ExhibitionContractsController {
   @ApiQuery({ name: 'cinema_complex_id', required: false })
   @ApiQuery({ name: 'distributor_id', required: false })
   @ApiQuery({ name: 'active', required: false, type: Boolean })
+  @ApiBadRequestResponse({ description: 'Parâmetros de consulta inválidos' })
+  @ApiForbiddenResponse({
+    description: 'Filtro referencia recurso de outro tenant',
+  })
+  @ApiResponse({ status: 429, description: 'Limite de requisições excedido' })
   async list(
-    @Query('movie_id') movie_id?: string,
-    @Query('cinema_complex_id') cinema_complex_id?: string,
-    @Query('distributor_id') distributor_id?: string,
+    @Query('movie_id', new ParseOptionalEntityIdPipe()) movie_id?: string,
+    @Query('cinema_complex_id', new ParseOptionalEntityIdPipe())
+    cinema_complex_id?: string,
+    @Query('distributor_id', new ParseOptionalEntityIdPipe())
+    distributor_id?: string,
     @Query('active') active?: string,
   ) {
     const filters = {

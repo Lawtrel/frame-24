@@ -14,7 +14,7 @@ export const TAG_GROUPS: TagGroup[] = [
   {
     name: 'Identity',
     description:
-      'Conjunto de endpoints responsáveis pela autorização e gestão de identidade organizacional. O login é realizado via OIDC/Authentik no frontend; a API valida access tokens RS256 e aplica controle de acesso baseado em papéis.',
+      'Conjunto de endpoints responsáveis pela autorização e gestão de identidade organizacional. Sessões de cliente podem usar better-auth em `/api/auth` (POST com limite global por IP via Redis, com fallback em memória). A API Nest aplica throttling adicional em cadastro público de empresa (`signup`), além de JWT RS256 e RBAC nas rotas versionadas.',
     tags: ['Auth', 'Companies', 'Roles', 'User Management', 'Permissions'],
   },
   {
@@ -104,7 +104,7 @@ export const TAG_GROUPS: TagGroup[] = [
   {
     name: 'Customer',
     description:
-      'Endpoints para clientes finais. Inclui cadastro/provisioning, perfil do cliente, pontos de fidelidade e histórico de compras. O endpoint de login legado está desativado; autenticação deve ocorrer via OIDC/Authentik.',
+      'Endpoints para clientes finais. Cadastro em `customer/auth/register` e ativação em `customer/auth/activate` possuem throttling dedicado (`customerSignup`, `provisioning`). Autenticação de sessão segue better-auth em `/api/auth` (ver grupo Identity).',
     tags: ['Customer Auth', 'Customer'],
   },
 ];

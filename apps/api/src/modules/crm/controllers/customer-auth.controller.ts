@@ -14,6 +14,10 @@ import { RegisterCustomerDto } from '../dto/register-customer.dto';
 import { CustomerRegisterResponseDto } from '../dto/customer-register-response.dto';
 import { auth } from 'src/lib/auth';
 import { fromNodeHeaders } from 'better-auth/node';
+import {
+  CustomerSignupThrottle,
+  ProvisioningThrottle,
+} from 'src/common/decorators/auth-throttle.decorator';
 
 type ActivateCustomerAccessDto = {
   company_id: string;
@@ -33,6 +37,7 @@ export class CustomerAuthController {
 
   @Post('register')
   @Public()
+  @CustomerSignupThrottle()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary: 'Registrar novo cliente',
@@ -47,6 +52,7 @@ export class CustomerAuthController {
     status: 409,
     description: 'Email ou CPF já cadastrado',
   })
+  @ApiResponse({ status: 429, description: 'Limite de requisições excedido' })
   async register(
     @Body() dto: RegisterCustomerDto,
   ): Promise<CustomerRegisterResponseDto> {
@@ -55,6 +61,7 @@ export class CustomerAuthController {
 
   @Post('activate')
   @Public()
+  @ProvisioningThrottle()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Ativar acesso de cliente na empresa atual',
@@ -66,6 +73,7 @@ export class CustomerAuthController {
     description: 'Acesso ativado com sucesso',
     type: CustomerRegisterResponseDto,
   })
+  @ApiResponse({ status: 429, description: 'Limite de requisições excedido' })
   async activate(
     @Headers() headers: Record<string, string | string[] | undefined>,
     @Body() dto: ActivateCustomerAccessDto,

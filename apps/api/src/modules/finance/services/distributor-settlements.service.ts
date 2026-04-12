@@ -4,7 +4,9 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@repo/db';
 import { TenantContextService } from 'src/common/services/tenant-context.service';
+import { TenantResourceService } from 'src/common/services/tenant-resource.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { todayISO } from 'src/common/utils/date.util';
@@ -37,20 +39,8 @@ export class DistributorSettlementsService {
     private readonly snowflake: SnowflakeService,
     private readonly accountsPayableService: AccountsPayableService,
     private readonly tenantContext: TenantContextService,
+    private readonly tenantResource: TenantResourceService,
   ) {}
-
-  private async ensureComplexBelongsToCompany(
-    cinemaComplexId: string,
-    companyId: string,
-  ) {
-    const complex = await this.prisma.cinema_complexes.findFirst({
-      where: { id: cinemaComplexId, company_id: companyId },
-    });
-
-    if (!complex) {
-      throw new NotFoundException('Complexo não pertence à empresa');
-    }
-  }
 
   private async ensureContractBelongsToCompany(
     contractId: string,
@@ -65,9 +55,9 @@ export class DistributorSettlementsService {
       throw new NotFoundException('Contrato não pertence à empresa');
     }
 
-    await this.ensureComplexBelongsToCompany(
-      contract.cinema_complex_id,
+    await this.tenantResource.assertCinemaComplexBelongsToCompany(
       companyId,
+      contract.cinema_complex_id,
     );
 
     return {
@@ -124,9 +114,20 @@ export class DistributorSettlementsService {
     const complexIds = await this.getCompanyComplexIds(companyId);
     const contractIds = await this.getContractIdsByComplexIds(complexIds);
 
+    if (cinemaComplexId) {
+      await this.tenantResource.assertCinemaComplexBelongsToCompany(
+        companyId,
+        cinemaComplexId,
+      );
+    }
+
+    const cinemaScope: Prisma.StringFilter | string = cinemaComplexId
+      ? cinemaComplexId
+      : { in: complexIds };
+
     return this.prisma.distributor_settlements.findMany({
       where: {
-        cinema_complex_id: cinemaComplexId || { in: complexIds },
+        cinema_complex_id: cinemaScope,
         contract_id: { in: contractIds },
       },
       orderBy: {
@@ -149,7 +150,10 @@ export class DistributorSettlementsService {
       companyId,
     );
     await this.ensureDistributorBelongsToCompany(dto.distributor_id, companyId);
-    await this.ensureComplexBelongsToCompany(dto.cinema_complex_id, companyId);
+    await this.tenantResource.assertCinemaComplexBelongsToCompany(
+      companyId,
+      dto.cinema_complex_id,
+    );
 
     if (contract.cinema_complex_id !== dto.cinema_complex_id) {
       throw new BadRequestException(

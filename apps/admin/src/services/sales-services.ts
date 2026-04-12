@@ -1,80 +1,48 @@
-import { apiConfig } from "./api-config";
-import axios from "axios";
-import { ProductsApi, ProductCategoriesApi } from "@repo/api-types";
-
-const productsApi = new ProductsApi(apiConfig);
-const categoriesApi = new ProductCategoriesApi(apiConfig);
+import { apiClient } from './api-config';
 
 type GenericObject = Record<string, unknown>;
 
 export const SalesService = {
   // --- Tipos de Ingresso ---
   async getTicketTypes() {
-    const response = await axios.get(`${apiConfig.basePath}/v1/ticket-types`, {
-      withCredentials: true,
-    });
+    const response = await apiClient.get('/v1/ticket-types');
     return (response.data ?? []) as unknown[];
   },
 
   async getTicketTypeById(id: string) {
-    const response = await axios.get(
-      `${apiConfig.basePath}/v1/ticket-types/${id}`,
-      {
-        withCredentials: true,
-      },
-    );
+    const response = await apiClient.get(`/v1/ticket-types/${id}`);
     return response.data;
   },
 
   async createTicketType(data: GenericObject) {
-    return await axios.post(
-      `${apiConfig.basePath}/v1/ticket-types`,
-      data,
-      {
-        withCredentials: true,
-      },
-    );
+    return await apiClient.post('/v1/ticket-types', data);
   },
 
   async updateTicketType(id: string, data: GenericObject) {
-    return await axios.put(
-      `${apiConfig.basePath}/v1/ticket-types/${id}`,
-      data,
-      {
-        withCredentials: true,
-      },
-    );
+    return await apiClient.put(`/v1/ticket-types/${id}`, data);
   },
 
   async deleteTicketType(id: string) {
-    return await axios.delete(`${apiConfig.basePath}/v1/ticket-types/${id}`, {
-      withCredentials: true,
-    });
+    return await apiClient.delete(`/v1/ticket-types/${id}`);
   },
 
   // --- Produtos (Bombonière) ---
   async getProducts() {
-    const response = await productsApi.productsControllerFindAllV1({
-      active: "true",
+    const response = await apiClient.get('/v1/products', {
+      params: { active: 'true' },
     });
     return response.data;
   },
 
   async createProduct(data: GenericObject) {
-    return await axios.post(
-      `${apiConfig.basePath}/v1/products`,
-      {
-        ...data,
-        active: true,
-      },
-      {
-        withCredentials: true,
-      },
-    );
+    return await apiClient.post('/v1/products', {
+      ...data,
+      active: true,
+    });
   },
 
   async getProductCategories() {
-    const response = await categoriesApi.productCategoriesControllerFindAllV1();
+    const response = await apiClient.get('/v1/product-categories');
     return response.data;
   },
 };

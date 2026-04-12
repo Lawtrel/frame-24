@@ -1,9 +1,10 @@
-import { NotFoundException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AccountsPayableService } from '../accounts-payable/services/accounts-payable.service';
 import { DistributorSettlementsService } from './distributor-settlements.service';
+import { TenantResourceService } from 'src/common/services/tenant-resource.service';
 
 describe('DistributorSettlementsService', () => {
   let service: DistributorSettlementsService;
@@ -11,6 +12,9 @@ describe('DistributorSettlementsService', () => {
   let snowflake: jest.Mocked<SnowflakeService>;
   let accountsPayableService: jest.Mocked<AccountsPayableService>;
   let tenantContext: jest.Mocked<TenantContextService>;
+  let tenantResource: jest.Mocked<
+    Pick<TenantResourceService, 'assertCinemaComplexBelongsToCompany'>
+  >;
 
   beforeEach(() => {
     prisma = {
@@ -44,6 +48,12 @@ describe('DistributorSettlementsService', () => {
       getCompanyId: jest.fn(),
     } as unknown as jest.Mocked<TenantContextService>;
 
+    tenantResource = {
+      assertCinemaComplexBelongsToCompany: jest
+        .fn()
+        .mockResolvedValue(undefined),
+    } as unknown as typeof tenantResource;
+
     tenantContext.getCompanyId.mockReturnValue('company-1');
     snowflake.generate.mockReturnValue('sett-1');
 
@@ -52,6 +62,7 @@ describe('DistributorSettlementsService', () => {
       snowflake,
       accountsPayableService,
       tenantContext,
+      tenantResource as unknown as TenantResourceService,
     );
   });
 
@@ -87,7 +98,9 @@ describe('DistributorSettlementsService', () => {
       movie_id: 'movie-1',
     } as never);
     prisma.suppliers.findFirst.mockResolvedValue({ id: 'supplier-1' } as never);
-    prisma.cinema_complexes.findFirst.mockResolvedValue(null);
+    tenantResource.assertCinemaComplexBelongsToCompany.mockRejectedValue(
+      new ForbiddenException('Complexo de cinema não pertence à empresa atual'),
+    );
 
     await expect(
       service.create({
@@ -99,7 +112,7 @@ describe('DistributorSettlementsService', () => {
         gross_box_office_revenue: 1000,
         distributor_percentage: 50,
       } as any),
-    ).rejects.toThrow(NotFoundException);
+    ).rejects.toThrow(ForbiddenException);
   });
 
   it('should create settlement, calculate net values and create payable when positive', async () => {
@@ -109,9 +122,6 @@ describe('DistributorSettlementsService', () => {
       movie_id: 'movie-1',
     } as never);
     prisma.suppliers.findFirst.mockResolvedValue({ id: 'supplier-1' } as never);
-    prisma.cinema_complexes.findFirst.mockResolvedValue({
-      id: 'complex-1',
-    } as never);
     prisma.$queryRaw.mockResolvedValue([
       { gross_revenue: 1200, total_tickets_sold: 100 },
     ] as never);
@@ -166,9 +176,6 @@ describe('DistributorSettlementsService', () => {
       movie_id: 'movie-1',
     } as never);
     prisma.suppliers.findFirst.mockResolvedValue({ id: 'supplier-1' } as never);
-    prisma.cinema_complexes.findFirst.mockResolvedValue({
-      id: 'complex-1',
-    } as never);
     prisma.$queryRaw.mockResolvedValue([
       { gross_revenue: 100, total_tickets_sold: 10 },
     ] as never);

@@ -34,11 +34,12 @@ export class TaxEntriesRepository {
     });
     const complexIds = complexes.map((c) => c.id);
 
+    const cinemaScope: Prisma.StringFilter | string = filters?.cinema_complex_id
+      ? filters.cinema_complex_id
+      : { in: complexIds };
+
     const where: Prisma.tax_entriesWhereInput = {
-      cinema_complex_id: { in: complexIds },
-      ...(filters?.cinema_complex_id && {
-        cinema_complex_id: filters.cinema_complex_id,
-      }),
+      cinema_complex_id: cinemaScope,
       ...(filters?.source_type && { source_type: filters.source_type }),
       ...(filters?.source_id && { source_id: filters.source_id }),
       ...(filters?.start_date &&

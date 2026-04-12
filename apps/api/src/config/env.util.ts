@@ -1,4 +1,4 @@
-const isTestEnv = process.env.NODE_ENV === 'test';
+export const isTestEnv = process.env.NODE_ENV === 'test';
 
 export function requireEnv(name: string, testFallback?: string): string {
   const value = process.env[name] ?? (isTestEnv ? testFallback : undefined);

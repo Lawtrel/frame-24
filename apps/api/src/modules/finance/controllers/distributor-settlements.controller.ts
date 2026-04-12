@@ -1,8 +1,10 @@
 import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import { ParseOptionalEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import {
   ApiBearerAuth,
   ApiOperation,
   ApiQuery,
+  ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
@@ -26,9 +28,18 @@ export class DistributorSettlementsController {
   @ApiQuery({
     name: 'cinema_complex_id',
     required: false,
-    description: 'Filtrar por complexo',
+    description: 'Filtrar por complexo (UUID ou Snowflake)',
   })
-  async findAll(@Query('cinema_complex_id') cinema_complex_id?: string) {
+  @ApiResponse({ status: 400, description: 'Parâmetros de consulta inválidos' })
+  @ApiResponse({
+    status: 403,
+    description: 'Complexo informado não pertence ao tenant atual',
+  })
+  @ApiResponse({ status: 429, description: 'Limite de requisições excedido' })
+  async findAll(
+    @Query('cinema_complex_id', new ParseOptionalEntityIdPipe())
+    cinema_complex_id?: string,
+  ) {
     return this.settlementsService.findAll(cinema_complex_id);
   }
 

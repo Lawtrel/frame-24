@@ -1,58 +1,37 @@
-import { apiConfig } from "./api-config";
-import {
-  CinemaComplexesApi,
-  RoomsApi,
-  ProjectionTypesApi,
-  AudioTypesApi,
-  SessionLanguagesApi,
-  SessionStatusApi,
-  CreateCinemaComplexDto,
-  CreateRoomDtoSeatLayoutInner,
-} from "@repo/api-types";
-
-const complexesApi = new CinemaComplexesApi(apiConfig);
-const roomsApi = new RoomsApi(apiConfig);
-const projectionApi = new ProjectionTypesApi(apiConfig);
-const audioApi = new AudioTypesApi(apiConfig);
-const languageApi = new SessionLanguagesApi(apiConfig);
-const statusApi = new SessionStatusApi(apiConfig);
+import { apiClient, ApiPayload } from './api-config';
 
 function safeStringify(value: unknown): string {
   try {
     return JSON.stringify(value);
   } catch {
-    return "[]";
+    return '[]';
   }
 }
 
 export const OperationsService = {
   // --- Complexos ---
   async getComplexes() {
-    const response = await complexesApi.cinemaComplexesControllerFindAllV1();
+    const response = await apiClient.get('/v1/cinema-complexes');
     return (response.data ?? []) as unknown[];
   },
 
-  async createComplex(data: CreateCinemaComplexDto) {
-    return await complexesApi.cinemaComplexesControllerCreateV1({
-      createCinemaComplexDto: data,
-    });
+  async createComplex(data: ApiPayload) {
+    return await apiClient.post('/v1/cinema-complexes', data);
   },
 
   async getSessionLanguages() {
-    const response = await languageApi.sessionLanguagesControllerFindAllV1();
+    const response = await apiClient.get('/v1/session-languages');
     return (response.data ?? []) as unknown[];
   },
 
   async getSessionStatuses() {
-    const response = await statusApi.sessionStatusControllerFindAllV1();
+    const response = await apiClient.get('/v1/session-status');
     return (response.data ?? []) as unknown[];
   },
 
   // --- Salas ---
   async getRooms(complexId: string) {
-    const response = await roomsApi.roomsControllerFindAllV1({
-      cinemaComplexId: complexId,
-    });
+    const response = await apiClient.get(`/v1/cinema-complexes/${complexId}/rooms`);
     return (response.data ?? []) as unknown[];
   },
 
@@ -95,28 +74,23 @@ export const OperationsService = {
     // 2. Preparação do Payload (Correção do Bug do Multipart)
     // A API espera um array de objetos, mas o client gerado quebra a formatação em multipart.
     // Solução: Enviamos um array contendo uma única string JSON. O backend (Zod) fará o parse.
-    const layoutPayload = [
-      safeStringify(seatLayout),
-    ] as unknown as CreateRoomDtoSeatLayoutInner[];
-
-    return await roomsApi.roomsControllerCreateV1({
-      cinemaComplexId,
-      roomNumber: data.room_number,
+    return await apiClient.post(`/v1/cinema-complexes/${cinemaComplexId}/rooms`, {
+      room_number: data.room_number,
       name: data.name,
-      capacity: capacity,
-      seatLayout: layoutPayload, // <--- Aqui vai o layout gerado e corrigido
+      capacity,
+      seat_layout: safeStringify(seatLayout),
       active: true,
     });
   },
   async getProjectionTypes() {
     // Busca tipos de projeção (2D, 3D, IMAX...)
-    const response = await projectionApi.projectionTypesControllerFindAllV1();
+    const response = await apiClient.get('/v1/projection-types');
     return (response.data ?? []) as unknown[];
   },
 
   async getAudioTypes() {
     // Busca tipos de áudio (Dolby, Atmos...)
-    const response = await audioApi.audioTypesControllerFindAllV1();
+    const response = await apiClient.get('/v1/audio-types');
     return (response.data ?? []) as unknown[];
   },
 };

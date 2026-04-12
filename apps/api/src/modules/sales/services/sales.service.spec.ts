@@ -18,6 +18,7 @@ import { AccountsReceivableService } from 'src/modules/finance/accounts-receivab
 import { TransactionsService } from 'src/modules/finance/transactions/services/transactions.service';
 import { BankAccountsRepository } from 'src/modules/finance/cash-flow/repositories/bank-accounts.repository';
 import { TenantContextService } from 'src/common/services/tenant-context.service';
+import { TenantResourceService } from 'src/common/services/tenant-resource.service';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { ClsModule } from 'nestjs-cls';
 import { ClsPluginTransactional } from '@nestjs-cls/transactional';
@@ -25,6 +26,7 @@ import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-pr
 import { PrismaService } from 'src/prisma/prisma.service';
 
 describe('SalesService', () => {
+  let testingModule: TestingModule;
   let service: SalesService;
   let salesRepository: jest.Mocked<SalesRepository>;
   let concessionSalesRepository: jest.Mocked<ConcessionSalesRepository>;
@@ -36,7 +38,7 @@ describe('SalesService', () => {
   let productRepository: jest.Mocked<ProductRepository>;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    testingModule = await Test.createTestingModule({
       imports: [
         ClsModule.forRoot({
           plugins: [
@@ -138,6 +140,7 @@ describe('SalesService', () => {
           provide: CombosRepository,
           useValue: {
             getComboPrice: jest.fn(),
+            countActiveByIdsForCompany: jest.fn().mockResolvedValue(0),
           },
         },
         {
@@ -227,6 +230,15 @@ describe('SalesService', () => {
           },
         },
         {
+          provide: TenantResourceService,
+          useValue: {
+            assertCustomerLinkedToCompany: jest.fn().mockResolvedValue(undefined),
+            assertCinemaComplexBelongsToCompany: jest
+              .fn()
+              .mockResolvedValue(undefined),
+          },
+        },
+        {
           provide: SnowflakeService,
           useValue: {
             generate: jest.fn(() => 'snowflake-test-id'),
@@ -249,15 +261,15 @@ describe('SalesService', () => {
       ],
     }).compile();
 
-    service = module.get<SalesService>(SalesService);
-    salesRepository = module.get(SalesRepository);
-    concessionSalesRepository = module.get(ConcessionSalesRepository);
-    ticketsRepository = module.get(TicketsRepository);
-    productPricesRepository = module.get(ProductPricesRepository);
-    combosRepository = module.get(CombosRepository);
-    cinemaComplexesRepository = module.get(CinemaComplexesRepository);
-    ticketsService = module.get(TicketsService);
-    productRepository = module.get(ProductRepository);
+    service = testingModule.get<SalesService>(SalesService);
+    salesRepository = testingModule.get(SalesRepository);
+    concessionSalesRepository = testingModule.get(ConcessionSalesRepository);
+    ticketsRepository = testingModule.get(TicketsRepository);
+    productPricesRepository = testingModule.get(ProductPricesRepository);
+    combosRepository = testingModule.get(CombosRepository);
+    cinemaComplexesRepository = testingModule.get(CinemaComplexesRepository);
+    ticketsService = testingModule.get(TicketsService);
+    productRepository = testingModule.get(ProductRepository);
   });
 
   it('should be defined', () => {
@@ -393,6 +405,22 @@ describe('SalesService', () => {
 
       expect(result).toBeDefined();
       expect(salesRepository.create).toHaveBeenCalled();
+    });
+
+    it('should reject customer_id in body when session is CUSTOMER and ids mismatch', async () => {
+      const tenant = testingModule.get(TenantContextService);
+      (tenant.getSessionContext as jest.Mock).mockReturnValue('CUSTOMER');
+      (tenant.getCustomerId as jest.Mock).mockReturnValue('customer-1');
+
+      await expect(
+        service.create(
+          {
+            ...mockDto,
+            customer_id: 'other-customer',
+          } as any,
+          { companyId: 'company-1', sessionContext: 'CUSTOMER' },
+        ),
+      ).rejects.toThrow('customer_id');
     });
   });
 });

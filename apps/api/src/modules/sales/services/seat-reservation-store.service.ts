@@ -15,19 +15,42 @@ interface StoredSeatReservation {
 export class SeatReservationStoreService {
   constructor(private readonly redisService: RedisService) {}
 
+  /**
+   * Adquire todos os locks em uma única execução atômica: SET NX por assento e,
+   * se falhar, reverte os já criados. Renova TTL se a chave já for desta reserva.
+   */
   private readonly acquireSeatLocksScript = `
     local reservationUuid = ARGV[1]
     local ttlMs = tonumber(ARGV[2])
 
-    for index, key in ipairs(KEYS) do
+    local acquired = {}
+
+    for i, key in ipairs(KEYS) do
       local current = redis.call("GET", key)
       if current and current ~= reservationUuid then
-        return {0, index}
+        for _, k in ipairs(acquired) do
+          redis.call("DEL", k)
+        end
+        return {0, i}
       end
-    end
 
-    for _, key in ipairs(KEYS) do
-      redis.call("SET", key, reservationUuid, "PX", ttlMs)
+      if not current then
+        local ok = redis.call("SET", key, reservationUuid, "NX", "PX", ttlMs)
+        if not ok then
+          local again = redis.call("GET", key)
+          if again ~= reservationUuid then
+            for _, k in ipairs(acquired) do
+              redis.call("DEL", k)
+            end
+            return {0, i}
+          end
+          redis.call("PEXPIRE", key, ttlMs)
+        else
+          table.insert(acquired, key)
+        end
+      else
+        redis.call("PEXPIRE", key, ttlMs)
+      end
     end
 
     return {1}
@@ -128,28 +151,21 @@ export class SeatReservationStoreService {
     };
   }
 
+  /**
+   * Reidrata locks no Redis após restart — usa o mesmo script atômico que o fluxo online.
+   */
   async syncSeatLocks(reservation: {
     showtime_id: string;
     seat_ids: string[];
     expires_at: Date;
     reservation_uuid: string;
-  }): Promise<void> {
-    const ttlMs = this.getTtlMilliseconds(reservation.expires_at);
-    const redis = this.redisService.getClient();
-    await this.redisService.ensureConnection();
-
-    const pipeline = redis.multi();
-
-    for (const seatId of reservation.seat_ids) {
-      pipeline.set(
-        this.getSeatLockKey(reservation.showtime_id, seatId),
-        reservation.reservation_uuid,
-        'PX',
-        ttlMs,
-      );
-    }
-
-    await pipeline.exec();
+  }): Promise<{ acquired: true } | { acquired: false }> {
+    return this.tryAcquireSeatLocks({
+      showtimeId: reservation.showtime_id,
+      seatIds: reservation.seat_ids,
+      reservationUuid: reservation.reservation_uuid,
+      expiresAt: reservation.expires_at,
+    });
   }
 
   async releaseSeatLocks(

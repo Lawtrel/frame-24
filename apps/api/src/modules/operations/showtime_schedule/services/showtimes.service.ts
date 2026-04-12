@@ -39,6 +39,7 @@ import { SeatTypesRepository } from 'src/modules/operations/seat-types/repositor
 import { ProjectionTypesRepository } from 'src/modules/operations/projection-types/repositories/projection-types.repository';
 import { AudioTypesRepository } from 'src/modules/operations/audio-types/repositories/audio-types.repository';
 import { CacheService } from 'src/common/cache/cache.service';
+import { TenantResourceService } from 'src/common/services/tenant-resource.service';
 
 export interface ShowtimeDetailsDto {
   id: string;
@@ -161,6 +162,7 @@ export class ShowtimesService {
     private readonly audioTypesRepository: AudioTypesRepository,
     private readonly cacheService: CacheService,
     private readonly tenantContext: TenantContextService,
+    private readonly tenantResource: TenantResourceService,
   ) {}
 
   async findOne(id: string): Promise<ShowtimeDetailsDto> {
@@ -206,6 +208,26 @@ export class ShowtimesService {
     status?: string;
   }): Promise<Awaited<ReturnType<ShowtimesRepository['findAll']>>> {
     const companyId = this.tenantContext.getCompanyId();
+    await Promise.all([
+      filters?.cinema_complex_id
+        ? this.tenantResource.assertCinemaComplexBelongsToCompany(
+            companyId,
+            filters.cinema_complex_id,
+          )
+        : Promise.resolve(),
+      filters?.room_id
+        ? this.tenantResource.assertRoomBelongsToCompany(
+            companyId,
+            filters.room_id,
+          )
+        : Promise.resolve(),
+      filters?.movie_id
+        ? this.tenantResource.assertMovieBelongsToCompany(
+            companyId,
+            filters.movie_id,
+          )
+        : Promise.resolve(),
+    ]);
 
     const where: Prisma.showtime_scheduleWhereInput = {
       cinema_complexes: { company_id: companyId },

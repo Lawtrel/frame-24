@@ -35,3 +35,23 @@ export class ParseEntityIdPipe implements PipeTransform<string, string> {
     );
   }
 }
+
+const innerEntityIdPipe = new ParseEntityIdPipe();
+
+@Injectable()
+export class ParseOptionalEntityIdPipe implements PipeTransform<
+  string | string[] | undefined,
+  string | undefined
+> {
+  transform(value: string | string[] | undefined): string | undefined {
+    const raw = Array.isArray(value) ? value[0] : value;
+    if (raw === undefined || raw === null) {
+      return undefined;
+    }
+    const trimmed = String(raw).trim();
+    if (trimmed.length === 0) {
+      return undefined;
+    }
+    return innerEntityIdPipe.transform(trimmed);
+  }
+}

@@ -1,14 +1,18 @@
-import { AuthApi, Configuration } from "@repo/api-types";
+import axios from 'axios';
 
-const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
-const createConfig = (token?: string) => {
-  return new Configuration({
-    basePath: baseURL,
-    accessToken: token,
-  });
-};
+const apiClient = axios.create({
+  baseURL,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 export const api = {
-  auth: new AuthApi(createConfig()),
+  auth: {
+    authControllerVerifyEmailV1: ({ verifyEmailDto }: { verifyEmailDto: { token: string } }) =>
+      apiClient.post('/v1/auth/verify-email', verifyEmailDto),
+  },
 };

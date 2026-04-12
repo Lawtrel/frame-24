@@ -193,32 +193,25 @@ export const tenancyLogic = (
   if (modelIsCompanyScoped && WHERE_SCOPED_OPERATIONS.has(operation)) {
     const where = ensureRecord(normalizedArgs.where);
     normalizedArgs.where = where;
-    if (where.company_id === undefined) {
-      where.company_id = companyId;
-    }
+    // Sempre fixar ao tenant autenticado (ignora company_id arbitrário no where).
+    where.company_id = companyId;
   }
 
   if (modelIsCompanyScoped && CREATE_SCOPED_OPERATIONS.has(operation)) {
     if (operation === 'create') {
       const data = ensureRecord(normalizedArgs.data);
       normalizedArgs.data = data;
-      if (!data.company_id) {
-        data.company_id = companyId;
-      }
+      data.company_id = companyId;
     }
     if (operation === 'createMany') {
       if (Array.isArray(normalizedArgs.data)) {
         normalizedArgs.data.forEach((item) => {
-          if (!item.company_id) {
-            item.company_id = companyId;
-          }
+          item.company_id = companyId;
         });
       } else {
         const data = ensureRecord(normalizedArgs.data);
         normalizedArgs.data = data;
-        if (!data.company_id) {
-          data.company_id = companyId;
-        }
+        data.company_id = companyId;
       }
     }
   }

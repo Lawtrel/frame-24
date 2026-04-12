@@ -4,6 +4,7 @@ import {
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
+import { Transactional } from '@nestjs-cls/transactional';
 import { Prisma } from '@repo/db';
 import { ClsService } from 'nestjs-cls';
 import { SalesService } from 'src/modules/sales/services/sales.service';
@@ -117,9 +118,9 @@ export class CustomerPurchasesService {
     return { companyId, customerId };
   }
 
+  @Transactional()
   async purchase(dto: CreatePurchaseDto): Promise<SaleResponseDto> {
     const context = this.getCustomerContext();
-    // Validar pontos se for usar
     let pointsDiscount = 0;
     if (dto.use_points && dto.use_points > 0) {
       const companyCustomer =
@@ -139,14 +140,23 @@ export class CustomerPurchasesService {
         );
       }
 
-      // Converter pontos em desconto (exemplo: 1 ponto = R$ 0,01)
+      const deducted =
+        await this.companyCustomersRepository.decrementAccumulatedPointsIfAtLeast(
+          context.companyId,
+          context.customerId,
+          dto.use_points,
+        );
+      if (!deducted) {
+        throw new BadRequestException(
+          'Não foi possível reservar os pontos (concorrência ou saldo alterado). Tente novamente.',
+        );
+      }
+
       pointsDiscount = dto.use_points * 0.01;
     }
 
-    // Criar DTO de venda
     const createSaleDto: CreateSaleDto = {
       cinema_complex_id: dto.cinema_complex_id,
-      customer_id: context.customerId,
       payment_method: dto.payment_method,
       tickets: dto.tickets,
       concession_items: dto.concession_items,
@@ -154,16 +164,9 @@ export class CustomerPurchasesService {
       promotion_code: dto.promotion_code,
     };
 
-    // Criar venda usando contexto autenticado no CLS
     const sale = await this.salesService.create(createSaleDto);
 
-    // Acumular pontos de fidelidade
     await this.accumulateLoyaltyPoints(sale, context);
-
-    // Se usou pontos, deduzir
-    if (dto.use_points && dto.use_points > 0) {
-      await this.deductPoints(context, dto.use_points);
-    }
 
     // Confirmar reserva no WebSocket se houver
     if (dto.reservation_uuid) {
@@ -553,37 +556,6 @@ export class CustomerPurchasesService {
 
     this.logger.log(
       `Pontos acumulados: ${pointsToAdd} para cliente ${context.customerId}. Total: ${newPoints}`,
-      CustomerPurchasesService.name,
-    );
-  }
-
-  private async deductPoints(
-    context: { companyId: string; customerId: string },
-    points: number,
-  ): Promise<void> {
-    const companyCustomer =
-      await this.companyCustomersRepository.findByCompanyAndCustomer(
-        context.companyId,
-        context.customerId,
-      );
-
-    if (!companyCustomer) {
-      throw new NotFoundException('Cliente não encontrado');
-    }
-
-    const currentPoints = companyCustomer.accumulated_points || 0;
-    const newPoints = Math.max(0, currentPoints - points);
-
-    await this.companyCustomersRepository.update(
-      context.companyId,
-      context.customerId,
-      {
-        accumulated_points: newPoints,
-      },
-    );
-
-    this.logger.log(
-      `Pontos deduzidos: ${points} do cliente ${context.customerId}. Restante: ${newPoints}`,
       CustomerPurchasesService.name,
     );
   }

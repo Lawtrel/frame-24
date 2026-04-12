@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { TenantContextService } from 'src/common/services/tenant-context.service';
+import { TenantResourceService } from 'src/common/services/tenant-resource.service';
 import { Prisma } from '@repo/db';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
@@ -19,6 +20,7 @@ export class JournalEntriesService {
     private readonly prisma: PrismaService,
     private readonly snowflake: SnowflakeService,
     private readonly tenantContext: TenantContextService,
+    private readonly tenantResource: TenantResourceService,
   ) {}
 
   private async getCompanyComplexIds(companyId: string): Promise<string[]> {
@@ -27,19 +29,6 @@ export class JournalEntriesService {
       select: { id: true },
     });
     return complexes.map((c) => c.id);
-  }
-
-  private async ensureComplexBelongsToCompany(
-    cinemaComplexId: string,
-    companyId: string,
-  ): Promise<void> {
-    const complex = await this.prisma.cinema_complexes.findFirst({
-      where: { id: cinemaComplexId, company_id: companyId },
-    });
-
-    if (!complex) {
-      throw new NotFoundException('Complexo de cinema não pertence à empresa.');
-    }
   }
 
   private async ensureAccountsBelongToCompany(
@@ -85,7 +74,10 @@ export class JournalEntriesService {
     dto: CreateJournalEntryDto,
   ): Promise<JournalEntryWithItems | null> {
     const companyId = this.tenantContext.getCompanyId();
-    await this.ensureComplexBelongsToCompany(dto.cinema_complex_id, companyId);
+    await this.tenantResource.assertCinemaComplexBelongsToCompany(
+      companyId,
+      dto.cinema_complex_id,
+    );
     await this.ensureAccountsBelongToCompany(companyId, dto.items);
 
     const debitTotal = dto.items
@@ -134,21 +126,26 @@ export class JournalEntriesService {
 
   async findAll(filters?: {
     cinema_complex_id?: string;
-    start_date?: string;
-    end_date?: string;
+    start_date?: Date;
+    end_date?: Date;
   }): Promise<JournalEntryWithItems[]> {
     const companyId = this.tenantContext.getCompanyId();
     const complexIds = await this.getCompanyComplexIds(companyId);
 
-    const where: Prisma.journal_entriesWhereInput = {
-      cinema_complex_id: {
-        in: complexIds,
-      },
-    };
-
     if (filters?.cinema_complex_id) {
-      where.cinema_complex_id = filters.cinema_complex_id;
+      await this.tenantResource.assertCinemaComplexBelongsToCompany(
+        companyId,
+        filters.cinema_complex_id,
+      );
     }
+
+    const cinemaScope: Prisma.StringFilter | string = filters?.cinema_complex_id
+      ? filters.cinema_complex_id
+      : { in: complexIds };
+
+    const where: Prisma.journal_entriesWhereInput = {
+      cinema_complex_id: cinemaScope,
+    };
 
     if (filters?.start_date && filters?.end_date) {
       where.entry_date = {

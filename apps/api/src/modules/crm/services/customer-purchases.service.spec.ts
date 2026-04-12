@@ -11,6 +11,12 @@ import { SalesService } from 'src/modules/sales/services/sales.service';
 import { CompanyCustomersRepository } from '../repositories/company-customers.repository';
 import { CustomerPurchasesService } from './customer-purchases.service';
 
+jest.mock('@nestjs-cls/transactional', () => ({
+  Transactional:
+    () => (_target: unknown, _key: string, descriptor: PropertyDescriptor) =>
+      descriptor,
+}));
+
 describe('CustomerPurchasesService', () => {
   let service: CustomerPurchasesService;
   let salesService: jest.Mocked<SalesService>;
@@ -34,6 +40,7 @@ describe('CustomerPurchasesService', () => {
     companyCustomersRepository = {
       findByCompanyAndCustomer: jest.fn(),
       update: jest.fn(),
+      decrementAccumulatedPointsIfAtLeast: jest.fn().mockResolvedValue(true),
     } as unknown as jest.Mocked<CompanyCustomersRepository>;
 
     prisma = {
@@ -209,10 +216,12 @@ describe('CustomerPurchasesService', () => {
 
     expect(salesService.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        customer_id: 'customer-1',
         discount_amount: 6,
       }),
     );
+    expect(
+      companyCustomersRepository.decrementAccumulatedPointsIfAtLeast,
+    ).toHaveBeenCalledWith('company-1', 'customer-1', 100);
     expect(companyCustomersRepository.update).toHaveBeenCalledWith(
       'company-1',
       'customer-1',

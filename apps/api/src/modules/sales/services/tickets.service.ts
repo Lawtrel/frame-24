@@ -152,21 +152,30 @@ export class TicketsService {
       );
     }
 
-    // Atualizar status dos assentos diretamente no banco
-    for (const seatId of seatIds) {
-      await this.sessionSeatStatusRepository.updateMany(
-        {
-          showtime_id: showtimeId,
-          seat_id: seatId,
-        },
-        {
-          status: soldStatus.id,
-          sale_id: saleId,
-          // IMPORTANTE: Limpar campos de reserva ao vender
-          reservation_uuid: null,
-          reservation_date: null,
-          expiration_date: null,
-        },
+    const now = new Date();
+    const seatUpdate = await this.sessionSeatStatusRepository.updateMany(
+      {
+        showtime_id: showtimeId,
+        seat_id: { in: seatIds },
+        sale_id: null,
+        OR: [
+          { reservation_uuid: null },
+          { expiration_date: null },
+          { expiration_date: { lte: now } },
+        ],
+      },
+      {
+        status: soldStatus.id,
+        sale_id: saleId,
+        reservation_uuid: null,
+        reservation_date: null,
+        expiration_date: null,
+      },
+    );
+
+    if (seatUpdate.count !== seatIds.length) {
+      throw new ConflictException(
+        'Um ou mais assentos não estão mais disponíveis para venda (concorrência ou reserva ativa)',
       );
     }
 

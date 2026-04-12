@@ -1,14 +1,22 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { TenantContextService } from 'src/common/services/tenant-context.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { JournalEntriesService } from './journal-entries.service';
+import { TenantResourceService } from 'src/common/services/tenant-resource.service';
 
 describe('JournalEntriesService', () => {
   let service: JournalEntriesService;
   let prisma: any;
   let snowflake: jest.Mocked<SnowflakeService>;
   let tenantContext: jest.Mocked<TenantContextService>;
+  let tenantResource: jest.Mocked<
+    Pick<TenantResourceService, 'assertCinemaComplexBelongsToCompany'>
+  >;
 
   beforeEach(() => {
     prisma = {
@@ -35,7 +43,18 @@ describe('JournalEntriesService', () => {
       getCompanyId: jest.fn(),
     } as unknown as jest.Mocked<TenantContextService>;
 
-    service = new JournalEntriesService(prisma, snowflake, tenantContext);
+    tenantResource = {
+      assertCinemaComplexBelongsToCompany: jest
+        .fn()
+        .mockResolvedValue(undefined),
+    } as unknown as typeof tenantResource;
+
+    service = new JournalEntriesService(
+      prisma,
+      snowflake,
+      tenantContext,
+      tenantResource as unknown as TenantResourceService,
+    );
 
     tenantContext.getCompanyId.mockReturnValue('company-1');
     snowflake.generate
@@ -45,9 +64,6 @@ describe('JournalEntriesService', () => {
   });
 
   it('should create balanced journal entry with generated number and items', async () => {
-    prisma.cinema_complexes.findFirst.mockResolvedValue({
-      id: 'complex-1',
-    } as never);
     prisma.chart_of_accounts.findMany.mockResolvedValue([
       { id: 'acc-1' },
       { id: 'acc-2' },
@@ -108,7 +124,9 @@ describe('JournalEntriesService', () => {
   });
 
   it('should throw when complex does not belong to company', async () => {
-    prisma.cinema_complexes.findFirst.mockResolvedValue(null);
+    tenantResource.assertCinemaComplexBelongsToCompany.mockRejectedValue(
+      new ForbiddenException('Complexo de cinema não pertence à empresa atual'),
+    );
 
     await expect(
       service.create({
@@ -128,13 +146,10 @@ describe('JournalEntriesService', () => {
           },
         ],
       } as any),
-    ).rejects.toThrow(NotFoundException);
+    ).rejects.toThrow(ForbiddenException);
   });
 
   it('should throw when debit and credit totals do not match', async () => {
-    prisma.cinema_complexes.findFirst.mockResolvedValue({
-      id: 'complex-1',
-    } as never);
     prisma.chart_of_accounts.findMany.mockResolvedValue([
       { id: 'acc-1' },
       { id: 'acc-2' },
@@ -174,8 +189,8 @@ describe('JournalEntriesService', () => {
 
     const result = await service.findAll({
       cinema_complex_id: 'complex-1',
-      start_date: '2026-03-01',
-      end_date: '2026-03-31',
+      start_date: new Date('2026-03-01'),
+      end_date: new Date('2026-03-31'),
     });
 
     expect(prisma.journal_entries.findMany).toHaveBeenCalledWith({

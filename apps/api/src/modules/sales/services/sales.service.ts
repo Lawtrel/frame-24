@@ -3,8 +3,10 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { TenantContextService } from 'src/common/services/tenant-context.service';
+import { TenantResourceService } from 'src/common/services/tenant-resource.service';
 import { ProductPriceNotFoundException } from '../exceptions/sales.exceptions';
 import { Transactional } from '@nestjs-cls/transactional';
 import {
@@ -87,6 +89,7 @@ export class SalesService {
     private readonly transactionsService: TransactionsService,
     private readonly bankAccountsRepository: BankAccountsRepository,
     private readonly tenantContext: TenantContextService,
+    private readonly tenantResource: TenantResourceService,
     private readonly prisma: PrismaService,
     private readonly snowflake: SnowflakeService,
   ) {}
@@ -108,10 +111,22 @@ export class SalesService {
     page?: number;
     limit?: number;
   }): Promise<SaleResponseDto[]> {
-    const sales = await this.salesRepository.findAll(
-      this.tenantContext.getCompanyId(),
-      filters,
-    );
+    const companyId = this.tenantContext.getCompanyId();
+    await Promise.all([
+      filters?.customer_id
+        ? this.tenantResource.assertCustomerLinkedToCompany(
+            companyId,
+            filters.customer_id,
+          )
+        : Promise.resolve(),
+      filters?.cinema_complex_id
+        ? this.tenantResource.assertCinemaComplexBelongsToCompany(
+            companyId,
+            filters.cinema_complex_id,
+          )
+        : Promise.resolve(),
+    ]);
+    const sales = await this.salesRepository.findAll(companyId, filters);
 
     return sales.map((sale) => this.mapToDto(sale));
   }
@@ -138,7 +153,29 @@ export class SalesService {
     const user_id = context?.userId ?? this.tenantContext.getUserId();
     const sessionContext = context?.sessionContext ?? this.getSessionContext();
     const contextCustomerId = context?.customerId ?? this.getCustomerId();
-    const resolvedCustomerId = dto.customer_id || contextCustomerId;
+
+    if (
+      sessionContext === 'CUSTOMER' &&
+      dto.customer_id != null &&
+      dto.customer_id !== contextCustomerId
+    ) {
+      throw new ForbiddenException(
+        'customer_id não pode ser definido fora do contexto autenticado',
+      );
+    }
+
+    const resolvedCustomerId =
+      sessionContext === 'CUSTOMER'
+        ? contextCustomerId
+        : dto.customer_id || contextCustomerId;
+
+    if (resolvedCustomerId) {
+      await this.tenantResource.assertCustomerLinkedToCompany(
+        company_id,
+        resolvedCustomerId,
+      );
+    }
+
     const idempotencyReference = context?.idempotencyKey
       ? this.buildIdempotencyReference(company_id, context.idempotencyKey)
       : undefined;
@@ -194,37 +231,66 @@ export class SalesService {
       dto.concession_items
         ?.filter((i) => i.item_type === 'PRODUCT')
         .map((i) => i.item_id) || [];
+    const uniqueProductIds = [...new Set(productItemIds)];
+
+    const comboItemIds =
+      dto.concession_items
+        ?.filter((i) => i.item_type === 'COMBO')
+        .map((i) => i.item_id) || [];
+    const uniqueComboIds = [...new Set(comboItemIds)];
 
     // Buscas paralelas (Promise.all)
-    const [productsMap, productPricesMap]: [
+    const [productsMap, productPricesMap, comboActiveCount]: [
       Map<string, ProductItem>,
       Map<string, ProductPrice>,
+      number,
     ] = await Promise.all([
-      // Buscar produtos
-      productItemIds.length > 0
+      uniqueProductIds.length > 0
         ? this.productsRepository
-            .findAllByIds(productItemIds, company_id)
+            .findAllByIds(uniqueProductIds, company_id)
             .then(
               (items) => new Map(items.map((product) => [product.id, product])),
             )
         : Promise.resolve(new Map<string, ProductItem>()),
 
-      // Buscar preços de produtos
-      productItemIds.length > 0
+      uniqueProductIds.length > 0
         ? this.productPricesRepository
             .findActivePricesByProductIds(
-              productItemIds,
+              uniqueProductIds,
               dto.cinema_complex_id,
               company_id,
             )
             .then((prices) => {
-              // Mapear preço por produto_id
               const map = new Map<string, ProductPrice>();
               prices.forEach((p) => map.set(p.product_id, p));
               return map;
             })
         : Promise.resolve(new Map<string, ProductPrice>()),
+
+      uniqueComboIds.length > 0
+        ? this.combosRepository.countActiveByIdsForCompany(
+            company_id,
+            uniqueComboIds,
+          )
+        : Promise.resolve(0),
     ]);
+
+    if (
+      uniqueProductIds.length > 0 &&
+      productsMap.size !== uniqueProductIds.length
+    ) {
+      throw new NotFoundException(
+        'Um ou mais produtos de concession não foram encontrados',
+      );
+    }
+    if (
+      uniqueComboIds.length > 0 &&
+      comboActiveCount !== uniqueComboIds.length
+    ) {
+      throw new NotFoundException(
+        'Um ou mais combos não foram encontrados ou estão inativos',
+      );
+    }
 
     // 2. Validação e Reserva de Assentos
     if (seatIds.length > 0) {
@@ -289,15 +355,9 @@ export class SalesService {
         if (item.item_type === 'PRODUCT') {
           const product = productsMap.get(item.item_id);
           if (!product) {
-            // Fallback se não veio no lote
-            const found = await this.productsRepository.findById(
-              item.item_id,
-              company_id,
+            throw new NotFoundException(
+              `Produto ${item.item_id} não encontrado`,
             );
-            if (!found)
-              throw new NotFoundException(
-                `Produto ${item.item_id} não encontrado`,
-              );
           }
 
           const price = productPricesMap.get(item.item_id);
@@ -312,7 +372,7 @@ export class SalesService {
               );
             if (!foundPrice)
               throw new ProductPriceNotFoundException(
-                product?.name ?? item.item_id,
+                product.name ?? item.item_id,
               );
             unitPrice = Number(foundPrice.sale_price);
           } else {
@@ -372,7 +432,7 @@ export class SalesService {
         sale_number,
         sale_date: new Date(),
         cinema_complex_id: dto.cinema_complex_id,
-        ...(dto.customer_id && { customer_id: dto.customer_id }),
+        ...(resolvedCustomerId && { customer_id: resolvedCustomerId }),
         sale_types: { connect: { id: resolvedSaleTypeId } },
         payment_methods: { connect: { id: dto.payment_method } },
         sale_status: { connect: { id: resolvedInitialStatusId } },
@@ -698,6 +758,8 @@ export class SalesService {
       throw new BadRequestException('Venda já foi cancelada');
     }
 
+    await this.assertCancellationAllowedByTicketsAndSchedule(sale);
+
     const cancelledStatusId = await this.resolveSaleStatusId(
       companyId,
       'Cancelada',
@@ -892,6 +954,65 @@ export class SalesService {
     });
   }
 
+  private async assertCancellationAllowedByTicketsAndSchedule(
+    sale: SaleWithFullRelations,
+  ): Promise<void> {
+    const tickets = sale.tickets || [];
+    for (const t of tickets) {
+      if (t.used) {
+        throw new BadRequestException(
+          'Não é possível cancelar venda com ingresso já utilizado',
+        );
+      }
+    }
+
+    const showtimeIds = [
+      ...new Set(
+        tickets
+          .map((t) => t.showtime_id)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ];
+    if (showtimeIds.length === 0) {
+      return;
+    }
+
+    const showtimes = await this.prisma.showtime_schedule.findMany({
+      where: { id: { in: showtimeIds } },
+      include: {
+        session_status: true,
+      },
+    });
+
+    const now = new Date();
+    for (const st of showtimes) {
+      if (st.start_time <= now) {
+        throw new BadRequestException(
+          'Não é possível cancelar após o início da sessão de exibição',
+        );
+      }
+      if (st.end_time < now) {
+        throw new BadRequestException(
+          'Não é possível cancelar: sessão de exibição já encerrada',
+        );
+      }
+      const rawName = st.session_status?.name ?? '';
+      const statusName = rawName
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
+      if (
+        statusName.includes('cancelad') ||
+        statusName.includes('encerrad') ||
+        statusName.includes('finalizad')
+      ) {
+        throw new BadRequestException(
+          'Não é possível cancelar: sessão não está em estado editável',
+        );
+      }
+    }
+  }
+
   private mapToDto(sale: SaleForResponse): SaleResponseDto {
     const promotionUsage =
       sale.promotions_used && sale.promotions_used.length > 0
@@ -945,6 +1066,11 @@ export class SalesService {
     return !deferredKeywords.some((keyword) => normalized.includes(keyword));
   }
 
+  /**
+   * Política de `public_reference`:
+   * - Com Idempotency-Key: valor determinístico `idem_` + SHA-256(companyId:key) para deduplicação por tenant.
+   * - Sem chave: o repositório gera UUID opaco (não exposto ao cliente como vetor de enumeração).
+   */
   private buildIdempotencyReference(
     companyId: string,
     idempotencyKey: string,

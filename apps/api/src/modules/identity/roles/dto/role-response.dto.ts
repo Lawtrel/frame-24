@@ -49,7 +49,7 @@ export class RoleResponseDto extends createZodDto(RoleResponseSchema) {
   @ApiProperty({
     description: 'List of permission codes assigned to this role',
     example: ['users:read', 'users:create', 'reports:read'],
-    isArray: true,
+    type: [String],
   })
   permissions!: string[];
 

@@ -49,6 +49,22 @@ export class CombosRepository {
     });
   }
 
+  async countActiveByIdsForCompany(
+    company_id: string,
+    ids: string[],
+  ): Promise<number> {
+    if (ids.length === 0) {
+      return 0;
+    }
+    return this.prisma.combos.count({
+      where: {
+        company_id,
+        id: { in: ids },
+        active: true,
+      },
+    });
+  }
+
   async getComboPrice(
     combo_id: string,
     company_id: string,

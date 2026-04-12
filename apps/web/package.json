@@ -10,7 +10,6 @@
     "lint:strict": "FRAME24_STRICT_LINT=1 eslint --max-warnings=0"
   },
   "dependencies": {
-    "@repo/api-types": "workspace:*",
     "@tanstack/react-query": "^5.96.1",
     "axios": "^1.14.0",
     "better-auth": "^1.5.6",

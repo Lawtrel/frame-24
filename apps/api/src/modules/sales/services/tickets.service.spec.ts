@@ -133,12 +133,33 @@ describe('TicketsService', () => {
     ).rejects.toThrow(ConflictException);
   });
 
-  it('should reserve seats and update showtime counters', async () => {
+  it('should reject reserve seats when not all rows match availability guard', async () => {
     seatStatusRepository.findByNameAndCompany.mockResolvedValue({
       id: 'sold-status',
     } as never);
     sessionSeatStatusRepository.updateMany.mockResolvedValue({
       count: 1,
+    } as never);
+
+    await expect(
+      service.reserveSeats({
+        showtimeId: 'show-1',
+        seatIds: ['s1', 's2'],
+        saleId: 'sale-1',
+      }),
+    ).rejects.toThrow(ConflictException);
+
+    expect(
+      showtimesRepository.reserveSeatsCountersAtomically,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('should reserve seats and update showtime counters', async () => {
+    seatStatusRepository.findByNameAndCompany.mockResolvedValue({
+      id: 'sold-status',
+    } as never);
+    sessionSeatStatusRepository.updateMany.mockResolvedValue({
+      count: 2,
     } as never);
     showtimesRepository.reserveSeatsCountersAtomically.mockResolvedValue(true);
 
@@ -148,7 +169,7 @@ describe('TicketsService', () => {
       saleId: 'sale-1',
     });
 
-    expect(sessionSeatStatusRepository.updateMany).toHaveBeenCalledTimes(2);
+    expect(sessionSeatStatusRepository.updateMany).toHaveBeenCalledTimes(1);
     expect(
       showtimesRepository.reserveSeatsCountersAtomically,
     ).toHaveBeenCalledWith('show-1', 2);

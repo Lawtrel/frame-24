@@ -35,17 +35,19 @@ describe('JournalEntriesController', () => {
 
   it('should delegate findAll with query filters', async () => {
     service.findAll.mockResolvedValue([{ id: 'entry-1' }] as never);
+    const startDate = new Date('2026-03-01');
+    const endDate = new Date('2026-03-31');
 
     const result = await controller.findAll(
       'complex-1',
-      '2026-03-01',
-      '2026-03-31',
+      startDate,
+      endDate,
     );
 
     expect(service.findAll).toHaveBeenCalledWith({
       cinema_complex_id: 'complex-1',
-      start_date: '2026-03-01',
-      end_date: '2026-03-31',
+      start_date: startDate,
+      end_date: endDate,
     });
     expect(result).toEqual([{ id: 'entry-1' }]);
   });

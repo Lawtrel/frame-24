@@ -20,6 +20,7 @@ import {
   ApiConflictResponse,
   ApiConsumes,
   ApiBody,
+  ApiParam,
 } from '@nestjs/swagger';
 
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
@@ -31,6 +32,11 @@ import { CreateRoomDto } from '../dto/create-room.dto';
 import { UpdateRoomDto } from '../dto/update-room.dto';
 
 @ApiTags('Operations', 'Rooms')
+@ApiParam({
+  name: 'cinemaComplexId',
+  required: true,
+  description: 'ID do complexo de cinema',
+})
 @SecuredController({
   path: 'cinema-complexes/:cinemaComplexId/rooms',
   version: '1',

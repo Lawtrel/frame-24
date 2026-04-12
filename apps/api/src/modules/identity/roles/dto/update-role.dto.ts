@@ -20,7 +20,7 @@ export class UpdateRoleDto extends createZodDto(UpdateRoleSchema) {
   @ApiPropertyOptional({
     description: 'List of permission codes',
     example: ['users:read', 'users:create', 'users:update', 'reports:read'],
-    isArray: true,
+    type: [String],
   })
   permissions?: string[];
 

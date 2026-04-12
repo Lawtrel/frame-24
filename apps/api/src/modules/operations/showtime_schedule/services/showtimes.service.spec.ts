@@ -6,6 +6,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { TenantContextService } from 'src/common/services/tenant-context.service';
+import { TenantResourceService } from 'src/common/services/tenant-resource.service';
 import { ShowtimesService } from './showtimes.service';
 import { ShowtimesRepository } from '../repositories/showtime.repository';
 import { SessionSeatStatusRepository } from 'src/modules/operations/session_seat_status/repositories/session-seat-status.repository';
@@ -201,6 +202,16 @@ describe('ShowtimesService', () => {
             getRequiredUserId: jest.fn(),
             getCustomerId: jest.fn(),
             getSessionContext: jest.fn(),
+          },
+        },
+        {
+          provide: TenantResourceService,
+          useValue: {
+            assertCinemaComplexBelongsToCompany: jest
+              .fn()
+              .mockResolvedValue(undefined),
+            assertMovieBelongsToCompany: jest.fn().mockResolvedValue(undefined),
+            assertRoomBelongsToCompany: jest.fn().mockResolvedValue(undefined),
           },
         },
       ],

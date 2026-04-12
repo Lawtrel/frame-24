@@ -1,20 +1,14 @@
-"use client";
+'use client';
 
-import { use, useEffect, useState } from "react";
-import { useAuth } from "@/contexts/auth-context";
-import { useRouter } from "next/navigation";
-import Image from "next/image";
-import { customerApi } from "@/lib/api-client";
-import { extractErrorMessage } from "@/lib/error-utils";
-import { SaleResponseDto } from "@repo/api-types";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import {
-  ArrowLeft,
-  Calendar,
-  MapPin,
-  Film,
-} from "lucide-react";
+import { use, useEffect, useState } from 'react';
+import { useAuth } from '@/contexts/auth-context';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { customerApi } from '@/lib/api-client';
+import { extractErrorMessage } from '@/lib/error-utils';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { ArrowLeft, Calendar, MapPin, Film } from 'lucide-react';
 
 interface SaleTicket {
   id: string;
@@ -29,33 +23,45 @@ type SeatValue = {
   column_number?: unknown;
 };
 
+interface SaleResponse {
+  id: string;
+  sale_date: string;
+  total_amount: number | string;
+  movie?: {
+    title?: string;
+    poster_url?: string;
+  };
+  showtime?: {
+    start_time?: string;
+    cinema?: string;
+    room?: string;
+  };
+  tickets?: unknown[];
+}
+
 function resolveSeatCode(seat: unknown): string {
-  if (typeof seat === "string" && seat.trim().length > 0) {
+  if (typeof seat === 'string' && seat.trim().length > 0) {
     return seat;
   }
 
-  if (!seat || typeof seat !== "object" || Array.isArray(seat)) {
-    return "N/A";
+  if (!seat || typeof seat !== 'object' || Array.isArray(seat)) {
+    return 'N/A';
   }
 
   const seatData = seat as SeatValue;
 
-  if (
-    typeof seatData.seat_code === "string" &&
-    seatData.seat_code.trim().length > 0
-  ) {
+  if (typeof seatData.seat_code === 'string' && seatData.seat_code.trim().length > 0) {
     return seatData.seat_code;
   }
 
-  const row = typeof seatData.row_code === "string" ? seatData.row_code : "";
+  const row = typeof seatData.row_code === 'string' ? seatData.row_code : '';
   const column =
-    typeof seatData.column_number === "number" ||
-    typeof seatData.column_number === "string"
+    typeof seatData.column_number === 'number' || typeof seatData.column_number === 'string'
       ? String(seatData.column_number)
-      : "";
+      : '';
 
   const combined = `${row}${column}`.trim();
-  return combined.length > 0 ? combined : "N/A";
+  return combined.length > 0 ? combined : 'N/A';
 }
 
 export default function PurchaseHistoryPage({
@@ -66,7 +72,7 @@ export default function PurchaseHistoryPage({
   const { tenant_slug } = use(params);
   const { user, isAuthenticated, hasSession, isLoading: authLoading } = useAuth();
   const router = useRouter();
-  const [sales, setSales] = useState<SaleResponseDto[]>([]);
+  const [sales, setSales] = useState<SaleResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -84,15 +90,14 @@ export default function PurchaseHistoryPage({
 
     const fetchSales = async () => {
       try {
-        const response =
-          await customerApi.customerPurchasesControllerFindAllV1();
-        setSales(response.data);
+        const response = await customerApi.customerPurchasesControllerFindAllV1();
+        setSales((response.data ?? []) as SaleResponse[]);
         setError(null);
       } catch (error: unknown) {
-        console.error("Erro ao carregar histórico:", error);
+        console.error('Erro ao carregar histórico:', error);
         const errorMessage = extractErrorMessage(
           error,
-          "Erro ao carregar histórico de compras. Tente novamente.",
+          'Erro ao carregar histórico de compras. Tente novamente.',
         );
         setError(errorMessage);
       } finally {
@@ -139,9 +144,7 @@ export default function PurchaseHistoryPage({
           </button>
           <div>
             <h1 className="text-3xl font-bold mb-2">Histórico de Compras</h1>
-            <p className="text-zinc-400">
-              {sales.length} compra(s) realizada(s)
-            </p>
+            <p className="text-zinc-400">{sales.length} compra(s) realizada(s)</p>
           </div>
         </div>
 
@@ -172,7 +175,7 @@ export default function PurchaseHistoryPage({
                     {sale.movie?.poster_url ? (
                       <Image
                         src={sale.movie.poster_url}
-                        alt={sale.movie.title || "Poster"}
+                        alt={sale.movie.title || 'Poster'}
                         fill
                         sizes="(max-width: 768px) 100vw, 192px"
                         className="object-cover"
@@ -187,9 +190,7 @@ export default function PurchaseHistoryPage({
                   {/* Details */}
                   <div className="flex-1 p-6">
                     <div className="mb-4">
-                      <h2 className="text-2xl font-bold mb-2">
-                        {sale.movie?.title || "Filme"}
-                      </h2>
+                      <h2 className="text-2xl font-bold mb-2">{sale.movie?.title || 'Filme'}</h2>
                       {sale.showtime && (
                         <div className="flex flex-wrap gap-4 text-sm text-zinc-400">
                           {sale.showtime.start_time && (
@@ -208,9 +209,7 @@ export default function PurchaseHistoryPage({
                               {sale.showtime.cinema}
                             </span>
                           )}
-                          {sale.showtime.room && (
-                            <span>Sala {sale.showtime.room}</span>
-                          )}
+                          {sale.showtime.room && <span>Sala {sale.showtime.room}</span>}
                         </div>
                       )}
                     </div>
@@ -239,11 +238,9 @@ export default function PurchaseHistoryPage({
                                   className="w-16 h-16 bg-white p-1 rounded"
                                 />
                                 <div>
-                                  <div className="text-sm font-bold">
-                                    Assento {seatCode}
-                                  </div>
+                                  <div className="text-sm font-bold">Assento {seatCode}</div>
                                   <div className="text-xs text-zinc-500">
-                                    {ticketData.ticket_type || "Ingresso"}
+                                    {ticketData.ticket_type || 'Ingresso'}
                                   </div>
                                   <div className="text-xs text-zinc-600 font-mono">
                                     {ticketData.ticket_number}
@@ -259,12 +256,10 @@ export default function PurchaseHistoryPage({
                     {/* Footer */}
                     <div className="flex items-center justify-between pt-4 border-t border-zinc-800">
                       <div className="text-sm text-zinc-500">
-                        Comprado em{" "}
-                        {format(
-                          new Date(sale.sale_date),
-                          "dd/MM/yyyy 'às' HH:mm",
-                          { locale: ptBR },
-                        )}
+                        Comprado em{' '}
+                        {format(new Date(sale.sale_date), "dd/MM/yyyy 'às' HH:mm", {
+                          locale: ptBR,
+                        })}
                       </div>
                       <div className="text-xl font-bold text-red-500">
                         R$ {Number(sale.total_amount).toFixed(2)}

@@ -8,6 +8,7 @@ import { CinemaComplexesRepository } from 'src/modules/operations/cinema-complex
 import { TaxEntriesRepository } from '../repositories/tax-entries.repository';
 import { TaxCalculationService } from './tax-calculation.service';
 import { TaxEntriesService } from './tax-entries.service';
+import { TenantResourceService } from 'src/common/services/tenant-resource.service';
 
 jest.mock('@nestjs-cls/transactional', () => ({
   Transactional:
@@ -25,6 +26,12 @@ describe('TaxEntriesService', () => {
   let cashFlowEntriesService: jest.Mocked<CashFlowEntriesService>;
   let bankAccountsRepository: jest.Mocked<BankAccountsRepository>;
   let tenantContext: jest.Mocked<TenantContextService>;
+  let tenantResource: jest.Mocked<
+    Pick<
+      TenantResourceService,
+      'assertCinemaComplexBelongsToCompany'
+    >
+  >;
 
   beforeEach(() => {
     taxEntriesRepository = {
@@ -67,12 +74,19 @@ describe('TaxEntriesService', () => {
       getRequiredUserId: jest.fn(),
     } as unknown as jest.Mocked<TenantContextService>;
 
+    tenantResource = {
+      assertCinemaComplexBelongsToCompany: jest
+        .fn()
+        .mockResolvedValue(undefined),
+    } as unknown as typeof tenantResource;
+
     tenantContext.getCompanyId.mockReturnValue('company-1');
     tenantContext.getRequiredUserId.mockReturnValue('user-1');
 
     service = new TaxEntriesService(
       taxEntriesRepository,
       taxCalculationService,
+      tenantResource as unknown as TenantResourceService,
       cinemaComplexesRepository,
       logger,
       rabbitmq,
@@ -91,10 +105,6 @@ describe('TaxEntriesService', () => {
   });
 
   it('should block create when source already has tax entry', async () => {
-    cinemaComplexesRepository.findById.mockResolvedValue({
-      id: 'complex-1',
-      company_id: 'company-1',
-    } as never);
     taxEntriesRepository.findBySource.mockResolvedValue({
       id: 'existing',
     } as never);
@@ -111,10 +121,6 @@ describe('TaxEntriesService', () => {
   });
 
   it('should create tax entry and projected cashflow when account exists', async () => {
-    cinemaComplexesRepository.findById.mockResolvedValue({
-      id: 'complex-1',
-      company_id: 'company-1',
-    } as never);
     taxEntriesRepository.findBySource.mockResolvedValue(null);
     taxCalculationService.calculateTaxes.mockResolvedValue({
       gross_amount: 1000,

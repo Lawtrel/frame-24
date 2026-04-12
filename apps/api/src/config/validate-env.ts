@@ -1,4 +1,4 @@
-import { assertNotInsecure, requireEnv } from './env.util';
+import { assertNotInsecure, isTestEnv, requireEnv } from './env.util';
 
 export function validateEnvironment(): void {
   const jwtSecret = requireEnv('JWT_SECRET', 'test-jwt-secret');
@@ -47,5 +47,32 @@ export function validateEnvironment(): void {
   if (!process.env.REDIS_URL) {
     requireEnv('REDIS_HOST', 'localhost');
     requireEnv('REDIS_PORT', '6379');
+  }
+
+  // Segredo interno (cookies/sessão OIDC e integrações server-to-server). Sem fallback estático.
+  const internalSecret =
+    process.env.OIDC_INTERNAL_SECRET?.trim() ||
+    process.env.AUTH_INTERNAL_SECRET?.trim();
+  if (!isTestEnv) {
+    if (!internalSecret) {
+      throw new Error(
+        'Missing required environment variable: OIDC_INTERNAL_SECRET or AUTH_INTERNAL_SECRET',
+      );
+    }
+    const internalLabel = process.env.OIDC_INTERNAL_SECRET?.trim()
+      ? 'OIDC_INTERNAL_SECRET'
+      : 'AUTH_INTERNAL_SECRET';
+    assertNotInsecure(internalLabel, internalSecret, [
+      'changeme',
+      'secret',
+      '123456',
+      'change-me-internal-secret',
+      'dev-only-internal-secret',
+    ]);
+    if (process.env.NODE_ENV === 'production' && internalSecret.length < 32) {
+      throw new Error(
+        `${internalLabel} must have at least 32 characters in production.`,
+      );
+    }
   }
 }
