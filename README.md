@@ -55,23 +55,22 @@ O repositório utiliza Turborepo + pnpm workspaces, organizado em apps e package
 
 ### Apps
 
-| App | Descrição | Porta | Stack |
-| --- | --- | --- | --- |
-| `api` | Backend REST API versionada (`/v1`) com Swagger/Scalar | `4000` | NestJS |
-| `web` | Aplicação web principal para operações | `3000` | Next.js + React |
-| `admin` | Dashboard administrativo com componentes compartilhados | `3004` | Next.js + React |
-| `landing-page` | Site institucional e fluxo de aquisição | `3003` | Next.js + React |
+| App            | Descrição                                               | Porta  | Stack           |
+| -------------- | ------------------------------------------------------- | ------ | --------------- |
+| `api`          | Backend REST API versionada (`/v1`) com Swagger/Scalar  | `4000` | NestJS          |
+| `web`          | Aplicação web principal para operações                  | `3000` | Next.js + React |
+| `admin`        | Dashboard administrativo com componentes compartilhados | `3004` | Next.js + React |
+| `landing-page` | Site institucional e fluxo de aquisição                 | `3003` | Next.js + React |
 
 ### Packages
 
-| Package | Responsabilidade |
-| --- | --- |
-| `@repo/db` | Prisma schema, migrations e client compartilhado |
-| `@repo/ui` | Biblioteca de componentes UI reutilizáveis |
-| `@repo/api-types` | Tipos gerados para integração com a API |
-| `@repo/eslint-config` | Configurações de lint padronizadas |
-| `@repo/tailwind-config` | Configurações compartilhadas de estilo |
-| `@repo/typescript-config` | Bases TypeScript reutilizáveis |
+| Package                   | Responsabilidade                                 |
+| ------------------------- | ------------------------------------------------ |
+| `@repo/db`                | Prisma schema, migrations e client compartilhado |
+| `@repo/ui`                | Biblioteca de componentes UI reutilizáveis       |
+| `@repo/eslint-config`     | Configurações de lint padronizadas               |
+| `@repo/tailwind-config`   | Configurações compartilhadas de estilo           |
+| `@repo/typescript-config` | Bases TypeScript reutilizáveis                   |
 
 ## Stack Tecnológica
 
@@ -104,12 +103,12 @@ O repositório utiliza Turborepo + pnpm workspaces, organizado em apps e package
 
 ## Pré-requisitos
 
-| Ferramenta | Versão mínima |
-| --- | --- |
-| Node.js | `>= 18` |
-| pnpm | `10.33.0` |
-| Podman / Podman Compose | latest |
-| Git | latest |
+| Ferramenta              | Versão mínima |
+| ----------------------- | ------------- |
+| Node.js                 | `>= 18`       |
+| pnpm                    | `10.33.0`     |
+| Podman / Podman Compose | latest        |
+| Git                     | latest        |
 
 ### Instalar pnpm
 
@@ -244,14 +243,14 @@ pnpm db:reset
 
 ## Serviços e Portas
 
-| Serviço | URL | Credenciais |
-| --- | --- | --- |
-| API (Swagger) | <http://localhost:4000/api/docs> | - |
-| Web App | <http://localhost:3000> | - |
-| Admin App | <http://localhost:3004> | - |
-| Landing Page | <http://localhost:3003> | - |
-| RabbitMQ Management | <http://localhost:15672> | `frame24` / `frame24pass` |
-| MailHog | <http://localhost:8025> | - |
+| Serviço             | URL                              | Credenciais               |
+| ------------------- | -------------------------------- | ------------------------- |
+| API (Swagger)       | <http://localhost:4000/api/docs> | -                         |
+| Web App             | <http://localhost:3000>          | -                         |
+| Admin App           | <http://localhost:3004>          | -                         |
+| Landing Page        | <http://localhost:3003>          | -                         |
+| RabbitMQ Management | <http://localhost:15672>         | `frame24` / `frame24pass` |
+| MailHog             | <http://localhost:8025>          | -                         |
 
 Prisma Studio:
 
@@ -421,6 +420,21 @@ No mínimo:
 - `MINIO_ACCESS_KEY` + `MINIO_SECRET_KEY` + (`STORAGE_PUBLIC_URL` ou `MINIO_PUBLIC_URL`) (MinIO no VPS)
 
 Em produção, use secrets fortes (>= 32 caracteres para `JWT_SECRET` e `BETTER_AUTH_SECRET`).
+
+## Prontidão da Fase Atual
+
+A fase atual fecha somente quando não houver brecha crítica conhecida, os riscos médios mais perigosos tiverem owner funcional, a documentação OpenAPI refletir o comportamento real, e os fluxos críticos tiverem testes e observabilidade mínima.
+
+Status de fechamento:
+
+| Área                               | Owner funcional                           | Status                                                                                                                                                                                                              |
+| ---------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Identity/Auth/CRM/Public           | Backend/API Security + Privacy/Compliance | Segredo interno obrigatório, throttling, payload público mínimo e validação de tenant endereçados. Direitos do titular, retenção e descarte seguem como plano de compliance, sem implementação completa nesta fase. |
+| Sales/Public/Operations            | Backend/Sales + Infra/Ops                 | Idempotência pública, seat locking forte, cancelamento por regra temporal e throttling endereçados. Fluxos críticos precisam permanecer cobertos por testes focados.                                                |
+| Finance/Payments                   | Finance/Payments                          | Fora da fase atual: PIX real, webhook PSP, ledger interno, refund e chargeback não devem ser declarados como corrigidos.                                                                                            |
+| Tax/Fiscal/Catalog/Stock/Contracts | Fiscal/Tax + Backend                      | Validação de tenant em filtros e coerência de contratos/fiscal endereçadas. Pipeline de atualização normativa e revisão fiscal completa seguem como plano fiscal.                                                   |
+| Storage/Email/Audit/Workers        | Infra/Ops + Privacy/Compliance            | Auditoria com retry e DLQ endereçada. Storage por prefixo/contexto, redaction de logs e alarmes operacionais seguem como plano de observabilidade/incidente.                                                        |
+| Marketing/Recommendations          | Backend/Sales + Privacy/Compliance        | Finalização de campanha/cupom sob lock transacional endereçada. Separação completa entre dados operacionais e promocionais segue como plano de privacidade.                                                         |
 
 ## Documentação Complementar
 
