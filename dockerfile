@@ -1,9 +1,34 @@
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.base.json ./
+COPY apps/api/package.json ./apps/api/package.json
+COPY packages/db/package.json ./packages/db/package.json
+
+RUN pnpm install --frozen-lockfile --filter api... --filter @repo/db...
+
+COPY apps/api ./apps/api
+COPY packages/db ./packages/db
+COPY scripts/docker/api-entrypoint.sh ./scripts/docker/api-entrypoint.sh
+
+ENV DIRECT_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+
+RUN pnpm --filter @repo/db run build
+RUN pnpm --filter api run build
+
 FROM node:20-alpine AS runner
 
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=4000
+
+ENV DIRECT_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 
 RUN apk add --no-cache dumb-init openssl \
 	&& apk upgrade --no-cache zlib \
@@ -23,7 +48,6 @@ RUN pnpm install --prod --frozen-lockfile --filter api... --filter @repo/db...
 
 RUN pnpm --filter @repo/db run db:generate
 
-# Runtime does not use npm/corepack; remove their files to reduce CVE surface.
 RUN rm -rf /root/.cache/node/corepack \
 	&& rm -rf /usr/local/lib/node_modules/npm \
 	&& rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack /usr/local/bin/pnpm /usr/local/bin/pnpx
