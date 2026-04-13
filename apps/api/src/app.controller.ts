@@ -11,10 +11,15 @@ export class AppController {
   constructor(private readonly redisService: RedisService) {}
 
   @Get()
-  @Redirect('/api/docs', 302)
+  //@Redirect('/api/docs', 302)
   getRoot() {
     // Redireciona para a documentação
-    return;
+    return {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      service: 'Frame24 API',
+      environment: process.env.NODE_ENV || 'development',
+    };
   }
 
   @Get('health')
