@@ -1,27 +1,20 @@
 import {
   Controller,
   Get,
+  Redirect,
   ServiceUnavailableException,
-  VERSION_NEUTRAL,
 } from '@nestjs/common';
 import { RedisService } from './common/redis/redis.service';
 
-@Controller({
-  version: VERSION_NEUTRAL,
-})
+@Controller()
 export class AppController {
   constructor(private readonly redisService: RedisService) {}
 
   @Get()
-  //@Redirect('/api/docs', 302)
+  @Redirect('/api/docs', 302)
   getRoot() {
     // Redireciona para a documentação
-    return {
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-      service: 'Frame24 API',
-      environment: process.env.NODE_ENV || 'development',
-    };
+    return;
   }
 
   @Get('health')
