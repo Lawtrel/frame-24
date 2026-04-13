@@ -1,22 +1,3 @@
-FROM node:20-alpine AS builder
-
-WORKDIR /app
-
-RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
-
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.base.json ./
-COPY apps/api/package.json ./apps/api/package.json
-COPY packages/db/package.json ./packages/db/package.json
-
-RUN pnpm install --frozen-lockfile --filter api... --filter @repo/db...
-
-COPY apps/api ./apps/api
-COPY packages/db ./packages/db
-COPY scripts/docker/api-entrypoint.sh ./scripts/docker/api-entrypoint.sh
-
-RUN pnpm --filter @repo/db run build
-RUN pnpm --filter api run build
-
 FROM node:20-alpine AS runner
 
 WORKDIR /app
@@ -35,6 +16,9 @@ COPY --from=builder /app/pnpm-workspace.yaml /app/pnpm-workspace.yaml
 COPY --from=builder /app/apps/api/package.json /app/apps/api/package.json
 COPY --from=builder /app/packages/db/package.json /app/packages/db/package.json
 
+COPY --from=builder /app/packages/db/prisma /app/packages/db/prisma
+COPY --from=builder /app/packages/db/prisma.config.ts /app/packages/db/prisma.config.ts
+
 RUN pnpm install --prod --frozen-lockfile --filter api... --filter @repo/db...
 
 RUN pnpm --filter @repo/db run db:generate
@@ -46,11 +30,7 @@ RUN rm -rf /root/.cache/node/corepack \
 
 COPY --from=builder /app/apps/api/dist /app/apps/api/dist
 COPY --from=builder /app/packages/db/dist /app/packages/db/dist
-COPY --from=builder /app/packages/db/prisma /app/packages/db/prisma
-COPY --from=builder /app/packages/db/prisma.config.ts /app/packages/db/prisma.config.ts
 COPY --from=builder /app/scripts/docker/api-entrypoint.sh /app/scripts/docker/api-entrypoint.sh
-
-
 
 RUN chmod +x /app/scripts/docker/api-entrypoint.sh
 
