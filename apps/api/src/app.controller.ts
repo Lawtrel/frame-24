@@ -1,12 +1,14 @@
 import {
   Controller,
   Get,
-  Redirect,
   ServiceUnavailableException,
+  VERSION_NEUTRAL,
 } from '@nestjs/common';
 import { RedisService } from './common/redis/redis.service';
 
-@Controller()
+@Controller({
+  version: VERSION_NEUTRAL,
+})
 export class AppController {
   constructor(private readonly redisService: RedisService) {}
 
