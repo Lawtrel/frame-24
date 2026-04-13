@@ -36,6 +36,13 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Avisar o Coolify para fazer o Deploy
-        run: |
-          curl -k -X GET "${{ secrets.COOLIFY_WEBHOOK }}"
+      - name: Deploy na VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_SSH_HOST }}
+          username: ${{ secrets.VPS_SSH_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /opt/frame24
+            docker compose pull api
+            docker compose up -d api
