@@ -1,9 +1,9 @@
 services:
   api:
     image: ${API_IMAGE:-ghcr.io/lawtrel/frame-24-api:latest}
-    build:
-      context: .
-      dockerfile: dockerfile
+    #build:
+    #  context: .
+    #  dockerfile: dockerfile
     container_name: frame24-api
     restart: unless-stopped
     depends_on:
