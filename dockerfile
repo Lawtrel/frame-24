@@ -44,7 +44,7 @@ COPY --from=builder /app/packages/db/package.json /app/packages/db/package.json
 COPY --from=builder /app/packages/db/prisma /app/packages/db/prisma
 COPY --from=builder /app/packages/db/prisma.config.ts /app/packages/db/prisma.config.ts
 
-RUN pnpm install --prod --frozen-lockfile --filter api... --filter @repo/db...
+RUN pnpm install --frozen-lockfile --filter api... --filter @repo/db...
 
 RUN pnpm --filter @repo/db run db:generate
 
