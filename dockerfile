@@ -14,6 +14,9 @@ COPY apps/api ./apps/api
 COPY packages/db ./packages/db
 COPY scripts/docker/api-entrypoint.sh ./scripts/docker/api-entrypoint.sh
 
+ENV DIRECT_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+
 RUN pnpm --filter @repo/db run build
 RUN pnpm --filter api run build
 
@@ -23,6 +26,9 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=4000
+
+ENV DIRECT_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 
 RUN apk add --no-cache dumb-init openssl \
 	&& apk upgrade --no-cache zlib \
@@ -35,17 +41,19 @@ COPY --from=builder /app/pnpm-workspace.yaml /app/pnpm-workspace.yaml
 COPY --from=builder /app/apps/api/package.json /app/apps/api/package.json
 COPY --from=builder /app/packages/db/package.json /app/packages/db/package.json
 
-RUN pnpm install --prod --frozen-lockfile --filter api... --filter @repo/db...
+COPY --from=builder /app/packages/db/prisma /app/packages/db/prisma
+COPY --from=builder /app/packages/db/prisma.config.ts /app/packages/db/prisma.config.ts
 
-# Runtime does not use npm/corepack; remove their files to reduce CVE surface.
+RUN pnpm install --frozen-lockfile --filter api... --filter @repo/db...
+
+RUN pnpm --filter @repo/db run db:generate
+
 RUN rm -rf /root/.cache/node/corepack \
 	&& rm -rf /usr/local/lib/node_modules/npm \
 	&& rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack /usr/local/bin/pnpm /usr/local/bin/pnpx
 
 COPY --from=builder /app/apps/api/dist /app/apps/api/dist
 COPY --from=builder /app/packages/db/dist /app/packages/db/dist
-COPY --from=builder /app/packages/db/prisma /app/packages/db/prisma
-COPY --from=builder /app/packages/db/prisma.config.ts /app/packages/db/prisma.config.ts
 COPY --from=builder /app/scripts/docker/api-entrypoint.sh /app/scripts/docker/api-entrypoint.sh
 
 RUN chmod +x /app/scripts/docker/api-entrypoint.sh

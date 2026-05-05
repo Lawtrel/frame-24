@@ -1,8 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@repo/db';
 import { randomUUID } from 'node:crypto';
 import * as bcrypt from 'bcrypt';
-
-const prisma = new PrismaClient();
 
 async function main() {
   console.log(`🚀 Iniciando Setup Completo do Ambiente...`);
