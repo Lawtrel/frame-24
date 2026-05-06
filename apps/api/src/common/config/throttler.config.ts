@@ -41,6 +41,21 @@ const throttlers = [
     ttl: 60000,
     limit: limitFor(30, 500),
   },
+  {
+    name: 'checkout',
+    ttl: 60000,
+    limit: limitFor(20, 500),
+  },
+  {
+    name: 'payment',
+    ttl: 60000,
+    limit: limitFor(10, 300),
+  },
+  {
+    name: 'privacy',
+    ttl: 60000,
+    limit: limitFor(3, 100),
+  },
 ] as const;
 
 export function createThrottlerConfig(
