@@ -1,16 +1,19 @@
-import { ExecutionContext } from '@nestjs/common';
+import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { AuthGuard } from '@nestjs/passport';
+import { auth } from 'src/lib/auth';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import { ALLOW_ANONYMOUS_SESSION_KEY } from '../decorators/allow-anonymous-session.decorator';
 import { TenantContextService } from '../services/tenant-context.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { RedisService } from 'src/common/redis/redis.service';
 
 describe('JwtAuthGuard', () => {
   let guard: JwtAuthGuard;
   let reflector: jest.Mocked<Reflector>;
   let tenantContext: jest.Mocked<TenantContextService>;
   let prisma: jest.Mocked<PrismaService>;
+  let redis: jest.Mocked<RedisService>;
 
   beforeEach(() => {
     reflector = {
@@ -22,84 +25,96 @@ describe('JwtAuthGuard', () => {
     } as unknown as jest.Mocked<TenantContextService>;
 
     prisma = {} as jest.Mocked<PrismaService>;
+    redis = {
+      get: jest.fn(),
+      set: jest.fn(),
+    } as unknown as jest.Mocked<RedisService>;
 
-    guard = new JwtAuthGuard(reflector, tenantContext, prisma);
+    guard = new JwtAuthGuard(reflector, tenantContext, prisma, redis);
+
+    jest.spyOn(auth.api, 'getSession').mockResolvedValue(null);
   });
 
-  const createContext = (authorization?: string): ExecutionContext => {
+  const createContext = (headers: Record<string, string> = {}) => {
     const request = {
-      headers: {
-        ...(authorization ? { authorization } : {}),
-      },
+      headers,
+      path: '/api/protected',
     } as any;
 
-    return {
+    const context = {
       getHandler: jest.fn(),
       getClass: jest.fn(),
       switchToHttp: jest.fn().mockReturnValue({
         getRequest: jest.fn().mockReturnValue(request),
       }),
     } as unknown as ExecutionContext;
+
+    return { context, request };
   };
 
-  it('should allow public routes without calling passport strategy', async () => {
-    const context = createContext();
-    reflector.getAllAndOverride.mockReturnValue(true);
+  const mockMetadata = ({
+    isPublic = false,
+    allowAnonymousSession = false,
+  } = {}) => {
+    reflector.getAllAndOverride.mockImplementation((key) => {
+      if (key === IS_PUBLIC_KEY) return isPublic;
+      if (key === ALLOW_ANONYMOUS_SESSION_KEY) return allowAnonymousSession;
+      return undefined;
+    });
+  };
 
-    const parentCanActivate = jest.spyOn(
-      Object.getPrototypeOf(JwtAuthGuard.prototype),
-      'canActivate',
-    );
+  it('should allow public routes without loading a session', async () => {
+    const { context } = createContext();
+    mockMetadata({ isPublic: true });
 
     await expect(guard.canActivate(context)).resolves.toBe(true);
     expect(reflector.getAllAndOverride).toHaveBeenCalledWith(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
-    expect(parentCanActivate).not.toHaveBeenCalled();
+    expect(auth.api.getSession).not.toHaveBeenCalled();
   });
 
-  it('should call passport canActivate for protected routes with bearer token', async () => {
-    const context = createContext('Bearer token');
-    reflector.getAllAndOverride.mockReturnValue(false);
+  it('should reject protected routes without a valid session', async () => {
+    const { context } = createContext();
+    mockMetadata();
 
-    const parentCanActivate = jest
-      .spyOn(Object.getPrototypeOf(JwtAuthGuard.prototype), 'canActivate')
-      .mockReturnValue(true);
+    await expect(guard.canActivate(context)).rejects.toThrow(
+      UnauthorizedException,
+    );
+    expect(tenantContext.setContext).not.toHaveBeenCalled();
+  });
+
+  it('should allow anonymous session routes without a valid session', async () => {
+    const { context } = createContext();
+    mockMetadata({ allowAnonymousSession: true });
 
     await expect(guard.canActivate(context)).resolves.toBe(true);
-    expect(parentCanActivate).toHaveBeenCalledWith(context);
+    expect(tenantContext.setContext).not.toHaveBeenCalled();
   });
 
-  it('should call setContext in handleRequest when user is authenticated', () => {
-    const context = createContext();
+  it('should attach cached authenticated user and set tenant context', async () => {
+    const { context, request } = createContext({
+      'x-company-id': 'company-1',
+    });
     const user = {
       identity_id: 'identity-1',
       company_id: 'company-1',
       company_user_id: 'user-1',
       session_context: 'EMPLOYEE',
-    } as any;
+    };
 
-    jest
-      .spyOn(Object.getPrototypeOf(JwtAuthGuard.prototype), 'handleRequest')
-      .mockReturnValue(user);
+    mockMetadata();
+    jest.spyOn(auth.api, 'getSession').mockResolvedValue({
+      user: { email: 'user@example.com' },
+    });
+    redis.get.mockResolvedValue(JSON.stringify(user));
 
-    const result = guard.handleRequest(null, user, null, context);
-
-    expect(result).toBe(user);
+    await expect(guard.canActivate(context)).resolves.toBe(true);
+    expect(request.user).toEqual(user);
     expect(tenantContext.setContext).toHaveBeenCalledWith(user);
-  });
-
-  it('should not call setContext when authenticated user is empty', () => {
-    const context = createContext();
-
-    jest
-      .spyOn(Object.getPrototypeOf(JwtAuthGuard.prototype), 'handleRequest')
-      .mockReturnValue(undefined);
-
-    const result = guard.handleRequest(null, undefined as any, null, context);
-
-    expect(result).toBeUndefined();
-    expect(tenantContext.setContext).not.toHaveBeenCalled();
+    expect(redis.get).toHaveBeenCalledWith(
+      'auth:user:user@example.com:company-1:none:false',
+    );
   });
 });

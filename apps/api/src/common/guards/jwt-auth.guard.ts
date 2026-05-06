@@ -2,13 +2,14 @@ import {
   Injectable,
   ExecutionContext,
   UnauthorizedException,
+  CanActivate,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { ALLOW_ANONYMOUS_SESSION_KEY } from '../decorators/allow-anonymous-session.decorator';
 import { TenantContextService } from '../services/tenant-context.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { RedisService } from 'src/common/redis/redis.service';
 import type {
   RequestUser,
   CustomerUser,
@@ -16,17 +17,15 @@ import type {
 import type { Request } from 'express';
 import { auth } from 'src/lib/auth';
 import { fromNodeHeaders } from 'better-auth/node';
-import { firstValueFrom, isObservable } from 'rxjs';
 
 @Injectable()
-export class JwtAuthGuard extends AuthGuard('local-jwt') {
+export class JwtAuthGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
     private readonly tenantContext: TenantContextService,
     private readonly prisma: PrismaService,
-  ) {
-    super();
-  }
+    private readonly redis: RedisService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
@@ -43,20 +42,6 @@ export class JwtAuthGuard extends AuthGuard('local-jwt') {
     }
 
     const req = context.switchToHttp().getRequest<Request>();
-    const authHeader = req.headers.authorization;
-    const hasBearerToken =
-      typeof authHeader === 'string' && authHeader.startsWith('Bearer ');
-
-    if (hasBearerToken) {
-      const result = super.canActivate(context);
-      if (result instanceof Promise) {
-        return await result;
-      }
-      if (isObservable(result)) {
-        return await firstValueFrom(result);
-      }
-      return result;
-    }
 
     const session = await auth.api.getSession({
       headers: fromNodeHeaders(req.headers),
@@ -105,6 +90,16 @@ export class JwtAuthGuard extends AuthGuard('local-jwt') {
       : requestedTenantSlugHeader;
     const preferCustomerContext = requestPath.includes('/customer');
 
+    const cacheKey = `auth:user:${email}:${requestedCompanyId || 'none'}:${requestedTenantSlug || 'none'}:${preferCustomerContext}`;
+    const cachedData = await this.redis.get(cacheKey);
+    if (cachedData) {
+      try {
+        return JSON.parse(cachedData) as RequestUser | CustomerUser;
+      } catch (e) {
+        // Ignorar erro de parse e seguir com consulta
+      }
+    }
+
     const identities = await this.prisma.identities.findMany({
       where: {
         email: email.trim().toLowerCase(),
@@ -130,6 +125,7 @@ export class JwtAuthGuard extends AuthGuard('local-jwt') {
           requestedTenantSlug,
         );
         if (customerUser) {
+          await this.redis.set(cacheKey, JSON.stringify(customerUser), 300);
           return customerUser;
         }
       }
@@ -142,6 +138,7 @@ export class JwtAuthGuard extends AuthGuard('local-jwt') {
         requestedTenantSlug,
       );
       if (employeeUser) {
+        await this.redis.set(cacheKey, JSON.stringify(employeeUser), 300);
         return employeeUser;
       }
     }
@@ -153,6 +150,7 @@ export class JwtAuthGuard extends AuthGuard('local-jwt') {
         requestedTenantSlug,
       );
       if (customerUser) {
+        await this.redis.set(cacheKey, JSON.stringify(customerUser), 300);
         return customerUser;
       }
     }
@@ -298,23 +296,5 @@ export class JwtAuthGuard extends AuthGuard('local-jwt') {
     return null;
   }
 
-  handleRequest<TUser extends RequestUser | CustomerUser>(
-    err: unknown,
-    user: TUser,
-    info: unknown,
-    context: ExecutionContext,
-  ): TUser {
-    const authenticatedUser = super.handleRequest<TUser>(
-      err,
-      user,
-      info,
-      context,
-    );
-
-    if (authenticatedUser) {
-      this.tenantContext.setContext(authenticatedUser);
-    }
-
-    return authenticatedUser;
-  }
+  // handleRequest removed as it is specific to AuthGuard('local-jwt')
 }

@@ -243,11 +243,13 @@ describe('PublicService', () => {
       { id: 'cx-1' },
     ] as never);
     const future = new Date(Date.now() + 60 * 60 * 1000);
+    const futureEnd = new Date(future.getTime() + 120 * 60 * 1000);
     (prisma.showtime_schedule.findMany as jest.Mock).mockResolvedValue([
       {
         id: 'show-1',
         movie_id: 'm1',
         start_time: future,
+        end_time: futureEnd,
         cinema_complexes: { id: 'cx-1', name: 'Complexo', address: 'Rua A' },
         rooms: { id: 'room-1', name: 'Sala 1', room_number: 1 },
         projection_types: { id: 'p1', name: '2D' },
