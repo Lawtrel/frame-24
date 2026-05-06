@@ -126,22 +126,34 @@ export const GlobalSearchCombobox = ({
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
 
     const run = async () => {
+      if (!deferredQuery.trim()) {
+        return initialItems;
+      }
+
       const results = tenantSlug
-        ? await getTenantSearch(tenantSlug, deferredQuery, currentCitySlug)
-        : await searchStorefront(deferredQuery, currentCitySlug);
+        ? await getTenantSearch(tenantSlug, deferredQuery, currentCitySlug, controller.signal)
+        : await searchStorefront(deferredQuery, currentCitySlug, undefined, controller.signal);
+      return results;
+    };
+
+    run().then((results) => {
       if (!cancelled) {
         setItems(results);
       }
-    };
-
-    void run();
+    }).catch(() => {
+      if (!cancelled) {
+        setItems(initialItems);
+      }
+    });
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
-  }, [currentCitySlug, deferredQuery, tenantSlug]);
+  }, [currentCitySlug, deferredQuery, initialItems, tenantSlug]);
 
   const quickTerms = useMemo(
     () =>

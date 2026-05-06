@@ -281,8 +281,22 @@ export const getTenantShowtimeSeats = async (showtimeId: string) => {
   };
 };
 
-export const getTenantSearch = async (tenantSlug: string, query: string, citySlug?: string) => {
-  const response = await publicApi.publicControllerSearchTenantStorefrontV1({ tenantSlug, query, citySlug });
+export const getTenantSearch = async (
+  tenantSlug: string,
+  query: string,
+  citySlug?: string,
+  signal?: AbortSignal,
+) => {
+  if (!query.trim()) {
+    return [];
+  }
+
+  const response = await publicApi.publicControllerSearchTenantStorefrontV1({
+    tenantSlug,
+    query,
+    citySlug,
+    signal,
+  });
   return asArray(response.data).map((item) => asRecord(item) as unknown as SearchItem);
 };
 

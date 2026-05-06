@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { buildSecurityHeaders } from "../security-headers";
 
 const webRoot = process.cwd();
 
@@ -24,5 +25,33 @@ test("tenant production flow does not import mocked storefront data or external 
     expect(source, file).not.toContain("storefront/data");
     expect(source, file).not.toContain("api.qrserver.com");
     expect(source, file).not.toContain("FRAME24-QR-DEMO");
+  }
+});
+
+test("web security headers allow local API connections outside production", () => {
+  const headers = buildSecurityHeaders({
+    nodeEnv: "development",
+    apiUrl: "http://localhost:4000",
+    socketUrl: "http://localhost:4000",
+    authUrl: "http://localhost:4000",
+  });
+  const csp = headers.find((header) => header.key === "Content-Security-Policy")?.value ?? "";
+
+  expect(csp).toContain("connect-src");
+  expect(csp).toContain("http://localhost:4000");
+  expect(csp).toContain("ws://localhost:4000");
+  expect(headers.some((header) => header.key === "Strict-Transport-Security")).toBe(false);
+});
+
+test("search effects handle request failures instead of floating rejections", () => {
+  const filesWithSearchEffects = [
+    "src/components/layout/global-search-combobox.tsx",
+    "src/components/cinema/search-suggest.tsx",
+  ];
+
+  for (const file of filesWithSearchEffects) {
+    const source = readFileSync(join(webRoot, file), "utf8");
+    expect(source, file).not.toContain("void run();");
+    expect(source, file).toContain(".catch(");
   }
 });

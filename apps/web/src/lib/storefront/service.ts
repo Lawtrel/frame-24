@@ -337,13 +337,14 @@ export const searchStorefront = async (
   query: string,
   citySlug?: string,
   tenantSlug?: string,
+  signal?: AbortSignal,
 ): Promise<SearchItem[]> => {
   const resolvedTenant = resolveTenant(tenantSlug);
-  if (!resolvedTenant) {
+  if (!resolvedTenant || !query.trim()) {
     return [];
   }
 
-  return getTenantSearch(resolvedTenant, query, citySlug);
+  return getTenantSearch(resolvedTenant, query, citySlug, signal);
 };
 
 export const getSaleDetails = async (reference: string, tenantSlug?: string) =>

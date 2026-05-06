@@ -19,20 +19,37 @@ export const SearchSuggest = ({
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
 
     const run = async () => {
-      const results = await searchStorefront(deferredQuery, undefined, tenantSlug);
+      if (!deferredQuery.trim()) {
+        return initialItems;
+      }
+
+      const results = await searchStorefront(
+        deferredQuery,
+        undefined,
+        tenantSlug,
+        controller.signal,
+      );
+      return results;
+    };
+
+    run().then((results) => {
       if (!cancelled) {
         setItems(results);
       }
-    };
-
-    void run();
+    }).catch(() => {
+      if (!cancelled) {
+        setItems(initialItems);
+      }
+    });
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
-  }, [deferredQuery, tenantSlug]);
+  }, [deferredQuery, initialItems, tenantSlug]);
 
   return (
     <div className="space-y-4">

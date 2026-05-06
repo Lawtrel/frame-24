@@ -10,6 +10,7 @@ const RETRY_DELAY_BASE_MS = 500;
 const RETRYABLE_STATUS_CODES = new Set([502, 503, 504, 408, 429]);
 
 function isRetryable(error: AxiosError): boolean {
+  if (error.code === 'ERR_CANCELED') return false;
   if (!error.response) return true; // Network error
   return RETRYABLE_STATUS_CODES.has(error.response.status);
 }
@@ -228,12 +229,15 @@ export const publicApi = {
     tenantSlug,
     query,
     citySlug,
+    signal,
   }: TenantParams & {
     query: string;
     citySlug?: string;
+    signal?: AbortSignal;
     }): Promise<ApiResponse<ApiList>> =>
     apiInstance.get(`/v1/public/companies/${tenantSlug}/search`, {
       params: { q: query, city_slug: citySlug },
+      signal,
     }),
 
   publicControllerGetTicketTypesV1: ({
