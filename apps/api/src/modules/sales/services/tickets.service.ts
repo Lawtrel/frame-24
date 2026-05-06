@@ -13,6 +13,7 @@ import { SessionSeatStatusRepository } from 'src/modules/operations/session_seat
 import { SeatStatusRepository } from 'src/modules/operations/seat-status/repositories/seat-status.repository';
 import { SeatsRepository } from 'src/modules/operations/seats/repositories/seats.repository';
 import { LoggerService } from 'src/common/services/logger.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 type TicketsExecutionContext = {
   companyId?: string;
@@ -21,6 +22,7 @@ type TicketsExecutionContext = {
 type ValidateAndReserveSeatsInput = {
   showtimeId: string;
   seatIds: string[];
+  reservationUuid?: string;
   context?: TicketsExecutionContext;
 };
 
@@ -28,6 +30,7 @@ type ReserveSeatsInput = {
   showtimeId: string;
   seatIds: string[];
   saleId: string;
+  reservationUuid?: string;
   context?: TicketsExecutionContext;
 };
 
@@ -54,6 +57,7 @@ export class TicketsService {
     public readonly seatsRepository: SeatsRepository,
     private readonly logger: LoggerService,
     private readonly cls: ClsService,
+    private readonly prisma: PrismaService,
   ) {}
 
   private resolveCompanyId(context?: TicketsExecutionContext): string {
@@ -67,7 +71,7 @@ export class TicketsService {
   async validateAndReserveSeats(
     input: ValidateAndReserveSeatsInput,
   ): Promise<void> {
-    const { showtimeId, seatIds, context } = input;
+    const { showtimeId, seatIds, reservationUuid, context } = input;
     const companyId = this.resolveCompanyId(context);
 
     // Validar sessão
@@ -84,6 +88,29 @@ export class TicketsService {
     // Validar que a sessão ainda não começou
     if (new Date(showtime.start_time) < new Date()) {
       throw new BadRequestException('A sessão já começou');
+    }
+
+    // Task 5 — Verificar classificação indicativa do filme
+    if (showtime.movie_id) {
+      const movie = await this.prisma.movies.findUnique({
+        where: { id: showtime.movie_id },
+        select: {
+          age_rating: {
+            select: { minimum_age: true, name: true, code: true },
+          },
+          brazil_title: true,
+          original_title: true,
+        },
+      });
+
+      if (movie?.age_rating?.minimum_age && movie.age_rating.minimum_age >= 18) {
+        this.logger.warn(
+          `Venda de ingresso para filme com classificação ${movie.age_rating.code || movie.age_rating.name} ` +
+            `(${movie.age_rating.minimum_age}+): "${movie.brazil_title || movie.original_title}" ` +
+            `— sessão ${showtimeId}`,
+          TicketsService.name,
+        );
+      }
     }
 
     // Buscar status "vendido" ou "ocupado"
@@ -124,9 +151,19 @@ export class TicketsService {
       }
 
       // Verificar se o assento já está vendido/ocupado
+      const isSameActiveReservation =
+        reservationUuid &&
+        sessionSeatStatus.reservation_uuid === reservationUuid &&
+        sessionSeatStatus.expiration_date &&
+        sessionSeatStatus.expiration_date > new Date();
+
       if (
-        sessionSeatStatus.status === reservedStatusId ||
-        sessionSeatStatus.sale_id
+        !isSameActiveReservation &&
+        (sessionSeatStatus.status === reservedStatusId ||
+          sessionSeatStatus.sale_id ||
+          (sessionSeatStatus.reservation_uuid &&
+            sessionSeatStatus.expiration_date &&
+            sessionSeatStatus.expiration_date > new Date()))
       ) {
         throw new ConflictException(
           `Assento ${seat.seat_code} já está ocupado`,
@@ -137,7 +174,7 @@ export class TicketsService {
 
   @Transactional()
   async reserveSeats(input: ReserveSeatsInput): Promise<void> {
-    const { showtimeId, seatIds, saleId, context } = input;
+    const { showtimeId, seatIds, saleId, reservationUuid, context } = input;
     const companyId = this.resolveCompanyId(context);
 
     // Buscar status "vendido"
@@ -153,16 +190,25 @@ export class TicketsService {
     }
 
     const now = new Date();
+    const availabilityGuard = reservationUuid
+      ? {
+          reservation_uuid: reservationUuid,
+          expiration_date: { gt: now },
+        }
+      : {
+          OR: [
+            { reservation_uuid: null },
+            { expiration_date: null },
+            { expiration_date: { lte: now } },
+          ],
+        };
+
     const seatUpdate = await this.sessionSeatStatusRepository.updateMany(
       {
         showtime_id: showtimeId,
         seat_id: { in: seatIds },
         sale_id: null,
-        OR: [
-          { reservation_uuid: null },
-          { expiration_date: null },
-          { expiration_date: { lte: now } },
-        ],
+        ...availabilityGuard,
       },
       {
         status: soldStatus.id,

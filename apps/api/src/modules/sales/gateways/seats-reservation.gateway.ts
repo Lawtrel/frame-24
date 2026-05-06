@@ -17,6 +17,7 @@ import { OnModuleInit } from '@nestjs/common';
 import jwt from 'jsonwebtoken';
 import { auth } from 'src/lib/auth';
 import { fromNodeHeaders } from 'better-auth/node';
+import { isAllowedFrontendOrigin } from 'src/common/config/frontend-origins.config';
 
 interface JwtPayloadWithClaims {
   sub?: string;
@@ -48,20 +49,6 @@ interface SocketUserContext {
   tenant_slug?: string;
 }
 
-const isDev = process.env.NODE_ENV !== 'production';
-const wsFrontendUrls = process.env.FRONTEND_URL
-  ? process.env.FRONTEND_URL.split(',').map((url) => url.trim())
-  : [];
-const wsDevOrigins = isDev
-  ? [
-      'http://localhost:3000',
-      'http://localhost:3002',
-      'http://localhost:3004',
-      'http://localhost:4000',
-    ]
-  : [];
-const wsAllowedOrigins = [...wsDevOrigins, ...wsFrontendUrls].filter(Boolean);
-
 const websocketCorsConfig = {
   origin: (
     origin: string | undefined,
@@ -70,7 +57,7 @@ const websocketCorsConfig = {
     // Allow non-browser clients without origin.
     if (!origin) return callback(null, true);
 
-    if (wsAllowedOrigins.includes(origin)) {
+    if (isAllowedFrontendOrigin(origin)) {
       callback(null, true);
       return;
     }
@@ -262,7 +249,7 @@ export class SeatsReservationGateway
   }
 
   async onModuleInit() {
-    await this.loadActiveReservations();
+    void this.loadActiveReservations();
   }
 
   private async loadActiveReservations() {

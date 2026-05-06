@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
+import { Prisma } from '@repo/db';
 import { randomUUID } from 'crypto';
 import { Request, Response } from 'express';
 
@@ -122,6 +123,40 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
       if (code === 'INTERNAL_SERVER_ERROR') {
         code = HttpStatus[status] || 'HTTP_ERROR';
+      }
+    } else if (
+      exception instanceof Prisma.PrismaClientKnownRequestError
+    ) {
+      // Map Prisma database errors to meaningful HTTP responses
+      switch (exception.code) {
+        case 'P2002': {
+          // Unique constraint violation
+          status = HttpStatus.CONFLICT;
+          code = 'UNIQUE_CONSTRAINT_VIOLATION';
+          const target = (exception.meta?.target as string[]) ?? [];
+          message = target.length > 0
+            ? `Registro duplicado: ${target.join(', ')}`
+            : 'Registro duplicado.';
+          break;
+        }
+        case 'P2025': {
+          // Record not found
+          status = HttpStatus.NOT_FOUND;
+          code = 'RECORD_NOT_FOUND';
+          message = 'Registro não encontrado.';
+          break;
+        }
+        case 'P2003': {
+          // Foreign key constraint violation
+          status = HttpStatus.CONFLICT;
+          code = 'FOREIGN_KEY_CONSTRAINT';
+          message = 'Não é possível realizar a operação: registro referenciado por outros dados.';
+          break;
+        }
+        default: {
+          code = `PRISMA_${exception.code}`;
+          message = 'Erro ao processar operação no banco de dados.';
+        }
       }
     }
 

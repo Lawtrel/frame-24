@@ -1,6 +1,8 @@
 # Ficheiros e pastas a serem ignorados pelo Docker
+node_modules/
 node_modules
 **/node_modules
+.pnpm-store
 **/.turbo
 dist
 **/dist

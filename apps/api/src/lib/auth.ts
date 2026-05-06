@@ -3,6 +3,7 @@ import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { PrismaClient, getPrismaClientOptions } from '@repo/db';
 import { requireEnv } from 'src/config/env.util';
 import { validateEnvironment } from 'src/config/validate-env';
+import { getTrustedFrontendOrigins } from 'src/common/config/frontend-origins.config';
 
 validateEnvironment();
 
@@ -41,20 +42,7 @@ function resolveBetterAuthBaseURL(): string {
 }
 
 function resolveTrustedOrigins(): string[] {
-  const origins = (process.env.FRONTEND_URL ?? '')
-    .split(',')
-    .map((origin) => origin.trim())
-    .filter(Boolean);
-
-  if (process.env.NODE_ENV !== 'production') {
-    origins.push(
-      'http://localhost:3000',
-      'http://localhost:3003',
-      'http://localhost:3004',
-    );
-  }
-
-  return Array.from(new Set(origins));
+  return getTrustedFrontendOrigins();
 }
 
 export const auth = betterAuth({

@@ -8,6 +8,7 @@ function createRedisClient() {
 
   if (redisUrl) {
     return new Redis(redisUrl, {
+      password: process.env.REDIS_PASSWORD || undefined,
       maxRetriesPerRequest: null,
       enableReadyCheck: true,
       lazyConnect: true,
