@@ -18,8 +18,7 @@ export const e2eEnv = {
   apiBaseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000",
   customerEmail:
     process.env.E2E_CUSTOMER_EMAIL || "cliente.e2e@frame24.local",
-  customerPassword:
-    process.env.E2E_CUSTOMER_PASSWORD,
+  customerPassword: process.env.E2E_CUSTOMER_PASSWORD,
 };
 
 export const requireEnv = (...keys: Array<keyof typeof e2eEnv>) => {

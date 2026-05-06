@@ -55,3 +55,20 @@ test("search effects handle request failures instead of floating rejections", ()
     expect(source, file).toContain(".catch(");
   }
 });
+
+test("E2E customer credentials are read from environment only", () => {
+  const credentialFiles = [
+    "e2e/helpers/e2e-env.ts",
+    "../api/src/scripts/seed-web-e2e.ts",
+  ];
+
+  for (const file of credentialFiles) {
+    const source = readFileSync(join(webRoot, file), "utf8");
+
+    expect(source, file).not.toMatch(/customerPassword:\s*(?:\r?\n\s*)?['"`]/);
+    expect(source, file).not.toMatch(/E2E_CUSTOMER_PASSWORD\s*\|\|\s*['"`]/);
+    expect(source, file).not.toMatch(
+      /customerPassword:\s*FIXTURE\.customerPassword/,
+    );
+  }
+});

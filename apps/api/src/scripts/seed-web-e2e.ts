@@ -5,6 +5,16 @@ import { toTenantAuthEmail } from 'src/modules/crm/utils/tenant-auth-email';
 
 const prisma = createPrismaClient();
 
+function requireEnv(name: string) {
+  const value = process.env[name];
+
+  if (!value) {
+    throw new Error(`${name} is required to seed web E2E fixtures.`);
+  }
+
+  return value;
+}
+
 const ids = {
   company: '11111111-1111-4111-8111-111111111111',
   complexSalvador: '22222222-2222-4222-8222-222222222222',
@@ -120,7 +130,7 @@ const FIXTURE = {
   secondCitySlug: 'feira-de-santana',
   movieSlug: 'aventuras-no-atlantico',
   customerEmail: 'cliente.e2e@frame24.local',
-  customerPassword: process.env.E2E_CUSTOMER_PASSWORD ?? '',
+  customerPassword: requireEnv('E2E_CUSTOMER_PASSWORD'),
   customerName: 'Cliente E2E Frame24',
   customerCpf: '12345678901',
   customerPhone: '71999990000',
@@ -2452,7 +2462,7 @@ async function main() {
         stockCheckoutDesktopId: ids.checkoutStockDesktop,
         stockCheckoutMobileId: ids.checkoutStockMobile,
         customerEmail: FIXTURE.customerEmail,
-        customerPassword: FIXTURE.customerPassword,
+        customerPasswordEnv: 'E2E_CUSTOMER_PASSWORD',
       },
       null,
       2,
