@@ -1,12 +1,27 @@
-import axios from 'axios';
+import axios, { type AxiosError } from 'axios';
 import {
   getTenantSlugFromHost,
   getTenantSlugFromPathname,
 } from '@/lib/tenant-routing';
 
+const MAX_RETRIES = 3;
+const RETRY_DELAY_BASE_MS = 500;
+
+const RETRYABLE_STATUS_CODES = new Set([502, 503, 504, 408, 429]);
+
+function isRetryable(error: AxiosError): boolean {
+  if (!error.response) return true; // Network error
+  return RETRYABLE_STATUS_CODES.has(error.response.status);
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 const apiInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000',
   withCredentials: true,
+  timeout: 15_000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -30,6 +45,44 @@ apiInstance.interceptors.request.use((config) => {
   }
 
   return config;
+});
+
+// Retry interceptor for transient failures (5xx, network errors)
+apiInstance.interceptors.response.use(undefined, async (error: AxiosError) => {
+  const config = error.config;
+  if (!config) return Promise.reject(error);
+
+  const configRecord = config as unknown as Record<string, unknown>;
+  const retryCount = (configRecord.__retryCount as number) ?? 0;
+
+  if (retryCount >= MAX_RETRIES || !isRetryable(error)) {
+    return Promise.reject(error);
+  }
+
+  configRecord.__retryCount = retryCount + 1;
+
+  // Exponential backoff with jitter
+  const backoff =
+    RETRY_DELAY_BASE_MS * Math.pow(2, retryCount) + Math.random() * 200;
+  await delay(backoff);
+
+  return apiInstance(config);
+});
+
+// 401 interceptor — handle session expiration
+apiInstance.interceptors.response.use(undefined, (error: AxiosError) => {
+  if (
+    error.response?.status === 401 &&
+    typeof window !== 'undefined' &&
+    !error.config?.url?.includes('/api/auth')
+  ) {
+    // Redirect to login on session expiration
+    const currentPath = window.location.pathname;
+    if (!currentPath.includes('/login') && !currentPath.includes('/cadastro')) {
+      window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
+    }
+  }
+  return Promise.reject(error);
 });
 
 type ApiResponse<T = unknown> = { data: T };
