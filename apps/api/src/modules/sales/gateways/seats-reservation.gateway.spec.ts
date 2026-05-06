@@ -91,7 +91,7 @@ describe('SeatsReservationGateway', () => {
     jest.restoreAllMocks();
   });
 
-  it('should load active reservations on module init', async () => {
+  it('should load active reservations without blocking module init', async () => {
     sessionSeatStatusFindMany.mockResolvedValue([
       {
         showtime_id: 'show-1',
@@ -109,7 +109,8 @@ describe('SeatsReservationGateway', () => {
       },
     ] as never);
 
-    await gateway.onModuleInit();
+    await expect(gateway.onModuleInit()).resolves.toBeUndefined();
+    await new Promise((resolve) => setImmediate(resolve));
 
     const reservations = (gateway as any).reservations as Map<string, any>;
     expect(reservations.get('res-1').seat_ids).toEqual(['A1', 'A2']);
