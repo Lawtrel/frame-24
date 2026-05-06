@@ -13,6 +13,7 @@ import { SessionSeatStatusRepository } from 'src/modules/operations/session_seat
 import { SeatStatusRepository } from 'src/modules/operations/seat-status/repositories/seat-status.repository';
 import { SeatsRepository } from 'src/modules/operations/seats/repositories/seats.repository';
 import { LoggerService } from 'src/common/services/logger.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 type TicketsExecutionContext = {
   companyId?: string;
@@ -56,6 +57,7 @@ export class TicketsService {
     public readonly seatsRepository: SeatsRepository,
     private readonly logger: LoggerService,
     private readonly cls: ClsService,
+    private readonly prisma: PrismaService,
   ) {}
 
   private resolveCompanyId(context?: TicketsExecutionContext): string {
@@ -86,6 +88,29 @@ export class TicketsService {
     // Validar que a sessão ainda não começou
     if (new Date(showtime.start_time) < new Date()) {
       throw new BadRequestException('A sessão já começou');
+    }
+
+    // Task 5 — Verificar classificação indicativa do filme
+    if (showtime.movie_id) {
+      const movie = await this.prisma.movies.findUnique({
+        where: { id: showtime.movie_id },
+        select: {
+          age_rating: {
+            select: { minimum_age: true, name: true, code: true },
+          },
+          brazil_title: true,
+          original_title: true,
+        },
+      });
+
+      if (movie?.age_rating?.minimum_age && movie.age_rating.minimum_age >= 18) {
+        this.logger.warn(
+          `Venda de ingresso para filme com classificação ${movie.age_rating.code || movie.age_rating.name} ` +
+            `(${movie.age_rating.minimum_age}+): "${movie.brazil_title || movie.original_title}" ` +
+            `— sessão ${showtimeId}`,
+          TicketsService.name,
+        );
+      }
     }
 
     // Buscar status "vendido" ou "ocupado"
