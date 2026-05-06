@@ -47,8 +47,7 @@ model companies {
 
   @@index([cnpj])
   @@index([tenant_slug])
-  @@index([active])
-  @@index([suspended])
+  @@index([active, suspended])
   @@index([plan_expires_at])
   @@schema("identity")
 }
@@ -394,8 +393,8 @@ model employees {
   created_at                DateTime?                 @default(now()) @db.Timestamp(0)
   updated_at                DateTime?                 @updatedAt @db.Timestamp(0)
   managed_departments       departments[]             @relation("ManagedDepartments")
-  employment_contract_types employment_contract_types @relation(fields: [contract_type], references: [id])
-  positions                 positions                 @relation(fields: [position_id], references: [id])
+  employment_contract_types employment_contract_types @relation(fields: [contract_type], references: [id], onDelete: Restrict)
+  positions                 positions                 @relation(fields: [position_id], references: [id], onDelete: Restrict)
 
   @@index([person_id])
   @@index([company_id])
@@ -652,19 +651,20 @@ model monthly_income_statement {
 }
 
 model contingency_reserves {
-  id               String    @id @default(uuid())
-  complex_id       String
-  contingency_type String?
-  reserve_amount   Decimal   @db.Decimal(15, 2)
-  reason           String
-  inclusion_date   DateTime  @db.Date
-  clearance_date   DateTime? @db.Date
-  status           String?
-  notes            String?
-  created_at       DateTime? @default(now())
+  id                  String              @id @default(uuid())
+  complex_id          String
+  contingency_type    String?
+  reserve_amount      Decimal             @db.Decimal(15, 2)
+  reason              String
+  inclusion_date      DateTime            @db.Date
+  clearance_date      DateTime?           @db.Date
+  status              String?
+  notes               String?
+  created_at          DateTime?           @default(now())
+  contingency_types   contingency_types?  @relation(fields: [contingency_type], references: [id])
+  contingency_status  contingency_status? @relation(fields: [status], references: [id])
 
   @@index([complex_id])
-  @@index([status])
   @@index([complex_id, status])
   @@index([contingency_type])
   @@index([clearance_date])
@@ -672,11 +672,12 @@ model contingency_reserves {
 }
 
 model contingency_types {
-  id          String    @id @default(uuid())
-  company_id  String
-  name        String    @db.VarChar(100)
-  description String?
-  created_at  DateTime? @default(now())
+  id                    String                  @id @default(uuid())
+  company_id            String
+  name                  String                  @db.VarChar(100)
+  description           String?
+  created_at            DateTime?               @default(now())
+  contingency_reserves  contingency_reserves[]
 
   @@unique([company_id, name])
   @@index([company_id])
@@ -684,11 +685,12 @@ model contingency_types {
 }
 
 model contingency_status {
-  id          String    @id @default(uuid())
-  company_id  String
-  name        String    @db.VarChar(50)
-  description String?
-  created_at  DateTime? @default(now())
+  id                    String                  @id @default(uuid())
+  company_id            String
+  name                  String                  @db.VarChar(50)
+  description           String?
+  created_at            DateTime?               @default(now())
+  contingency_reserves  contingency_reserves[]
 
   @@unique([company_id, name])
   @@index([company_id])
@@ -1072,9 +1074,9 @@ model sales {
   created_at          DateTime?          @default(now())
   concession_sales    concession_sales[]
   promotions_used     promotions_used[]
-  payment_methods     payment_methods    @relation(fields: [payment_method], references: [id])
-  sale_types          sale_types         @relation(fields: [sale_type], references: [id])
-  sale_status         sale_status        @relation(fields: [status], references: [id])
+  payment_methods     payment_methods    @relation(fields: [payment_method], references: [id], onDelete: Restrict)
+  sale_types          sale_types         @relation(fields: [sale_type], references: [id], onDelete: Restrict)
+  sale_status         sale_status        @relation(fields: [status], references: [id], onDelete: Restrict)
   tickets             tickets[]
 
   @@index([cinema_complex_id])
@@ -1519,9 +1521,9 @@ model showtime_schedule {
   context_features      showtime_context_features?
   recommendation_events recommendation_events[]
   audio_types           audio_types?               @relation(fields: [audio_type], references: [id])
-  cinema_complexes      cinema_complexes           @relation(fields: [cinema_complex_id], references: [id])
+  cinema_complexes      cinema_complexes           @relation(fields: [cinema_complex_id], references: [id], onDelete: Restrict)
   projection_types      projection_types?          @relation(fields: [projection_type], references: [id])
-  rooms                 rooms                      @relation(fields: [room_id], references: [id])
+  rooms                 rooms                      @relation(fields: [room_id], references: [id], onDelete: Restrict)
   session_languages     session_languages?         @relation(fields: [session_language], references: [id])
   session_status        session_status?            @relation(fields: [status], references: [id])
 
@@ -1533,6 +1535,7 @@ model showtime_schedule {
   @@index([projection_type])
   @@index([audio_type])
   @@index([session_language])
+  @@index([room_id, start_time, end_time], name: "idx_showtime_overlap_check")
   @@schema("operations")
 }
 
@@ -2803,6 +2806,9 @@ model receivable_transactions {
   created_at            DateTime?           @default(now())
   account               accounts_receivable @relation(fields: [account_receivable_id], references: [id])
 
+  @@index([account_receivable_id])
+  @@index([transaction_date])
+  @@index([bank_account_id])
   @@schema("finance")
 }
 
@@ -2817,6 +2823,9 @@ model payable_transactions {
   created_at         DateTime?        @default(now())
   account            accounts_payable @relation(fields: [account_payable_id], references: [id])
 
+  @@index([account_payable_id])
+  @@index([transaction_date])
+  @@index([bank_account_id])
   @@schema("finance")
 }
 
