@@ -5,6 +5,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { assertValidStatusTransition } from './session-status-machine';
+import { LoggerService } from 'src/common/services/logger.service';
 import { TenantContextService } from 'src/common/services/tenant-context.service';
 import {
   movies,
@@ -163,6 +165,7 @@ export class ShowtimesService {
     private readonly cacheService: CacheService,
     private readonly tenantContext: TenantContextService,
     private readonly tenantResource: TenantResourceService,
+    private readonly logger: LoggerService,
   ) {}
 
   async findOne(id: string): Promise<ShowtimeDetailsDto> {
@@ -206,6 +209,8 @@ export class ShowtimesService {
     movie_id?: string;
     start_time?: Date;
     status?: string;
+    page?: number;
+    limit?: number;
   }): Promise<Awaited<ReturnType<ShowtimesRepository['findAll']>>> {
     const companyId = this.tenantContext.getCompanyId();
     await Promise.all([
@@ -240,7 +245,10 @@ export class ShowtimesService {
       ...(filters?.status && { status: filters.status }),
     };
 
-    return this.showtimesRepository.findAll(where);
+    const page = filters?.page ?? 1;
+    const limit = Math.min(filters?.limit ?? 100, 100);
+
+    return this.showtimesRepository.findAll(where, page, limit);
   }
 
   async preview(dto: CreateShowtimeDto): Promise<ShowtimeFinancialBreakdown> {
@@ -786,6 +794,50 @@ export class ShowtimesService {
     let newStartTime = new Date(existingShowtime.start_time);
     let newEndTime = new Date(existingShowtime.end_time);
 
+    // Task 2 — Validar transição de status via state machine
+    if (dto.status && existingShowtime.status) {
+      const targetStatus = await this.sessionStatusRepository.findById(
+        dto.status,
+      );
+      if (targetStatus) {
+        assertValidStatusTransition(
+          existingShowtime.status.name,
+          targetStatus.name,
+        );
+      }
+    }
+
+    // Task 1 — Detectar alterações críticas em sessões com ingressos vendidos
+    const soldSeats = existingShowtime.sold_seats ?? 0;
+    const hasTimeChange =
+      dto.start_time &&
+      new Date(dto.start_time).getTime() !==
+        new Date(existingShowtime.start_time).getTime();
+
+    if (soldSeats > 0 && hasTimeChange) {
+      this.logger.warn(
+        `Sessão ${id} alterada com ${soldSeats} ingressos vendidos. ` +
+          `Horário: ${existingShowtime.start_time} → ${dto.start_time?.toISOString()}`,
+        ShowtimesService.name,
+      );
+
+      // Publicar evento para notificar compradores afetados
+      await this.rabbitmq.publish({
+        pattern: 'audit.showtime.modified_with_tickets',
+        data: {
+          id,
+          sold_seats: soldSeats,
+          old_start_time: existingShowtime.start_time,
+          new_start_time: dto.start_time?.toISOString(),
+          old_room: existingShowtime.room,
+          changes: {
+            time_changed: hasTimeChange,
+          },
+        },
+        metadata: { companyId, userId },
+      });
+    }
+
     if (dto.start_time) {
       if (dto.start_time < new Date()) {
         throw new BadRequestException(
@@ -887,6 +939,11 @@ export class ShowtimesService {
     const companyId = this.tenantContext.getCompanyId();
     const userId = this.tenantContext.getUserId();
     const showtime = await this.findOne(id);
+
+    // Task 2 — Validar transição de status via state machine
+    if (showtime.status) {
+      assertValidStatusTransition(showtime.status.name, 'Cancelada');
+    }
 
     const cancelledStatus =
       await this.sessionStatusRepository.findByNameAndCompany(
