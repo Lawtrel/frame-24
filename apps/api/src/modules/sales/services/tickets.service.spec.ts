@@ -70,6 +70,12 @@ describe('TicketsService', () => {
       }),
     } as unknown as jest.Mocked<ClsService>;
 
+    const prisma = {
+      movies: {
+        findUnique: jest.fn(),
+      },
+    };
+
     service = new TicketsService(
       ticketsRepository,
       showtimesRepository,
@@ -78,6 +84,7 @@ describe('TicketsService', () => {
       seatsRepository,
       logger,
       cls,
+      prisma as any,
     );
   });
 

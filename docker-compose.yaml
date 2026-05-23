@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: frame24pass
       POSTGRES_DB: frame24
     ports:
-      - "5432:5432"
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -22,8 +22,8 @@ services:
     image: axllent/mailpit:latest
     container_name: frame24-mailpit
     ports:
-      - "1025:1025"
-      - "8025:8025"
+      - "${MAILPIT_SMTP_HOST_PORT:-1025}:1025"
+      - "${MAILPIT_UI_HOST_PORT:-8025}:8025"
     networks:
       - frame24-network
     restart: unless-stopped
@@ -41,8 +41,8 @@ services:
       RABBITMQ_DEFAULT_USER: frame24
       RABBITMQ_DEFAULT_PASS: frame24pass
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "${RABBITMQ_HOST_PORT:-5672}:5672"
+      - "${RABBITMQ_UI_HOST_PORT:-15672}:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:
@@ -58,14 +58,52 @@ services:
     container_name: frame24-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "${REDIS_HOST_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
-    command: ["redis-server", "--appendonly", "yes"]
+    command:
+      [
+        "redis-server",
+        "--appendonly",
+        "yes",
+        "--requirepass",
+        "${REDIS_PASSWORD:-frame24redis}",
+        "--maxmemory",
+        "256mb",
+        "--maxmemory-policy",
+        "allkeys-lru",
+      ]
     networks:
       - frame24-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgbouncer:
+    image: bitnami/pgbouncer:1.24.0
+    container_name: frame24-pgbouncer
+    restart: unless-stopped
+    environment:
+      POSTGRESQL_HOST: postgres
+      POSTGRESQL_PORT: 5432
+      POSTGRESQL_USERNAME: frame24
+      POSTGRESQL_PASSWORD: frame24pass
+      POSTGRESQL_DATABASE: frame24
+      PGBOUNCER_POOL_MODE: transaction
+      PGBOUNCER_MAX_CLIENT_CONN: 200
+      PGBOUNCER_DEFAULT_POOL_SIZE: 20
+      PGBOUNCER_MIN_POOL_SIZE: 5
+    ports:
+      - "${PGBOUNCER_HOST_PORT:-6432}:6432"
+    networks:
+      - frame24-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -p 6432 -U frame24"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -79,12 +117,17 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-frame24-storage-secret-2026}
     command: server /data --console-address ":9001"
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "${MINIO_HOST_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_HOST_PORT:-9001}:9001"
     volumes:
       - minio_data:/data
     networks:
       - frame24-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:9000/minio/health/live || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 6
 
 volumes:
   postgres_data:

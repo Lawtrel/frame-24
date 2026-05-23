@@ -94,7 +94,7 @@ O repositório utiliza Turborepo + pnpm workspaces, organizado em apps e package
 - React `19`
 - Tailwind CSS `4`
 
-### Infraestrutura local (Podman)
+### Infraestrutura local (Docker)
 
 - PostgreSQL
 - RabbitMQ
@@ -107,7 +107,7 @@ O repositório utiliza Turborepo + pnpm workspaces, organizado em apps e package
 | ----------------------- | ------------- |
 | Node.js                 | `>= 18`       |
 | pnpm                    | `10.33.0`     |
-| Podman / Podman Compose | latest        |
+| Docker / Docker Compose | latest        |
 | Git                     | latest        |
 
 ### Instalar pnpm
@@ -145,21 +145,33 @@ git clone <url-do-repositorio>
 cd frame-24
 ```
 
-### 2. Suba a infraestrutura
+### 2. Suba a infraestrutura com Docker
 
 ```bash
-podman compose -f docker-compose.yaml up -d
-podman compose -f docker-compose.yaml ps
+docker compose up -d
 ```
 
-### 3. Configure variáveis de ambiente
+Esse comando sobe PostgreSQL, Redis, RabbitMQ, MinIO e Mailpit. A API e os apps web rodam localmente com `pnpm dev`.
+
+Para conferir:
+
+```bash
+docker compose ps
+```
+
+Para parar:
+
+```bash
+docker compose down
+```
+
+### 3. Configure variáveis de ambiente para execução local
 
 ```bash
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env
 cp apps/admin/.env.example apps/admin/.env
 cp apps/landing-page/.env.example apps/landing-page/.env
-cp packages/db/.env.example packages/db/.env
 ```
 
 Opcional para sobrescrever localmente sem versionar:
@@ -185,7 +197,7 @@ pnpm build
 cd ../..
 ```
 
-### 6. Inicie o ambiente
+### 6. Inicie o ambiente local
 
 Todos os serviços de desenvolvimento:
 
@@ -251,6 +263,20 @@ pnpm db:reset
 | Landing Page        | <http://localhost:3003>          | -                         |
 | RabbitMQ Management | <http://localhost:15672>         | `frame24` / `frame24pass` |
 | MailHog             | <http://localhost:8025>          | -                         |
+
+Se alguma porta estiver em uso, sobrescreva ao subir:
+
+```bash
+POSTGRES_HOST_PORT=15432 \
+REDIS_HOST_PORT=16379 \
+RABBITMQ_HOST_PORT=15673 \
+RABBITMQ_UI_HOST_PORT=15674 \
+MINIO_HOST_PORT=19000 \
+MINIO_CONSOLE_HOST_PORT=19001 \
+MAILPIT_SMTP_HOST_PORT=11025 \
+MAILPIT_UI_HOST_PORT=18025 \
+docker compose up -d
+```
 
 Prisma Studio:
 
@@ -320,7 +346,7 @@ Arquitetura multi-tenant com separação lógica de dados por empresa:
 ### Porta em uso
 
 ```bash
-podman compose -f docker-compose.yaml ps
+docker compose ps
 ```
 
 Se necessário, ajuste portas no `docker-compose.yaml` e arquivos `.env`.
@@ -328,15 +354,15 @@ Se necessário, ajuste portas no `docker-compose.yaml` e arquivos `.env`.
 ### Banco não conecta
 
 ```bash
-podman compose -f docker-compose.yaml ps postgres
-podman compose -f docker-compose.yaml restart postgres
+docker compose ps postgres
+docker compose restart postgres
 ```
 
 ### RabbitMQ indisponível
 
 ```bash
-podman compose -f docker-compose.yaml ps rabbitmq
-podman compose -f docker-compose.yaml logs -f rabbitmq
+docker compose ps rabbitmq
+docker compose logs -f rabbitmq
 ```
 
 ### Prisma Client desatualizado

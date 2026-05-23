@@ -112,6 +112,18 @@ export class ShowtimesController {
     description: 'Filtro referencia recurso de outro tenant.',
   })
   @ApiResponse({ status: 429, description: 'Limite de requisições excedido' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Página da listagem (padrão: 1)',
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Itens por página (padrão: 100, máximo: 100)',
+    example: 100,
+  })
   async findAll(
     @Query('cinema_complex_id', new ParseOptionalEntityIdPipe())
     cinema_complex_id?: string,
@@ -119,6 +131,8 @@ export class ShowtimesController {
     @Query('movie_id', new ParseOptionalEntityIdPipe()) movie_id?: string,
     @Query('start_time', new ParseOptionalIsoDatePipe()) start_time?: Date,
     @Query('status') status?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
   ) {
     return this.service.findAll({
       cinema_complex_id,
@@ -126,6 +140,8 @@ export class ShowtimesController {
       movie_id,
       start_time,
       status,
+      ...(page && Number.isFinite(Number(page)) && { page: Math.max(1, Number(page)) }),
+      ...(limit && Number.isFinite(Number(limit)) && { limit: Math.min(100, Math.max(1, Number(limit))) }),
     });
   }
 

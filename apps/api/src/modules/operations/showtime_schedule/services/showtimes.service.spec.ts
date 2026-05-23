@@ -25,6 +25,7 @@ import { AudioTypesRepository } from 'src/modules/operations/audio-types/reposit
 import { SnowflakeService } from 'src/common/services/snowflake.service';
 import { RabbitMQPublisherService } from 'src/common/rabbitmq/rabbitmq-publisher.service';
 import { CacheService } from 'src/common/cache/cache.service';
+import { LoggerService } from 'src/common/services/logger.service';
 
 jest.mock('@nestjs-cls/transactional', () => ({
   Transactional:
@@ -212,6 +213,14 @@ describe('ShowtimesService', () => {
               .mockResolvedValue(undefined),
             assertMovieBelongsToCompany: jest.fn().mockResolvedValue(undefined),
             assertRoomBelongsToCompany: jest.fn().mockResolvedValue(undefined),
+          },
+        },
+        {
+          provide: LoggerService,
+          useValue: {
+            warn: jest.fn(),
+            log: jest.fn(),
+            error: jest.fn(),
           },
         },
       ],
@@ -935,6 +944,8 @@ describe('ShowtimesService', () => {
           movie_id: 'movie-1',
           status: 'status-1',
         }),
+        1, // page
+        100, // limit
       );
     });
   });

@@ -1,5 +1,4 @@
 import { forwardRef, Module } from '@nestjs/common';
-import { PassportModule } from '@nestjs/passport';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { CommonModule } from 'src/common/common.module';
 import { CompanyModule } from '../companies/company.module';
@@ -13,7 +12,6 @@ import { CompanyRepository } from '../companies/repositories/company.repository'
 
 import { EmployeeIdGeneratorService } from './services/employee-id-generator';
 
-import { LocalJwtStrategy } from './strategies/local-jwt.strategy';
 import { PublicAuthController } from './controllers/public-auth.controller';
 import { PublicRegistrationService } from './services/public-registration.service';
 import { MasterDataSetupService } from 'src/modules/setup/services/master-data-setup.service';
@@ -21,7 +19,6 @@ import { MasterDataSetupService } from 'src/modules/setup/services/master-data-s
 @Module({
   imports: [
     PrismaModule,
-    PassportModule.register({ defaultStrategy: 'local-jwt' }),
     CommonModule,
     forwardRef(() => CompanyModule),
     TaxModule,
@@ -34,7 +31,6 @@ import { MasterDataSetupService } from 'src/modules/setup/services/master-data-s
     CustomRoleRepository,
     CompanyRepository,
     EmployeeIdGeneratorService,
-    LocalJwtStrategy,
     PublicRegistrationService,
     MasterDataSetupService,
   ],
@@ -44,7 +40,6 @@ import { MasterDataSetupService } from 'src/modules/setup/services/master-data-s
     CompanyUserRepository,
     CustomRoleRepository,
     EmployeeIdGeneratorService,
-    LocalJwtStrategy,
   ],
 })
 export class AuthModule {}

@@ -4,6 +4,10 @@ import { createContext, useContext, ReactNode, useEffect, useState } from "react
 import { resolveCustomerProfile } from "@/lib/api-client";
 import { authClient } from "@/lib/auth-client";
 import { usePathname } from "next/navigation";
+import {
+  getTenantSlugFromHost,
+  getTenantSlugFromPathname,
+} from "@/lib/tenant-routing";
 
 interface User {
   id: string;
@@ -43,10 +47,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<CustomerProfile | null>(null);
   const [isProfileLoading, setIsProfileLoading] = useState(false);
 
-  const tenantSlug = pathname
-    ?.split("/")
-    .filter(Boolean)[0]
-    ?.trim() || null;
+  const tenantSlug =
+    (typeof window !== "undefined" ? getTenantSlugFromHost(window.location.host) : null) ??
+    getTenantSlugFromPathname(pathname);
 
   useEffect(() => {
     if (isPending) {
@@ -54,12 +57,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     if (!session) {
-      setProfile(null);
-      setIsProfileLoading(false);
-      return;
-    }
-
-    if (!tenantSlug) {
       setProfile(null);
       setIsProfileLoading(false);
       return;
@@ -121,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // In customer-facing web app, authenticated means: valid session + active customer profile.
   const isAuthenticated = !!profile;
   const hasSession = !!session;
-  const isLoading = isPending || (!!session && !!tenantSlug && isProfileLoading);
+  const isLoading = isPending || (!!session && isProfileLoading);
 
   return (
     <AuthContext.Provider

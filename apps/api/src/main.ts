@@ -19,6 +19,7 @@ import { RedisIoAdapter } from './common/redis/redis-io.adapter';
 import { RedisService } from './common/redis/redis.service';
 import { auth } from './lib/auth';
 import { createBetterAuthPostThrottle } from './common/middleware/better-auth-post-throttle.middleware';
+import { isAllowedFrontendOrigin } from './common/config/frontend-origins.config';
 
 const HTTP_METHODS = new Set([
   'get',
@@ -174,33 +175,26 @@ async function bootstrap() {
   );
 
   // Configuração de CORS segura
-  const frontendUrls = process.env.FRONTEND_URL
-    ? process.env.FRONTEND_URL.split(',').map((url) => url.trim())
-    : [];
-
-  const devOrigins = isDev
-    ? [
-        'http://localhost:3000',
-        'http://localhost:3002',
-        'http://localhost:3004',
-        'http://localhost:4000',
-      ]
-    : [];
-
-  const allowedOrigins = [...devOrigins, ...frontendUrls].filter(Boolean);
-
   app.enableCors({
     origin: (
       origin: string | undefined,
       callback: (err: Error | null, allow?: boolean) => void,
     ) => {
-      // Permite requisições sem origin (Postman, mobile apps, server-to-server)
-      if (!origin) return callback(null, true);
+      // Requests without Origin (Postman, mobile apps, server-to-server).
+      // In production, log a warning for auditability; in dev, allow silently.
+      if (!origin) {
+        if (!isDev) {
+          logger.warn(
+            `Request without Origin header from ${String((globalThis as Record<string, unknown>).__currentReqIp ?? 'unknown')} — allowed but logged.`,
+          );
+        }
+        return callback(null, true);
+      }
 
-      if (allowedOrigins.includes(origin)) {
+      if (isAllowedFrontendOrigin(origin)) {
         callback(null, true);
       } else {
-        console.warn(`CORS blocked origin: ${origin}`);
+        logger.warn(`CORS blocked origin: ${origin}`);
         callback(new Error('Not allowed by CORS'));
       }
     },
@@ -217,6 +211,7 @@ async function bootstrap() {
       'x-correlation-id',
       'idempotency-key',
     ],
+    exposedHeaders: ['x-request-id', 'x-trace-id', 'Retry-After'],
   });
 
   app.use('/favicon.ico', (req: Request, res: Response) =>
@@ -365,26 +360,26 @@ async function bootstrap() {
   const port = process.env.PORT || 4000;
   await app.listen(port);
 
-  console.log('\nFrame24 API iniciada com sucesso!\n');
+  logger.log('Frame24 API iniciada com sucesso!');
   if (isDev) {
-    console.log(`Documentação Empresa:  http://localhost:${port}/api/docs`);
-    console.log(
+    logger.log(`Documentação Empresa:  http://localhost:${port}/api/docs`);
+    logger.log(
       `Documentação Empresa:  http://localhost:${port}/api/docs/company`,
     );
-    console.log(
+    logger.log(
       `Documentação Cliente:  http://localhost:${port}/api/docs/customer`,
     );
-    console.log(
+    logger.log(
       `OpenAPI Empresa:       http://localhost:${port}/api/openapi.json`,
     );
-    console.log(
+    logger.log(
       `OpenAPI Empresa:       http://localhost:${port}/api/openapi-company.json`,
     );
-    console.log(
+    logger.log(
       `OpenAPI Cliente:       http://localhost:${port}/api/openapi-customer.json`,
     );
   }
-  console.log(`API Base:              http://localhost:${port}\n`);
+  logger.log(`API Base:              http://localhost:${port}`);
 }
 
 void bootstrap();

@@ -2,6 +2,7 @@
 
 # Dependencies
 node_modules
+.pnpm-store
 .pnp
 .pnp.js
 .idea/
@@ -42,4 +43,3 @@ yarn-error.log*
 
 # Security scanner caches
 security/.cache/
-

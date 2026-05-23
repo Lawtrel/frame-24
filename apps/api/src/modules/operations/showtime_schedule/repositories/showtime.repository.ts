@@ -47,10 +47,13 @@ export class ShowtimesRepository {
     });
   }
 
-  async findAll(where: Prisma.showtime_scheduleWhereInput) {
+  async findAll(where: Prisma.showtime_scheduleWhereInput, page = 1, limit = 100) {
+    const skip = (page - 1) * limit;
     return this.prisma.showtime_schedule.findMany({
       where,
       orderBy: { start_time: 'asc' },
+      skip,
+      take: limit,
       select: {
         id: true,
         start_time: true,

@@ -3,18 +3,32 @@
   "globalDependencies": ["**/.env*", ".editorconfig", ".prettierrc.json", "tsconfig.base.json"],
   "globalEnv": [
     "NODE_ENV",
+    "CI",
     "PORT",
     "DATABASE_URL",
     "DIRECT_URL",
     "FRONTEND_URL",
+    "TENANT_BASE_DOMAIN",
     "API_URL",
+    "AUTH_INTERNAL_SECRET",
+    "BETTER_AUTH_*",
     "JWT_SECRET",
     "WORKER_ID",
+    "OIDC_INTERNAL_SECRET",
     "RABBITMQ_*",
+    "REDIS_*",
     "MINIO_*",
     "STORAGE_PUBLIC_URL",
     "RESEND_API_KEY",
-    "EMAIL_FROM"
+    "EMAIL_FROM",
+    "PLAYWRIGHT_BASE_URL",
+    "E2E_TENANT_SLUG",
+    "E2E_CITY_SLUG",
+    "E2E_MOVIE_SLUG",
+    "E2E_CHECKOUT_ID",
+    "E2E_ORDER_ID",
+    "E2E_CUSTOMER_EMAIL",
+    "E2E_CUSTOMER_PASSWORD"
   ],
   "tasks": {
     "dev": {
