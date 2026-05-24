@@ -13,19 +13,21 @@ type CreateShowtimePayload = ApiPayload & {
   start_time: string | Date;
 };
 
+type UpdateShowtimePayload = Partial<{
+  start_time: string | Date;
+  base_ticket_price: number;
+  projection_type: string | null;
+  audio_type: string | null;
+  session_language: string | null;
+  status: string;
+}>;
+
 export const ScheduleService = {
-  // Listar sessões
   async getShowtimes() {
-    // Passamos uma data antiga para satisfazer o filtro obrigatório
-    const response = await apiClient.get('/v1/showtimes', {
-      params: {
-        start_time: new Date(0).toISOString(),
-      },
-    });
+    const response = await apiClient.get('/v1/showtimes');
     return (response.data ?? []) as unknown[];
   },
 
-  // Criar sessão
   async createShowtime(data: CreateShowtimePayload) {
     const payload: CreateShowtimePayload = {
       ...data,
@@ -34,15 +36,20 @@ export const ScheduleService = {
     return await apiClient.post('/v1/showtimes', payload);
   },
 
-  // Deletar sessão
+  async updateShowtime(id: string, data: UpdateShowtimePayload) {
+    const payload: UpdateShowtimePayload = { ...data };
+    if (payload.start_time) {
+      payload.start_time = new Date(payload.start_time).toISOString();
+    }
+    return await apiClient.patch(`/v1/showtimes/${id}`, payload);
+  },
+
   async deleteShowtime(id: string) {
     return await apiClient.delete(`/v1/showtimes/${id}`);
   },
 
-  // Buscar todas as salas (de todos os complexos)
   async getRooms() {
     try {
-      // 1. Busca os complexos primeiro
       const complexesResponse = await apiClient.get('/v1/cinema-complexes');
       const complexes = (complexesResponse.data ?? []) as ComplexItem[];
 
@@ -50,15 +57,13 @@ export const ScheduleService = {
         return [];
       }
 
-      // 2. Busca as salas de CADA complexo em paralelo
       const roomsPromises = complexes.map(async (complex) => {
         try {
           const roomsResponse = await apiClient.get(`/v1/cinema-complexes/${complex.id}/rooms`);
 
-          // Injetamos o objeto do complexo dentro da sala para o UI exibir o nome corretamente
           return ((roomsResponse.data ?? []) as RoomItem[]).map((room) => ({
             ...room,
-            cinema_complexes: complex, // Garante que {room.cinema_complexes.name} funcione no select
+            cinema_complexes: complex,
           }));
         } catch (error: unknown) {
           console.warn(`Não foi possível buscar salas do complexo ${complex.id}`, error);
@@ -66,7 +71,6 @@ export const ScheduleService = {
         }
       });
 
-      // 3. Junta tudo em um array só
       const results = await Promise.all(roomsPromises);
       return results.flat();
     } catch (error: unknown) {

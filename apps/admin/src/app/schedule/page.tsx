@@ -2,19 +2,23 @@
 
 import { useEffect, useState } from "react";
 import { ScheduleService } from "@/services/schedule-service";
-import { Plus, Calendar, MapPin, Trash2 } from "lucide-react";
+import { Plus, Calendar, MapPin, Trash2, Pencil } from "lucide-react";
 import Link from "next/link";
 
 interface ShowtimeMovie {
-  brazil_title?: string;
-  original_title?: string;
+  id: string;
+  title: string;
+  poster_url: string | null;
+  duration_minutes: number | null;
 }
 
 interface ShowtimeRoom {
+  id?: string;
   name?: string;
 }
 
 interface ShowtimeStatus {
+  id?: string;
   name?: string;
 }
 
@@ -22,9 +26,9 @@ interface ShowtimeItem {
   id: string;
   start_time: string;
   movie?: ShowtimeMovie;
-  rooms?: ShowtimeRoom;
+  room?: ShowtimeRoom;
   base_ticket_price?: number;
-  session_status?: ShowtimeStatus;
+  status?: ShowtimeStatus;
 }
 
 export default function SchedulePage() {
@@ -54,6 +58,16 @@ export default function SchedulePage() {
       setShowtimes((prev) => prev.filter((s) => s.id !== id));
     } catch {
       alert("Erro ao excluir sessão");
+    }
+  };
+
+  const handleCancel = async (session: ShowtimeItem) => {
+    if (!confirm(`Cancelar a sessão "${session.movie?.title ?? "Filme N/D"}"?`)) return;
+    try {
+      await ScheduleService.updateShowtime(session.id, { status: "cancelled" });
+      setShowtimes((prev) => prev.filter((s) => s.id !== session.id));
+    } catch {
+      alert("Erro ao cancelar sessão");
     }
   };
 
@@ -110,31 +124,41 @@ export default function SchedulePage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 font-medium">
-                    {session.movie?.brazil_title ||
-                      session.movie?.original_title ||
-                      "Filme N/D"}
+                    {session.movie?.title || "Filme N/D"}
                   </td>
                   <td className="px-6 py-4 text-zinc-400">
                     <div className="flex items-center gap-2">
                       <MapPin className="w-4 h-4" />
-                      {session.rooms?.name || "Sala N/D"}
+                      {session.room?.name || "Sala N/D"}
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    R$ {session.base_ticket_price?.toFixed(2)}
+                    {session.base_ticket_price != null
+                      ? `R$ ${Number(session.base_ticket_price).toFixed(2)}`
+                      : "—"}
                   </td>
                   <td className="px-6 py-4">
                     <span className="bg-green-900/30 text-green-400 px-2 py-1 rounded-full text-xs border border-green-900">
-                      {session.session_status?.name || "Ativa"}
+                      {session.status?.name || "Ativa"}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button
-                      onClick={() => handleDelete(session.id)}
-                      className="text-zinc-400 hover:text-red-500 p-2"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center justify-end gap-1">
+                      <Link
+                        href={`/schedule/${session.id}`}
+                        className="text-zinc-400 hover:text-zinc-200 p-2"
+                        title="Editar sessão"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Link>
+                      <button
+                        onClick={() => handleCancel(session)}
+                        className="text-zinc-400 hover:text-red-500 p-2"
+                        title="Cancelar sessão"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))

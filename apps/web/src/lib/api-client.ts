@@ -402,6 +402,92 @@ export const authApi = {
   post: apiInstance.post.bind(apiInstance),
 };
 
+export const posApi = {
+  posSessionsFindAllV1: (params?: {
+    status?: string;
+    cinema_complex_id?: string;
+  }): Promise<ApiResponse<ApiList>> =>
+    apiInstance.get("/v1/pos-sessions", { params }),
+
+  posSessionsFindOneV1: (id: string): Promise<ApiResponse<ApiObject>> =>
+    apiInstance.get(`/v1/pos-sessions/${id}`),
+
+  posSessionsCreateV1: (payload: {
+    cinema_complex_id: string;
+    opening_amount: number;
+  }): Promise<ApiResponse<ApiObject>> =>
+    apiInstance.post("/v1/pos-sessions", payload),
+
+  posSessionsUpdateV1: (
+    id: string,
+    payload: {
+      status?: string;
+      cash_withdrawn?: number;
+      cash_counted?: number;
+      closing_notes?: string;
+    },
+  ): Promise<ApiResponse<ApiObject>> =>
+    apiInstance.put(`/v1/pos-sessions/${id}`, payload),
+
+  posSessionStatusesV1: (): Promise<ApiResponse<ApiList>> =>
+    apiInstance.get("/v1/pos-sessions/statuses"),
+
+  posTransactionsCreateV1: (payload: {
+    pos_session_id: string;
+    transaction_type: string;
+    payment_method: string;
+    amount: number;
+    change_amount?: number;
+    description?: string;
+    reference_type?: string;
+    reference_id?: string;
+  }): Promise<ApiResponse<ApiObject>> =>
+    apiInstance.post("/v1/pos-transactions", payload),
+
+  posTransactionsFindBySessionV1: (
+    posSessionId: string,
+  ): Promise<ApiResponse<ApiList>> =>
+    apiInstance.get(`/v1/pos-transactions/session/${posSessionId}`),
+
+  posPaymentMethodsV1: (): Promise<ApiResponse<ApiList>> =>
+    apiInstance.get("/v1/pos-payment-methods"),
+
+  showtimesFindAllV1: (params?: {
+    cinema_complex_id?: string;
+    movie_id?: string;
+    date?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<ApiResponse<ApiList>> =>
+    apiInstance.get("/v1/showtimes", { params }),
+
+  showtimesFindOneV1: (id: string): Promise<ApiResponse<ApiObject>> =>
+    apiInstance.get(`/v1/showtimes/${id}`),
+
+  showtimesSeatsV1: (id: string): Promise<ApiResponse<ApiObject>> =>
+    apiInstance.get(`/v1/showtimes/${id}/seats`),
+
+  ticketTypesFindAllV1: (): Promise<ApiResponse<ApiList>> =>
+    apiInstance.get("/v1/ticket-types"),
+
+  productsFindAllV1: (params?: {
+    active?: boolean;
+  }): Promise<ApiResponse<ApiList>> =>
+    apiInstance.get("/v1/products", { params }),
+
+  salesCreateV1: (payload: ApiObject): Promise<ApiResponse<ApiObject>> =>
+    apiInstance.post("/v1/sales", payload),
+
+  complexesFindAllV1: (): Promise<ApiResponse<ApiList>> =>
+    apiInstance.get("/v1/cinema-complexes"),
+
+  saleTypesFindAllV1: (): Promise<ApiResponse<ApiList>> =>
+    apiInstance.get("/v1/sale-types"),
+
+  salesPaymentMethodsV1: (tenantSlug: string): Promise<ApiResponse<ApiList>> =>
+    apiInstance.get(`/v1/public/companies/${tenantSlug}/payment-methods`),
+};
+
 export const resolveCustomerProfile = async (tenantSlug?: string | null) => {
   const response = await apiInstance.get('/v1/customer/profile/resolve', {
     headers: tenantSlug

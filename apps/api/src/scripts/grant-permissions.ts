@@ -1,7 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import { createPrismaClient } from '@repo/db';
 import { randomUUID } from 'node:crypto';
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 
 async function main() {
   console.log(`🔐 Concedendo permissões ao Super Admin...`);

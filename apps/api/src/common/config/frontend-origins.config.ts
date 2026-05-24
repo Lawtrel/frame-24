@@ -13,6 +13,9 @@ const CANONICAL_DEV_FRONTEND_ORIGINS = [
   'http://127.0.0.1:3003',
   'http://localhost:3004',
   'http://127.0.0.1:3004',
+  'http://172.25.248.81:3000',
+  'http://172.25.248.81:3003',
+  'http://172.25.248.81:3004',
 ];
 
 const CANONICAL_DEV_TRUSTED_ORIGINS = [

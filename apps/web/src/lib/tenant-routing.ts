@@ -4,6 +4,7 @@ export const RESERVED_ROUTE_SEGMENTS = new Set([
   "checkout",
   "cidade",
   "cinema",
+  "pdv",
   "pedido",
   "perfil",
   "profile",

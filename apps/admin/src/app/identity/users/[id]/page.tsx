@@ -13,10 +13,22 @@ interface RoleOption {
 }
 
 interface UserResponse {
-  full_name?: string;
+  employee_id: string;
+  full_name: string;
   email: string;
-  company_user?: {
-    role_id?: string;
+  cpf: string | null;
+  mobile: string | null;
+  company_user: {
+    id: string;
+    employee_id: string;
+    role_id: string;
+    role_name: string;
+    department: string | null;
+    job_level: string | null;
+    active: boolean;
+    start_date: string;
+    end_date: string | null;
+    last_access: string | null;
   };
 }
 
@@ -25,21 +37,19 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [roles, setRoles] = useState<RoleOption[]>([]);
 
-  // Estado para o formulário principal
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
+    cpf: "",
+    mobile: "",
     role_id: "",
+    department: "",
+    job_level: "",
+    active: true,
   });
-
-  // Estado para o formulário de senha
-  const [passwordData, setPasswordData] = useState({
-    newPassword: "",
-    confirmPassword: "",
-  });
-  const [passwordLoading, setPasswordLoading] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -58,8 +68,13 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
 
         setFormData({
           full_name: user.full_name || "",
-          email: user.email,
+          email: user.email || "",
+          cpf: user.cpf || "",
+          mobile: user.mobile || "",
           role_id: user.company_user?.role_id || rolesList[0]?.id || "",
+          department: user.company_user?.department || "",
+          job_level: user.company_user?.job_level || "",
+          active: user.company_user?.active ?? true,
         });
       } catch (error) {
         console.error("Erro ao carregar dados do usuário:", error);
@@ -74,40 +89,27 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setSaving(true);
 
     try {
-      // Assumindo que você tem uma função update no UsersService
-      // await UsersService.update(userId, payload);
+      await UsersService.update(userId, {
+        full_name: formData.full_name,
+        email: formData.email,
+        cpf: formData.cpf || undefined,
+        mobile: formData.mobile || undefined,
+        role_id: formData.role_id,
+        department: formData.department || undefined,
+        job_level: formData.job_level || undefined,
+        active: formData.active,
+      });
 
       alert("Usuário atualizado com sucesso!");
+      router.push("/identity/users");
     } catch (error) {
       console.error("Erro ao atualizar usuário:", error);
       alert("Erro ao atualizar usuário.");
     } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert("As senhas não coincidem!");
-      return;
-    }
-
-    setPasswordLoading(true);
-    try {
-      // Assumindo que a API de usuários tem um endpoint para mudança de senha
-      // await UsersService.changePassword(userId, { new_password: passwordData.newPassword });
-
-      alert("Senha alterada com sucesso!");
-      setPasswordData({ newPassword: "", confirmPassword: "" });
-    } catch (error) {
-      console.error("Erro ao alterar senha:", error);
-      alert("Erro ao alterar senha.");
-    } finally {
-      setPasswordLoading(false);
+      setSaving(false);
     }
   };
 
@@ -132,13 +134,12 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
         </div>
       </div>
 
-      {/* Seção 1: Informações Básicas e Perfil */}
-      <div className="bg-zinc-900/50 p-6 rounded-lg border border-border space-y-6">
-        <h2 className="font-semibold text-xl border-b border-zinc-800 pb-3 text-white">
-          Dados do Perfil
-        </h2>
-        <form onSubmit={handleUpdate} className="space-y-4">
-          {/* Nome e Email */}
+      <form onSubmit={handleUpdate} className="space-y-8">
+        <div className="bg-zinc-900/50 p-6 rounded-lg border border-border space-y-6">
+          <h2 className="font-semibold text-xl border-b border-zinc-800 pb-3 text-white">
+            Dados Pessoais
+          </h2>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-sm text-zinc-400">Nome Completo *</label>
@@ -152,6 +153,19 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
               />
             </div>
             <div>
+              <label className="text-sm text-zinc-400">CPF</label>
+              <input
+                className="w-full bg-zinc-950 border border-zinc-800 p-3 rounded text-white"
+                value={formData.cpf}
+                onChange={(e) =>
+                  setFormData({ ...formData, cpf: e.target.value })
+                }
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
               <label className="text-sm text-zinc-400">Email *</label>
               <input
                 required
@@ -163,102 +177,115 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
                 }
               />
             </div>
+            <div>
+              <label className="text-sm text-zinc-400">Celular</label>
+              <input
+                className="w-full bg-zinc-950 border border-zinc-800 p-3 rounded text-white"
+                value={formData.mobile}
+                onChange={(e) =>
+                  setFormData({ ...formData, mobile: e.target.value })
+                }
+              />
+            </div>
           </div>
+        </div>
 
-          {/* Perfil de Acesso */}
-          <div>
-            <label className="text-sm text-zinc-400">Perfil de Acesso *</label>
-            <select
-              required
-              className="w-full bg-zinc-950 border border-zinc-800 p-3 rounded text-white"
-              value={formData.role_id}
-              onChange={(e) =>
-                setFormData({ ...formData, role_id: e.target.value })
-              }
-            >
-              {roles.map((role) => (
-                <option key={role.id} value={role.id}>
-                  {role.name}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className="bg-zinc-900/50 p-6 rounded-lg border border-border space-y-6">
+          <h2 className="font-semibold text-xl border-b border-zinc-800 pb-3 text-white">
+            Dados da Empresa
+          </h2>
 
-          <div className="flex justify-end pt-2">
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex items-center gap-2 bg-accent-red hover:bg-accent-red-hover disabled:opacity-50 text-white px-6 py-2 rounded-md font-bold transition-colors"
-            >
-              {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Save className="w-5 h-5" />
-              )}
-              Atualizar Dados
-            </button>
-          </div>
-        </form>
-      </div>
-
-      {/* Seção 2: Alterar Senha */}
-      <div className="bg-zinc-900/50 p-6 rounded-lg border border-border space-y-6">
-        <h2 className="font-semibold text-xl border-b border-zinc-800 pb-3 text-white">
-          Alterar Senha
-        </h2>
-        <form onSubmit={handleChangePassword} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm text-zinc-400">Nova Senha *</label>
-              <input
+              <label className="text-sm text-zinc-400">Perfil de Acesso *</label>
+              <select
                 required
-                type="password"
                 className="w-full bg-zinc-950 border border-zinc-800 p-3 rounded text-white"
-                value={passwordData.newPassword}
+                value={formData.role_id}
                 onChange={(e) =>
-                  setPasswordData({
-                    ...passwordData,
-                    newPassword: e.target.value,
-                  })
+                  setFormData({ ...formData, role_id: e.target.value })
                 }
-              />
+              >
+                {roles.map((role) => (
+                  <option key={role.id} value={role.id}>
+                    {role.name}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
-              <label className="text-sm text-zinc-400">Confirmar Senha *</label>
+              <label className="text-sm text-zinc-400">Departamento</label>
               <input
-                required
-                type="password"
                 className="w-full bg-zinc-950 border border-zinc-800 p-3 rounded text-white"
-                value={passwordData.confirmPassword}
+                value={formData.department}
                 onChange={(e) =>
-                  setPasswordData({
-                    ...passwordData,
-                    confirmPassword: e.target.value,
-                  })
+                  setFormData({ ...formData, department: e.target.value })
                 }
               />
             </div>
           </div>
-          <div className="flex justify-end pt-2">
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm text-zinc-400">Cargo / Nível</label>
+              <input
+                className="w-full bg-zinc-950 border border-zinc-800 p-3 rounded text-white"
+                value={formData.job_level}
+                onChange={(e) =>
+                  setFormData({ ...formData, job_level: e.target.value })
+                }
+              />
+            </div>
+            <div className="flex items-end gap-3 pb-0.5">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.active}
+                  onChange={(e) =>
+                    setFormData({ ...formData, active: e.target.checked })
+                  }
+                  className="w-5 h-5 accent-accent-red"
+                />
+                <span className="text-sm text-zinc-400">Ativo</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-zinc-900/50 p-6 rounded-lg border border-border space-y-6">
+          <h2 className="font-semibold text-xl border-b border-zinc-800 pb-3 text-white">
+            Alterar Senha
+          </h2>
+          <p className="text-sm text-zinc-500">
+            Funcionalidade de alteração de senha ainda não está disponível.
+          </p>
+          <div className="flex justify-end">
             <button
-              type="submit"
-              disabled={
-                passwordLoading ||
-                !passwordData.newPassword ||
-                passwordData.newPassword !== passwordData.confirmPassword
-              }
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-6 py-2 rounded-md font-bold transition-colors"
+              type="button"
+              disabled
+              className="flex items-center gap-2 bg-zinc-700 text-zinc-400 px-6 py-2 rounded-md font-bold cursor-not-allowed"
             >
-              {passwordLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <KeyRound className="w-5 h-5" />
-              )}
+              <KeyRound className="w-5 h-5" />
               Alterar Senha
             </button>
           </div>
-        </form>
-      </div>
+        </div>
+
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            disabled={saving}
+            className="flex items-center gap-2 bg-accent-red hover:bg-accent-red-hover disabled:opacity-50 text-white px-6 py-3 rounded-md font-bold transition-colors"
+          >
+            {saving ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <Save className="w-5 h-5" />
+            )}
+            Atualizar Usuário
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

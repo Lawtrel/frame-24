@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 import { buildSecurityHeaders } from "./security-headers";
 
 const nextConfig: NextConfig = {
-  allowedDevOrigins: ["127.0.0.1", "localhost"],
+  allowedDevOrigins: ["127.0.0.1", "localhost", "172.25.248.81"],
   poweredByHeader: false,
   images: {
     remotePatterns: [

@@ -36,6 +36,7 @@ const SOFT_DELETE_MODELS = new Set<string>([
   'movie_categories',
   'exhibition_contracts',
   'promotion_types',
+  'pos_payment_methods',
 ]);
 
 const READ_OPERATIONS = new Set<string>([

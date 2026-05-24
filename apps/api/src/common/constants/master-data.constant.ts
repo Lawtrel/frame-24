@@ -475,6 +475,69 @@ export const MASTER_DATA = {
     ],
   },
 
+  pos: {
+    session_status: [
+      {
+        name: 'Aberta',
+        description: 'Caixa aberto para vendas',
+        allows_modification: true,
+      },
+      {
+        name: 'Suspensa',
+        description: 'Caixa temporariamente suspenso',
+        allows_modification: true,
+      },
+      {
+        name: 'Fechada',
+        description: 'Caixa fechado e conferido',
+        allows_modification: false,
+      },
+    ],
+
+    payment_methods: [
+      {
+        name: 'Dinheiro',
+        description: 'Pagamento em espécie',
+        requires_change: true,
+        auto_settle: true,
+        settlement_days: 0,
+        active: true,
+      },
+      {
+        name: 'Cartão de Crédito',
+        description: 'Pagamento com cartão de crédito',
+        requires_change: false,
+        auto_settle: true,
+        settlement_days: 30,
+        active: true,
+      },
+      {
+        name: 'Cartão de Débito',
+        description: 'Pagamento com cartão de débito',
+        requires_change: false,
+        auto_settle: true,
+        settlement_days: 1,
+        active: true,
+      },
+      {
+        name: 'PIX',
+        description: 'Pagamento via PIX',
+        requires_change: false,
+        auto_settle: true,
+        settlement_days: 0,
+        active: true,
+      },
+      {
+        name: 'Vale-Alimentação',
+        description: 'Vale-alimentação ou refeição',
+        requires_change: false,
+        auto_settle: false,
+        settlement_days: 1,
+        active: true,
+      },
+    ],
+  },
+
   tax: {
     revenue_types: [
       {

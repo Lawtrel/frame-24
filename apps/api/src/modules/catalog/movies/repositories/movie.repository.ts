@@ -163,6 +163,9 @@ export class MovieRepository {
             width: true,
             height: true,
             active: true,
+            media_types: {
+              select: { name: true },
+            },
           },
           orderBy: [{ created_at: 'desc' }],
         },

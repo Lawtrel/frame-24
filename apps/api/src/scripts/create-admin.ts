@@ -5,7 +5,7 @@ const prisma = createPrismaClient();
 
 async function main() {
   const email = 'admin@lawtrel.com';
-  const password = 'lawtrel';
+  const password = 'Admin@2026';
 
   // 1. Gerar hash da senha (bypassing da validação de complexidade da API)
   const salt = await bcrypt.genSalt(10);

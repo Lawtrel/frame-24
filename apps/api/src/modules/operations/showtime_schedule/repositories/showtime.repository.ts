@@ -43,6 +43,19 @@ export class ShowtimesRepository {
         audio_types: true,
         session_languages: true,
         session_status: true,
+        movies: {
+          select: {
+            id: true,
+            original_title: true,
+            brazil_title: true,
+            duration_minutes: true,
+            movie_media: {
+              where: { media_type: 'POSTER' },
+              select: { media_url: true },
+              take: 1,
+            },
+          },
+        },
       },
     });
   }
@@ -63,11 +76,25 @@ export class ShowtimesRepository {
         blocked_seats: true,
         base_ticket_price: true,
         rooms: { select: { id: true, name: true } },
+        cinema_complexes: { select: { id: true, name: true } },
         projection_types: true,
         audio_types: true,
         session_languages: true,
         session_status: true,
         movie_id: true,
+        movies: {
+          select: {
+            id: true,
+            original_title: true,
+            brazil_title: true,
+            duration_minutes: true,
+            movie_media: {
+              where: { media_type: 'POSTER' },
+              select: { media_url: true },
+              take: 1,
+            },
+          },
+        },
       },
     });
   }

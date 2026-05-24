@@ -23,6 +23,7 @@ import { SalesModule } from 'src/modules/sales/sales.module';
 import { StockModule } from 'src/modules/stock/stock.module';
 import { PublicModule } from 'src/modules/public/public.module';
 import { CrmModule } from 'src/modules/crm/crm.module';
+import { PosModule } from 'src/modules/pos/pos.module';
 import { AppController } from './app.controller';
 import { createThrottlerConfig } from './common/config/throttler.config';
 import { RedisThrottlerStorageService } from './common/redis/redis-throttler-storage.service';
@@ -67,6 +68,7 @@ import { RedisThrottlerStorageService } from './common/redis/redis-throttler-sto
     StockModule,
     PublicModule,
     CrmModule,
+    PosModule,
   ],
   controllers: [AppController],
   providers: [

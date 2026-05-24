@@ -171,6 +171,8 @@ async function bootstrap() {
     helmet({
       contentSecurityPolicy: isDev ? false : undefined,
       crossOriginEmbedderPolicy: isDev ? false : undefined,
+      crossOriginResourcePolicy: isDev ? false : undefined,
+      crossOriginOpenerPolicy: isDev ? false : undefined,
     }),
   );
 

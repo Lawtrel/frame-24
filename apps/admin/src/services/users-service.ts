@@ -18,6 +18,13 @@ export const UsersService = {
     const response = await apiClient.post('/v1/users', data);
     return response.data;
   },
+
+  // PUT /v1/users/:employee_id (Atualizar Usuário)
+  update: async (employeeId: string, data: ApiPayload) => {
+    const response = await apiClient.put(`/v1/users/${employeeId}`, data);
+    return response.data;
+  },
+
   // DELETE /v1/users/:id (Deletar Usuário)
   delete: async (employeeId: string) => {
     return apiClient.delete(`/v1/users/${employeeId}`);

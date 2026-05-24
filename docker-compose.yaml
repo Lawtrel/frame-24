@@ -9,7 +9,7 @@ services:
     ports:
       - "${POSTGRES_HOST_PORT:-5432}:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     networks:
       - frame24-network
     healthcheck:
@@ -81,37 +81,11 @@ services:
       timeout: 5s
       retries: 5
 
-  pgbouncer:
-    image: bitnami/pgbouncer:1.24.0
-    container_name: frame24-pgbouncer
-    restart: unless-stopped
-    environment:
-      POSTGRESQL_HOST: postgres
-      POSTGRESQL_PORT: 5432
-      POSTGRESQL_USERNAME: frame24
-      POSTGRESQL_PASSWORD: frame24pass
-      POSTGRESQL_DATABASE: frame24
-      PGBOUNCER_POOL_MODE: transaction
-      PGBOUNCER_MAX_CLIENT_CONN: 200
-      PGBOUNCER_DEFAULT_POOL_SIZE: 20
-      PGBOUNCER_MIN_POOL_SIZE: 5
-    ports:
-      - "${PGBOUNCER_HOST_PORT:-6432}:6432"
-    networks:
-      - frame24-network
-    depends_on:
-      postgres:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -h localhost -p 6432 -U frame24"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   minio:
     image: alpine/minio:RELEASE.2025-10-15T17-29-55Z
     container_name: frame24-minio
     restart: unless-stopped
+    user: root
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-frame24-storage-key}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-frame24-storage-secret-2026}
@@ -128,6 +102,38 @@ services:
       interval: 20s
       timeout: 5s
       retries: 6
+
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    container_name: frame24-pgbouncer
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: "postgresql://frame24:frame24pass@postgres:5432/frame24"
+      DB_USER: frame24
+      DB_PASSWORD: frame24pass
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: frame24
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 100
+      DEFAULT_POOL_SIZE: 25
+      RESERVE_POOL_SIZE: 10
+      RESERVE_POOL_TIMEOUT: 3
+      SERVER_IDLE_TIMEOUT: 300
+      ADMIN_USERS: frame24
+      AUTH_TYPE: scram-sha-256
+    ports:
+      - "${PGBOUNCER_HOST_PORT:-6432}:5432"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - frame24-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -p 5432 -U frame24 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:

@@ -51,7 +51,12 @@ export interface ShowtimeDetailsDto {
   available_seats: number | null;
   sold_seats: number | null;
   blocked_seats: number | null;
-  movie: movies | null;
+  movie: {
+    id: string;
+    title: string;
+    poster_url: string | null;
+    duration_minutes: number | null;
+  } | null;
   room: {
     id: string;
     name: string | null;
@@ -183,7 +188,15 @@ export class ShowtimesService {
       throw new ForbiddenException('Acesso negado a esta sessão.');
     }
 
-    const movie = await this.moviesRepository.findById(showtime.movie_id);
+    const movieData = showtime.movies;
+    const movie = movieData
+      ? {
+          id: movieData.id,
+          title: movieData.brazil_title || movieData.original_title,
+          poster_url: movieData.movie_media?.[0]?.media_url ?? null,
+          duration_minutes: movieData.duration_minutes,
+        }
+      : null;
 
     return {
       id: showtime.id,
@@ -248,7 +261,28 @@ export class ShowtimesService {
     const page = filters?.page ?? 1;
     const limit = Math.min(filters?.limit ?? 100, 100);
 
-    return this.showtimesRepository.findAll(where, page, limit);
+    const results = await this.showtimesRepository.findAll(where, page, limit);
+
+    return results.map((item) => {
+      const movieData = (item as typeof item & { movies?: { id: string; original_title: string; brazil_title: string | null; duration_minutes: number | null; movie_media?: { media_url: string }[] } }).movies;
+      const complexData = (item as typeof item & { cinema_complexes?: { id: string; name: string } }).cinema_complexes;
+
+      const mapped = item as Record<string, unknown>;
+      if (movieData) {
+        mapped.movie = {
+          id: movieData.id,
+          title: movieData.brazil_title || movieData.original_title,
+          poster_url: movieData.movie_media?.[0]?.media_url ?? null,
+          duration_minutes: movieData.duration_minutes,
+        };
+      }
+      if (complexData) {
+        mapped.complex = complexData;
+      }
+      delete mapped.movies;
+      delete mapped.cinema_complexes;
+      return mapped as Awaited<ReturnType<ShowtimesRepository['findAll']>>[number];
+    });
   }
 
   async preview(dto: CreateShowtimeDto): Promise<ShowtimeFinancialBreakdown> {
@@ -651,7 +685,7 @@ export class ShowtimesService {
       id: showtimeId,
       cinema_complexes: { connect: { id: room.cinema_complex_id } },
       rooms: { connect: { id: dto.room_id } },
-      movie_id: dto.movie_id,
+      movies: { connect: { id: dto.movie_id } },
       start_time: startTime,
       end_time: endTime,
       base_ticket_price: dto.base_ticket_price,

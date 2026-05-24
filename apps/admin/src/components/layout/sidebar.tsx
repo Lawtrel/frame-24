@@ -14,6 +14,7 @@ import {
   Ticket,
   Popcorn,
   Truck,
+  Calculator,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 
@@ -24,6 +25,7 @@ const menuItems = [
   { icon: Popcorn, label: "Produtos & Combos", href: "/products" },
   { icon: Ticket, label: "Tipos de Ingresso", href: "/ticket-types" },
   { icon: Truck, label: "Fornecedores", href: "/suppliers" },
+  { icon: Calculator, label: "Frente de Caixa", href: "/pos" },
   { icon: Users, label: "Usuários & Identidade", href: "/identity" },
   { icon: DollarSign, label: "Financeiro", href: "/finance" },
   { icon: Package, label: "Estoque", href: "/stock" },

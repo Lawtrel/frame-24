@@ -107,16 +107,20 @@ export function MovieForm({ initialData, isEditing = false }: MovieFormProps) {
   const [importing, setImporting] = useState(false);
   const inputFieldClass =
     "w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white outline-none focus:border-accent-red";
+  const tmdbInputClass = (field: string) =>
+    tmdbFilledFields.has(field)
+      ? inputFieldClass.replace("border-zinc-700", "border-blue-500/50 bg-blue-950/20")
+      : inputFieldClass;
 
   // Dados auxiliares
   const [distributors, setDistributors] = useState<Distributor[]>([]);
   const [ageRatings, setAgeRatings] = useState<AgeRating[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
 
-  // Busca TMDB
   const [tmdbQuery, setTmdbQuery] = useState("");
   const [tmdbResults, setTmdbResults] = useState<TMDBMovie[]>([]);
   const [showTmdbResults, setShowTmdbResults] = useState(false);
+  const [tmdbFilledFields, setTmdbFilledFields] = useState<Set<string>>(new Set());
 
   // Estado do formulário
   const [formData, setFormData] = useState<FormDataState>({
@@ -149,25 +153,29 @@ export function MovieForm({ initialData, isEditing = false }: MovieFormProps) {
         setCategories(Array.isArray(cats) ? (cats as Category[]) : []);
 
         // Se estiver editando, preencher o formulário
-        if (initialData) {
-          const poster =
-            initialData.movie_media?.find(
-              (m) =>
-                m.media_type === "POSTER" || m.media_types?.name === "Poster",
-            )?.media_url || "";
-          const backdrop =
-            initialData.movie_media?.find(
-              (m) =>
-                m.media_type === "BACKDROP" ||
-                m.media_types?.name === "Backdrop",
-            )?.media_url || "";
-          const trailer =
-            initialData.movie_media?.find(
-              (m) =>
-                m.media_type === "TRAILER" || m.media_types?.name === "Trailer",
-            )?.media_url || "";
+  if (initialData) {
+    const MEDIA_IDS_EDIT = {
+      POSTER: "7b51e687-e592-428c-a1ce-2c52f81fc889",
+      BACKDROP: "3acaa11f-5c99-4dac-b99a-b2ce80324a1e",
+      TRAILER: "c79e17da-fe1e-42c1-be8c-3d8f88131c13",
+    };
+    const poster =
+      initialData.movie_media?.find(
+        (m) =>
+          m.media_type === MEDIA_IDS_EDIT.POSTER || m.media_types?.name === "Poster",
+      )?.media_url || "";
+    const backdrop =
+      initialData.movie_media?.find(
+        (m) =>
+          m.media_type === MEDIA_IDS_EDIT.BACKDROP || m.media_types?.name === "Backdrop",
+      )?.media_url || "";
+    const trailer =
+      initialData.movie_media?.find(
+        (m) =>
+          m.media_type === MEDIA_IDS_EDIT.TRAILER || m.media_types?.name === "Trailer",
+      )?.media_url || "";
 
-          setFormData({
+    setFormData({
             original_title: initialData.original_title || "",
             brazil_title: initialData.brazil_title || "",
             distributor_id: initialData.distributor_id || "",
@@ -217,42 +225,77 @@ export function MovieForm({ initialData, isEditing = false }: MovieFormProps) {
     }
   };
 
-  // Função para aplicar dados do TMDB ao formulário
   const applyTmdbData = async (movie: TMDBMovie) => {
     setImporting(true);
     try {
       const details = await tmdbService.getMovieDetails(movie.id);
       const data = details || movie;
 
-      setFormData((prev) => ({
-        ...prev,
-        original_title: data.original_title,
-        brazil_title: data.title,
-        synopsis: data.overview,
-        production_year: data.release_date
-          ? new Date(data.release_date).getFullYear()
-          : prev.production_year,
-        duration_minutes: data.runtime || prev.duration_minutes,
-        poster_url: tmdbService.getImageUrl(data.poster_path) || "",
-        backdrop_url: tmdbService.getImageUrl(data.backdrop_path) || "",
-        national: data.original_title === data.title, // Heurística simples
-      }));
+      const filled = new Set<string>();
+
+      setFormData((prev) => {
+        const next = { ...prev };
+
+        if (data.original_title) {
+          next.original_title = data.original_title;
+          filled.add("original_title");
+        }
+        if (data.title) {
+          next.brazil_title = data.title;
+          filled.add("brazil_title");
+        }
+        if (data.overview) {
+          next.synopsis = data.overview;
+          filled.add("synopsis");
+        }
+        if (data.release_date) {
+          next.production_year = new Date(data.release_date).getFullYear();
+          filled.add("production_year");
+        }
+        if (data.runtime) {
+          next.duration_minutes = data.runtime;
+          filled.add("duration_minutes");
+        }
+        if (data.poster_path) {
+          next.poster_url = tmdbService.getImageUrl(data.poster_path) || "";
+          filled.add("poster_url");
+        }
+        if (data.backdrop_path) {
+          next.backdrop_url = tmdbService.getImageUrl(data.backdrop_path) || "";
+          filled.add("backdrop_url");
+        }
+        if (data.original_title === data.title) {
+          next.national = true;
+          filled.add("national");
+        }
+
+        return next;
+      });
+
+      setTmdbFilledFields(filled);
       setShowTmdbResults(false);
     } finally {
       setImporting(false);
     }
   };
 
+  const tmdbBadge = (field: string, label: string) =>
+    tmdbFilledFields.has(field) ? (
+      <span className="ml-2 inline-flex items-center gap-1 text-[10px] font-medium text-blue-400 bg-blue-400/10 border border-blue-400/20 rounded px-1.5 py-0.5">
+        <Wand2 className="w-2.5 h-2.5" /> TMDB
+      </span>
+    ) : null;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     // IDs fixos (UUIDs reais do seu banco)
-    const MEDIA_IDS = {
-      POSTER: "9a07e442-d661-4068-b373-79a0afc5b730",
-      BACKDROP: "a5740fec-43a6-4f3e-9163-9fdac807d176",
-      TRAILER: "17188fca-5894-4b9e-a9ee-54c72c909b25",
-    };
+  const MEDIA_IDS = {
+    POSTER: "7b51e687-e592-428c-a1ce-2c52f81fc889",
+    BACKDROP: "3acaa11f-5c99-4dac-b99a-b2ce80324a1e",
+    TRAILER: "c79e17da-fe1e-42c1-be8c-3d8f88131c13",
+  };
 
     try {
       // 1. Validações
@@ -385,52 +428,73 @@ export function MovieForm({ initialData, isEditing = false }: MovieFormProps) {
         </div>
       </div>
 
-      {/* Busca TMDB (Só mostra se não estiver editando ou para fins de teste) */}
-      {!isEditing && (
-        <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4">
-          <label className="text-sm font-medium text-zinc-400 mb-2 block">
-            Importar dados do TMDB (Automático)
+      <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4">
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm font-medium text-zinc-400">
+            Buscar no TMDB
           </label>
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-              <input
-                type="text"
-                placeholder="Digite o nome do filme para buscar (ex: Matrix)..."
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-md py-2 pl-10 pr-4 text-sm text-white focus:ring-1 focus:ring-accent-red outline-none"
-                value={tmdbQuery}
-                onChange={(e) => setTmdbQuery(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleTmdbSearch()}
-              />
-            </div>
+          {tmdbFilledFields.size > 0 && (
             <button
               type="button"
-              onClick={handleTmdbSearch}
-              disabled={importing || !tmdbQuery}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-colors disabled:opacity-50"
+              onClick={() => setTmdbFilledFields(new Set())}
+              className="text-[10px] text-zinc-500 hover:text-zinc-300 transition-colors"
             >
-              {importing ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Wand2 className="w-4 h-4" />
-              )}
-              Buscar
+              Limpar indicadores TMDB
             </button>
+          )}
+        </div>
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+            <input
+              type="text"
+              placeholder="Digite o nome do filme para buscar (ex: Matrix)..."
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-md py-2 pl-10 pr-4 text-sm text-white focus:ring-1 focus:ring-accent-red outline-none"
+              value={tmdbQuery}
+              onChange={(e) => setTmdbQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleTmdbSearch()}
+            />
           </div>
+          <button
+            type="button"
+            onClick={handleTmdbSearch}
+            disabled={importing || !tmdbQuery}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-colors disabled:opacity-50"
+          >
+            {importing ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Wand2 className="w-4 h-4" />
+            )}
+            Buscar no TMDB
+          </button>
+        </div>
 
-          {/* Resultados da Busca */}
-          {showTmdbResults && tmdbResults.length > 0 && (
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-top-2">
-              {tmdbResults.slice(0, 4).map((movie) => (
+        {showTmdbResults && tmdbResults.length > 0 && (
+          <div className="mt-4 relative">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs text-zinc-500">
+                {tmdbResults.length} resultado(s) — Clique para importar
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowTmdbResults(false)}
+                className="text-zinc-500 hover:text-white transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 animate-in fade-in slide-in-from-top-2 max-h-[400px] overflow-y-auto pr-1">
+              {tmdbResults.slice(0, 10).map((movie) => (
                 <div
                   key={movie.id}
-                  className="bg-zinc-950 border border-zinc-800 rounded-lg p-3 cursor-pointer hover:border-accent-red transition-all group"
+                  className="bg-zinc-950 border border-zinc-800 rounded-lg p-3 cursor-pointer hover:border-blue-500 transition-all group"
                   onClick={() => applyTmdbData(movie)}
                 >
                   <div className="aspect-[2/3] relative bg-zinc-900 rounded-md overflow-hidden mb-2">
                     {movie.poster_path ? (
                       <Image
-                        src={tmdbService.getImageUrl(movie.poster_path) || ""}
+                        src={`https://image.tmdb.org/t/p/w200${movie.poster_path}`}
                         alt={movie.title}
                         fill
                         sizes="160px"
@@ -459,9 +523,9 @@ export function MovieForm({ initialData, isEditing = false }: MovieFormProps) {
                 </div>
               ))}
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -501,13 +565,14 @@ export function MovieForm({ initialData, isEditing = false }: MovieFormProps) {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-medium text-zinc-400">
-                  URL da Imagem
-                </label>
+        <label className="text-xs font-medium text-zinc-400 flex items-center">
+          URL da Imagem
+          {tmdbBadge("poster_url", "Poster")}
+        </label>
                 <input
                   type="url"
                   placeholder="https://..."
-                  className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs text-white focus:ring-1 focus:ring-accent-red outline-none"
+                  className={`w-full rounded-md border ${tmdbFilledFields.has("poster_url") ? "border-blue-500/50 bg-blue-950/20" : "border-zinc-700 bg-zinc-950"} px-3 py-2 text-xs text-white focus:ring-1 focus:ring-accent-red outline-none`}
                   value={formData.poster_url}
                   onChange={(e) =>
                     setFormData({ ...formData, poster_url: e.target.value })
@@ -524,13 +589,14 @@ export function MovieForm({ initialData, isEditing = false }: MovieFormProps) {
                 Outras Mídias
               </h2>
               <div className="space-y-2">
-                <label className="text-xs font-medium text-zinc-400">
-                  Backdrop (Fundo)
-                </label>
-                <input
-                  type="url"
-                  className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs text-white outline-none focus:border-accent-red"
-                  value={formData.backdrop_url}
+        <label className="text-xs font-medium text-zinc-400 flex items-center">
+        Backdrop (Fundo)
+        {tmdbBadge("backdrop_url", "Backdrop")}
+      </label>
+      <input
+        type="url"
+        className={`w-full rounded-md border ${tmdbFilledFields.has("backdrop_url") ? "border-blue-500/50 bg-blue-950/20" : "border-zinc-700 bg-zinc-950"} px-3 py-2 text-xs text-white outline-none focus:border-accent-red`}
+        value={formData.backdrop_url}
                   onChange={(e) =>
                     setFormData({ ...formData, backdrop_url: e.target.value })
                   }
@@ -561,32 +627,32 @@ export function MovieForm({ initialData, isEditing = false }: MovieFormProps) {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-zinc-400">
-                    Título Original *
-                  </label>
-                  <input
-                    required
-                    className={inputFieldClass}
-                    value={formData.original_title}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        original_title: e.target.value,
-                      })
-                    }
-                  />
+            <label className="text-sm font-medium text-zinc-400 flex items-center">
+              Título Original *{tmdbBadge("original_title", "Título Original")}
+            </label>
+        <input
+          required
+          className={tmdbInputClass("original_title")}
+          value={formData.original_title}
+          onChange={(e) =>
+            setFormData({
+              ...formData,
+              original_title: e.target.value,
+            })
+          }
+        />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-zinc-400">
-                    Título no Brasil
-                  </label>
-                  <input
-                    className={inputFieldClass}
-                    value={formData.brazil_title}
-                    onChange={(e) =>
-                      setFormData({ ...formData, brazil_title: e.target.value })
-                    }
-                  />
+            <label className="text-sm font-medium text-zinc-400 flex items-center">
+              Título no Brasil{tmdbBadge("brazil_title", "Título Brasil")}
+            </label>
+        <input
+          className={tmdbInputClass("brazil_title")}
+          value={formData.brazil_title}
+          onChange={(e) =>
+            setFormData({ ...formData, brazil_title: e.target.value })
+          }
+        />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-zinc-400">
@@ -613,15 +679,15 @@ export function MovieForm({ initialData, isEditing = false }: MovieFormProps) {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-zinc-400">
-                      Duração (min) *
-                    </label>
+              <label className="text-sm font-medium text-zinc-400 flex items-center">
+                Duração (min) *{tmdbBadge("duration_minutes", "Duração")}
+              </label>
                     <input
                       type="number"
                       required
                       min="1" // Validação para o backend
-                      className={inputFieldClass}
-                      value={formData.duration_minutes}
+          className={tmdbInputClass("duration_minutes")}
+          value={formData.duration_minutes}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
@@ -631,16 +697,16 @@ export function MovieForm({ initialData, isEditing = false }: MovieFormProps) {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-zinc-400">
-                      Ano *
-                    </label>
+              <label className="text-sm font-medium text-zinc-400 flex items-center">
+                Ano *{tmdbBadge("production_year", "Ano")}
+              </label>
                     <input
                       type="number"
                       required
                       min="1900"
                       max="2100"
-                      className={inputFieldClass}
-                      value={formData.production_year}
+          className={tmdbInputClass("production_year")}
+          value={formData.production_year}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
@@ -662,9 +728,9 @@ export function MovieForm({ initialData, isEditing = false }: MovieFormProps) {
                     setFormData({ ...formData, national: e.target.checked })
                   }
                 />
-                <label htmlFor="national" className="text-sm text-zinc-300">
-                  Produção Nacional
-                </label>
+            <label htmlFor="national" className="text-sm text-zinc-300 flex items-center">
+              Produção Nacional{tmdbBadge("national", "Nacional")}
+            </label>
               </div>
             </div>
 
@@ -709,12 +775,12 @@ export function MovieForm({ initialData, isEditing = false }: MovieFormProps) {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-400">
-                  Sinopse
-                </label>
+        <label className="text-sm font-medium text-zinc-400 flex items-center">
+          Sinopse{tmdbBadge("synopsis", "Sinopse")}
+        </label>
                 <textarea
                   rows={5}
-                  className={`${inputFieldClass} resize-none`}
+                  className={`${tmdbInputClass("synopsis")} resize-none`}
                   value={formData.synopsis}
                   onChange={(e) =>
                     setFormData({ ...formData, synopsis: e.target.value })
