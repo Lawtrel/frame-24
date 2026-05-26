@@ -7,9 +7,16 @@ const prisma = createPrismaClient();
 
 const auth = betterAuth({
   appName: 'Frame24',
-  secret: 'frame24-better-auth-secret-change-in-prod-2026',
-  baseURL: 'http://localhost:4000',
-  trustedOrigins: ['http://localhost:3000', 'http://localhost:3004', 'http://172.25.248.81:3000', 'http://172.25.248.81:3004'],
+  secret: process.env.BETTER_AUTH_SECRET || 'frame24-better-auth-secret-change-in-prod-2026',
+  baseURL: process.env.BETTER_AUTH_URL || process.env.API_URL || 'http://localhost:4000',
+  trustedOrigins: [
+    'http://localhost:3000',
+    'http://localhost:3004',
+    'http://172.25.248.81:3000',
+    'http://172.25.248.81:3004',
+    'http://174.138.79.19:3000',
+    'http://174.138.79.19:3004',
+  ],
   database: prismaAdapter(prisma, {
     provider: 'postgresql',
   }),

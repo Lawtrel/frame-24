@@ -1,0 +1,39 @@
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=4000
+
+RUN apk add --no-cache dumb-init openssl wget \
+  && apk upgrade --no-cache zlib
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/api/package.json ./apps/api/package.json
+COPY packages/db/package.json ./packages/db/package.json
+
+RUN corepack enable && corepack prepare pnpm@10.33.0 --activate \
+  && pnpm install --frozen-lockfile --prod --filter api... --filter @repo/db...
+
+COPY packages/db/prisma ./packages/db/prisma
+COPY packages/db/prisma.config.ts ./packages/db/prisma.config.ts
+
+ENV DIRECT_URL="postgresql://frame24:frame24pass@postgres:5432/frame24"
+ENV TS_NODE_PROJECT="/app/apps/api/tsconfig.json"
+
+RUN cd /app/packages/db && npx prisma generate
+
+COPY apps/api/dist ./apps/api/dist
+COPY apps/api/tsconfig.json ./apps/api/tsconfig.json
+COPY apps/api/path-alias-register.js ./apps/api/path-alias-register.js
+COPY packages/db/dist ./packages/db/dist
+COPY scripts/docker/api-entrypoint.sh ./scripts/docker/api-entrypoint.sh
+COPY scripts/docker/seed-prod-entrypoint.sh ./scripts/docker/seed-prod-entrypoint.sh
+
+RUN chmod +x ./scripts/docker/api-entrypoint.sh ./scripts/docker/seed-prod-entrypoint.sh
+
+USER node
+
+EXPOSE 4000
+
+ENTRYPOINT ["dumb-init", "/app/scripts/docker/api-entrypoint.sh"]

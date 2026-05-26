@@ -1,6 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   transpilePackages: ['@repo/ui'],
   images: {
     remotePatterns: [
@@ -11,7 +12,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  allowedDevOrigins: ['172.25.248.81', '127.0.0.1', 'localhost'],
+  allowedDevOrigins: ['172.25.248.81', '127.0.0.1', 'localhost', '174.138.79.19'],
 
 };
 

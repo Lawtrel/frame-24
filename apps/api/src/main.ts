@@ -169,10 +169,14 @@ async function bootstrap() {
   const isDev = process.env.NODE_ENV !== 'production';
   app.use(
     helmet({
-      contentSecurityPolicy: isDev ? false : undefined,
-      crossOriginEmbedderPolicy: isDev ? false : undefined,
-      crossOriginResourcePolicy: isDev ? false : undefined,
-      crossOriginOpenerPolicy: isDev ? false : undefined,
+      contentSecurityPolicy: false,
+      crossOriginEmbedderPolicy: false,
+      ...(isDev
+        ? {}
+        : {
+            crossOriginResourcePolicy: { policy: 'cross-origin' },
+            crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+          }),
     }),
   );
 

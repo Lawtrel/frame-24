@@ -20,7 +20,9 @@ function delay(ms: number): Promise<void> {
 }
 
 const apiInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000',
+  baseURL: typeof window !== "undefined"
+    ? window.location.origin
+    : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'),
   withCredentials: true,
   timeout: 15_000,
   headers: {

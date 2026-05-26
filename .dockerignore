@@ -6,6 +6,8 @@ node_modules
 **/.turbo
 dist
 **/dist
+!apps/api/dist
+!packages/db/dist
 build
 **/build
 .next

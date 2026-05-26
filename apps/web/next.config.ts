@@ -2,7 +2,8 @@ import type { NextConfig } from "next";
 import { buildSecurityHeaders } from "./security-headers";
 
 const nextConfig: NextConfig = {
-  allowedDevOrigins: ["127.0.0.1", "localhost", "172.25.248.81"],
+  output: "standalone",
+  allowedDevOrigins: ["127.0.0.1", "localhost", "172.25.248.81", "174.138.79.19"],
   poweredByHeader: false,
   images: {
     remotePatterns: [
@@ -19,8 +20,17 @@ const nextConfig: NextConfig = {
         hostname: "*.frame24.com.br",
       },
       {
+        protocol: "https",
+        hostname: "*.lawtrel.dev",
+      },
+      {
         protocol: "http",
         hostname: "localhost",
+        port: "9000",
+      },
+      {
+        protocol: "http",
+        hostname: "174.138.79.19",
         port: "9000",
       },
     ],

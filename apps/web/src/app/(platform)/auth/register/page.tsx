@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { resolvePublicTenantSlug } from "@/lib/resolve-public-tenant";
+import { buildTenantPrefix, normalizeHost } from "@/lib/tenant-routing";
 
 export default async function PlatformRegisterPage({
   searchParams,
@@ -16,5 +18,9 @@ export default async function PlatformRegisterPage({
     }
   }
 
-  redirect(`/${tenantSlug}/auth/register${query.size ? `?${query}` : ""}`);
+  const requestHeaders = await headers();
+  const rawHost = requestHeaders.get("x-forwarded-host") || requestHeaders.get("host");
+  const prefix = buildTenantPrefix(normalizeHost(rawHost), tenantSlug);
+
+  redirect(`${prefix}/auth/register${query.size ? `?${query}` : ""}`);
 }

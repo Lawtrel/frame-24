@@ -1,3 +1,4 @@
+import { applyDecorators } from '@nestjs/common';
 import { Throttle, SkipThrottle as NestSkipThrottle } from '@nestjs/throttler';
 
 export const AuthThrottle = () => Throttle({ auth: { ttl: 60000, limit: 10 } });
@@ -10,8 +11,11 @@ export const CustomerSignupThrottle = () =>
 /** Vinculação / ativação de conta (provisioning leve). */
 export const ProvisioningThrottle = () =>
   Throttle({ provisioning: { ttl: 60000, limit: 15 } });
-export const PublicReadThrottle = () =>
-  Throttle({ public: { ttl: 60000, limit: 300 } });
+export const PublicReadThrottle = (): ClassDecorator & MethodDecorator =>
+  applyDecorators(
+    NestSkipThrottle('default'),
+    Throttle({ public: { ttl: 60000, limit: 300 } }),
+  );
 export const WriteThrottle = () =>
   Throttle({ write: { ttl: 60000, limit: 30 } });
 

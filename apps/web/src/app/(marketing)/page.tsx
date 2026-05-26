@@ -12,6 +12,8 @@ import { Icon } from "@/components/ui/icon";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { copy } from "@/lib/copy/catalog";
 import { resolveRequestedTenantSlug } from "@/lib/resolve-public-tenant";
+import { getTenantSlugFromHost, normalizeHost } from "@/lib/tenant-routing";
+import { headers } from "next/headers";
 import {
   getCinemasForCity,
   getDefaultCity,
@@ -20,7 +22,8 @@ import {
   getSessionsForCity,
 } from "@/lib/storefront/service";
 
-async function TenantHome({ tenantSlug }: { tenantSlug: string }) {
+async function TenantHome({ tenantSlug, useTenantPath }: { tenantSlug: string; useTenantPath: boolean }) {
+  const pathSlug = useTenantPath ? tenantSlug : undefined;
   const defaultCity = await getDefaultCity(tenantSlug);
   if (!defaultCity) {
     return null;
@@ -45,14 +48,14 @@ async function TenantHome({ tenantSlug }: { tenantSlug: string }) {
 
   return (
     <main className="space-y-16 pb-18">
-      <HeroSpotlight city={defaultCity} movie={featuredMovie} tenantSlug={tenantSlug} />
+      <HeroSpotlight city={defaultCity} movie={featuredMovie} tenantSlug={pathSlug} />
       <section className="page-shell space-y-6">
         <SectionHeading
           eyebrow={copy("homeBlockbusterEyebrow")}
           title={copy("homeBlockbusterTitle")}
           description={copy("homeBlockbusterDescription")}
         />
-        <BlockbusterRail citySlug={defaultCity.slug} movies={blockbusterMovies} tenantSlug={tenantSlug} />
+        <BlockbusterRail citySlug={defaultCity.slug} movies={blockbusterMovies} tenantSlug={pathSlug} />
       </section>
       <section className="page-shell space-y-6">
         <SectionHeading
@@ -60,7 +63,7 @@ async function TenantHome({ tenantSlug }: { tenantSlug: string }) {
           title={copy("homeQuickTitle")}
           description={copy("homeQuickDescription")}
         />
-        <QuickFilterChips citySlug={defaultCity.slug} tenantSlug={tenantSlug} />
+        <QuickFilterChips citySlug={defaultCity.slug} tenantSlug={pathSlug} />
       </section>
       <section className="page-shell space-y-6">
         <SectionHeading
@@ -80,7 +83,7 @@ async function TenantHome({ tenantSlug }: { tenantSlug: string }) {
                   citySlug={defaultCity.slug}
                   movie={movie}
                   session={session}
-                  tenantSlug={tenantSlug}
+                  tenantSlug={pathSlug}
                 />
               </li>
             );
@@ -91,7 +94,7 @@ async function TenantHome({ tenantSlug }: { tenantSlug: string }) {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <SectionHeading title={copy("homeNowPlayingTitle")} />
           <Button asChild className="w-full sm:w-auto" size="lg" variant="secondary">
-            <Link href={`/${tenantSlug}/cidade/${defaultCity.slug}/filmes`}>
+            <Link href={pathSlug ? `/${pathSlug}/cidade/${defaultCity.slug}/filmes` : `/cidade/${defaultCity.slug}/filmes`}>
               {copy("homeNowPlayingCtaAllMovies")}
               <Icon name="arrowRight" size="sm" />
             </Link>
@@ -100,14 +103,14 @@ async function TenantHome({ tenantSlug }: { tenantSlug: string }) {
         <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5" aria-label="Filmes em cartaz">
           {playingNow.slice(0, 4).map((movie) => (
             <li key={movie.id} className="h-full">
-              <MovieCard citySlug={defaultCity.slug} movie={movie} tenantSlug={tenantSlug} />
+              <MovieCard citySlug={defaultCity.slug} movie={movie} tenantSlug={pathSlug} />
             </li>
           ))}
         </ul>
       </section>
       <section className="page-shell space-y-6">
         <SectionHeading title={copy("homeComingSoonTitle")} />
-        <ComingSoonRail citySlug={defaultCity.slug} movies={comingSoon} tenantSlug={tenantSlug} />
+        <ComingSoonRail citySlug={defaultCity.slug} movies={comingSoon} tenantSlug={pathSlug} />
       </section>
       <section className="page-shell">
         <Card className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -145,13 +148,15 @@ async function TenantHome({ tenantSlug }: { tenantSlug: string }) {
           title={copy("homeCinemasTitle")}
           description={copy("homeCinemasDescription")}
         />
-        <CinemaStrip cinemas={cinemas} tenantSlug={tenantSlug} />
+        <CinemaStrip cinemas={cinemas} tenantSlug={pathSlug} />
       </section>
     </main>
   );
 }
 
 function Frame24Home() {
+  const tenantBaseDomain = process.env.NEXT_PUBLIC_TENANT_BASE_DOMAIN ?? "";
+
   return (
     <main className="pb-18">
       <section className="border-b border-border/60">
@@ -169,13 +174,15 @@ function Frame24Home() {
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg">
-                <Link href="/lawtrel-admin">
+                <a href={tenantBaseDomain ? `https://lawtrel-admin.${tenantBaseDomain}` : "/lawtrel-admin"}>
                   Abrir tenant principal
                   <Icon name="arrowRight" size="sm" />
-                </Link>
+                </a>
               </Button>
               <Button asChild size="lg" variant="secondary">
-                <Link href="/empresa-b">Ver segunda empresa</Link>
+                <a href={tenantBaseDomain ? `https://app.${tenantBaseDomain}` : "/register-tenant"}>
+                  Criar minha empresa
+                </a>
               </Button>
             </div>
           </div>
@@ -198,32 +205,35 @@ function Frame24Home() {
       <section className="page-shell space-y-8 py-14">
         <SectionHeading
           eyebrow="Demonstração"
-          title="Acesse as empresas da apresentação"
-          description="Use os tenants locais para navegar pelo catálogo, testar compra e abrir a área do cliente."
+          title="Acesse o tenant principal"
+          description="Navegue pelo catálogo, teste compra e abra a área do cliente."
         />
         <div className="grid gap-4 lg:grid-cols-2">
           {[
             {
               title: "Lawtrel Admin",
-              href: "/lawtrel-admin",
+              href: tenantBaseDomain ? `https://lawtrel-admin.${tenantBaseDomain}` : "/lawtrel-admin",
               description: "Tenant principal com catálogo completo, sessões, compra, pedido e perfil prontos para demo.",
             },
             {
-              title: "Empresa B",
-              href: "/empresa-b",
-              description: "Segunda empresa para mostrar a estrutura multiempresa, unidades separadas e navegação isolada.",
+          title: "Crie sua empresa",
+          href: tenantBaseDomain ? `https://app.${tenantBaseDomain}` : "/register-tenant",
+              description: "Escolha um plano e registre sua empresa para ter seu próprio ambiente isolado.",
+              isLanding: true,
             },
           ].map((tenant) => (
             <article key={tenant.href} className="border border-border/70 bg-background-elevated/60 p-6">
               <div className="space-y-3">
-                <p className="text-xs uppercase tracking-[0.18em] text-accent-red-500">Tenant</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-accent-red-500">
+                  {(tenant as { isLanding?: boolean }).isLanding ? "Novo" : "Tenant"}
+                </p>
                 <h2 className="text-2xl font-semibold text-foreground">{tenant.title}</h2>
                 <p className="text-sm leading-6 text-foreground-muted">{tenant.description}</p>
                 <Button asChild variant="secondary">
-                  <Link href={tenant.href}>
-                    Abrir ambiente
+                  <a href={tenant.href}>
+                    {(tenant as { isLanding?: boolean }).isLanding ? "Ver planos" : "Abrir ambiente"}
                     <Icon name="arrowRight" size="sm" />
-                  </Link>
+                  </a>
                 </Button>
               </div>
             </article>
@@ -238,7 +248,11 @@ export default async function HomePage() {
   const tenantSlug = await resolveRequestedTenantSlug();
 
   if (tenantSlug) {
-    return <TenantHome tenantSlug={tenantSlug} />;
+    const requestHeaders = await headers();
+    const rawHost = requestHeaders.get("x-forwarded-host") || requestHeaders.get("host");
+    const host = normalizeHost(rawHost);
+    const isSubdomainTenant = !!getTenantSlugFromHost(host);
+    return <TenantHome tenantSlug={tenantSlug} useTenantPath={!isSubdomainTenant} />;
   }
 
   return <Frame24Home />;

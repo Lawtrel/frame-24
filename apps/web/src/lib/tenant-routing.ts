@@ -82,3 +82,9 @@ export const withTenantPath = (pathname: string | null | undefined, href: string
 
   return `/${tenantSlug}${href}`;
 };
+
+export const buildTenantPrefix = (host?: string | null, tenantSlug?: string | null) => {
+  if (getTenantSlugFromHost(host)) return "";
+  if (!tenantSlug) return "";
+  return `/${tenantSlug}`;
+};

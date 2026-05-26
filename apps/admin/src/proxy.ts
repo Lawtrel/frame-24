@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const AUTH_BASE_URL =
+  process.env.AUTH_INTERNAL_URL ||
   process.env.NEXT_PUBLIC_AUTH_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
   "http://localhost:4000";

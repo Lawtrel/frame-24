@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import { OccupancyIndicator } from "@/components/cinema/occupancy-indicator";
 import { SeatMap } from "@/components/cinema/seat-map";
 import { SeatSelectionMobileStatus } from "@/components/cinema/seat-selection-mobile-status";
@@ -14,6 +15,7 @@ import {
 } from "@/lib/storefront/service";
 import { SessionBookingPanel } from "@/components/cinema/session-booking-panel";
 import { resolvePublicTenantSlug } from "@/lib/resolve-public-tenant";
+import { buildTenantPrefix, normalizeHost } from "@/lib/tenant-routing";
 
 export default async function ShowtimePage({
   params,
@@ -22,6 +24,9 @@ export default async function ShowtimePage({
 }) {
   const { citySlug, showtimeId } = await params;
   const tenantSlug = await resolvePublicTenantSlug();
+  const requestHeaders = await headers();
+  const rawHost = requestHeaders.get("x-forwarded-host") || requestHeaders.get("host");
+  const pathSlug: string | undefined = buildTenantPrefix(normalizeHost(rawHost), tenantSlug) ? (tenantSlug ?? undefined) : undefined;
   const session = tenantSlug ? await getSessionByReference(showtimeId, citySlug, tenantSlug) : null;
 
   if (!session || session.citySlug !== citySlug) {
@@ -78,7 +83,7 @@ export default async function ShowtimePage({
           movieTitle={movie.title}
           moviePosterUrl={movie.posterUrl}
           session={session}
-          tenantSlug={tenantSlug ?? undefined}
+          tenantSlug={pathSlug}
         />
       </div>
     </main>

@@ -47,9 +47,11 @@ type SaleData = {
 export async function OrderConfirmation({
   reference,
   tenantSlug,
+  useTenantPath = false,
 }: {
   reference: string;
   tenantSlug: string;
+  useTenantPath?: boolean;
 }) {
   const sale = (await getSaleDetails(reference, tenantSlug).catch(() => null)) as SaleData | null;
 
@@ -181,13 +183,13 @@ export async function OrderConfirmation({
 
       <div className="mx-auto flex max-w-3xl flex-col gap-3 sm:flex-row">
         <Button asChild className="flex-1" size="lg">
-          <Link href={`/${tenantSlug}/perfil/pedidos`}>
-            <Ticket className="h-4 w-4" />
-            Ver meus pedidos
-          </Link>
-        </Button>
-        <Button asChild className="flex-1" size="lg" variant="secondary">
-          <Link href={`/${tenantSlug}`}>
+    <Link href={useTenantPath ? `/${tenantSlug}/perfil/pedidos` : "/perfil/pedidos"}>
+      <Ticket className="h-4 w-4" />
+      Ver meus pedidos
+    </Link>
+  </Button>
+  <Button asChild className="flex-1" size="lg" variant="secondary">
+    <Link href={useTenantPath ? `/${tenantSlug}` : "/"}>
             <Home className="h-4 w-4" />
             Voltar ao início
           </Link>

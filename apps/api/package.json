@@ -65,6 +65,7 @@
     "resend": "^6.10.0",
     "rxjs": "^7.8.2",
     "socket.io": "^4.8.3",
+    "tsconfig-paths": "^4.2.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
@@ -93,7 +94,6 @@
     "ts-jest": "^29.4.9",
     "ts-loader": "^9.5.4",
     "ts-node": "^10.9.2",
-    "tsconfig-paths": "^4.2.0",
     "typescript": "^6.0.2",
     "typescript-eslint": "^8.58.0"
   }

@@ -56,6 +56,8 @@ export function getTrustedFrontendOrigins(
   const tenantOrigins = tenantBaseDomains(env).flatMap((domain) => [
     `https://*.${domain}`,
     `https://${domain}`,
+    `http://*.${domain}`,
+    `http://${domain}`,
   ]);
   const devOrigins =
     env.NODE_ENV !== 'production'
@@ -98,9 +100,9 @@ export function isAllowedFrontendOrigin(
 
   return tenantBaseDomains(env).some((domain) => {
     if (hostname === domain) {
-      return url.protocol === 'https:';
+      return url.protocol === 'https:' || url.protocol === 'http:';
     }
 
-    return hostname.endsWith(`.${domain}`) && url.protocol === 'https:';
+    return hostname.endsWith(`.${domain}`) && (url.protocol === 'https:' || url.protocol === 'http:');
   });
 }
