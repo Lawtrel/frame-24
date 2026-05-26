@@ -11,10 +11,20 @@ export const CustomerSignupThrottle = () =>
 /** Vinculação / ativação de conta (provisioning leve). */
 export const ProvisioningThrottle = () =>
   Throttle({ provisioning: { ttl: 60000, limit: 15 } });
-export const PublicReadThrottle = (): ClassDecorator & MethodDecorator =>
+export const PublicReadThrottle = () =>
   applyDecorators(
-    NestSkipThrottle('default'),
     Throttle({ public: { ttl: 60000, limit: 300 } }),
+    NestSkipThrottle({
+      default: true,
+      auth: true,
+      signup: true,
+      customerSignup: true,
+      provisioning: true,
+      write: true,
+      checkout: true,
+      payment: true,
+      privacy: true,
+    }),
   );
 export const WriteThrottle = () =>
   Throttle({ write: { ttl: 60000, limit: 30 } });
