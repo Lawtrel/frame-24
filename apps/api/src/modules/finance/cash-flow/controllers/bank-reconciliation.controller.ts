@@ -20,6 +20,7 @@ import {
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
+import { EmployeeReadThrottle, EmployeeWriteThrottle } from 'src/common/decorators/auth-throttle.decorator';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { BankReconciliationService } from '../services/bank-reconciliation.service';
 import {
@@ -29,12 +30,14 @@ import {
 
 @ApiTags('Fluxo de Caixa - Conciliação Bancária')
 @ApiBearerAuth()
+@EmployeeReadThrottle()
 @Controller({ path: 'finance/bank-reconciliation', version: '1' })
 @UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class BankReconciliationController {
   constructor(private readonly service: BankReconciliationService) {}
 
   @Post()
+  @EmployeeWriteThrottle()
   @RequirePermission('cash_flow', 'reconcile')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Start a new bank reconciliation' })
@@ -73,6 +76,7 @@ export class BankReconciliationController {
   }
 
   @Patch(':id')
+  @EmployeeWriteThrottle()
   @RequirePermission('cash_flow', 'reconcile')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update reconciliation' })
@@ -88,6 +92,7 @@ export class BankReconciliationController {
   }
 
   @Post(':id/complete')
+  @EmployeeWriteThrottle()
   @RequirePermission('cash_flow', 'reconcile')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Complete reconciliation' })

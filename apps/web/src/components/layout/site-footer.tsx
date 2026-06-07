@@ -79,7 +79,7 @@ export const SiteFooter = ({
                 <ul className="space-y-2 text-sm text-foreground-muted">
                   {(cityLinks.length
                     ? cityLinks
-                    : [{ label: "Catálogo da empresa", href: tenantHomeHref }]).map((item) => (
+                    : [{ label: "Nosso catalogo", href: tenantHomeHref }]).map((item) => (
                     <li key={item.href}>
                       <Link className="transition-colors hover:text-foreground" href={item.href}>
                         {item.label}

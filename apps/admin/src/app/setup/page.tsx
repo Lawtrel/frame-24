@@ -56,14 +56,14 @@ export default function SetupPage() {
 
     setLoading(true);
     try {
-      await OperationsService.createRoom(complexId, {
+      await OperationsService.createSimpleRoom(complexId, {
         room_number: `${Math.floor(Math.random() * 100)}`,
         name,
         capacity: 50,
       });
       alert("Sala criada! Agora ela aparecerá na Programação.");
     } catch (error) {
-      alert("Erro ao criar sala. Verifique o console.");
+        alert("Erro ao criar sala. Tente novamente ou entre em contato com o suporte.");
       console.error(error);
     } finally {
       setLoading(false);

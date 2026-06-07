@@ -14,6 +14,7 @@ import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
+import { EmployeeReadThrottle, EmployeeWriteThrottle } from 'src/common/decorators/auth-throttle.decorator';
 import { MovieCategoriesService } from '../services/movie-categories.service';
 import { CreateMovieCategoryDto } from '../dto/create-movie-category.dto';
 import { UpdateMovieCategoryDto } from '../dto/update-movie-category.dto';
@@ -26,12 +27,14 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('Movie Categories')
+@EmployeeReadThrottle()
 @Controller({ path: 'movie-categories', version: '1' })
 @UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class MovieCategoriesController {
   constructor(private readonly service: MovieCategoriesService) {}
 
   @Post()
+  @EmployeeWriteThrottle()
   @RequirePermission('movie_categories', 'create')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
@@ -63,6 +66,7 @@ export class MovieCategoriesController {
   }
 
   @Put(':id')
+  @EmployeeWriteThrottle()
   @RequirePermission('movie_categories', 'update')
   @ApiOperation({
     summary: 'Atualizar categoria',
@@ -82,6 +86,7 @@ export class MovieCategoriesController {
   }
 
   @Delete(':id')
+  @EmployeeWriteThrottle()
   @RequirePermission('movie_categories', 'delete')
   @ApiOperation({ summary: 'Excluir categoria' })
   @ApiResponse({ status: 200, description: 'Categoria excluída com sucesso.' })

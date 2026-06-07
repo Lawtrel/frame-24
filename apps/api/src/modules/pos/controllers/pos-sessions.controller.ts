@@ -16,6 +16,7 @@ import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
+import { EmployeeReadThrottle, EmployeeWriteThrottle } from 'src/common/decorators/auth-throttle.decorator';
 import { CreatePosSessionDto } from '../dto/create-pos-session.dto';
 import { UpdatePosSessionDto } from '../dto/update-pos-session.dto';
 import { PosSessionResponseDto } from '../dto/pos-session-response.dto';
@@ -23,12 +24,14 @@ import { PosSessionsService } from '../services/pos-sessions.service';
 
 @ApiTags('POS - Frente de Caixa')
 @ApiBearerAuth()
+@EmployeeReadThrottle()
 @Controller({ path: 'pos-sessions', version: '1' })
 @UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class PosSessionsController {
   constructor(private readonly posSessionsService: PosSessionsService) {}
 
   @Post()
+  @EmployeeWriteThrottle()
   @RequirePermission('pos_sessions', 'create')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Abrir nova sessão PDV (frente de caixa)' })
@@ -68,6 +71,7 @@ export class PosSessionsController {
   }
 
   @Put(':id')
+  @EmployeeWriteThrottle()
   @RequirePermission('pos_sessions', 'update')
   @ApiOperation({ summary: 'Atualizar sessão PDV (fechar, suspender etc.)' })
   async update(

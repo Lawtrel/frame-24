@@ -16,6 +16,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
+import { EmployeeReadThrottle, EmployeeWriteThrottle } from 'src/common/decorators/auth-throttle.decorator';
 
 import { RolesService } from '../services/roles.service';
 import { CreateRoleDto } from '../dto/create-role.dto';
@@ -24,12 +25,14 @@ import { RoleResponseDto } from '../dto/role-response.dto';
 
 @ApiTags('Roles')
 @ApiBearerAuth()
+@EmployeeReadThrottle()
 @Controller({ path: 'roles', version: '1' })
 @UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
   @Post()
+  @EmployeeWriteThrottle()
   @RequirePermission('roles', 'create')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
@@ -66,6 +69,7 @@ export class RolesController {
   }
 
   @Put(':id')
+  @EmployeeWriteThrottle()
   @RequirePermission('roles', 'update')
   @ApiOperation({
     summary: 'Atualizar role',
@@ -80,6 +84,7 @@ export class RolesController {
   }
 
   @Delete(':id')
+  @EmployeeWriteThrottle()
   @RequirePermission('roles', 'delete')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({

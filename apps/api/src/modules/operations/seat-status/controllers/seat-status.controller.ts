@@ -2,11 +2,13 @@ import { Get } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiOkResponse } from '@nestjs/swagger';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
 import { SecuredController } from 'src/common/decorators/secured-controller.decorator';
+import { EmployeeReadThrottle } from 'src/common/decorators/auth-throttle.decorator';
 import { SeatStatusResponseDto } from '../../shared/dto/seat-status-response.dto';
 
 import { SeatStatusService } from '../services/seat-status.service';
 
 @ApiTags('Seat Status')
+@EmployeeReadThrottle()
 @SecuredController({ path: 'seat-status', version: '1' })
 export class SeatStatusController {
   constructor(private readonly service: SeatStatusService) {}

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { CatalogService } from "@/services/catalog-service";
 import { MovieForm } from "@/components/catalog/movie-form";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 
 export default function EditMoviePage() {
   const params = useParams();
@@ -15,34 +15,32 @@ export default function EditMoviePage() {
   useEffect(() => {
     const fetchMovie = async () => {
       try {
-        // Log para ver o que estamos a receber
-        console.log("🛠️ Edit Page Params:", params);
-
         const movieId = params?.id;
 
-        // Verificação robusta do ID
         if (!movieId || typeof movieId !== "string") {
-          console.warn("⚠️ ID do filme inválido ou não encontrado nos params.");
+          setErrorMsg("Filme não encontrado.");
           return;
         }
 
-        console.log("📥 Buscando filme com ID:", movieId);
         const data = await CatalogService.getMovieById(movieId);
 
         if (data) {
           setMovie(data);
         } else {
-          setErrorMsg("Filme não encontrado na API.");
+          setErrorMsg("Filme não encontrado.");
         }
       } catch (error: unknown) {
-        console.error("❌ Erro ao buscar filme:", error);
-        setErrorMsg("Erro ao carregar filme. Verifique o console.");
+        console.error("Erro ao buscar filme:", error);
+        const msg =
+          error && typeof error === "object" && "response" in error
+            ? "Não foi possível carregar este filme. Tente novamente."
+            : "Erro de conexão. Verifique sua internet e tente novamente.";
+        setErrorMsg(msg);
       } finally {
         setLoading(false);
       }
     };
 
-    // Só executa se params estiver disponível
     if (params) {
       fetchMovie();
     }
@@ -58,8 +56,9 @@ export default function EditMoviePage() {
 
   if (errorMsg || !movie) {
     return (
-      <div className="p-8 text-center text-zinc-500">
-        {errorMsg || "Filme não encontrado."}
+      <div className="flex flex-col items-center justify-center gap-3 p-8 text-center">
+        <AlertCircle className="w-10 h-10 text-zinc-500" />
+        <p className="text-zinc-400 text-lg">{errorMsg || "Filme não encontrado."}</p>
       </div>
     );
   }

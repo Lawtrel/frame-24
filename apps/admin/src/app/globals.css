@@ -3,15 +3,15 @@
 @plugin "tailwindcss-animate";
 
 :root {
-  /* Cores baseadas no apps/web */
-  --background: #09090b; 
+  --background: #09090b;
   --foreground: #fafafa;
-  
-  /* Cores de destaque do projeto */
+
   --accent-red: #ef4444;
   --accent-red-hover: #dc2626;
 
-  /* Cores de borda e inputs comuns em painéis admin */
+  --accent-gold: #d4a017;
+  --accent-gold-hover: #c4930f;
+
   --border: #27272a;
   --input: #27272a;
   --ring: #ef4444;
@@ -23,11 +23,12 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  
+
   --color-accent-red: var(--accent-red);
   --color-accent-red-hover: var(--accent-red-hover);
+  --color-accent-gold: var(--accent-gold);
+  --color-accent-gold-hover: var(--accent-gold-hover);
 
-  /* Fontes (assumindo Geist ou Inter como padrão) */
   --font-sans: Inter, system-ui, sans-serif;
 }
 
@@ -35,4 +36,118 @@ body {
   color: var(--foreground);
   background: var(--background);
   font-family: var(--font-sans);
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+  }
+}
+
+@keyframes curtain-left {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes curtain-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes spotlight {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.05);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out both;
+}
+
+.animate-fade-in-up-1 { animation-delay: 0.05s; }
+.animate-fade-in-up-2 { animation-delay: 0.1s; }
+.animate-fade-in-up-3 { animation-delay: 0.15s; }
+.animate-fade-in-up-4 { animation-delay: 0.2s; }
+.animate-fade-in-up-5 { animation-delay: 0.25s; }
+.animate-fade-in-up-6 { animation-delay: 0.3s; }
+.animate-fade-in-up-7 { animation-delay: 0.35s; }
+.animate-fade-in-up-8 { animation-delay: 0.4s; }
+.animate-fade-in-up-9 { animation-delay: 0.45s; }
+.animate-fade-in-up-10 { animation-delay: 0.5s; }
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.04) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.animate-spotlight {
+  animation: spotlight 4s ease-in-out infinite;
+}
+
+.cinema-card {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.cinema-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-red), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.cinema-card:hover::before {
+  opacity: 1;
+}
+
+.cinema-card:hover {
+  border-color: rgba(239, 68, 68, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 24px rgba(239, 68, 68, 0.08);
+}
+
+.cinema-gradient-text {
+  background: linear-gradient(135deg, var(--accent-red), var(--accent-gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }

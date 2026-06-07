@@ -28,18 +28,21 @@ import {
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
+import { EmployeeReadThrottle, EmployeeWriteThrottle } from 'src/common/decorators/auth-throttle.decorator';
 import { ExhibitionContractsService } from '../services/exhibition-contracts.service';
 import { CreateExhibitionContractDto } from '../dto/create-exhibition-contract.dto';
 import { UpdateExhibitionContractDto } from '../dto/update-exhibition-contract.dto';
 
 @ApiTags('Contracts')
 @ApiBearerAuth()
+@EmployeeReadThrottle()
 @Controller({ path: 'contracts/exhibition', version: '1' })
 @UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class ExhibitionContractsController {
   constructor(private readonly service: ExhibitionContractsService) {}
 
   @Post()
+  @EmployeeWriteThrottle()
   @RequirePermission('contracts', 'create')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Cadastrar contrato de exibição' })
@@ -86,6 +89,7 @@ export class ExhibitionContractsController {
   }
 
   @Put(':id')
+  @EmployeeWriteThrottle()
   @RequirePermission('contracts', 'update')
   @ApiOperation({ summary: 'Atualizar contrato de exibição' })
   async update(
@@ -96,6 +100,7 @@ export class ExhibitionContractsController {
   }
 
   @Delete(':id')
+  @EmployeeWriteThrottle()
   @RequirePermission('contracts', 'delete')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Desativar contrato de exibição' })

@@ -224,8 +224,8 @@ export const validateSeatAndTicketSelection = (
   }
 
   if (courtesyQty > 0 && !selection.promoCode?.trim()) {
-    errors.push("Ingresso de cortesia exige código válido.");
-    recommendedActions.push("Informe o código de cortesia no bloco de ingressos.");
+    errors.push("Ingresso de cortesia exige código promocional válido.");
+    recommendedActions.push("Informe o código promocional no bloco de ingressos.");
   }
 
   const fiscalRule = stateFiscalRules[city.state];

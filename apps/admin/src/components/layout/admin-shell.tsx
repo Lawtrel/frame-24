@@ -32,7 +32,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   if (!isReady) {
     return (
       <main className="flex min-h-screen flex-1 items-center justify-center text-sm text-zinc-400">
-        Carregando...
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 rounded-lg bg-accent-red/10 flex items-center justify-center animate-pulse">
+            <div className="h-4 w-4 rounded bg-accent-red/20" />
+          </div>
+          Carregando...
+        </div>
       </main>
     );
   }
@@ -44,7 +49,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   return (
     <>
       {!isLoginPage && (
-        <aside className="hidden w-64 border-r border-border bg-zinc-900/50 md:block">
+        <aside className="hidden w-60 border-r border-zinc-800/60 bg-zinc-950 md:flex flex-col">
           <Sidebar />
         </aside>
       )}

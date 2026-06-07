@@ -18,6 +18,16 @@ export const CatalogService = {
     return (response.data ?? []) as unknown[];
   },
 
+  async getMediaTypes() {
+    const response = await apiClient.get('/v1/movies/media-types');
+    return (response.data ?? []) as { id: string; name: string }[];
+  },
+
+  async getCastTypes() {
+    const response = await apiClient.get('/v1/movies/cast-types');
+    return (response.data ?? []) as { id: string; name: string }[];
+  },
+
   async getCategories() {
     const response = await apiClient.get('/v1/movie-categories');
     return (response.data ?? []) as unknown[];

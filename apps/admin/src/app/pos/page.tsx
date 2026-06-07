@@ -67,7 +67,7 @@ export default function PosSessionsPage() {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
           <Calculator className="w-6 h-6 text-accent-red" />
-          Frente de Caixa (PDV)
+          Frente de Caixa
         </h1>
         <Link
           href="/pos/new"
@@ -122,7 +122,7 @@ export default function PosSessionsPage() {
             ) : filteredSessions.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-6 py-8 text-center text-zinc-500">
-                  Nenhuma sessão PDV encontrada
+                  Nenhum caixa encontrado
                 </td>
               </tr>
             ) : (

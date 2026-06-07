@@ -14,12 +14,14 @@ import {
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
+import { EmployeeReadThrottle } from 'src/common/decorators/auth-throttle.decorator';
 
 import { TaxEntriesService } from '../services/tax-entries.service';
 import { TaxEntryResponseDto } from '../dto/tax-entry-response.dto';
 
 @ApiTags('Tax')
 @ApiBearerAuth()
+@EmployeeReadThrottle()
 @Controller({ path: 'tax/entries', version: '1' })
 @UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class TaxEntriesController {

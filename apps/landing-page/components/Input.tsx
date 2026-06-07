@@ -19,12 +19,12 @@ const Input: React.FC<InputProps> = ({ label, name, error, ...props }) => {
       <input
         id={name}
         name={name}
-        className={`w-full px-4 py-2 bg-gray-700 text-white border rounded-md focus:outline-none transition-all duration-150 
-                ${
-                  errorMessage
-                    ? "border-red-600 focus:border-red-500"
-                    : "border-gray-600 focus:border-red-700 focus:ring-1 focus:ring-red-700"
-                }`}
+          className={`w-full px-4 py-2 bg-gray-800 text-white border rounded-md focus:outline-none transition-all duration-200
+          ${
+            errorMessage
+              ? "border-accent-red focus:border-accent-red-hover"
+              : "border-gray-600 focus:border-accent-gold focus:ring-1 focus:ring-accent-gold/40"
+          }`}
         {...props}
       />
       {errorMessage && (

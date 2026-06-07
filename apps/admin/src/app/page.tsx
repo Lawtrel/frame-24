@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Users, Film, Ticket, TrendingUp, Loader2, AlertCircle } from "lucide-react";
+import { Users, Film, Ticket, TrendingUp, Loader2, AlertCircle, Clapperboard, Star, Clock } from "lucide-react";
 import { CatalogService } from "@/services/catalog-service";
 import { UsersService } from "@/services/users-service";
 import { ScheduleService } from "@/services/schedule-service";
-import { PosService, type PosSession, type PosTransaction } from "@/services/pos-service";
+import { PosService, type PosSession } from "@/services/pos-service";
 import { apiClient } from "@/services/api-config";
 
 interface DashboardStat {
@@ -13,6 +13,7 @@ interface DashboardStat {
   value: string;
   icon: typeof TrendingUp;
   color: string;
+  bgColor: string;
   loading: boolean;
 }
 
@@ -52,10 +53,10 @@ function formatDateTime(iso: string): string {
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStat[]>([
-    { title: "Total de Vendas", value: "R$ 0,00", icon: TrendingUp, color: "text-green-500", loading: true },
-    { title: "Usuários Ativos", value: "0", icon: Users, color: "text-blue-500", loading: true },
-    { title: "Filmes em Cartaz", value: "0", icon: Film, color: "text-purple-500", loading: true },
-    { title: "Ingressos Hoje", value: "0", icon: Ticket, color: "text-orange-500", loading: true },
+    { title: "Total de Vendas", value: "R$ 0,00", icon: TrendingUp, color: "text-green-400", bgColor: "bg-green-500/10", loading: true },
+    { title: "Usuários Ativos", value: "0", icon: Users, color: "text-blue-400", bgColor: "bg-blue-500/10", loading: true },
+    { title: "Filmes em Cartaz", value: "0", icon: Film, color: "text-purple-400", bgColor: "bg-purple-500/10", loading: true },
+    { title: "Ingressos Hoje", value: "0", icon: Ticket, color: "text-orange-400", bgColor: "bg-orange-500/10", loading: true },
   ]);
 
   const [recentSales, setRecentSales] = useState<RecentSale[]>([]);
@@ -211,46 +212,61 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h2 className="text-3xl font-bold tracking-tight text-foreground">
-          Dashboard
-        </h2>
-        <p className="text-zinc-400">Visão geral do sistema Frame24.</p>
+      <header className="animate-fade-in-up">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-red/10 border border-accent-red/20">
+            <Clapperboard className="h-5 w-5 text-accent-red" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight text-foreground">
+              Painel
+            </h2>
+            <p className="text-sm text-zinc-500">
+              Visão geral do seu cinema
+            </p>
+          </div>
+        </div>
       </header>
 
       {error && (
-        <div className="flex items-center gap-2 p-3 rounded-lg border border-red-900/50 bg-red-950/30 text-red-400 text-sm">
+        <div className="flex items-center gap-2 p-3 rounded-lg border border-red-900/50 bg-red-950/30 text-red-400 text-sm animate-fade-in-up">
           <AlertCircle className="w-4 h-4 shrink-0" />
           {error}
         </div>
       )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat, i) => (
-          <div
-            key={i}
-            className="p-6 rounded-xl border border-zinc-800 bg-zinc-900/50 backdrop-blur-sm"
-          >
-            <div className="flex items-center justify-between pb-2">
-              <h3 className="text-sm font-medium text-zinc-400">
-                {stat.title}
-              </h3>
-              <stat.icon className={`h-4 w-4 ${stat.color}`} />
+        {stats.map((stat, i) => {
+          const Icon = stat.icon;
+          return (
+            <div
+              key={i}
+              className={`cinema-card p-6 rounded-xl border border-zinc-800/80 bg-zinc-900/50 backdrop-blur-sm animate-fade-in-up animate-fade-in-up-${i + 1}`}
+            >
+              <div className="flex items-center justify-between pb-2">
+                <h3 className="text-sm font-medium text-zinc-400">
+                  {stat.title}
+                </h3>
+                <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${stat.bgColor}`}>
+                  <Icon className={`h-4 w-4 ${stat.color}`} />
+                </div>
+              </div>
+              <div className="text-2xl font-bold text-foreground">
+                {stat.loading ? (
+                  <Loader2 className="h-6 w-6 animate-spin text-zinc-500" />
+                ) : (
+                  stat.value
+                )}
+              </div>
             </div>
-            <div className="text-2xl font-bold text-foreground">
-              {stat.loading ? (
-                <Loader2 className="h-6 w-6 animate-spin text-zinc-500" />
-              ) : (
-                stat.value
-              )}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <div className="col-span-4 rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
-          <h3 className="text-lg font-medium text-foreground mb-4">
+        <div className={`col-span-4 cinema-card rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-6 animate-fade-in-up animate-fade-in-up-5`}>
+          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-accent-red" />
             Vendas Recentes
           </h3>
           {salesLoading ? (
@@ -258,15 +274,16 @@ export default function DashboardPage() {
               <Loader2 className="w-5 h-5 animate-spin" />
             </div>
           ) : recentSales.length === 0 ? (
-            <div className="h-[200px] flex items-center justify-center text-zinc-500 border border-dashed border-zinc-800 rounded-lg">
-              Nenhuma venda registrada.
+            <div className="h-[200px] flex flex-col items-center justify-center text-zinc-500 border border-dashed border-zinc-800/60 rounded-lg">
+              <Ticket className="w-8 h-8 mb-2 opacity-30" />
+              <p className="text-sm">Nenhuma venda registrada</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {recentSales.map((sale) => (
+            <div className="space-y-2">
+              {recentSales.map((sale, i) => (
                 <div
                   key={sale.id}
-                  className="flex items-center justify-between py-2 border-b border-zinc-800 last:border-0"
+                  className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-zinc-800/40 transition-colors border-b border-zinc-800/40 last:border-0"
                 >
                   <div className="flex flex-col">
                     <span className="text-sm font-medium text-zinc-200">
@@ -300,8 +317,9 @@ export default function DashboardPage() {
           )}
         </div>
 
-        <div className="col-span-3 rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
-          <h3 className="text-lg font-medium text-foreground mb-4">
+        <div className={`col-span-3 cinema-card rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-6 animate-fade-in-up animate-fade-in-up-6`}>
+          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Star className="w-5 h-5 text-accent-gold" />
             Filmes Populares
           </h3>
           {moviesLoading ? (
@@ -309,25 +327,30 @@ export default function DashboardPage() {
               <Loader2 className="w-5 h-5 animate-spin" />
             </div>
           ) : popularMovies.length === 0 ? (
-            <div className="space-y-4">
-              <p className="text-sm text-zinc-500">
-                Nenhum dado disponível no momento.
-              </p>
+            <div className="h-[200px] flex flex-col items-center justify-center text-zinc-500 border border-dashed border-zinc-800/60 rounded-lg">
+              <Film className="w-8 h-8 mb-2 opacity-30" />
+              <p className="text-sm">Nenhum dado disponível</p>
             </div>
           ) : (
-            <div className="space-y-4">
-              {popularMovies.map((movie) => (
+            <div className="space-y-3">
+              {popularMovies.map((movie, i) => (
                 <div
                   key={movie.id}
-                  className="flex items-center justify-between"
+                  className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-zinc-800/40 transition-colors"
                 >
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium text-zinc-200">
-                      {movie.title}
-                    </span>
-                    <span className="text-xs text-zinc-500">
-                      {movie.showtime_count} sessão{movie.showtime_count !== 1 ? "ões" : ""}
-                    </span>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-md bg-zinc-800 text-xs font-bold text-zinc-400">
+                      {i + 1}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-zinc-200">
+                        {movie.title}
+                      </span>
+                      <span className="text-xs text-zinc-500 flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {movie.showtime_count} sessão{movie.showtime_count !== 1 ? "ões" : ""}
+                      </span>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Ticket className="w-3.5 h-3.5 text-zinc-500" />

@@ -21,18 +21,21 @@ import {
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
+import { EmployeeReadThrottle, EmployeeWriteThrottle } from 'src/common/decorators/auth-throttle.decorator';
 import { ContractTypesService } from '../services/contract-types.service';
 import { CreateContractTypeDto } from '../dto/create-contract-type.dto';
 import { UpdateContractTypeDto } from '../dto/update-contract-type.dto';
 
 @ApiTags('Contracts')
 @ApiBearerAuth()
+@EmployeeReadThrottle()
 @Controller({ path: 'contracts/types', version: '1' })
 @UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class ContractTypesController {
   constructor(private readonly service: ContractTypesService) {}
 
   @Post()
+  @EmployeeWriteThrottle()
   @RequirePermission('contracts', 'create')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Cadastrar tipo de contrato de exibição' })
@@ -56,6 +59,7 @@ export class ContractTypesController {
   }
 
   @Put(':id')
+  @EmployeeWriteThrottle()
   @RequirePermission('contracts', 'update')
   @ApiOperation({ summary: 'Atualizar tipo de contrato' })
   async update(
@@ -66,6 +70,7 @@ export class ContractTypesController {
   }
 
   @Delete(':id')
+  @EmployeeWriteThrottle()
   @RequirePermission('contracts', 'delete')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Remover tipo de contrato' })

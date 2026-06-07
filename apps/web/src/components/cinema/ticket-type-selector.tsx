@@ -26,8 +26,8 @@ export const TicketTypeSelector = ({
 }: {
   ticketTypes: Array<TicketType & { id?: string; priceModifier?: number }>;
 }) => {
-  const { ticketQuantities, setTicketQuantity, courtesyCode, setCourtesyCode, fiscalCpf, setFiscalCpf } =
-    useBookingStore();
+  const { ticketQuantities, setTicketQuantity, promotionCode, setPromotionCode, fiscalCpf, setFiscalCpf } =
+  useBookingStore();
 
   const hasCourtesyType = (ticketQuantities.cortesia_codigo ?? 0) > 0;
   const hasYouthHalfType = (ticketQuantities.meia_jovem_baixa_renda ?? 0) > 0;
@@ -69,17 +69,17 @@ export const TicketTypeSelector = ({
         })}
       </div>
 
-      {hasCourtesyType ? (
-        <Field>
-          <FieldLabel htmlFor="ticket-courtesy-code">Código de cortesia</FieldLabel>
-          <Input
-            id="ticket-courtesy-code"
-            value={courtesyCode}
-            onChange={(event) => setCourtesyCode(event.target.value)}
-            placeholder="Digite o código da cortesia"
-          />
-        </Field>
-      ) : null}
+  {hasCourtesyType ? (
+    <Field>
+      <FieldLabel htmlFor="ticket-courtesy-code">Código promocional</FieldLabel>
+      <Input
+        id="ticket-courtesy-code"
+        value={promotionCode}
+        onChange={(event) => setPromotionCode(event.target.value)}
+        placeholder="Digite o código promocional"
+      />
+    </Field>
+  ) : null}
 
       {hasYouthHalfType ? (
         <Field>

@@ -19,6 +19,10 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { CustomerGuard } from 'src/common/guards/customer.guard';
+import {
+  CustomerReadThrottle,
+  CustomerWriteThrottle,
+} from 'src/common/decorators/auth-throttle.decorator';
 import { CustomerPurchasesService } from '../services/customer-purchases.service';
 import { CreatePurchaseDto } from '../dto/create-purchase.dto';
 import { SaleResponseDto } from 'src/modules/sales/dto/sale-response.dto';
@@ -29,6 +33,7 @@ import type { Response } from 'express';
 @ApiBearerAuth()
 @Controller({ path: 'customer', version: '1' })
 @UseGuards(JwtAuthGuard, CustomerGuard)
+@CustomerReadThrottle()
 export class CustomerPurchasesController {
   constructor(
     private readonly customerPurchasesService: CustomerPurchasesService,
@@ -36,6 +41,7 @@ export class CustomerPurchasesController {
 
   @Post('purchase')
   @HttpCode(HttpStatus.CREATED)
+  @CustomerWriteThrottle()
   @ApiOperation({
     summary: 'Comprar ingressos',
     description:
@@ -91,6 +97,7 @@ export class CustomerPurchasesController {
   }
 
   @Post('orders/:id/refund-requests')
+  @CustomerWriteThrottle()
   @ApiOperation({
     summary: 'Solicitar reembolso por item',
     description:
@@ -208,6 +215,7 @@ export class CustomerPurchasesController {
   }
 
   @Post('tickets/:id/resend-email')
+  @CustomerWriteThrottle()
   @ApiOperation({
     summary: 'Reenviar ingresso por e-mail',
     description:
@@ -238,6 +246,7 @@ export class CustomerPurchasesController {
 
   @Delete('purchases/:id/cancel')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @CustomerWriteThrottle()
   @ApiOperation({
     summary: 'Cancelar minha compra',
     description: 'Permite que o cliente cancele uma compra própria',

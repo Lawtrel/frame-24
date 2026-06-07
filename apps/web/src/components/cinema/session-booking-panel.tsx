@@ -38,48 +38,48 @@ export const SessionBookingPanel = ({
     selectedSeatIds,
     holdExpiresAt,
     ticketQuantities,
-    courtesyCode,
-    fiscalCpf,
-    setSession,
-    startHold,
-  } = useBookingStore();
+  promotionCode,
+  fiscalCpf,
+  setSession,
+  startHold,
+} = useBookingStore();
 
-  useEffect(() => {
-    setSession(session.id);
-  }, [session.id, setSession]);
+useEffect(() => {
+  setSession(session.id);
+}, [session.id, setSession]);
 
-  const totalTickets = useMemo(
-    () => Object.values(ticketQuantities).reduce((sum, quantity) => sum + (quantity ?? 0), 0),
-    [ticketQuantities],
-  );
-  const selectedSeatLabels = useMemo(
-    () =>
-      selectedSeatIds.map((seatId) => {
-        const seat = session.seats.find((item) => item.id === seatId);
-        return seat?.label || seatId;
-      }),
-    [selectedSeatIds, session.seats],
-  );
-  const validation = useMemo(
-    () => {
-      const errors: string[] = [];
-      const totalTickets = Object.values(ticketQuantities).reduce(
-        (sum, quantity) => sum + (quantity ?? 0),
-        0,
-      );
-      if (totalTickets === 0) errors.push("Escolha ao menos um ingresso.");
-      if (selectedSeatIds.length !== totalTickets) {
-        errors.push("A quantidade de assentos deve bater com os ingressos.");
-      }
-      if (courtesyCode && courtesyCode.trim().length < 3) {
-        errors.push("Informe um código de cortesia válido.");
-      }
-      if (fiscalCpf && fiscalCpf.replace(/\D/g, "").length !== 11) {
-        errors.push("Informe um CPF válido.");
-      }
-      return { isValid: errors.length === 0, errors, warnings: [] as string[] };
-    },
-    [courtesyCode, fiscalCpf, selectedSeatIds.length, ticketQuantities],
+const totalTickets = useMemo(
+  () => Object.values(ticketQuantities).reduce((sum, quantity) => sum + (quantity ?? 0), 0),
+  [ticketQuantities],
+);
+const selectedSeatLabels = useMemo(
+  () =>
+    selectedSeatIds.map((seatId) => {
+      const seat = session.seats.find((item) => item.id === seatId);
+      return seat?.label || seatId;
+    }),
+  [selectedSeatIds, session.seats],
+);
+const validation = useMemo(
+  () => {
+    const errors: string[] = [];
+    const totalTickets = Object.values(ticketQuantities).reduce(
+      (sum, quantity) => sum + (quantity ?? 0),
+      0,
+    );
+    if (totalTickets === 0) errors.push("Escolha ao menos um ingresso.");
+    if (selectedSeatIds.length !== totalTickets) {
+      errors.push("A quantidade de assentos deve bater com os ingressos.");
+    }
+    if (promotionCode && promotionCode.trim().length < 3) {
+      errors.push("Informe um código promocional válido.");
+    }
+    if (fiscalCpf && fiscalCpf.replace(/\D/g, "").length !== 11) {
+      errors.push("Informe um CPF válido.");
+    }
+    return { isValid: errors.length === 0, errors, warnings: [] as string[] };
+  },
+  [promotionCode, fiscalCpf, selectedSeatIds.length, ticketQuantities],
   );
   const prefix = tenantSlug ? `/${tenantSlug}` : "";
 

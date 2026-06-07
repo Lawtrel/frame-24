@@ -6,7 +6,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Frame 24",
-  description: "Cinema Management System",
+  description: "Gestao inteligente para cinemas",
 };
 
 export default async function RootLayout({

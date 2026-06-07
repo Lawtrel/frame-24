@@ -22,6 +22,7 @@ import {
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
+import { EmployeeReadThrottle, EmployeeWriteThrottle } from 'src/common/decorators/auth-throttle.decorator';
 
 import { UsersService } from '../services/users.service';
 import { CreateUserDto } from '../dto/create-user.dto';
@@ -30,12 +31,14 @@ import { UserResponseDto } from '../dto/user-response.dto';
 
 @ApiTags('User Management')
 @ApiBearerAuth()
+@EmployeeReadThrottle()
 @Controller({ path: 'users', version: '1' })
 @UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class UserManagementController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
+  @EmployeeWriteThrottle()
   @RequirePermission('users', 'create')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
@@ -87,6 +90,7 @@ export class UserManagementController {
   }
 
   @Put(':employee_id')
+  @EmployeeWriteThrottle()
   @RequirePermission('users', 'update')
   @ApiOperation({
     summary: 'Atualizar usuário',
@@ -101,6 +105,7 @@ export class UserManagementController {
   }
 
   @Delete(':employee_id')
+  @EmployeeWriteThrottle()
   @RequirePermission('users', 'delete')
   @ApiOperation({
     summary: 'Deletar usuário',

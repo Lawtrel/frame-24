@@ -11,17 +11,20 @@ import {
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
+import { EmployeeReadThrottle, EmployeeWriteThrottle } from 'src/common/decorators/auth-throttle.decorator';
 import { JournalEntriesService } from '../services/journal-entries.service';
 import { CreateJournalEntryDto } from '../dto/create-journal-entry.dto';
 
 @ApiTags('Lançamentos Contábeis')
 @ApiBearerAuth()
+@EmployeeReadThrottle()
 @Controller({ path: 'finance/journal-entries', version: '1' })
 @UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class JournalEntriesController {
   constructor(private readonly journalEntries: JournalEntriesService) {}
 
   @Post()
+  @EmployeeWriteThrottle()
   @RequirePermission('finance_entries', 'create')
   @ApiOperation({ summary: 'Criar lançamento contábil' })
   async create(@Body() dto: CreateJournalEntryDto) {

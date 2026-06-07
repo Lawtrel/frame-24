@@ -5,15 +5,15 @@ const PLANS = [
   {
     name: "Essencial",
     price: "R$ 499",
-    perks: "Por cinema/mês",
+    perks: "Por cinema/mes",
     description:
       "Ideal para cinemas independentes e redes pequenas que precisam de estabilidade.",
     features: [
-      "Ticketing Essencial (Até 2 caixas)",
-      "Gestão de Inventário de Bomboniere",
-      "Relatórios de Vendas Básicos",
+      "Vendas de Ingressos (Ate 2 caixas)",
+      "Gestao de Estoque da Bomboniere",
+      "Relatorios de Vendas Basicos",
       "Suporte por Email (SLA 24h)",
-      "Usuários Ilimitados",
+      "Usuarios Ilimitados",
     ],
     isRecommended: false,
     cta: "Iniciar Teste Essencial",
@@ -21,34 +21,34 @@ const PLANS = [
   {
     name: "Multiplex",
     price: "R$ 899",
-    perks: "Por cinema/mês",
+    perks: "Por cinema/mes",
     description:
-      "Plano completo para redes com múltiplas salas. Otimização e controle total.",
+      "Plano completo para redes com multiplas salas. Otimizacao e controle total.",
     features: [
       "Todos os recursos Essenciais",
-      "Programação de Filmes Inteligente",
-      "Dashboard de BI em Tempo Real",
-      "Gestão de Fidelidade e Promoções",
-      "Integração Fiscal Avançada (NFe)",
+      "Programacao de Filmes Inteligente",
+      "Painel de Indicadores em Tempo Real",
+      "Gestao de Fidelidade e Promocoes",
+      "Integracao Fiscal Avancada",
     ],
     isRecommended: true,
-    cta: "Começar o Multiplex PRO",
+    cta: "Comecar o Multiplex PRO",
   },
   {
     name: "Enterprise",
     price: "Fale Conosco",
     perks: "Customizado",
     description:
-      "Solução customizada para grandes cadeias com requisitos complexos.",
+      "Solucao customizada para grandes cadeias com requisitos complexos.",
     features: [
       "Todos os recursos Multiplex",
       "Suporte 24/7 Dedicado (SLA 1h)",
-      "Integração com Sistemas Legados",
-      "Personalização de Layouts e APIs",
-      "Consultoria Estratégica Mensal",
+      "Integracao com Sistemas Existentes",
+      "Personalizacao de Layouts",
+      "Consultoria Estrategica Mensal",
     ],
     isRecommended: false,
-    cta: "Solicitar Demonstração",
+    cta: "Solicitar Demonstracao",
   },
 ];
 
@@ -56,45 +56,41 @@ const PricingSection = () => {
   return (
     <section
       id="planos"
-      className="py-28 md:py-36 bg-gray-950 text-white relative overflow-hidden"
+      className="py-28 md:py-36 bg-[var(--background)] text-white relative overflow-hidden"
     >
-      {/* Background Gradiente Corporativo */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,0,0,0.1),_transparent_70%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(239,68,68,0.08),_transparent_70%)]" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* Cabeçalho */}
-        <div className="text-center mb-20">
-          <h2 className="text-5xl font-extrabold tracking-tight mb-6 bg-gradient-to-r from-red-600 to-red-400 text-transparent bg-clip-text">
+        <div className="text-center mb-20 animate-fade-in-up">
+          <h2 className="text-5xl font-extrabold tracking-tight mb-6 cinema-gradient-text">
             Planos que Evoluem com o Seu Cinema
           </h2>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-            Flexibilidade, escalabilidade e suporte corporativo em cada etapa do
+            Flexibilidade, escalabilidade e suporte em cada etapa do
             seu crescimento.
           </p>
         </div>
 
-        {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-          {PLANS.map((plan) => (
+          {PLANS.map((plan, index) => (
             <div
               key={plan.name}
-              className={`flex flex-col p-8 rounded-2xl transition-all duration-300 relative border
-                ${
-                  plan.isRecommended
-                    ? "bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 border-red-600 shadow-[0_0_40px_-10px_rgba(255,0,0,0.4)] scale-105"
-                    : "bg-gray-900/90 border-gray-700 hover:border-gray-600 hover:shadow-[0_0_30px_-10px_rgba(255,0,0,0.2)]"
-                }`}
+              className={`cinema-card flex flex-col p-8 rounded-2xl border animate-fade-in-up
+              ${
+                plan.isRecommended
+                  ? "bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 border-accent-red shadow-[0_0_40px_-10px_rgba(239,68,68,0.35)] scale-105"
+                  : "bg-gray-900/90 border-[var(--border)] hover:border-accent-red/30"
+              }`}
+              style={{ animationDelay: `${0.15 + index * 0.12}s` }}
             >
-              {/* Badge de destaque */}
               {plan.isRecommended && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="px-3 py-1 text-xs font-bold bg-red-600 text-white rounded-full shadow-lg">
+                  <span className="px-3 py-1 text-xs font-bold bg-accent-red text-white rounded-full shadow-lg">
                     Mais Popular
                   </span>
                 </div>
               )}
 
-              {/* Conteúdo */}
               <div className="flex-1">
                 <h3 className="text-3xl font-bold text-white text-center">
                   {plan.name}
@@ -110,26 +106,24 @@ const PricingSection = () => {
                   {plan.description}
                 </p>
 
-                {/* Features */}
                 <ul className="mt-8 space-y-3">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start">
-                      <Check className="h-5 w-5 text-red-500 mr-2 mt-0.5" />
+                      <Check className="h-5 w-5 text-accent-gold mr-2 mt-0.5" />
                       <span className="text-gray-300 text-sm">{feature}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
-              {/* Botão */}
               <Link
                 href="/register-tenant"
                 className={`mt-10 block w-full text-center px-4 py-3 rounded-lg font-semibold transition-all duration-200
-                  ${
-                    plan.isRecommended
-                      ? "bg-red-700 hover:bg-red-600 text-white shadow-red-600/40 shadow-lg"
-                      : "bg-gray-800 hover:bg-gray-700 text-white"
-                  }`}
+                ${
+                  plan.isRecommended
+                    ? "bg-accent-red hover:bg-accent-red-hover text-white shadow-accent-red/30 shadow-lg"
+                    : "bg-gray-800 hover:bg-gray-700 text-white"
+                }`}
               >
                 {plan.cta}
               </Link>
@@ -137,13 +131,12 @@ const PricingSection = () => {
           ))}
         </div>
 
-        {/* CTA Inferior */}
-        <div className="mt-20 text-center">
+        <div className="mt-20 text-center animate-fade-in-up animate-fade-in-up-3">
           <p className="text-gray-400">
-            Ainda em dúvida?
+            Ainda em duvida?{" "}
             <Link
-              href="#"
-              className="text-red-500 hover:underline font-semibold ml-1"
+              href="#contact"
+              className="text-accent-gold hover:underline font-semibold ml-1"
             >
               Fale com um especialista.
             </Link>

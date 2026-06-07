@@ -71,7 +71,7 @@ export default function NewRolePage() {
       router.push("/identity/roles");
     } catch (error) {
       console.error("Erro ao criar perfil:", error);
-      alert("Erro ao criar Perfil de Acesso. Verifique o console.");
+        alert("Erro ao criar Perfil de Acesso. Tente novamente ou entre em contato com o suporte.");
     } finally {
       setLoading(false);
     }

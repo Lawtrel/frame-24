@@ -85,25 +85,24 @@ export default function CatalogPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 animate-fade-in-up">
         <div>
           <h1 className="text-2xl font-bold text-foreground">
             Catálogo de Filmes
           </h1>
-          <p className="text-sm text-zinc-400">
-            Gerencie os títulos disponíveis para exibição.
+          <p className="text-sm text-zinc-500">
+            Gerencie os títulos disponíveis para exibição
           </p>
         </div>
         <Link
           href="/catalog/new"
-          className="flex items-center gap-2 bg-accent-red hover:bg-accent-red-hover text-white px-4 py-2 rounded-md font-medium transition-colors"
+          className="flex items-center gap-2 bg-accent-red hover:bg-accent-red-hover text-white px-4 py-2.5 rounded-lg font-medium transition-all duration-200 hover:shadow-lg hover:shadow-accent-red/20"
         >
-          <Plus className="w-4 h-4" />
-          Novo Filme
+          <Plus className="w-4 h-4" /> Novo Filme
         </Link>
       </div>
 
-      <div className="flex items-center gap-2 bg-zinc-900/50 p-2 rounded-lg border border-border">
+      <div className="flex items-center gap-2 bg-zinc-900/50 p-2 rounded-lg border border-zinc-800/80 animate-fade-in-up animate-fade-in-up-1">
         <Search className="w-5 h-5 text-zinc-500 ml-2" />
         <input
           type="text"
@@ -114,7 +113,7 @@ export default function CatalogPage() {
         />
       </div>
 
-      <div className="rounded-lg border border-border bg-zinc-900/50 overflow-hidden">
+      <div className="cinema-card rounded-xl border border-zinc-800/80 bg-zinc-900/50 overflow-hidden animate-fade-in-up animate-fade-in-up-2">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="bg-zinc-900 text-zinc-400 uppercase text-xs">

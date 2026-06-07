@@ -15,6 +15,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
+import { EmployeeReadThrottle, EmployeeWriteThrottle } from 'src/common/decorators/auth-throttle.decorator';
 
 import { StockMovementsService } from '../services/stock-movements.service';
 import { CreateStockMovementDto } from '../dto/create-stock-movement.dto';
@@ -22,12 +23,14 @@ import { StockMovementResponseDto } from '../dto/stock-movement-response.dto';
 
 @ApiTags('Stock Movements')
 @ApiBearerAuth()
+@EmployeeReadThrottle()
 @Controller({ path: 'stock/movements', version: '1' })
 @UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class StockMovementsController {
   constructor(private readonly stockMovementsService: StockMovementsService) {}
 
   @Post()
+  @EmployeeWriteThrottle()
   @RequirePermission('stock', 'create')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Criar movimentação de estoque' })

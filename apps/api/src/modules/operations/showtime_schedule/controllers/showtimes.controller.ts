@@ -31,6 +31,7 @@ import {
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
+import { EmployeeReadThrottle, EmployeeWriteThrottle } from 'src/common/decorators/auth-throttle.decorator';
 
 import { CreateShowtimeDto } from '../dto/create-showtime.dto';
 import { UpdateShowtimeDto } from '../dto/update-showtime.dto';
@@ -42,12 +43,14 @@ import {
 
 @ApiTags('Showtimes')
 @ApiBearerAuth()
+@EmployeeReadThrottle()
 @Controller({ path: 'showtimes', version: '1' })
 @UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class ShowtimesController {
   constructor(private readonly service: ShowtimesService) {}
 
   @Post('preview')
+  @EmployeeWriteThrottle()
   @RequirePermission('showtimes', 'create')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -68,6 +71,7 @@ export class ShowtimesController {
   }
 
   @Post()
+  @EmployeeWriteThrottle()
   @RequirePermission('showtimes', 'create')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Criar uma nova sessão de cinema' })
@@ -166,6 +170,7 @@ export class ShowtimesController {
   }
 
   @Patch(':id')
+  @EmployeeWriteThrottle()
   @RequirePermission('showtimes', 'update')
   @ApiOperation({ summary: 'Atualizar uma sessão existente' })
   @ApiNotFoundResponse({ description: 'Sessão não encontrada.' })
@@ -179,6 +184,7 @@ export class ShowtimesController {
   }
 
   @Delete(':id')
+  @EmployeeWriteThrottle()
   @RequirePermission('showtimes', 'delete')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Cancelar uma sessão' })
@@ -190,6 +196,7 @@ export class ShowtimesController {
   }
 
   @Put(':id/seats/:seatId/status')
+  @EmployeeWriteThrottle()
   @RequirePermission('showtimes', 'update')
   @ApiOperation({
     summary: 'Atualizar o status manual de um assento em uma sessão',

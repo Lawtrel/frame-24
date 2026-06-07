@@ -16,6 +16,7 @@ import { AccountReceivableQueryDto } from '../dto/account-receivable-query.dto';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
+import { EmployeeReadThrottle, EmployeeWriteThrottle } from 'src/common/decorators/auth-throttle.decorator';
 
 import {
   ApiTags,
@@ -26,12 +27,14 @@ import {
 
 @ApiTags('Contas a Receber')
 @ApiBearerAuth()
+@EmployeeReadThrottle()
 @Controller('finance/receivables')
 @UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class AccountsReceivableController {
   constructor(private readonly service: AccountsReceivableService) {}
 
   @Post()
+  @EmployeeWriteThrottle()
   @RequirePermission('finance_receivables', 'create')
   @ApiOperation({
     summary: 'Criar nova conta a receber',
@@ -74,6 +77,7 @@ export class AccountsReceivableController {
   }
 
   @Patch(':id')
+  @EmployeeWriteThrottle()
   @RequirePermission('finance_receivables', 'update')
   @ApiOperation({
     summary: 'Atualizar conta a receber',

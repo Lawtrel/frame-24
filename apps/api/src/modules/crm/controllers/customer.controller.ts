@@ -22,6 +22,11 @@ import { ClsService } from 'nestjs-cls';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { CustomerGuard } from 'src/common/guards/customer.guard';
 import { AllowAnonymousSession } from 'src/common/decorators/allow-anonymous-session.decorator';
+import {
+  CustomerReadThrottle,
+  CustomerWriteThrottle,
+  PrivacyThrottle,
+} from 'src/common/decorators/auth-throttle.decorator';
 import { CustomersRepository } from '../repositories/customers.repository';
 import { CompanyCustomersRepository } from '../repositories/company-customers.repository';
 import { UpdateCustomerProfileDto } from '../dto/update-customer-profile.dto';
@@ -40,6 +45,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 @ApiTags('Customer')
 @ApiBearerAuth()
 @Controller({ path: 'customer', version: '1' })
+@CustomerReadThrottle()
 export class CustomerController {
   constructor(
     private readonly customersRepository: CustomersRepository,
@@ -74,16 +80,108 @@ export class CustomerController {
       'Retorna o perfil quando a sessão atual é de cliente. Para sessão de funcionário, retorna null.',
   })
   async resolveProfile() {
-    const sessionContext = this.cls.get<'EMPLOYEE' | 'CUSTOMER'>(
+    const sessionContext = this.cls.get<'EMPLOYEE' | 'CUSTOMER' | 'PLATFORM'>(
       'sessionContext',
     );
+    const companyId = this.cls.get<string>('companyId');
+    const tenantSlug = this.cls.get<string>('tenantSlug');
+    const identityId = this.cls.get<string>('identityId');
 
-    if (sessionContext !== 'CUSTOMER') {
+    if (sessionContext === 'CUSTOMER') {
+      const profile = await this.getProfile();
+      return { profile };
+    }
+
+    if (!identityId || !tenantSlug) {
       return { profile: null };
     }
 
-    const profile = await this.getProfile();
-    return { profile };
+    const currentIdentity = await this.prisma.identities.findUnique({
+      where: { id: identityId },
+      select: { email: true, person_id: true },
+    });
+
+    if (!currentIdentity) {
+      return { profile: null };
+    }
+
+    const [localPart, domain] = currentIdentity.email.split('@');
+    const tenantAuthEmail = `${localPart}__tenant__${tenantSlug}@${domain}`;
+
+    const customerIdentity = await this.prisma.identities.findFirst({
+      where: {
+        email: tenantAuthEmail,
+        identity_type: 'CUSTOMER',
+        active: true,
+      },
+    });
+
+    if (!customerIdentity) {
+      return { profile: null };
+    }
+
+    const customer = await this.prisma.customers.findFirst({
+      where: {
+        identity_id: customerIdentity.id,
+        active: true,
+        blocked: false,
+      },
+    });
+
+    if (!customer) {
+      return { profile: null };
+    }
+
+    const companyCustomer = companyId
+      ? await this.companyCustomersRepository.findByCompanyAndCustomer(
+          companyId,
+          customer.id,
+        )
+      : null;
+
+    const linkedCompanyLinks = await this.prisma.company_customers.findMany({
+      where: { customer_id: customer.id },
+      orderBy: { created_at: 'desc' },
+    });
+    const linkedCompanyIds = linkedCompanyLinks.map((item) => item.company_id);
+    const linkedCompaniesData = linkedCompanyIds.length
+      ? await this.prisma.companies.findMany({
+          where: { id: { in: linkedCompanyIds } },
+        })
+      : [];
+    const companyMap = new Map(
+      linkedCompaniesData.map((item) => [item.id, item]),
+    );
+
+    return {
+      profile: {
+        id: customer.id,
+        email: customer.email,
+        full_name: customer.full_name,
+        phone: customer.phone,
+        birth_date: customer.birth_date,
+        zip_code: customer.zip_code,
+        address: customer.address,
+        city: customer.city,
+        state: customer.state,
+        accepts_email: customer.accepts_email,
+        accepts_sms: customer.accepts_sms,
+        accepts_marketing: customer.accepts_marketing,
+        loyalty_level: companyCustomer?.loyalty_level || 'BRONZE',
+        accumulated_points: companyCustomer?.accumulated_points || 0,
+        company_id: companyId || '',
+        tenant_slug: tenantSlug || '',
+        linked_companies: linkedCompanyLinks
+          .filter((item) => companyMap.has(item.company_id))
+          .map((item) => ({
+            company_id: item.company_id,
+            tenant_slug: companyMap.get(item.company_id)?.tenant_slug ?? null,
+            company_name: companyMap.get(item.company_id)?.corporate_name ?? null,
+            loyalty_level: item.loyalty_level,
+            accumulated_points: item.accumulated_points,
+          })),
+      },
+    };
   }
 
   @Get('profile')
@@ -181,6 +279,7 @@ export class CustomerController {
 
   @Put('profile')
   @UseGuards(JwtAuthGuard, CustomerGuard)
+  @CustomerWriteThrottle()
   @ApiOperation({
     summary: 'Atualizar perfil do cliente',
     description: 'Permite que o cliente atualize seus próprios dados básicos',
@@ -275,6 +374,7 @@ export class CustomerController {
 
   @Post('profile/email-change/request')
   @UseGuards(JwtAuthGuard, CustomerGuard)
+  @CustomerWriteThrottle()
   @ApiOperation({
     summary: 'Solicitar troca de e-mail',
     description:
@@ -286,6 +386,7 @@ export class CustomerController {
 
   @Post('profile/email-change/confirm')
   @UseGuards(JwtAuthGuard, CustomerGuard)
+  @CustomerWriteThrottle()
   @ApiOperation({
     summary: 'Confirmar troca de e-mail',
     description: 'Confirma a troca após validação do token recebido por e-mail.',
@@ -310,6 +411,7 @@ export class CustomerController {
 
   @Delete('security/sessions/:sessionId')
   @UseGuards(JwtAuthGuard, CustomerGuard)
+  @CustomerWriteThrottle()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
     summary: 'Encerrar sessão específica',
@@ -321,6 +423,7 @@ export class CustomerController {
 
   @Post('security/sessions/revoke-others')
   @UseGuards(JwtAuthGuard, CustomerGuard)
+  @CustomerWriteThrottle()
   @ApiOperation({
     summary: 'Encerrar outras sessões',
     description:
@@ -332,6 +435,7 @@ export class CustomerController {
 
   @Post('privacy/export')
   @UseGuards(JwtAuthGuard, CustomerGuard)
+  @PrivacyThrottle()
   @ApiOperation({
     summary: 'Solicitar exportação de dados',
     description: 'Abre solicitação de exportação de dados da conta.',
@@ -342,6 +446,7 @@ export class CustomerController {
 
   @Post('privacy/delete-request')
   @UseGuards(JwtAuthGuard, CustomerGuard)
+  @PrivacyThrottle()
   @ApiOperation({
     summary: 'Solicitar exclusão da conta',
     description: 'Abre solicitação confirmada de exclusão da conta.',

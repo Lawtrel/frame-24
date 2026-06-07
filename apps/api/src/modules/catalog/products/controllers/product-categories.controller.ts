@@ -16,6 +16,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
+import { EmployeeReadThrottle, EmployeeWriteThrottle } from 'src/common/decorators/auth-throttle.decorator';
 
 import { ProductCategoriesService } from '../services/product-categories.service';
 import { CreateProductCategoryDto } from '../dto/create-product-category.dto';
@@ -24,12 +25,14 @@ import { ProductCategoryResponseDto } from '../dto/product-category-response.dto
 
 @ApiTags('Product Categories')
 @ApiBearerAuth()
+@EmployeeReadThrottle()
 @Controller({ path: 'product-categories', version: '1' })
 @UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class ProductCategoriesController {
   constructor(private readonly categoriesService: ProductCategoriesService) {}
 
   @Post()
+  @EmployeeWriteThrottle()
   @RequirePermission('product_categories', 'create')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Criar categoria de produto' })
@@ -56,6 +59,7 @@ export class ProductCategoriesController {
   }
 
   @Put(':id')
+  @EmployeeWriteThrottle()
   @RequirePermission('product_categories', 'update')
   @ApiOperation({ summary: 'Atualizar categoria' })
   async update(
@@ -66,6 +70,7 @@ export class ProductCategoriesController {
   }
 
   @Delete(':id')
+  @EmployeeWriteThrottle()
   @RequirePermission('product_categories', 'delete')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Deletar categoria' })

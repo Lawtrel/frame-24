@@ -34,7 +34,7 @@ export const CheckoutForm = ({
   const {
     selectedSeatIds,
     ticketQuantities,
-    courtesyCode,
+    promotionCode,
     productQuantities,
     setProductQuantity,
     holdExpiresAt,
@@ -86,7 +86,7 @@ export const CheckoutForm = ({
       <input name="sessionId" type="hidden" value={session.id} />
       <input name="seatIds" type="hidden" value={JSON.stringify(selectedSeatIds)} />
       <input name="ticketQuantities" type="hidden" value={JSON.stringify(ticketQuantities)} />
-      <input name="courtesyCode" type="hidden" value={courtesyCode} />
+      <input name="promotionCode" type="hidden" value={promotionCode} />
       <input name="productQuantities" type="hidden" value={JSON.stringify(productQuantities)} />
       <div className="space-y-6">
         <Card className="space-y-5">

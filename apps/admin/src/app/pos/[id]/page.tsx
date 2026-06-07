@@ -72,8 +72,8 @@ export default function PosSessionDetailPage({
       setSession(sessionData);
       setTransactions(Array.isArray(txData) ? txData : []);
     } catch (error) {
-      console.error("Erro ao carregar sessão PDV:", error);
-      alert("Sessão PDV não encontrada.");
+      console.error("Erro ao carregar caixa:", error);
+      alert("Caixa não encontrado.");
       router.push("/pos");
     } finally {
       setLoading(false);
@@ -109,7 +109,7 @@ export default function PosSessionDetailPage({
     return (
       <div className="p-8 text-zinc-400 flex items-center gap-2">
         <Loader2 className="w-4 h-4 animate-spin" />
-        Carregando sessão PDV...
+        Carregando caixa...
       </div>
     );
   }

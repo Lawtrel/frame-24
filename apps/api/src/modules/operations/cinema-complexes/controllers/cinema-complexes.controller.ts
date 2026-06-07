@@ -21,17 +21,20 @@ import {
 
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
 import { SecuredController } from 'src/common/decorators/secured-controller.decorator';
+import { EmployeeReadThrottle, EmployeeWriteThrottle } from 'src/common/decorators/auth-throttle.decorator';
 
 import { CreateCinemaComplexDto } from '../dto/create-cinema-complex.dto';
 import { UpdateCinemaComplexDto } from '../dto/update-cinema-complex.dto';
 import { CinemaComplexesService } from '../service/cinema-complexes.service';
 
 @ApiTags('Cinema Complexes')
+@EmployeeReadThrottle()
 @SecuredController({ path: 'cinema-complexes', version: '1' })
 export class CinemaComplexesController {
   constructor(private readonly service: CinemaComplexesService) {}
 
   @Post()
+  @EmployeeWriteThrottle()
   @RequirePermission('cinema_complexes', 'create')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
@@ -68,6 +71,7 @@ export class CinemaComplexesController {
   }
 
   @Put(':id')
+  @EmployeeWriteThrottle()
   @RequirePermission('cinema_complexes', 'update')
   @ApiOperation({ summary: 'Atualizar um complexo de cinema' })
   @ApiResponse({ status: 200, description: 'Complexo atualizado com sucesso.' })
@@ -81,6 +85,7 @@ export class CinemaComplexesController {
   }
 
   @Delete(':id')
+  @EmployeeWriteThrottle()
   @RequirePermission('cinema_complexes', 'delete')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Excluir um complexo de cinema' })

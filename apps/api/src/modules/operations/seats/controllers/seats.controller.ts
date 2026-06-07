@@ -20,6 +20,7 @@ import {
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
+import { EmployeeReadThrottle, EmployeeWriteThrottle } from 'src/common/decorators/auth-throttle.decorator';
 
 import { SeatsService } from '../services/seats.service';
 import { UpdateSeatStatusDto } from '../dto/update-seat-status.dto';
@@ -27,12 +28,14 @@ import { UpdateSeatsStatusBatchDto } from '../dto/update-seats-status-batch.dto'
 
 @ApiTags('Seats')
 @ApiBearerAuth()
+@EmployeeReadThrottle()
 @Controller({ path: 'seats', version: '1' })
 @UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class SeatsController {
   constructor(private readonly service: SeatsService) {}
 
   @Patch(':id/status')
+  @EmployeeWriteThrottle()
   @RequirePermission('seats', 'update')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -52,6 +55,7 @@ export class SeatsController {
   }
 
   @Patch('status/batch')
+  @EmployeeWriteThrottle()
   @RequirePermission('seats', 'update')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({

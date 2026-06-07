@@ -15,8 +15,8 @@ import { CustomerRegisterResponseDto } from '../dto/customer-register-response.d
 import { auth } from 'src/lib/auth';
 import { fromNodeHeaders } from 'better-auth/node';
 import {
-  CustomerSignupThrottle,
-  ProvisioningThrottle,
+  CustomerSignupOnlyThrottle,
+  ProvisioningOnlyThrottle,
 } from 'src/common/decorators/auth-throttle.decorator';
 
 type ActivateCustomerAccessDto = {
@@ -37,7 +37,7 @@ export class CustomerAuthController {
 
   @Post('register')
   @Public()
-  @CustomerSignupThrottle()
+  @CustomerSignupOnlyThrottle()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary: 'Registrar novo cliente',
@@ -61,7 +61,7 @@ export class CustomerAuthController {
 
   @Post('activate')
   @Public()
-  @ProvisioningThrottle()
+  @ProvisioningOnlyThrottle()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Ativar acesso de cliente na empresa atual',

@@ -5,6 +5,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { EmployeeReadThrottle } from 'src/common/decorators/auth-throttle.decorator';
 
 interface GroupedPermissionItem {
   id: string;
@@ -17,6 +18,7 @@ interface GroupedPermissionItem {
 
 @ApiTags('Permissions')
 @ApiBearerAuth()
+@EmployeeReadThrottle()
 @Controller({ path: 'permissions', version: '1' })
 @UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class PermissionsController {

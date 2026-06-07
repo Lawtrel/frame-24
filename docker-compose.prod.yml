@@ -32,6 +32,7 @@ services:
       JWT_ISSUER: frame24-api
       JWT_EXPIRES_IN: 8h
       WORKER_ID: 1
+      TENANT_BASE_DOMAIN: ${TENANT_BASE_DOMAIN:-lawtrel.dev}
     ports:
       - "4000:4000"
     deploy:
@@ -117,12 +118,16 @@ services:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
         NEXT_PUBLIC_AUTH_URL: ${NEXT_PUBLIC_AUTH_URL}
         NEXT_PUBLIC_TMDB_API_KEY: ${NEXT_PUBLIC_TMDB_API_KEY}
+        NEXT_PUBLIC_TENANT_BASE_DOMAIN: ${NEXT_PUBLIC_TENANT_BASE_DOMAIN:-lawtrel.dev}
+        NEXT_PUBLIC_DEFAULT_TENANT_SLUG: ${NEXT_PUBLIC_DEFAULT_TENANT_SLUG:-lawtrel-admin}
     container_name: frame24-admin
     restart: unless-stopped
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
       NEXT_PUBLIC_AUTH_URL: ${NEXT_PUBLIC_AUTH_URL}
       NEXT_PUBLIC_TMDB_API_KEY: ${NEXT_PUBLIC_TMDB_API_KEY}
+      NEXT_PUBLIC_TENANT_BASE_DOMAIN: ${NEXT_PUBLIC_TENANT_BASE_DOMAIN:-lawtrel.dev}
+      NEXT_PUBLIC_DEFAULT_TENANT_SLUG: ${NEXT_PUBLIC_DEFAULT_TENANT_SLUG:-lawtrel-admin}
       AUTH_INTERNAL_URL: http://api:4000
     ports:
       - "3004:3004"

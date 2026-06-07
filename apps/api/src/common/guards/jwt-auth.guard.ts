@@ -132,6 +132,18 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     for (const identity of identities) {
+      if (identity.identity_type === 'SYSTEM') {
+        const platformUser = await this.resolvePlatformAdminForIdentity(
+          identity,
+          requestedCompanyId,
+          requestedTenantSlug,
+        );
+        if (platformUser) {
+          await this.redis.set(cacheKey, JSON.stringify(platformUser), 60);
+          return platformUser;
+        }
+      }
+
       const employeeUser = await this.resolveEmployeeForIdentity(
         identity,
         requestedCompanyId,
@@ -156,6 +168,92 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     return null;
+  }
+
+  private async resolvePlatformAdminForIdentity(
+    identity: {
+      id: string;
+      email: string;
+      persons: { full_name: string } | null;
+    },
+    requestedCompanyId?: string,
+    requestedTenantSlug?: string,
+  ): Promise<RequestUser | null> {
+    let companyId = '';
+    let tenantSlug = '';
+
+    if (requestedCompanyId || requestedTenantSlug) {
+      const company = await this.prisma.companies.findFirst({
+        where: {
+          active: true,
+          suspended: false,
+          ...(requestedCompanyId ? { id: requestedCompanyId } : {}),
+          ...(requestedTenantSlug ? { tenant_slug: requestedTenantSlug } : {}),
+        },
+      });
+      if (company) {
+        companyId = company.id;
+        tenantSlug = company.tenant_slug;
+      }
+    }
+
+    if (!companyId) {
+      const firstCompany = await this.prisma.companies.findFirst({
+        where: {
+          active: true,
+          suspended: false,
+        },
+        orderBy: {
+          created_at: 'asc',
+        },
+      });
+      if (firstCompany) {
+        companyId = firstCompany.id;
+        tenantSlug = firstCompany.tenant_slug;
+      }
+    }
+
+    let customerId: string | undefined;
+    if (tenantSlug && identity.email.includes('@')) {
+      const [localPart, domain] = identity.email.split('@');
+      const tenantAuthEmail = `${localPart}__tenant__${tenantSlug}@${domain}`;
+      const customerIdentity = await this.prisma.identities.findFirst({
+        where: {
+          email: tenantAuthEmail,
+          identity_type: 'CUSTOMER',
+          active: true,
+        },
+      });
+      if (customerIdentity) {
+        const customer = await this.prisma.customers.findFirst({
+          where: {
+            identity_id: customerIdentity.id,
+            active: true,
+            blocked: false,
+          },
+        });
+        if (customer) {
+          customerId = customer.id;
+        }
+      }
+    }
+
+    return {
+      sub: identity.id,
+      identity_id: identity.id,
+      company_user_id: '',
+      employee_id: '',
+      email: identity.email,
+      name: identity.persons?.full_name || identity.email,
+      tenant_slug: tenantSlug,
+      company_id: companyId,
+      role_id: '',
+      role: 'Platform Admin',
+      role_hierarchy: 0,
+      permissions: [],
+      session_context: 'PLATFORM',
+      ...(customerId ? { customer_id: customerId } : {}),
+    };
   }
 
   private async resolveEmployeeForIdentity(
@@ -212,6 +310,41 @@ export class JwtAuthGuard implements CanActivate {
       .filter((rp) => !!rp.permissions)
       .map((rp) => `${rp.permissions.resource}:${rp.permissions.action}`);
 
+    let customerId: string | undefined;
+    const customerRecord = await this.prisma.customers.findFirst({
+      where: {
+        identity_id: identity.id,
+        active: true,
+        blocked: false,
+      },
+    });
+    if (!customerRecord && identity.email.includes('@')) {
+      const [localPart, domain] = identity.email.split('@');
+      const baseEmail = localPart.split('__tenant__')[0];
+      const tenantAuthEmail = `${baseEmail}__tenant__${employeeLink.companies.tenant_slug}@${domain}`;
+      const customerIdentity = await this.prisma.identities.findFirst({
+        where: {
+          email: tenantAuthEmail,
+          identity_type: 'CUSTOMER',
+          active: true,
+        },
+      });
+      if (customerIdentity) {
+        const linkedCustomer = await this.prisma.customers.findFirst({
+          where: {
+            identity_id: customerIdentity.id,
+            active: true,
+            blocked: false,
+          },
+        });
+        if (linkedCustomer) {
+          customerId = linkedCustomer.id;
+        }
+      }
+    } else if (customerRecord) {
+      customerId = customerRecord.id;
+    }
+
     return {
       sub: identity.id,
       identity_id: identity.id,
@@ -226,6 +359,7 @@ export class JwtAuthGuard implements CanActivate {
       role_hierarchy: employeeLink.custom_roles.hierarchy_level ?? 99,
       permissions,
       session_context: 'EMPLOYEE',
+      ...(customerId ? { customer_id: customerId } : {}),
     };
   }
 

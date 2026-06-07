@@ -96,6 +96,21 @@ describe('TenantContextService', () => {
     expect(cls.set).toHaveBeenCalledWith('userId', 'customer-9');
   });
 
+  it('should fallback userId to identity_id when company_user_id is empty (PLATFORM session)', () => {
+    cls.get.mockReturnValue(undefined);
+
+    service.setContext({
+      company_id: 'company-1',
+      company_user_id: '',
+      identity_id: 'identity-platform',
+      session_context: 'PLATFORM',
+    });
+
+    expect(cls.set).toHaveBeenCalledWith('userId', '');
+    expect(cls.set).toHaveBeenCalledWith('identityId', 'identity-platform');
+    expect(cls.set).toHaveBeenCalledWith('userId', 'identity-platform');
+  });
+
   it('should do nothing when context payload is not an object', () => {
     service.setContext(null);
     service.setContext('invalid');

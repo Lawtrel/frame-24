@@ -14,6 +14,8 @@ type CreateShowtimePayload = ApiPayload & {
 };
 
 type UpdateShowtimePayload = Partial<{
+  movie_id: string;
+  room_id: string;
   start_time: string | Date;
   base_ticket_price: number;
   projection_type: string | null;
@@ -26,6 +28,11 @@ export const ScheduleService = {
   async getShowtimes() {
     const response = await apiClient.get('/v1/showtimes');
     return (response.data ?? []) as unknown[];
+  },
+
+  async getShowtimeById(id: string) {
+    const response = await apiClient.get(`/v1/showtimes/${id}`);
+    return response.data as unknown;
   },
 
   async createShowtime(data: CreateShowtimePayload) {

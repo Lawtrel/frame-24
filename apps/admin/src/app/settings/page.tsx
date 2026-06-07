@@ -85,10 +85,10 @@ export default function ConfiguracoesPage() {
   };
 
   const services = [
-    { name: "PostgreSQL", icon: Database, status: "Conectado", color: "text-green-400" },
-    { name: "Redis", icon: Server, status: "Conectado", color: "text-green-400" },
-    { name: "RabbitMQ", icon: Radio, status: "Conectado", color: "text-green-400" },
-    { name: "TMDB API", icon: Key, status: tmdbConfigured ? "Configurada" : "Não configurada", color: tmdbConfigured ? "text-green-400" : "text-amber-400" },
+    { name: "Banco de Dados", icon: Database, status: "Conectado", color: "text-green-400" },
+    { name: "Cache do Sistema", icon: Server, status: "Conectado", color: "text-green-400" },
+    { name: "Serviço de Mensagens", icon: Radio, status: "Conectado", color: "text-green-400" },
+    { name: "Busca de Filmes (TMDB)", icon: Key, status: tmdbConfigured ? "Configurada" : "Não configurada", color: tmdbConfigured ? "text-green-400" : "text-amber-400" },
   ];
 
   return (
@@ -253,7 +253,7 @@ export default function ConfiguracoesPage() {
             </div>
             {!tmdbConfigured && (
               <p className="mt-3 text-xs text-amber-400">
-                Configure a variável NEXT_PUBLIC_TMDB_API_KEY para habilitar a busca de filmes via TMDB.
+                Peça ao administrador do sistema para configurar a chave de acesso ao TMDB e habilitar a busca de filmes.
               </p>
             )}
           </div>

@@ -10,6 +10,7 @@ import {
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
+import { EmployeeReadThrottle } from 'src/common/decorators/auth-throttle.decorator';
 
 import {
   ApiTags,
@@ -22,6 +23,7 @@ import { FinanceReportsService } from '../../services/finance-reports.service';
 
 @ApiTags('Relatórios Financeiros')
 @ApiBearerAuth()
+@EmployeeReadThrottle()
 @Controller('finance/reports')
 @UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class AgingReportsController {

@@ -4,10 +4,12 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
+import { EmployeeReadThrottle, EmployeeWriteThrottle } from 'src/common/decorators/auth-throttle.decorator';
 import { AdminOperationsService } from '../services/admin-operations.service';
 
 @ApiTags('Admin')
 @ApiBearerAuth()
+@EmployeeReadThrottle()
 @Controller({ path: 'admin', version: '1' })
 @UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class AdminOperationsController {
@@ -23,6 +25,7 @@ export class AdminOperationsController {
   }
 
   @Delete('reservations/:id')
+  @EmployeeWriteThrottle()
   @RequirePermission('showtimes', 'delete')
   @ApiOperation({
     summary: 'Liberar/cancelar reserva pendente',

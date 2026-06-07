@@ -9,20 +9,15 @@
  */
 
 function getWorkerId(): bigint {
-  // Desenvolvimento: sempre 1
-  if (process.env.NODE_ENV === 'development') {
+  const raw =
+    process.env.WORKER_ID || process.env.HOSTNAME?.slice(-3) || '1';
+  const parsed = parseInt(raw, 10);
+
+  if (Number.isNaN(parsed) || parsed < 0) {
     return 1n;
   }
 
-  // Produção: pega de variável de ambiente
-  // Cada instância/pod deve ter um WORKER_ID único (0-31)
-  const workerId =
-    process.env.WORKER_ID || process.env.HOSTNAME?.slice(-3) || '1';
-
-  const id = BigInt(parseInt(workerId, 10));
-
-  // Garante que está no range válido (0-31)
-  return id & 0b11111n;
+  return BigInt(parsed) & 0b11111n;
 }
 
 export const SNOWFLAKE_CONFIG = {

@@ -79,12 +79,13 @@ export const PlatformCheckoutExperience = ({
   const { data: showtime } = useShowtimeDetails(showtimeId);
   const showtimeData = showtime as ShowtimeSummary | undefined;
   const {
-    selectedSessionId,
-    selectedSeatIds,
-    ticketQuantities,
-    productQuantities,
-    clearBooking,
-  } = useBookingStore();
+  selectedSessionId,
+  selectedSeatIds,
+  ticketQuantities,
+  productQuantities,
+  promotionCode,
+  clearBooking,
+} = useBookingStore();
   const [ticketTypes, setTicketTypes] = useState<TicketTypeOption[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
@@ -238,6 +239,7 @@ export const PlatformCheckoutExperience = ({
         tenant_slug: tenantSlug,
         showtime_id: showtimeId,
         reservation_uuid: reservation.reservationUuid,
+        promotion_code: promotionCode || undefined,
         tickets: seatAssignments,
         concession_items: Object.entries(productQuantities)
           .filter(([, quantity]) => quantity > 0)

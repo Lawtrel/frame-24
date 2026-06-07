@@ -65,7 +65,7 @@ type SalesExecutionContext = {
   companyId?: string;
   userId?: string;
   customerId?: string;
-  sessionContext?: 'EMPLOYEE' | 'CUSTOMER';
+  sessionContext?: 'EMPLOYEE' | 'CUSTOMER' | 'PLATFORM';
   idempotencyKey?: string;
 };
 
@@ -98,7 +98,7 @@ export class SalesService {
     return this.tenantContext.getCustomerId();
   }
 
-  private getSessionContext(): 'EMPLOYEE' | 'CUSTOMER' | undefined {
+  private getSessionContext(): 'EMPLOYEE' | 'CUSTOMER' | 'PLATFORM' | undefined {
     return this.tenantContext.getSessionContext();
   }
 
@@ -1088,7 +1088,7 @@ export class SalesService {
   private async resolveSaleTypeId(
     company_id: string,
     saleTypeIdFromDto: string | undefined,
-    sessionContext?: 'EMPLOYEE' | 'CUSTOMER',
+    sessionContext?: 'EMPLOYEE' | 'CUSTOMER' | 'PLATFORM',
   ): Promise<string> {
     if (saleTypeIdFromDto) {
       const saleType = await this.salesRepository.findSaleTypeById(

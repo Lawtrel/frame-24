@@ -11,7 +11,8 @@ export interface RequestUser {
   role: string;
   role_hierarchy: number;
   permissions: string[];
-  session_context: 'EMPLOYEE';
+  session_context: 'EMPLOYEE' | 'PLATFORM';
+  customer_id?: string;
 }
 
 export interface CustomerUser {
@@ -26,3 +27,5 @@ export interface CustomerUser {
   loyalty_level?: string;
   accumulated_points?: number;
 }
+
+export type AuthenticatedUser = RequestUser | CustomerUser;

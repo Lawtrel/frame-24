@@ -73,23 +73,22 @@ export default function SchedulePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center animate-fade-in-up">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Programação</h1>
-          <p className="text-sm text-zinc-400">
-            Gerencie as sessões de exibição.
+          <p className="text-sm text-zinc-500">
+            Gerencie as sessões de exibição
           </p>
         </div>
         <Link
           href="/schedule/new"
-          className="flex items-center gap-2 bg-accent-red hover:bg-accent-red-hover text-white px-4 py-2 rounded-md font-medium transition-colors"
+          className="flex items-center gap-2 bg-accent-red hover:bg-accent-red-hover text-white px-4 py-2.5 rounded-lg font-medium transition-all duration-200 hover:shadow-lg hover:shadow-accent-red/20"
         >
-          <Plus className="w-4 h-4" />
-          Nova Sessão
+          <Plus className="w-4 h-4" /> Nova Sessão
         </Link>
       </div>
 
-      <div className="rounded-lg border border-border bg-zinc-900/50 overflow-hidden">
+      <div className="cinema-card rounded-xl border border-zinc-800/80 bg-zinc-900/50 overflow-hidden animate-fade-in-up animate-fade-in-up-1">
         <table className="w-full text-left text-sm">
           <thead className="bg-zinc-900 text-zinc-400 uppercase text-xs">
             <tr>

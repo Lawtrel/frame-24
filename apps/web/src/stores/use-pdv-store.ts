@@ -8,6 +8,7 @@ export interface CartTicket {
   ticketTypeName: string;
   seatId: string;
   seatLabel: string;
+  rowCode: string;
   price: number;
 }
 
@@ -52,6 +53,7 @@ interface PdvStoreState {
   setLastSale: (saleId: string, reference: string) => void;
   resetSale: () => void;
   resetAll: () => void;
+  closePosSession: () => void;
 }
 
 export const usePdvStore = create<PdvStoreState>()((set) => ({
@@ -132,6 +134,21 @@ export const usePdvStore = create<PdvStoreState>()((set) => ({
     }),
 
   resetAll: () =>
+    set({
+      posSessionId: null,
+      posSessionNumber: null,
+      cinemaComplexId: null,
+      selectedShowtimeId: null,
+      cartTickets: [],
+      cartProducts: [],
+      selectedPaymentMethodId: null,
+      cashReceived: 0,
+      step: "session",
+      lastSaleId: null,
+      lastSaleReference: null,
+    }),
+
+  closePosSession: () =>
     set({
       posSessionId: null,
       posSessionNumber: null,

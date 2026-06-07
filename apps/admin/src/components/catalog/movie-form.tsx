@@ -27,8 +27,15 @@ interface MovieMedia {
   media_url?: string;
 }
 
+interface CategoryItem {
+  id: string;
+  name?: string;
+  slug?: string;
+}
+
 interface CategoryLink {
-  category_id: string;
+  category_id?: string;
+  category?: CategoryItem;
 }
 
 interface InitialMovieData {
@@ -45,6 +52,7 @@ interface InitialMovieData {
   website?: string;
   movie_media?: MovieMedia[];
   category_links?: CategoryLink[];
+  categories?: CategoryItem[];
 }
 
 interface Distributor {
@@ -116,6 +124,7 @@ export function MovieForm({ initialData, isEditing = false }: MovieFormProps) {
   const [distributors, setDistributors] = useState<Distributor[]>([]);
   const [ageRatings, setAgeRatings] = useState<AgeRating[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [mediaTypeIds, setMediaTypeIds] = useState<Record<string, string>>({});
 
   const [tmdbQuery, setTmdbQuery] = useState("");
   const [tmdbResults, setTmdbResults] = useState<TMDBMovie[]>([]);
@@ -143,58 +152,58 @@ export function MovieForm({ initialData, isEditing = false }: MovieFormProps) {
     // Carregar dados iniciais (Distribuidores, etc)
     const loadDependencies = async () => {
       try {
-        const [dist, ratings, cats] = await Promise.all([
-          SuppliersService.getDistributors(),
-          CatalogService.getAgeRatings(),
-          CatalogService.getCategories(),
-        ]);
-        setDistributors(Array.isArray(dist) ? (dist as Distributor[]) : []);
-        setAgeRatings(Array.isArray(ratings) ? (ratings as AgeRating[]) : []);
-        setCategories(Array.isArray(cats) ? (cats as Category[]) : []);
+      const [dist, ratings, cats, mTypes] = await Promise.all([
+        SuppliersService.getDistributors(),
+        CatalogService.getAgeRatings(),
+        CatalogService.getCategories(),
+        CatalogService.getMediaTypes(),
+      ]);
+      setDistributors(Array.isArray(dist) ? (dist as Distributor[]) : []);
+      setAgeRatings(Array.isArray(ratings) ? (ratings as AgeRating[]) : []);
+      setCategories(Array.isArray(cats) ? (cats as Category[]) : []);
 
-        // Se estiver editando, preencher o formulário
-  if (initialData) {
-    const MEDIA_IDS_EDIT = {
-      POSTER: "7b51e687-e592-428c-a1ce-2c52f81fc889",
-      BACKDROP: "3acaa11f-5c99-4dac-b99a-b2ce80324a1e",
-      TRAILER: "c79e17da-fe1e-42c1-be8c-3d8f88131c13",
-    };
-    const poster =
-      initialData.movie_media?.find(
-        (m) =>
-          m.media_type === MEDIA_IDS_EDIT.POSTER || m.media_types?.name === "Poster",
-      )?.media_url || "";
-    const backdrop =
-      initialData.movie_media?.find(
-        (m) =>
-          m.media_type === MEDIA_IDS_EDIT.BACKDROP || m.media_types?.name === "Backdrop",
-      )?.media_url || "";
-    const trailer =
-      initialData.movie_media?.find(
-        (m) =>
-          m.media_type === MEDIA_IDS_EDIT.TRAILER || m.media_types?.name === "Trailer",
-      )?.media_url || "";
+      const idsMap: Record<string, string> = {};
+      for (const mt of mTypes) {
+        const key = mt.name?.toLowerCase().trim();
+        if (key) idsMap[key] = mt.id;
+      }
+      setMediaTypeIds(idsMap);
 
-    setFormData({
-            original_title: initialData.original_title || "",
-            brazil_title: initialData.brazil_title || "",
-            distributor_id: initialData.distributor_id || "",
-            duration_minutes: initialData.duration_minutes || 0,
-            production_year:
-              initialData.production_year || new Date().getFullYear(),
-            national: initialData.national || false,
-            age_rating:
-              initialData.age_rating?.id || initialData.age_rating_id || "",
-            synopsis: initialData.synopsis || "",
-            website: initialData.website || "",
-            category_ids:
-              initialData.category_links?.map((l) => l.category_id) || [],
-            poster_url: poster,
-            backdrop_url: backdrop,
-            trailer_url: trailer,
-          });
-        }
-      } catch (error) {
+      if (initialData) {
+        const poster =
+          initialData.movie_media?.find(
+            (m) => m.media_types?.name === "Poster",
+          )?.media_url || "";
+        const backdrop =
+          initialData.movie_media?.find(
+            (m) => m.media_types?.name === "Backdrop",
+          )?.media_url || "";
+        const trailer =
+          initialData.movie_media?.find(
+            (m) => m.media_types?.name === "Trailer",
+          )?.media_url || "";
+
+        setFormData({
+          original_title: initialData.original_title || "",
+          brazil_title: initialData.brazil_title || "",
+          distributor_id: initialData.distributor_id || "",
+          duration_minutes: initialData.duration_minutes || 0,
+          production_year:
+            initialData.production_year || new Date().getFullYear(),
+          national: initialData.national || false,
+          age_rating:
+            initialData.age_rating?.id || initialData.age_rating_id || "",
+          synopsis: initialData.synopsis || "",
+          website: initialData.website || "",
+        category_ids:
+          initialData.categories?.map((c) => c.id) ||
+          initialData.category_links?.map((l) => l.category_id || l.category?.id || "")?.filter(Boolean) || [],
+          poster_url: poster,
+          backdrop_url: backdrop,
+        trailer_url: trailer,
+      });
+    }
+  } catch (error) {
         console.error("Erro ao carregar dependências", error);
       }
     };
@@ -219,7 +228,7 @@ export function MovieForm({ initialData, isEditing = false }: MovieFormProps) {
       setShowTmdbResults(true);
     } catch (error) {
       console.error("🚨 Erro fatal ao buscar no TMDB:", error);
-      alert("Ocorreu um erro na busca! Olhe o console (F12) para ver os detalhes vermelhos.");
+        alert("Ocorreu um erro na busca. Tente novamente em instantes.");
     } finally {
       setImporting(false);
     }
@@ -282,7 +291,7 @@ export function MovieForm({ initialData, isEditing = false }: MovieFormProps) {
   const tmdbBadge = (field: string, label: string) =>
     tmdbFilledFields.has(field) ? (
       <span className="ml-2 inline-flex items-center gap-1 text-[10px] font-medium text-blue-400 bg-blue-400/10 border border-blue-400/20 rounded px-1.5 py-0.5">
-        <Wand2 className="w-2.5 h-2.5" /> TMDB
+        <Wand2 className="w-2.5 h-2.5" /> Auto
       </span>
     ) : null;
 
@@ -290,14 +299,7 @@ export function MovieForm({ initialData, isEditing = false }: MovieFormProps) {
     e.preventDefault();
     setLoading(true);
 
-    // IDs fixos (UUIDs reais do seu banco)
-  const MEDIA_IDS = {
-    POSTER: "7b51e687-e592-428c-a1ce-2c52f81fc889",
-    BACKDROP: "3acaa11f-5c99-4dac-b99a-b2ce80324a1e",
-    TRAILER: "c79e17da-fe1e-42c1-be8c-3d8f88131c13",
-  };
-
-    try {
+  try {
       // 1. Validações
       if (Number(formData.duration_minutes) < 1) {
         alert("A duração deve ser de pelo menos 1 minuto.");
@@ -326,27 +328,27 @@ export function MovieForm({ initialData, isEditing = false }: MovieFormProps) {
       // 3. Adicionar Mídias (AQUI ESTAVA O ERRO DE VALIDAÇÃO)
       // O DTO exige: { media_type: string, media_url: string }
 
-      if (formData.poster_url) {
-        payload.media.push({
-          media_type: MEDIA_IDS.POSTER, // Nome da chave corrigido para bater com o DTO
-          media_url: formData.poster_url, // Nome da chave corrigido
-          title: "Poster Oficial",
-        });
-      }
-      if (formData.backdrop_url) {
-        payload.media.push({
-          media_type: MEDIA_IDS.BACKDROP,
-          media_url: formData.backdrop_url,
-          title: "Fundo",
-        });
-      }
-      if (formData.trailer_url) {
-        payload.media.push({
-          media_type: MEDIA_IDS.TRAILER,
-          media_url: formData.trailer_url,
-          title: "Trailer",
-        });
-      }
+    if (formData.poster_url && mediaTypeIds["poster"]) {
+      payload.media.push({
+        media_type: mediaTypeIds["poster"],
+        media_url: formData.poster_url,
+        title: "Poster Oficial",
+      });
+    }
+    if (formData.backdrop_url && mediaTypeIds["backdrop"]) {
+      payload.media.push({
+        media_type: mediaTypeIds["backdrop"],
+        media_url: formData.backdrop_url,
+        title: "Fundo",
+      });
+    }
+    if (formData.trailer_url && mediaTypeIds["trailer"]) {
+      payload.media.push({
+        media_type: mediaTypeIds["trailer"],
+        media_url: formData.trailer_url,
+        title: "Trailer",
+      });
+    }
 
       console.log("📤 Payload Corrigido:", payload);
 
@@ -431,7 +433,7 @@ export function MovieForm({ initialData, isEditing = false }: MovieFormProps) {
       <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4">
         <div className="flex items-center justify-between mb-2">
           <label className="text-sm font-medium text-zinc-400">
-            Buscar no TMDB
+            Buscar no Banco de Filmes
           </label>
           {tmdbFilledFields.size > 0 && (
             <button
@@ -439,7 +441,7 @@ export function MovieForm({ initialData, isEditing = false }: MovieFormProps) {
               onClick={() => setTmdbFilledFields(new Set())}
               className="text-[10px] text-zinc-500 hover:text-zinc-300 transition-colors"
             >
-              Limpar indicadores TMDB
+              Limpar indicadores de preenchimento automático
             </button>
           )}
         </div>
@@ -466,7 +468,7 @@ export function MovieForm({ initialData, isEditing = false }: MovieFormProps) {
             ) : (
               <Wand2 className="w-4 h-4" />
             )}
-            Buscar no TMDB
+            Buscar no Banco de Filmes
           </button>
         </div>
 

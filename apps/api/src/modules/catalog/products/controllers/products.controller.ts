@@ -19,6 +19,7 @@ import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
 import { FileUpload } from 'src/common/decorators/file-upload.decorator';
+import { EmployeeReadThrottle, EmployeeWriteThrottle } from 'src/common/decorators/auth-throttle.decorator';
 
 import { ProductsService } from '../services/products.service';
 import { CreateProductDto } from '../dto/create-product.dto';
@@ -27,12 +28,14 @@ import { ProductResponseDto } from '../dto/product-response.dto';
 
 @ApiTags('Products')
 @ApiBearerAuth()
+@EmployeeReadThrottle()
 @Controller({ path: 'products', version: '1' })
 @UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Post()
+  @EmployeeWriteThrottle()
   @FileUpload('image', false)
   @RequirePermission('products', 'create')
   @HttpCode(HttpStatus.CREATED)
@@ -89,6 +92,7 @@ export class ProductsController {
   }
 
   @Put(':id')
+  @EmployeeWriteThrottle()
   @FileUpload('image', false)
   @RequirePermission('products', 'update')
   @ApiOperation({ summary: 'Atualizar produto' })
@@ -101,6 +105,7 @@ export class ProductsController {
   }
 
   @Delete(':id')
+  @EmployeeWriteThrottle()
   @RequirePermission('products', 'delete')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Deletar produto (soft delete)' })

@@ -14,10 +14,10 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className={`w-full px-6 py-3 rounded-lg font-bold transition-all ${
+      className={`w-full px-6 py-3 rounded-lg font-bold transition-all duration-200 ${
         pending
-          ? "bg-red-800 opacity-70 cursor-not-allowed"
-          : "bg-red-700 hover:bg-red-600 text-white"
+          ? "bg-accent-red/60 opacity-70 cursor-not-allowed"
+          : "bg-accent-red hover:bg-accent-red-hover text-white shadow-lg shadow-accent-red/20"
       }`}
     >
       {pending ? "Cadastrando..." : "Criar Conta"}
@@ -134,10 +134,10 @@ export default function RegisterForm() {
 
   if (state.success) {
     return (
-      <div className="w-full max-w-3xl mx-auto bg-gray-900 border border-gray-800 rounded-2xl p-8">
-        <div className="text-center py-8">
-          <div className="text-6xl mb-4">✅</div>
-          <p className="text-gray-300 text-lg mb-2 font-semibold">
+    <div className="w-full max-w-3xl mx-auto bg-gray-900 border border-[var(--border)] rounded-2xl p-8 cinema-card">
+      <div className="text-center py-8">
+        <div className="text-6xl mb-4">🎬</div>
+        <p className="text-gray-300 text-lg mb-2 font-semibold">
             Cadastro realizado!
           </p>
           <p className="text-gray-400 mb-6">
@@ -145,7 +145,7 @@ export default function RegisterForm() {
           </p>
           <a
             href={`${ADMIN_URL}/login`}
-            className="inline-block px-6 py-3 bg-red-700 hover:bg-red-600 text-white rounded-lg font-semibold transition"
+            className="inline-block px-6 py-3 bg-accent-red hover:bg-accent-red-hover text-white rounded-lg font-semibold transition shadow-lg shadow-accent-red/20"
           >
             Fazer Login
           </a>
@@ -155,8 +155,8 @@ export default function RegisterForm() {
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto bg-gray-900 border border-gray-800 rounded-2xl p-8">
-      <h1 className="text-2xl font-bold text-white mb-6 text-center">
+    <div className="w-full max-w-5xl mx-auto bg-gray-900 border border-[var(--border)] rounded-2xl p-8 cinema-card animate-fade-in-up">
+      <h1 className="text-2xl font-bold text-white mb-6 text-center cinema-gradient-text">
         Cadastre sua Empresa
       </h1>
 
@@ -349,7 +349,7 @@ export default function RegisterForm() {
         </div>
 
         {state.message && (
-          <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-300 text-sm">
+          <div className="mb-4 p-3 bg-red-900/40 border border-accent-red/40 rounded-lg text-red-300 text-sm">
             {state.message}
           </div>
         )}

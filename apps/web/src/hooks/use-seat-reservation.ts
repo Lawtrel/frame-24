@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { getSeatsSocket, SeatsSocket } from "@/lib/socket-client";
 import { differenceInSeconds } from "date-fns";
 
+const RESERVATION_TIMEOUT_MINUTES = 5;
+
 interface UseSeatReservationParams {
   showtimeId: string;
   companyId: string;
@@ -13,7 +15,7 @@ interface ReservationState {
   reservationUuid: string | null;
   expiresAt: Date | null;
   reservedSeatIds: string[];
-  timeRemaining: number; // segundos
+  timeRemaining: number;
   isReserving: boolean;
   error: string | null;
 }
@@ -68,16 +70,18 @@ function getInitialReservation(showtimeId: string): ReservationState {
     }
 
     const expiresAt = new Date(parsed.expiresAt);
+    const maxExpiresAt = new Date(Date.now() + RESERVATION_TIMEOUT_MINUTES * 60 * 1000);
+    const effectiveExpiresAt = expiresAt > maxExpiresAt ? maxExpiresAt : expiresAt;
     const now = new Date();
 
-    if (expiresAt <= now) {
+    if (effectiveExpiresAt <= now) {
       localStorage.removeItem(savedReservationKey);
       return defaultState;
     }
 
     return {
       reservationUuid: parsed.reservationUuid ?? null,
-      expiresAt,
+      expiresAt: effectiveExpiresAt,
       reservedSeatIds: Array.isArray(parsed.reservedSeatIds)
         ? parsed.reservedSeatIds
         : [],
@@ -103,10 +107,9 @@ export const useSeatReservation = ({
     getInitialReservation(showtimeId),
   );
 
-  // Ref para timer de countdown
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
+  const releasedOnExpiryRef = useRef(false);
 
-  // Conectar ao socket ao montar
   useEffect(() => {
     if (!user?.id || !companyId) {
       return;
@@ -128,18 +131,15 @@ export const useSeatReservation = ({
         tenant_slug: tenantSlug,
       };
 
-      // Se já está conectado, apenas entrar na sala
       if (seatsSocket.connected) {
         setConnected(true);
         seatsSocket.emit("join-showtime", joinPayload);
       } else {
-        // Se não está conectado, conectar
         seatsSocket.connect();
       }
 
       const onConnect = () => {
         setConnected(true);
-        // Entrar na sala da sessão
         seatsSocket.emit("join-showtime", joinPayload);
       };
 
@@ -147,18 +147,12 @@ export const useSeatReservation = ({
         setConnected(false);
       };
 
-      const onJoinedShowtime = () => {};
-
       seatsSocket.on("connect", onConnect);
       seatsSocket.on("disconnect", onDisconnect);
-      seatsSocket.on("joined-showtime", onJoinedShowtime);
 
       return () => {
-        // Apenas limpar listeners, NÃO desconectar
-        // O socket é singleton e deve permanecer vivo
         seatsSocket.off("connect", onConnect);
         seatsSocket.off("disconnect", onDisconnect);
-        seatsSocket.off("joined-showtime", onJoinedShowtime);
       };
     };
 
@@ -175,57 +169,63 @@ export const useSeatReservation = ({
 
   const isInitialized = true;
 
-  // Timer de countdown
   useEffect(() => {
-    if (reservation.expiresAt) {
-      const updateCountdown = () => {
-        const now = new Date();
-        const secondsRemaining = differenceInSeconds(
-          reservation.expiresAt!,
-          now,
-        );
+    if (!reservation.expiresAt) {
+      if (countdownRef.current) {
+        clearInterval(countdownRef.current);
+        countdownRef.current = null;
+      }
+      return;
+    }
 
-        if (secondsRemaining <= 0) {
-          // Reserva expirou - notificar o backend para liberar imediatamente
-          // Emitir evento para o backend liberar os assentos
-          if (socket && reservation.reservationUuid) {
-            socket.emit("release-seats", {
-              reservation_uuid: reservation.reservationUuid,
-              company_id: companyId,
-              tenant_slug: tenantSlug,
-            });
-          }
+    const updateCountdown = () => {
+      const now = new Date();
+      const secondsRemaining = differenceInSeconds(
+        reservation.expiresAt!,
+        now,
+      );
 
-          setReservation((prev) => ({
-            ...prev,
-            reservationUuid: null,
-            expiresAt: null,
-            reservedSeatIds: [],
-            timeRemaining: 0,
-          }));
-          if (countdownRef.current) {
-            clearInterval(countdownRef.current);
-          }
-          // Limpar do localStorage
-          const savedReservationKey = `seat-reservation-${showtimeId}`;
-          localStorage.removeItem(savedReservationKey);
-        } else {
-          setReservation((prev) => ({
-            ...prev,
-            timeRemaining: secondsRemaining,
-          }));
+      if (secondsRemaining <= 0) {
+        if (socket && reservation.reservationUuid && !releasedOnExpiryRef.current) {
+          releasedOnExpiryRef.current = true;
+          socket.emit("release-seats", {
+            reservation_uuid: reservation.reservationUuid,
+            company_id: companyId,
+            tenant_slug: tenantSlug,
+          });
         }
-      };
 
-      updateCountdown();
-      countdownRef.current = setInterval(updateCountdown, 1000);
-
-      return () => {
+        setReservation({
+          reservationUuid: null,
+          expiresAt: null,
+          reservedSeatIds: [],
+          timeRemaining: 0,
+          isReserving: false,
+          error: null,
+        });
         if (countdownRef.current) {
           clearInterval(countdownRef.current);
+          countdownRef.current = null;
         }
-      };
-    }
+        const savedReservationKey = `seat-reservation-${showtimeId}`;
+        localStorage.removeItem(savedReservationKey);
+      } else {
+        setReservation((prev) => ({
+          ...prev,
+          timeRemaining: secondsRemaining,
+        }));
+      }
+    };
+
+    updateCountdown();
+    countdownRef.current = setInterval(updateCountdown, 1000);
+
+    return () => {
+      if (countdownRef.current) {
+        clearInterval(countdownRef.current);
+        countdownRef.current = null;
+      }
+    };
   }, [
     reservation.expiresAt,
     reservation.reservationUuid,
@@ -235,36 +235,37 @@ export const useSeatReservation = ({
     showtimeId,
   ]);
 
-  // Eventos do socket
   useEffect(() => {
     if (!socket) return;
 
-    // Sucesso na reserva
     const onReservationSuccess = (data: ReservationEventData) => {
-      const reservationData = {
+      const backendExpiresAt = new Date(data.expires_at);
+      const maxExpiresAt = new Date(Date.now() + RESERVATION_TIMEOUT_MINUTES * 60 * 1000);
+      const effectiveExpiresAt = backendExpiresAt > maxExpiresAt ? maxExpiresAt : backendExpiresAt;
+
+      const reservationData: ReservationState = {
         reservationUuid: data.reservation_uuid,
-        expiresAt: new Date(data.expires_at),
+        expiresAt: effectiveExpiresAt,
         reservedSeatIds: data.seat_ids,
-        timeRemaining: 0, // Será atualizado pelo countdown
+        timeRemaining: 0,
         isReserving: false,
         error: null,
       };
 
+      releasedOnExpiryRef.current = false;
       setReservation(reservationData);
 
-      // Salvar no localStorage
       const savedReservationKey = `seat-reservation-${showtimeId}`;
       localStorage.setItem(
         savedReservationKey,
         JSON.stringify({
           reservationUuid: data.reservation_uuid,
-          expiresAt: data.expires_at,
+          expiresAt: effectiveExpiresAt.toISOString(),
           reservedSeatIds: data.seat_ids,
         }),
       );
     };
 
-    // Erro na reserva
     const onReservationError = (data: ErrorEventData) => {
       setReservation((prev) => ({
         ...prev,
@@ -273,7 +274,6 @@ export const useSeatReservation = ({
       }));
     };
 
-    // Confirmação da venda
     const onReservationConfirmed = () => {
       setReservation({
         reservationUuid: null,
@@ -283,9 +283,10 @@ export const useSeatReservation = ({
         isReserving: false,
         error: null,
       });
+      const savedReservationKey = `seat-reservation-${showtimeId}`;
+      localStorage.removeItem(savedReservationKey);
     };
 
-    // Erro na confirmação
     const onConfirmationError = (data: ErrorEventData) => {
       setReservation((prev) => ({
         ...prev,
@@ -293,48 +294,62 @@ export const useSeatReservation = ({
       }));
     };
 
-    // Reserva restaurada (pelo backend via user_id)
     const onReservationRestored = (data: ReservationEventData) => {
-      const reservationData = {
+      const backendExpiresAt = new Date(data.expires_at);
+      const maxExpiresAt = new Date(Date.now() + RESERVATION_TIMEOUT_MINUTES * 60 * 1000);
+      const effectiveExpiresAt = backendExpiresAt > maxExpiresAt ? maxExpiresAt : backendExpiresAt;
+      const now = new Date();
+
+      if (effectiveExpiresAt <= now) {
+        if (socket) {
+          socket.emit("release-seats", {
+            reservation_uuid: data.reservation_uuid,
+            company_id: companyId,
+            tenant_slug: tenantSlug,
+          });
+        }
+        return;
+      }
+
+      const reservationData: ReservationState = {
         reservationUuid: data.reservation_uuid,
-        expiresAt: new Date(data.expires_at),
+        expiresAt: effectiveExpiresAt,
         reservedSeatIds: data.seat_ids,
         timeRemaining: 0,
         isReserving: false,
         error: null,
       };
 
+      releasedOnExpiryRef.current = false;
       setReservation(reservationData);
 
-      // Atualizar localStorage para garantir sincronia
       const savedReservationKey = `seat-reservation-${showtimeId}`;
       localStorage.setItem(
         savedReservationKey,
         JSON.stringify({
           reservationUuid: data.reservation_uuid,
-          expiresAt: data.expires_at,
+          expiresAt: effectiveExpiresAt.toISOString(),
           reservedSeatIds: data.seat_ids,
         }),
       );
     };
 
-    // Assentos liberados (manual ou expiração)
     const onSeatsReleased = (data: SeatsReleasedEventData) => {
-      // Só limpar se for a nossa reserva
-      if (reservation.reservationUuid === data.reservation_uuid) {
-        setReservation({
-          reservationUuid: null,
-          expiresAt: null,
-          reservedSeatIds: [],
-          timeRemaining: 0,
-          isReserving: false,
-          error: null,
-        });
-
-        // Limpar do localStorage
-        const savedReservationKey = `seat-reservation-${showtimeId}`;
-        localStorage.removeItem(savedReservationKey);
-      }
+      setReservation((prev) => {
+        if (prev.reservationUuid === data.reservation_uuid) {
+          const savedReservationKey = `seat-reservation-${showtimeId}`;
+          localStorage.removeItem(savedReservationKey);
+          return {
+            reservationUuid: null,
+            expiresAt: null,
+            reservedSeatIds: [],
+            timeRemaining: 0,
+            isReserving: false,
+            error: null,
+          };
+        }
+        return prev;
+      });
     };
 
     socket.on("reservation-success", onReservationSuccess);
@@ -352,19 +367,19 @@ export const useSeatReservation = ({
       socket.off("reservation-restored", onReservationRestored);
       socket.off("seats-released", onSeatsReleased);
     };
-  }, [socket, showtimeId, reservation.reservationUuid]);
+  }, [socket, showtimeId, companyId, tenantSlug]);
 
-  // Reservar assentos
   const reserveSeats = useCallback(
     (seatIds: string[]) => {
       if (!socket || !connected) {
         setReservation((prev) => ({
           ...prev,
-          error: "Socket não conectado",
+          error: "Socket não conectado. Tente novamente.",
         }));
         return;
       }
 
+      releasedOnExpiryRef.current = false;
       setReservation((prev) => ({
         ...prev,
         isReserving: true,
@@ -382,7 +397,6 @@ export const useSeatReservation = ({
     [socket, connected, showtimeId, companyId, tenantSlug, user?.id],
   );
 
-  // Liberar assentos
   const releaseSeats = useCallback(() => {
     if (!socket || !connected || !reservation.reservationUuid) return;
 
@@ -401,12 +415,10 @@ export const useSeatReservation = ({
       error: null,
     });
 
-    // Limpar do localStorage
     const savedReservationKey = `seat-reservation-${showtimeId}`;
     localStorage.removeItem(savedReservationKey);
   }, [socket, connected, reservation.reservationUuid, companyId, tenantSlug, showtimeId]);
 
-  // Confirmar reserva (após pagamento)
   const confirmReservation = useCallback(
     (saleId: string) => {
       if (!socket || !connected || !reservation.reservationUuid) return;
@@ -419,19 +431,6 @@ export const useSeatReservation = ({
     },
     [socket, connected, reservation.reservationUuid, tenantSlug],
   );
-
-  // Cleanup ao desmontar - apenas liberar reserva
-  useEffect(() => {
-    return () => {
-      // Não liberamos assentos automaticamente ao desmontar se tivermos user_id
-      // pois queremos persistência. Mas se for guest, talvez devêssemos?
-      // O comportamento anterior era liberar.
-      // Se o usuário recarregar a página, o componente desmonta.
-      // Se liberarmos aqui, perdemos a reserva no reload.
-      // REMOVIDO: releaseSeats();
-      // O backend limpará por timeout se não houver reconexão/confirmação
-    };
-  }, []);
 
   return {
     connected,

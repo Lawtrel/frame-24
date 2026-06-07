@@ -17,6 +17,7 @@ import {
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
+import { EmployeeReadThrottle, EmployeeWriteThrottle } from 'src/common/decorators/auth-throttle.decorator';
 import { PromotionTypesService } from '../services/promotion-types.service';
 import {
   CreatePromotionTypeDto,
@@ -25,6 +26,7 @@ import {
 
 @ApiTags('Promotion Types')
 @ApiBearerAuth()
+@EmployeeReadThrottle()
 @Controller({ path: 'promotion-types', version: '1' })
 @UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class PromotionTypesController {
@@ -45,6 +47,7 @@ export class PromotionTypesController {
   }
 
   @Post()
+  @EmployeeWriteThrottle()
   @RequirePermission('campaigns', 'create')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({

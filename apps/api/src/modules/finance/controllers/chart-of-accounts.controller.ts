@@ -18,6 +18,7 @@ import {
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
+import { EmployeeReadThrottle, EmployeeWriteThrottle } from 'src/common/decorators/auth-throttle.decorator';
 import { ChartOfAccountsService } from '../services/chart-of-accounts.service';
 import {
   CreateChartAccountDto,
@@ -26,12 +27,14 @@ import {
 
 @ApiTags('Plano de Contas')
 @ApiBearerAuth()
+@EmployeeReadThrottle()
 @Controller({ path: 'finance/chart-of-accounts', version: '1' })
 @UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class ChartOfAccountsController {
   constructor(private readonly chartService: ChartOfAccountsService) {}
 
   @Post()
+  @EmployeeWriteThrottle()
   @RequirePermission('finance_accounts', 'create')
   @ApiOperation({ summary: 'Criar conta do plano contábil' })
   async create(@Body() dto: CreateChartAccountDto) {
@@ -46,6 +49,7 @@ export class ChartOfAccountsController {
   }
 
   @Put(':id')
+  @EmployeeWriteThrottle()
   @RequirePermission('finance_accounts', 'update')
   @ApiOperation({ summary: 'Atualizar conta contábil' })
   async update(
@@ -56,6 +60,7 @@ export class ChartOfAccountsController {
   }
 
   @Delete(':id')
+  @EmployeeWriteThrottle()
   @RequirePermission('finance_accounts', 'delete')
   @ApiOperation({ summary: 'Inativar conta contábil' })
   @ApiResponse({ status: 200, description: 'Conta inativada com sucesso' })

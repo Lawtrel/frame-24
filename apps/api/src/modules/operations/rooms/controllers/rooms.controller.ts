@@ -26,6 +26,7 @@ import {
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
 import { FileUpload } from 'src/common/decorators/file-upload.decorator';
 import { SecuredController } from 'src/common/decorators/secured-controller.decorator';
+import { EmployeeReadThrottle, EmployeeWriteThrottle } from 'src/common/decorators/auth-throttle.decorator';
 
 import { RoomsService } from '../services/rooms.service';
 import { CreateRoomDto } from '../dto/create-room.dto';
@@ -37,6 +38,7 @@ import { UpdateRoomDto } from '../dto/update-room.dto';
   required: true,
   description: 'ID do complexo de cinema',
 })
+@EmployeeReadThrottle()
 @SecuredController({
   path: 'cinema-complexes/:cinemaComplexId/rooms',
   version: '1',
@@ -45,6 +47,7 @@ export class RoomsController {
   constructor(private readonly service: RoomsService) {}
 
   @Post()
+  @EmployeeWriteThrottle()
   @FileUpload('layout_image', false)
   @RequirePermission('rooms', 'create')
   @HttpCode(HttpStatus.CREATED)
@@ -90,6 +93,7 @@ export class RoomsController {
   }
 
   @Put(':id')
+  @EmployeeWriteThrottle()
   @FileUpload('layout_image', false)
   @RequirePermission('rooms', 'update')
   @ApiOperation({ summary: 'Atualizar uma sala' })
@@ -109,6 +113,7 @@ export class RoomsController {
   }
 
   @Delete(':id')
+  @EmployeeWriteThrottle()
   @RequirePermission('rooms', 'delete')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Excluir uma sala' })

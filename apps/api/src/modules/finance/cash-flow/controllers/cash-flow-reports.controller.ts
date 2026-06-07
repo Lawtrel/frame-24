@@ -15,12 +15,14 @@ import {
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
+import { EmployeeReadThrottle } from 'src/common/decorators/auth-throttle.decorator';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { CashFlowReportsService } from '../services/cash-flow-reports.service';
 import { CashFlowReportQueryDto } from '../dto/cash-flow-report.dto';
 
 @ApiTags('Fluxo de Caixa - Relatórios')
 @ApiBearerAuth()
+@EmployeeReadThrottle()
 @Controller({ path: 'finance/cash-flow/reports', version: '1' })
 @UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class CashFlowReportsController {

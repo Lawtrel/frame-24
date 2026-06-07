@@ -11,6 +11,10 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { CustomerGuard } from 'src/common/guards/customer.guard';
+import {
+  CustomerReadThrottle,
+  CustomerWriteThrottle,
+} from 'src/common/decorators/auth-throttle.decorator';
 import { ParseEntityIdPipe } from 'src/common/pipes/parse-entity-id.pipe';
 import { CheckoutSessionsService } from '../services/checkout-sessions.service';
 import {
@@ -23,10 +27,12 @@ import {
 @ApiBearerAuth()
 @Controller({ path: 'customer/checkout-sessions', version: '1' })
 @UseGuards(JwtAuthGuard, CustomerGuard)
+@CustomerReadThrottle()
 export class CheckoutSessionsController {
   constructor(private readonly service: CheckoutSessionsService) {}
 
   @Post()
+  @CustomerWriteThrottle()
   @ApiOperation({ summary: 'Criar sessão de checkout do cliente' })
   create(@Body() dto: CreateCheckoutSessionDto) {
     return this.service.create(dto);
@@ -39,6 +45,7 @@ export class CheckoutSessionsController {
   }
 
   @Patch(':id')
+  @CustomerWriteThrottle()
   @ApiOperation({ summary: 'Atualizar sessão de checkout' })
   update(
     @Param('id', ParseEntityIdPipe) id: string,
@@ -48,6 +55,7 @@ export class CheckoutSessionsController {
   }
 
   @Post(':id/payment-attempts')
+  @CustomerWriteThrottle()
   @ApiOperation({ summary: 'Iniciar tentativa de pagamento do checkout' })
   createPaymentAttempt(
     @Param('id', ParseEntityIdPipe) id: string,

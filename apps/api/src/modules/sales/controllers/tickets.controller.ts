@@ -14,11 +14,13 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
+import { EmployeeReadThrottle, EmployeeWriteThrottle } from 'src/common/decorators/auth-throttle.decorator';
 
 import { TicketsRepository } from '../repositories/tickets.repository';
 
 @ApiTags('Tickets')
 @ApiBearerAuth()
+@EmployeeReadThrottle()
 @Controller({ path: 'tickets', version: '1' })
 @UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class TicketsController {
@@ -38,6 +40,7 @@ export class TicketsController {
   }
 
   @Put(':id/use')
+  @EmployeeWriteThrottle()
   @RequirePermission('tickets', 'update')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Marcar ingresso como usado' })

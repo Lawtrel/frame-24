@@ -22,7 +22,7 @@ export const SeatSelectionMobileStatus = ({
   const {
     selectedSeatIds,
     ticketQuantities,
-    courtesyCode,
+    promotionCode,
     fiscalCpf,
     startHold,
   } = useBookingStore();
@@ -39,15 +39,15 @@ export const SeatSelectionMobileStatus = ({
       if (selectedSeatIds.length !== totalTickets) {
         errors.push("Selecione um assento para cada ingresso.");
       }
-      if (courtesyCode && courtesyCode.trim().length < 3) {
-        errors.push("Código de cortesia inválido.");
-      }
+    if (promotionCode && promotionCode.trim().length < 3) {
+      errors.push("Código promocional inválido.");
+    }
       if (fiscalCpf && fiscalCpf.replace(/\D/g, "").length !== 11) {
         errors.push("CPF inválido.");
       }
       return { isValid: errors.length === 0, errors, warnings: [] as string[] };
     },
-    [courtesyCode, fiscalCpf, selectedSeatIds.length, totalTickets],
+    [promotionCode, fiscalCpf, selectedSeatIds.length, totalTickets],
   );
 
   const subtotal = totalTickets * session.priceFrom;

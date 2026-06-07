@@ -18,17 +18,20 @@ import {
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
+import { EmployeeReadThrottle, EmployeeWriteThrottle } from 'src/common/decorators/auth-throttle.decorator';
 import { CampaignsService } from '../services/campaigns.service';
 import { CreateCampaignDto } from '../dto/create-campaign.dto';
 
 @ApiTags('Campaigns')
 @ApiBearerAuth()
+@EmployeeReadThrottle()
 @Controller({ path: 'campaigns', version: '1' })
 @UseGuards(JwtAuthGuard, AuthorizationGuard)
 export class CampaignsController {
   constructor(private readonly campaignsService: CampaignsService) {}
 
   @Post()
+  @EmployeeWriteThrottle()
   @RequirePermission('campaigns', 'create')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
@@ -64,6 +67,7 @@ export class CampaignsController {
   }
 
   @Post(':id/activate')
+  @EmployeeWriteThrottle()
   @RequirePermission('campaigns', 'update')
   @ApiOperation({
     summary: 'Ativar campanha',
@@ -73,6 +77,7 @@ export class CampaignsController {
   }
 
   @Post(':id/pause')
+  @EmployeeWriteThrottle()
   @RequirePermission('campaigns', 'update')
   @ApiOperation({
     summary: 'Pausar campanha',
