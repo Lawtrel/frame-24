@@ -62,10 +62,14 @@ export const auth = betterAuth({
     revokeSessionsOnPasswordReset: true,
   },
   advanced: {
-    useSecureCookies: true,
-    crossSubDomainCookies: {
-      enabled: true,
-      domain: '.lawtrel.dev',
-    },
+    useSecureCookies: isProduction,
+    ...(isProduction
+      ? {
+          crossSubDomainCookies: {
+            enabled: true,
+            domain: '.lawtrel.dev',
+          },
+        }
+      : {}),
   },
 });

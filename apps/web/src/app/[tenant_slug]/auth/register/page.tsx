@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, use, useEffect } from "react";
+import { useState, use, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/auth-context";
@@ -11,6 +11,108 @@ import { authClient } from "@/lib/auth-client";
 
 interface CompanySummary {
   id?: unknown;
+}
+
+function isValidCPF(cpf: string): boolean {
+  const numbers = cpf.replace(/\D/g, "");
+  if (numbers.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(numbers)) return false;
+
+  let sum = 0;
+  for (let i = 0; i < 9; i++) {
+    sum += parseInt(numbers[i]) * (10 - i);
+  }
+  let remainder = (sum * 10) % 11;
+  if (remainder === 10) remainder = 0;
+  if (remainder !== parseInt(numbers[9])) return false;
+
+  sum = 0;
+  for (let i = 0; i < 10; i++) {
+    sum += parseInt(numbers[i]) * (11 - i);
+  }
+  remainder = (sum * 10) % 11;
+  if (remainder === 10) remainder = 0;
+  if (remainder !== parseInt(numbers[10])) return false;
+
+  return true;
+}
+
+function validateFullName(value: string): string | undefined {
+  const trimmed = value.trim();
+  if (trimmed.length < 5) return "Nome deve ter pelo menos 5 caracteres";
+  if (trimmed.split(/\s+/).length < 2) return "Informe nome e sobrenome";
+  return undefined;
+}
+
+function validateCPFField(value: string): string | undefined {
+  const numbers = value.replace(/\D/g, "");
+  if (numbers.length !== 11) return "CPF deve ter 11 dígitos";
+  if (!isValidCPF(value)) return "CPF inválido";
+  return undefined;
+}
+
+function validatePhone(value: string): string | undefined {
+  const numbers = value.replace(/\D/g, "");
+  if (numbers.length < 10) return "Telefone deve ter pelo menos 10 dígitos";
+  return undefined;
+}
+
+function validateEmail(value: string): string | undefined {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return "Email inválido";
+  return undefined;
+}
+
+function validatePassword(value: string): string | undefined {
+  if (value.length < 8) return "Mínimo de 8 caracteres";
+  if (!/[A-Z]/.test(value)) return "Deve conter letra maiúscula";
+  if (!/[a-z]/.test(value)) return "Deve conter letra minúscula";
+  if (!/[0-9]/.test(value)) return "Deve conter número";
+  if (!/[^A-Za-z0-9]/.test(value)) return "Deve conter caractere especial";
+  return undefined;
+}
+
+function getPasswordStrength(password: string): {
+  score: number;
+  label: string;
+  barClass: string;
+  textClass: string;
+} {
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[a-z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+
+  if (score <= 1)
+    return {
+      score,
+      label: "Fraca",
+      barClass: "bg-red-500",
+      textClass: "text-red-400",
+    };
+  if (score <= 3)
+    return {
+      score,
+      label: "Média",
+      barClass: "bg-yellow-500",
+      textClass: "text-yellow-400",
+    };
+  return {
+    score,
+    label: "Forte",
+    barClass: "bg-emerald-500",
+    textClass: "text-emerald-400",
+  };
+}
+
+interface FormErrors {
+  full_name?: string;
+  cpf?: string;
+  phone?: string;
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
 }
 
 export default function RegisterPage({
@@ -45,6 +147,34 @@ export default function RegisterPage({
   const companyData = (company as CompanySummary | undefined) ?? undefined;
   const companyId =
     typeof companyData?.id === "string" ? companyData.id : undefined;
+
+  const errors: FormErrors = useMemo(() => {
+    const errs: FormErrors = {};
+    if (formData.full_name) errs.full_name = validateFullName(formData.full_name);
+    if (formData.cpf) errs.cpf = validateCPFField(formData.cpf);
+    if (formData.phone) errs.phone = validatePhone(formData.phone);
+    if (!isActivationFlow && !isActivationIntent) {
+      if (formData.email) errs.email = validateEmail(formData.email);
+      if (formData.password) errs.password = validatePassword(formData.password);
+      if (formData.confirmPassword)
+        errs.confirmPassword =
+          formData.confirmPassword !== formData.password
+            ? "Senhas não coincidem"
+            : undefined;
+    }
+    return errs;
+  }, [formData, isActivationFlow, isActivationIntent]);
+
+  const passwordStrength = useMemo(() => {
+    if (!formData.password) return null;
+    return getPasswordStrength(formData.password);
+  }, [formData.password]);
+
+  const hasErrors = Object.values(errors).some(Boolean);
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+  };
 
   useEffect(() => {
     if (!session?.user) return;
@@ -236,10 +366,14 @@ export default function RegisterPage({
                 type="text"
                 value={formData.full_name}
                 onChange={handleChange}
+                onPaste={handlePaste}
                 className="w-full px-4 py-3 bg-zinc-800/50 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                 placeholder="Seu nome"
                 required
               />
+              {errors.full_name && (
+                <p className="text-red-400 text-xs mt-1">{errors.full_name}</p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -252,11 +386,15 @@ export default function RegisterPage({
                   type="text"
                   value={formData.cpf}
                   onChange={handleChange}
+                  onPaste={handlePaste}
                   className="w-full px-4 py-3 bg-zinc-800/50 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                   placeholder="000.000.000-00"
                   maxLength={14}
                   required
                 />
+                {errors.cpf && (
+                  <p className="text-red-400 text-xs mt-1">{errors.cpf}</p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-zinc-300 mb-1">
@@ -267,11 +405,15 @@ export default function RegisterPage({
                   type="tel"
                   value={formData.phone}
                   onChange={handleChange}
+                  onPaste={handlePaste}
                   className="w-full px-4 py-3 bg-zinc-800/50 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                   placeholder="(00) 00000-0000"
                   maxLength={15}
                   required
                 />
+                {errors.phone && (
+                  <p className="text-red-400 text-xs mt-1">{errors.phone}</p>
+                )}
               </div>
             </div>
 
@@ -285,10 +427,14 @@ export default function RegisterPage({
                   type="email"
                   value={formData.email}
                   onChange={handleChange}
+                  onPaste={handlePaste}
                   className="w-full px-4 py-3 bg-zinc-800/50 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                   placeholder="seu@email.com"
                   required
                 />
+                {errors.email && (
+                  <p className="text-red-400 text-xs mt-1">{errors.email}</p>
+                )}
               </div>
             )}
 
@@ -304,6 +450,7 @@ export default function RegisterPage({
                       type={showPassword ? "text" : "password"}
                       value={formData.password}
                       onChange={handleChange}
+                      onPaste={handlePaste}
                       className="w-full px-4 py-3 pr-12 bg-zinc-800/50 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                       placeholder="••••••••"
                       required
@@ -352,6 +499,22 @@ export default function RegisterPage({
                       )}
                     </button>
                   </div>
+                  {errors.password && (
+                    <p className="text-red-400 text-xs mt-1">{errors.password}</p>
+                  )}
+                  {passwordStrength && (
+                    <div className="mt-2">
+                      <div className="h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full ${passwordStrength.barClass} transition-all duration-300`}
+                          style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
+                        />
+                      </div>
+                      <p className={`text-xs mt-1 ${passwordStrength.textClass}`}>
+                        {passwordStrength.label}
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-zinc-300 mb-1">
@@ -363,6 +526,7 @@ export default function RegisterPage({
                       type={showConfirmPassword ? "text" : "password"}
                       value={formData.confirmPassword}
                       onChange={handleChange}
+                      onPaste={handlePaste}
                       className="w-full px-4 py-3 pr-12 bg-zinc-800/50 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                       placeholder="••••••••"
                       required
@@ -411,6 +575,9 @@ export default function RegisterPage({
                     )}
                     </button>
                   </div>
+                  {errors.confirmPassword && (
+                    <p className="text-red-400 text-xs mt-1">{errors.confirmPassword}</p>
+                  )}
                 </div>
               </div>
             )}
@@ -424,6 +591,7 @@ export default function RegisterPage({
                 type="date"
                 value={formData.birthdate}
                 onChange={handleChange}
+                onPaste={handlePaste}
                 className="w-full px-4 py-3 bg-zinc-800/50 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
               />
             </div>
@@ -431,7 +599,7 @@ export default function RegisterPage({
             <div className="pt-2">
               <button
                 type="submit"
-                disabled={isLoading || !companyId}
+                disabled={isLoading || !companyId || hasErrors}
                 className="w-full py-3.5 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-bold rounded-lg shadow-lg shadow-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98]"
               >
                 {isLoading ? (

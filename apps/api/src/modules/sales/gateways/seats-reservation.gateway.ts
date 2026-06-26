@@ -547,7 +547,7 @@ export class SeatsReservationGateway
       }
 
       const reservationUuid = `${showtime_id}-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-      const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 min
+      const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 min
       const lockResult = await this.seatReservationStore.tryAcquireSeatLocks({
         showtimeId: showtime_id,
         seatIds: seat_ids,

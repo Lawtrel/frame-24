@@ -3,11 +3,16 @@
 import Link from "next/link";
 import { use, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
 import { customerApi } from "@/lib/api-client";
 import { formatCurrency, formatDateTimeInTimeZone } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
+import { StripePaymentForm } from "@/components/cinema/stripe-payment-form";
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 type PaymentData = {
   pix_qr_code?: string;
@@ -35,6 +40,7 @@ type CheckoutSession = {
   expires_at?: string;
   public_reference?: string | null;
   sale_id?: string | null;
+  client_secret?: string | null;
   payment?: PaymentAttempt | null;
 };
 
@@ -59,11 +65,14 @@ export default function TenantPaymentStatusPage({
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatusResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [paymentTab, setPaymentTab] = useState<"pix" | "card">("pix");
 
   const payment = paymentStatus?.payment ?? checkout?.payment ?? null;
   const status = (payment?.status ?? paymentStatus?.checkout_status ?? checkout?.status ?? "pending").toLowerCase();
   const reference = paymentStatus?.public_reference ?? payment?.public_reference ?? checkout?.public_reference ?? payment?.sale_id ?? checkout?.sale_id;
   const pixPayload = payment?.payment_data?.pix_copy_paste ?? payment?.payment_data?.pix_qr_code ?? null;
+
+  const clientSecret = checkout?.client_secret ?? payment?.payment_data?.client_secret ?? null;
 
   const expiresAt = useMemo(() => {
     const raw = payment?.expires_at ?? checkout?.expires_at;
@@ -165,40 +174,88 @@ export default function TenantPaymentStatusPage({
         </p>
       </header>
 
+      {!paidStatuses.has(status) && !failedStatuses.has(status) ? (
+        <div className="flex gap-1 rounded-[var(--radius-md)] bg-background-strong p-1">
+          <button
+            className={`flex-1 rounded-[var(--radius-sm)] px-4 py-2 text-sm font-semibold transition-colors ${
+              paymentTab === "pix"
+                ? "bg-accent-red-500 text-white shadow-sm"
+                : "text-foreground-muted hover:text-foreground"
+            }`}
+            onClick={() => setPaymentTab("pix")}
+            type="button"
+          >
+            <Icon name="zap" size="sm" className="inline mr-1.5" />
+            PIX
+          </button>
+          <button
+            className={`flex-1 rounded-[var(--radius-sm)] px-4 py-2 text-sm font-semibold transition-colors ${
+              paymentTab === "card"
+                ? "bg-accent-red-500 text-white shadow-sm"
+                : "text-foreground-muted hover:text-foreground"
+            }`}
+            onClick={() => setPaymentTab("card")}
+            type="button"
+          >
+            <Icon name="creditCard" size="sm" className="inline mr-1.5" />
+            Cartão
+          </button>
+        </div>
+      ) : null}
+
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
-        <Card className="space-y-4">
-          <div className="flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-background">
-              <Icon name={failedStatuses.has(status) ? "info" : paidStatuses.has(status) ? "ticket" : "timer"} size="md" />
-            </span>
-            <div>
-              <p className="text-sm text-foreground-muted">Status atual</p>
-              <p className="text-xl font-semibold capitalize">{status.replaceAll("_", " ")}</p>
+        {paymentTab === "pix" ? (
+          <Card className="space-y-4">
+            <div className="flex items-center gap-3">
+              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-background">
+                <Icon name={failedStatuses.has(status) ? "info" : paidStatuses.has(status) ? "ticket" : "timer"} size="md" />
+              </span>
+              <div>
+                <p className="text-sm text-foreground-muted">Status atual</p>
+                <p className="text-xl font-semibold capitalize">{status.replaceAll("_", " ")}</p>
+              </div>
             </div>
-          </div>
 
-          {pixPayload ? (
-            <div className="space-y-3 rounded-[var(--radius-md)] border border-border bg-background p-4">
-              <p className="text-sm font-semibold">Pix copia e cola</p>
-              <p className="break-all font-mono text-sm text-foreground-muted">{pixPayload}</p>
-              <Button
-                size="sm"
-                type="button"
-                variant="secondary"
-                onClick={() => navigator.clipboard?.writeText(pixPayload)}
-              >
-                <Icon name="download" size="sm" />
-                Copiar código Pix
-              </Button>
-            </div>
-          ) : null}
+            {pixPayload ? (
+              <div className="space-y-3 rounded-[var(--radius-md)] border border-border bg-background p-4">
+                <p className="text-sm font-semibold">Pix copia e cola</p>
+                <p className="break-all font-mono text-sm text-foreground-muted">{pixPayload}</p>
+                <Button
+                  size="sm"
+                  type="button"
+                  variant="secondary"
+                  onClick={() => navigator.clipboard?.writeText(pixPayload)}
+                >
+                  <Icon name="download" size="sm" />
+                  Copiar código Pix
+                </Button>
+              </div>
+            ) : null}
 
-          {payment?.error_message ? (
-            <p className="text-sm text-foreground-muted">{payment.error_message}</p>
-          ) : null}
+            {payment?.error_message ? (
+              <p className="text-sm text-foreground-muted">{payment.error_message}</p>
+            ) : null}
 
-          {error ? <p className="text-sm text-foreground-muted">{error}</p> : null}
-        </Card>
+            {error ? <p className="text-sm text-foreground-muted">{error}</p> : null}
+          </Card>
+        ) : (
+          <Card className="space-y-4">
+            <h2 className="text-xl font-semibold">Pagamento com cartão</h2>
+            {clientSecret ? (
+              <Elements stripe={stripePromise} options={{ clientSecret }}>
+                <StripePaymentForm
+                  tenantSlug={tenant_slug}
+                  checkoutId={checkoutId}
+                  clientSecret={clientSecret}
+                />
+              </Elements>
+            ) : (
+              <p className="text-sm text-foreground-muted">
+                Este pagamento ainda não suporta cartão. Tente novamente mais tarde.
+              </p>
+            )}
+          </Card>
+        )}
 
         <Card className="space-y-3">
           <h2 className="text-xl font-semibold">Resumo</h2>

@@ -94,7 +94,7 @@ export const PlatformCheckoutExperience = ({
   const [processing, setProcessing] = useState(false);
   const attemptedReservationRef = useRef(false);
 
-  const { connected, reservation, reserveSeats } = useSeatReservation({
+  const { connected, reservation, reserveSeats, confirmReservation } = useSeatReservation({
     showtimeId,
     companyId: company?.id || "",
     tenantSlug,
@@ -200,7 +200,7 @@ export const PlatformCheckoutExperience = ({
   const selectedSeatLabels = useMemo(() => {
     const ids = reservation.reservedSeatIds.length ? reservation.reservedSeatIds : selectedSeatIds;
     return ids.map((seatId) => {
-      const seat = showtimeData?.seats.find((item) => item.id === seatId);
+      const seat = showtimeData?.seats?.find((item) => item.id === seatId);
       return seat?.seat_code || seatId;
     });
   }, [reservation.reservedSeatIds, selectedSeatIds, showtimeData?.seats]);
@@ -210,7 +210,7 @@ export const PlatformCheckoutExperience = ({
 
     const ticketsTotal = seatAssignments.reduce((sum, assignment) => {
       const type = ticketTypes.find((item) => item.id === assignment.ticket_type);
-      const seat = showtimeData.seats.find((item) => item.id === assignment.seat_id);
+      const seat = showtimeData.seats?.find((item) => item.id === assignment.seat_id);
       const base = Number(showtimeData.base_ticket_price) + Number(seat?.additional_value || 0);
       return sum + base * Number(type?.priceModifier ?? 1);
     }, 0);
@@ -224,7 +224,12 @@ export const PlatformCheckoutExperience = ({
   }, [productQuantities, products, seatAssignments, showtimeData, ticketTypes]);
 
   const handleCheckout = async () => {
-    if (!selectedPaymentMethod || !reservation.reservationUuid) {
+    if (!selectedPaymentMethod) {
+      alert("Selecione um método de pagamento.");
+      return;
+    }
+    if (!reservation.reservationUuid) {
+      alert("Nenhuma reserva ativa encontrada. Selecione os assentos novamente.");
       return;
     }
 
@@ -264,9 +269,10 @@ export const PlatformCheckoutExperience = ({
         },
         `${reservation.reservationUuid}-${selectedPaymentMethod}`,
       );
+      const payment = paymentResponse.data as PaymentAttemptResponse;
 
-      const payment = paymentResponse.data as unknown as PaymentAttemptResponse;
-      if (payment.status === "paid") {
+      if (payment.status === "paid" && payment.sale_id) {
+        confirmReservation(payment.sale_id);
         clearBooking();
         router.push(`/pedido/${payment.public_reference || payment.sale_id}`);
         return;

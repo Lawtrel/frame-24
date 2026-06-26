@@ -102,7 +102,7 @@ export const SeatSelectionMobileStatus = ({
             size="lg"
             type="button"
             onClick={() => {
-              startHold(8);
+              startHold(5);
               router.push(`${tenantSlug ? `/${tenantSlug}` : ""}/compra/${session.id}`);
             }}
           >

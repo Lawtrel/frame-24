@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { AppHeader } from "@/components/layout/app-header";
 import { SiteFooter } from "@/components/layout/site-footer";
+import { RecommendationChat } from "@/components/cinema/recommendation-chat";
 import type { City } from "@/types/storefront";
 
 export const AppShell = ({
@@ -32,5 +33,6 @@ export const AppShell = ({
       tenantSlug={tenantSlug}
       useTenantPath={useTenantPath}
     />
+    <RecommendationChat />
   </>
 );

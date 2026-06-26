@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { AppHeader } from "@/components/layout/app-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { getTenantCities, getTenantCompany } from "@/lib/storefront/api";
+import { RecommendationChat } from "@/components/cinema/recommendation-chat";
 
 async function ensureTenantExists(tenantSlug: string) {
   const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -44,6 +45,7 @@ export default async function TenantLayout({
         tenantSlug={tenant_slug}
         useTenantPath
       />
+      <RecommendationChat />
     </div>
   );
 }

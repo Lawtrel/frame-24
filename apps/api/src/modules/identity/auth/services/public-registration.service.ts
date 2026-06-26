@@ -1,9 +1,11 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { identity_type } from '@repo/db';
+import { identity_type, companies } from '@repo/db';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CompanyService } from 'src/modules/identity/companies/services/company.service';
 import { MasterDataSetupService } from 'src/modules/setup/services/master-data-setup.service';
 import { TaxSetupService } from 'src/modules/tax/services/tax-setup.service';
+import { BrasilApiService } from 'src/common/services/brasil-api.service';
+import { SlugService } from 'src/common/services/slug.service';
 import {
   PublicRegisterDto,
   PublicRegisterResponseDto,
@@ -19,6 +21,8 @@ export class PublicRegistrationService {
     private readonly employeeIdGenerator: EmployeeIdGeneratorService,
     private readonly masterDataSetupService: MasterDataSetupService,
     private readonly taxSetupService: TaxSetupService,
+    private readonly brasilApiService: BrasilApiService,
+    private readonly slugService: SlugService,
   ) {}
 
   async register(dto: PublicRegisterDto): Promise<PublicRegisterResponseDto> {
@@ -78,6 +82,8 @@ export class PublicRegistrationService {
       city: dto.company_city,
       state: dto.company_state,
     });
+
+    await this.createDefaultCinemaComplex(company);
 
     const signUpResult = await auth.api.signUpEmail({
       body: {
@@ -165,5 +171,48 @@ export class PublicRegistrationService {
 
       throw error;
     }
+  }
+
+  private async createDefaultCinemaComplex(company: companies) {
+    const city = company.city || 'Sem cidade';
+    const state = company.state || 'SP';
+    const citySlug = this.slugService.generateBase(city);
+
+    let ibgeCode = '0000000';
+    try {
+      const municipality =
+        await this.brasilApiService.getMunicipalityByCityAndState(city, state);
+      if (municipality?.codigo_ibge) {
+        ibgeCode = municipality.codigo_ibge;
+      }
+    } catch {
+      // fallback
+    }
+
+    const code = `${citySlug}-${(company.cnpj || '0000').slice(-4)}`;
+    const address = [
+      company.street_address,
+      company.address_number,
+      company.address_complement,
+      company.neighborhood,
+    ]
+      .filter(Boolean)
+      .join(', ');
+
+    await this.prisma.cinema_complexes.create({
+      data: {
+        company_id: company.id,
+        name: company.trade_name || company.corporate_name,
+        code,
+        slug: citySlug,
+        cnpj: company.cnpj,
+        address: address || null,
+        city,
+        city_slug: citySlug,
+        state,
+        ibge_municipality_code: ibgeCode,
+        active: true,
+      },
+    });
   }
 }
