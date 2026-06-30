@@ -9,71 +9,6 @@ import type {
   SessionGroup,
 } from "@/types/storefront";
 
-const buildSeats = (): SeatNode[] => {
-  const rows = ["A", "B", "C", "D", "E", "F", "G", "H"];
-  const seats: SeatNode[] = [];
-
-  rows.forEach((row, rowIndex) => {
-    for (let number = 1; number <= 12; number += 1) {
-      const id = `${row}${number}`;
-      const isWheelchair = row === "D" && number === 1;
-      const isCompanion = row === "D" && number === 2;
-      const isReducedMobility = row === "D" && number === 3;
-      const isGuideDog = row === "D" && number === 4;
-      const isPremiumMotion = rowIndex >= 5 && number >= 4 && number <= 6;
-      const isCoupleLeft = row === "B" && [7, 9].includes(number);
-      const isCoupleRight = row === "B" && [8, 10].includes(number);
-      const isObese = row === "A" && number === 1;
-      const isVipRecliner = rowIndex >= 6 && number >= 7 && number <= 10;
-      const isLounge = row === "H" && number >= 11;
-      const sold = (row === "C" && number >= 5 && number <= 8) || (row === "G" && number === 6);
-      const held = row === "E" && number >= 7 && number <= 8;
-      const seatKind = isWheelchair
-        ? "wheelchair"
-        : isCompanion
-          ? "companion"
-          : isReducedMobility
-            ? "reduced_mobility"
-            : isGuideDog
-              ? "guide_dog"
-              : isPremiumMotion
-                ? "premium_motion"
-                : isCoupleLeft
-                  ? "couple_left"
-                  : isCoupleRight
-                    ? "couple_right"
-                    : isObese
-                      ? "obese"
-                      : isVipRecliner
-                        ? "vip_recliner"
-                        : isLounge
-                          ? "lounge"
-                          : "standard";
-
-      seats.push({
-        id,
-        label: `${row}${number}`,
-        row,
-        number,
-        status: sold ? "sold" : held ? "held" : "available",
-        seatKind,
-        tags: [seatKind !== "standard" ? seatKind : "standard"],
-        isAccessible: ["wheelchair", "reduced_mobility", "guide_dog"].includes(seatKind),
-        isCompanionOnly: seatKind === "companion",
-        pricingZone:
-          seatKind === "premium_motion"
-            ? "premium"
-            : seatKind === "vip_recliner" || seatKind === "lounge"
-              ? "vip"
-              : "standard",
-        premium: ["premium_motion", "vip_recliner", "lounge"].includes(seatKind),
-      });
-    }
-  });
-
-  return seats;
-};
-
 export const cities: City[] = [
   {
     id: "city-salvador",
@@ -296,7 +231,7 @@ export const sessions: SessionGroup[] = [
     format: "Laser",
     occupancy: "medium",
     priceFrom: 29.9,
-    seats: buildSeats(),
+    seats: [],
   },
   {
     id: "session-echoes-salvador-2",
@@ -311,7 +246,7 @@ export const sessions: SessionGroup[] = [
     format: "Dolby Atmos",
     occupancy: "high",
     priceFrom: 41.9,
-    seats: buildSeats(),
+    seats: [],
   },
   {
     id: "session-echoes-salvador-3",
@@ -326,7 +261,7 @@ export const sessions: SessionGroup[] = [
     format: "Dolby Atmos",
     occupancy: "low",
     priceFrom: 34.9,
-    seats: buildSeats(),
+    seats: [],
   },
   {
     id: "session-echoes-salvador-4",
@@ -341,7 +276,7 @@ export const sessions: SessionGroup[] = [
     format: "Laser",
     occupancy: "medium",
     priceFrom: 31.9,
-    seats: buildSeats(),
+    seats: [],
   },
   {
     id: "session-echoes-salvador-5",
@@ -356,7 +291,7 @@ export const sessions: SessionGroup[] = [
     format: "VIP",
     occupancy: "high",
     priceFrom: 49.9,
-    seats: buildSeats(),
+    seats: [],
   },
   {
     id: "session-orbita-salvador-1",
@@ -371,7 +306,7 @@ export const sessions: SessionGroup[] = [
     format: "IMAX",
     occupancy: "high",
     priceFrom: 47.9,
-    seats: buildSeats(),
+    seats: [],
   },
   {
     id: "session-orbita-salvador-2",
@@ -386,7 +321,7 @@ export const sessions: SessionGroup[] = [
     format: "4DX",
     occupancy: "medium",
     priceFrom: 53.9,
-    seats: buildSeats(),
+    seats: [],
   },
   {
     id: "session-orbita-salvador-3",
@@ -401,7 +336,7 @@ export const sessions: SessionGroup[] = [
     format: "IMAX",
     occupancy: "medium",
     priceFrom: 44.9,
-    seats: buildSeats(),
+    seats: [],
   },
   {
     id: "session-orbita-salvador-4",
@@ -416,7 +351,7 @@ export const sessions: SessionGroup[] = [
     format: "4DX",
     occupancy: "high",
     priceFrom: 55.9,
-    seats: buildSeats(),
+    seats: [],
   },
   {
     id: "session-noite-salvador-1",
@@ -431,7 +366,7 @@ export const sessions: SessionGroup[] = [
     format: "VIP",
     occupancy: "low",
     priceFrom: 45.0,
-    seats: buildSeats(),
+    seats: [],
   },
   {
     id: "session-orbita-sp-1",
@@ -446,7 +381,7 @@ export const sessions: SessionGroup[] = [
     format: "XPlus",
     occupancy: "medium",
     priceFrom: 48.5,
-    seats: buildSeats(),
+    seats: [],
   },
   {
     id: "session-orbita-recife-1",
@@ -461,7 +396,7 @@ export const sessions: SessionGroup[] = [
     format: "IMAX",
     occupancy: "medium",
     priceFrom: 46.0,
-    seats: buildSeats(),
+    seats: [],
   },
 ];
 

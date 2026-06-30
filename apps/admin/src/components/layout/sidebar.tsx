@@ -40,8 +40,11 @@ export function Sidebar() {
   const router = useRouter();
 
   const handleLogout = async () => {
-    await authClient.signOut();
-    router.replace("/login");
+    try {
+      await authClient.signOut();
+    } finally {
+      router.replace("/login");
+    }
   };
 
   return (

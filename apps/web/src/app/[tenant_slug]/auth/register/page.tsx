@@ -124,7 +124,6 @@ export default function RegisterPage({
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isAuthenticated, hasSession, isLoading: authLoading } = useAuth();
-  const { data: session } = authClient.useSession();
   const { data: company } = useCompany(tenant_slug);
   const isActivationIntent = searchParams.get("intent") === "activate";
   const returnUrl = searchParams.get("returnUrl") || `/${tenant_slug}`;
@@ -133,7 +132,6 @@ export default function RegisterPage({
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
-    cpf: "",
     phone: "",
     birthdate: "",
     password: "",
@@ -177,14 +175,8 @@ export default function RegisterPage({
   };
 
   useEffect(() => {
-    if (!session?.user) return;
-
-    setFormData((prev) => ({
-      ...prev,
-      full_name: prev.full_name || session.user.name || "",
-      email: prev.email || session.user.email || "",
-    }));
-  }, [session]);
+    // Pre-filling from session is now handled by the API or omitted if we don't have a client-side session object
+  }, []);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -208,17 +200,6 @@ export default function RegisterPage({
   }
 
   // Mask functions
-  const formatCpf = (value: string) => {
-    const numbers = value.replace(/\D/g, "");
-    if (numbers.length <= 11) {
-      return numbers
-        .replace(/(\d{3})(\d)/, "$1.$2")
-        .replace(/(\d{3})(\d)/, "$1.$2")
-        .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-    }
-    return value.slice(0, 14); // Max length with mask: 000.000.000-00
-  };
-
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, "");
     if (numbers.length <= 11) {
@@ -234,9 +215,7 @@ export default function RegisterPage({
     let formattedValue = value;
 
     // Apply masks based on field name
-    if (name === "cpf") {
-      formattedValue = formatCpf(value);
-    } else if (name === "phone") {
+    if (name === "phone") {
       formattedValue = formatPhone(value);
     }
 
@@ -272,7 +251,6 @@ export default function RegisterPage({
           `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/v1/customer/auth/activate`,
           {
             full_name: formData.full_name,
-            cpf: formData.cpf.replace(/\D/g, ""),
             phone: formData.phone.replace(/\D/g, ""),
             birth_date: formData.birthdate || undefined,
             company_id: companyId,
@@ -286,7 +264,6 @@ export default function RegisterPage({
         await axios.post(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/v1/customer/auth/register`, {
           full_name: formData.full_name,
           email: formData.email,
-          cpf: formData.cpf.replace(/\D/g, ""),
           phone: formData.phone.replace(/\D/g, ""),
           birth_date: formData.birthdate || undefined,
           password: formData.password,
@@ -386,15 +363,11 @@ export default function RegisterPage({
                   type="text"
                   value={formData.cpf}
                   onChange={handleChange}
-                  onPaste={handlePaste}
                   className="w-full px-4 py-3 bg-zinc-800/50 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                   placeholder="000.000.000-00"
                   maxLength={14}
                   required
                 />
-                {errors.cpf && (
-                  <p className="text-red-400 text-xs mt-1">{errors.cpf}</p>
-                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-zinc-300 mb-1">

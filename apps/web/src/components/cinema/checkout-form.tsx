@@ -33,6 +33,7 @@ export const CheckoutForm = ({
   const router = useRouter();
   const {
     selectedSeatIds,
+    selectedSeatLabels,
     ticketQuantities,
     promotionCode,
     productQuantities,
@@ -280,7 +281,7 @@ export const CheckoutForm = ({
         </div>
         <div className="space-y-2 text-sm text-foreground-muted">
           <p>{session.date} • {session.time} • {session.room}</p>
-          <p>{selectedSeatIds.length} ingresso(s) • Assentos {selectedSeatIds.join(", ")}</p>
+          <p>{selectedSeatIds.length} ingresso(s) • Assentos {selectedSeatIds.map((id) => selectedSeatLabels[id] || id).join(", ")}</p>
           <p>Formato {session.format}</p>
         </div>
         <div className="space-y-2 border-t border-border pt-4">

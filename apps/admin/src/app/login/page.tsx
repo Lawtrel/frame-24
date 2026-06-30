@@ -11,12 +11,28 @@ export default function LoginPage() {
   const rawCallbackUrl = searchParams.get("callbackUrl");
   const callbackUrl =
     rawCallbackUrl && rawCallbackUrl.startsWith("/") ? rawCallbackUrl : "/";
-  const { data: session, isPending } = authClient.useSession();
+  const [session, setSession] = useState<any>(null);
+  const [isPending, setIsPending] = useState(true);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const checkSession = async () => {
+      setIsPending(true);
+      try {
+        const sessionData = await authClient.getSession();
+        setSession(sessionData);
+      } catch {
+        setSession(null);
+      } finally {
+        setIsPending(false);
+      }
+    };
+    void checkSession();
+  }, []);
 
   useEffect(() => {
     if (!isPending && session) {
@@ -30,10 +46,10 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      const result = await authClient.signIn.email({
-        email: email.trim().toLowerCase(),
+      const result = await authClient.signInEmail(
+        email.trim().toLowerCase(),
         password,
-      });
+      );
 
       if (result.error) {
         setError(result.error.message || "E-mail ou senha incorretos.");

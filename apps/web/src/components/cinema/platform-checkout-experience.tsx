@@ -13,12 +13,13 @@ import { useAuth } from "@/contexts/auth-context";
 import { useCompany } from "@/hooks/use-company";
 import { useSeatReservation } from "@/hooks/use-seat-reservation";
 import { withTenantPath } from "@/lib/tenant-routing";
-import { useShowtimeDetails } from "@/hooks/use-showtime-details";
+import { useShowtimeSeatMap } from "@/hooks/use-showtime-seat-map";
 import { useBookingStore } from "@/stores/use-booking-store";
 import { formatCurrency, formatDateTimeInTimeZone } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
+import { HoldCountdown } from "@/components/cinema/hold-countdown";
 
 type TicketTypeOption = {
   id?: string;
@@ -49,21 +50,6 @@ type PaymentAttemptResponse = {
   public_reference?: string | null;
 };
 
-type ShowtimeSeat = {
-  id: string;
-  seat_code?: string;
-  additional_value?: number | string;
-};
-
-type ShowtimeSummary = {
-  base_ticket_price: number | string;
-  seats: ShowtimeSeat[];
-  cinema?: { id?: string; name?: string; timezone?: string | null };
-  room?: { name?: string };
-  movie?: { title?: string; poster_url?: string };
-  start_time?: string;
-};
-
 export const PlatformCheckoutExperience = ({
   tenantSlug,
   showtimeId,
@@ -76,16 +62,16 @@ export const PlatformCheckoutExperience = ({
   const { user, isAuthenticated, hasSession, isLoading: authLoading } = useAuth();
   const { data: companyData } = useCompany(tenantSlug);
   const company = companyData as CompanySummary | undefined;
-  const { data: showtime } = useShowtimeDetails(showtimeId);
-  const showtimeData = showtime as ShowtimeSummary | undefined;
+  const { showtimeDetails, isLoading: seatsLoading } = useShowtimeSeatMap(showtimeId);
   const {
-  selectedSessionId,
-  selectedSeatIds,
-  ticketQuantities,
-  productQuantities,
-  promotionCode,
-  clearBooking,
-} = useBookingStore();
+    selectedSessionId,
+    selectedSeatIds,
+    selectedSeatLabels,
+    ticketQuantities,
+    productQuantities,
+    promotionCode,
+    clearBooking,
+  } = useBookingStore();
   const [ticketTypes, setTicketTypes] = useState<TicketTypeOption[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
@@ -125,10 +111,8 @@ export const PlatformCheckoutExperience = ({
   useEffect(() => {
     let cancelled = false;
 
-    if (authLoading || !isAuthenticated || !showtimeData) {
-      if (!authLoading && !showtimeData) {
-        setLoading(false);
-      }
+    if (authLoading || !isAuthenticated) {
+      setLoading(false);
       return;
     }
 
@@ -136,7 +120,7 @@ export const PlatformCheckoutExperience = ({
       try {
         const [types, concessions, methods] = await Promise.all([
           getTenantTicketTypes(tenantSlug),
-          getTenantProducts(tenantSlug, showtimeData?.cinema?.id),
+          getTenantProducts(tenantSlug, showtimeDetails?.cinema?.id),
           getTenantPaymentMethods(tenantSlug),
         ]);
 
@@ -158,7 +142,7 @@ export const PlatformCheckoutExperience = ({
     return () => {
       cancelled = true;
     };
-  }, [authLoading, isAuthenticated, showtimeData, tenantSlug]);
+  }, [authLoading, isAuthenticated, showtimeDetails?.cinema?.id, tenantSlug]);
 
   useEffect(() => {
     if (
@@ -197,22 +181,33 @@ export const PlatformCheckoutExperience = ({
     }));
   }, [reservation.reservedSeatIds, ticketQuantities, ticketTypes]);
 
-  const selectedSeatLabels = useMemo(() => {
+  const resolvedSeatLabels = useMemo(() => {
     const ids = reservation.reservedSeatIds.length ? reservation.reservedSeatIds : selectedSeatIds;
+<<<<<<< HEAD
     return ids.map((seatId) => {
       const seat = showtimeData?.seats?.find((item) => item.id === seatId);
       return seat?.seat_code || seatId;
     });
   }, [reservation.reservedSeatIds, selectedSeatIds, showtimeData?.seats]);
+=======
+    return ids.map((seatId) => selectedSeatLabels[seatId] || seatId);
+  }, [reservation.reservedSeatIds, selectedSeatIds, selectedSeatLabels]);
+>>>>>>> 7689fe0 (feat: remove better-auth, implement custom auth, and move CPF to checkout)
 
   const total = useMemo(() => {
-    if (!showtimeData) return 0;
+    if (!showtimeDetails) return 0;
+
+    const basePrice = Number(showtimeDetails.base_ticket_price || 0);
 
     const ticketsTotal = seatAssignments.reduce((sum, assignment) => {
       const type = ticketTypes.find((item) => item.id === assignment.ticket_type);
+<<<<<<< HEAD
       const seat = showtimeData.seats?.find((item) => item.id === assignment.seat_id);
       const base = Number(showtimeData.base_ticket_price) + Number(seat?.additional_value || 0);
       return sum + base * Number(type?.priceModifier ?? 1);
+=======
+      return sum + basePrice * Number(type?.priceModifier ?? 1);
+>>>>>>> 7689fe0 (feat: remove better-auth, implement custom auth, and move CPF to checkout)
     }, 0);
 
     const productsTotal = Object.entries(productQuantities).reduce((sum, [productId, quantity]) => {
@@ -221,7 +216,12 @@ export const PlatformCheckoutExperience = ({
     }, 0);
 
     return ticketsTotal + productsTotal;
-  }, [productQuantities, products, seatAssignments, showtimeData, ticketTypes]);
+  }, [productQuantities, products, seatAssignments, showtimeDetails, ticketTypes]);
+
+  const holdExpiresAt = useMemo(() => {
+    if (!reservation.expiresAt) return null;
+    return reservation.expiresAt.getTime();
+  }, [reservation.expiresAt]);
 
   const handleCheckout = async () => {
     if (!selectedPaymentMethod) {
@@ -271,8 +271,16 @@ export const PlatformCheckoutExperience = ({
       );
       const payment = paymentResponse.data as PaymentAttemptResponse;
 
+<<<<<<< HEAD
       if (payment.status === "paid" && payment.sale_id) {
         confirmReservation(payment.sale_id);
+=======
+      const payment = paymentResponse.data as unknown as PaymentAttemptResponse;
+      if (payment.status === "paid") {
+        if (payment.sale_id) {
+          confirmReservation(payment.sale_id);
+        }
+>>>>>>> 7689fe0 (feat: remove better-auth, implement custom auth, and move CPF to checkout)
         clearBooking();
         router.push(`/pedido/${payment.public_reference || payment.sale_id}`);
         return;
@@ -287,7 +295,7 @@ export const PlatformCheckoutExperience = ({
     }
   };
 
-  if (authLoading || loading || !showtimeData) {
+  if (authLoading || loading || seatsLoading || !showtimeDetails) {
     return (
       <main className="page-shell py-10">
         <Card className="flex min-h-[18rem] items-center justify-center">
@@ -302,10 +310,10 @@ export const PlatformCheckoutExperience = ({
       <section className="space-y-5">
         <Card className="space-y-4">
           <div className="flex items-start gap-4">
-            {showtimeData.movie?.poster_url ? (
+            {showtimeDetails.movie?.poster_url ? (
               <Image
-                src={showtimeData.movie.poster_url}
-                alt={showtimeData.movie.title || "Poster"}
+                src={showtimeDetails.movie.poster_url}
+                alt={showtimeDetails.movie.title || "Poster"}
                 width={96}
                 height={144}
                 className="h-36 w-24 rounded-[var(--radius-sm)] object-cover"
@@ -313,15 +321,15 @@ export const PlatformCheckoutExperience = ({
             ) : null}
             <div className="space-y-2">
               <p className="text-xs uppercase tracking-[0.2em] text-accent-red-300">Checkout</p>
-              <h1 className="font-display text-4xl">{showtimeData.movie?.title}</h1>
+              <h1 className="font-display text-4xl">{showtimeDetails.movie?.title}</h1>
               <p className="text-sm text-foreground-muted">
-                {showtimeData.cinema?.name} • Sala {showtimeData.room?.name}
+                {showtimeDetails.cinema?.name} • Sala {showtimeDetails.room?.name}
               </p>
               <p className="text-sm text-foreground-muted">
-                {showtimeData.start_time
+                {showtimeDetails.start_time
                   ? formatDateTimeInTimeZone(
-                      showtimeData.start_time,
-                      showtimeData.cinema?.timezone || undefined,
+                      showtimeDetails.start_time,
+                      showtimeDetails.cinema?.timezone || undefined,
                     )
                   : ""}
               </p>
@@ -355,10 +363,11 @@ export const PlatformCheckoutExperience = ({
       <aside className="space-y-4">
         <Card className="space-y-3">
           <h2 className="text-xl font-semibold">Resumo</h2>
+          <HoldCountdown expiresAt={holdExpiresAt} />
           <div className="space-y-2">
             <p className="text-sm text-foreground-muted">Assentos</p>
             <div className="flex flex-wrap gap-2">
-              {selectedSeatLabels.map((seatLabel) => (
+              {resolvedSeatLabels.map((seatLabel) => (
                 <span
                   key={seatLabel}
                   className="inline-flex min-w-12 items-center justify-center rounded-full border border-accent-red-500/20 bg-accent-red-500/8 px-3 py-1 text-sm font-semibold text-foreground"

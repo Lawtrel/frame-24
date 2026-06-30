@@ -1,0 +1,9 @@
+# docker-compose.dev.yml
+# Use VPS services directly - run web locally: npm run dev --filter=web
+# VPS: PostgreSQL, API (https://api.lawtrel.dev), Web (https://lawtrel.dev)
+
+services: {}
+
+networks:
+  frame24-network:
+    external: false

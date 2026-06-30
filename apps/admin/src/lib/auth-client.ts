@@ -1,15 +1,26 @@
 "use client";
 
-import { createAuthClient } from "better-auth/react";
+import { apiInstance } from "./api-config";
 
-const resolvedBaseURL =
-  typeof window !== "undefined"
-    ? `${window.location.origin}/api/auth`
-    : process.env.NEXT_PUBLIC_AUTH_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-
-export const authClient: ReturnType<typeof createAuthClient> = createAuthClient({
-  baseURL: resolvedBaseURL,
-  fetchOptions: {
-    credentials: "include",
+export const authClient = {
+  async signInEmail(email: string, password: string) {
+    const response = await apiInstance.post("/api/auth/sign-in/email", {
+      email,
+      password,
+    });
+    return response.data;
   },
-});
+
+  async signOut() {
+    await apiInstance.post("/api/auth/sign-out");
+  },
+
+  async getSession() {
+    try {
+      const response = await apiInstance.get("/api/auth/get-session");
+      return response.data;
+    } catch {
+      return null;
+    }
+  },
+};

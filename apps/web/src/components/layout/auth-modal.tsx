@@ -83,12 +83,12 @@ export const AuthModal = ({ mobileIconOnly = false }: { mobileIconOnly?: boolean
     setError("");
 
     try {
-      const result = await authClient.signIn.email({
-        email: tenantSlug
+      const result = await authClient.signInEmail(
+        tenantSlug
           ? toTenantAuthEmail(tenantSlug, loginForm.email)
           : loginForm.email.trim().toLowerCase(),
-        password: loginForm.password,
-      });
+        loginForm.password,
+      );
 
       if (result.error) {
         setError(result.error.message || copy("authErrorSignIn"));
@@ -201,29 +201,32 @@ export const AuthModal = ({ mobileIconOnly = false }: { mobileIconOnly?: boolean
                   <p className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-foreground-muted">
                     {copy("authContinueWith")}
                   </p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { label: copy("authProviderGoogle"), mark: "G" },
-                      { label: copy("authProviderApple"), icon: true },
-                      { label: copy("authProviderFacebook"), mark: "f" },
-                    ].map((provider) => (
-                      <Button
-                        key={provider.label}
-                        type="button"
-                        disabled
-                        aria-label={provider.label}
-                        variant="secondary"
-                        size="lg"
-                        className="h-12"
-                      >
-                        {provider.icon ? (
-                          <Icon name="apple" size="md" />
-                        ) : (
-                          <span className="text-base font-bold">{provider.mark}</span>
-                        )}
-                      </Button>
-                    ))}
-                  </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { label: copy("authProviderGoogle"), mark: "G", provider: "google" },
+                        { label: copy("authProviderApple"), icon: true, provider: "apple" },
+                        { label: copy("authProviderFacebook"), mark: "f", provider: "facebook" },
+                      ].map((provider) => (
+                        <Button
+                          key={provider.label}
+                          type="button"
+                          aria-label={provider.label}
+                          variant="secondary"
+                          size="lg"
+                          className="h-12"
+                          onClick={() => {
+                            // Social login implementation would go here
+                            console.log(`Redirecting to ${provider.provider} OAuth...`);
+                          }}
+                        >
+                          {provider.icon ? (
+                            <Icon name="apple" size="md" />
+                          ) : (
+                            <span className="text-base font-bold">{provider.mark}</span>
+                          )}
+                        </Button>
+                      ))}
+                    </div>
                 </div>
 
                 <div className="relative mb-6">

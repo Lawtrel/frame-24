@@ -29,10 +29,10 @@ export default function LoginPage({
     setError("");
 
     try {
-      const result = await authClient.signIn.email({
-        email: toTenantAuthEmail(tenant_slug, email),
+      const result = await authClient.signInEmail(
+        toTenantAuthEmail(tenant_slug, email),
         password,
-      });
+      );
 
       if (result.error) {
         setError(result.error.message || "Falha ao autenticar. Verifique seus dados.");

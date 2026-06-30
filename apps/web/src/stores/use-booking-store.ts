@@ -6,13 +6,14 @@ import { persist } from "zustand/middleware";
 interface BookingStoreState {
   selectedSessionId: string | null;
   selectedSeatIds: string[];
+  selectedSeatLabels: Record<string, string>;
   ticketQuantities: Record<string, number>;
   promotionCode: string;
   fiscalCpf: string;
   productQuantities: Record<string, number>;
   holdExpiresAt: number | null;
   setSession: (sessionId: string) => void;
-  toggleSeat: (seatId: string) => void;
+  toggleSeat: (seatId: string, label?: string) => void;
   setTicketQuantity: (ticketCode: string, quantity: number) => void;
   setPromotionCode: (value: string) => void;
   setFiscalCpf: (value: string) => void;
@@ -26,6 +27,7 @@ export const useBookingStore = create<BookingStoreState>()(
     (set, get) => ({
     selectedSessionId: null,
     selectedSeatIds: [],
+    selectedSeatLabels: {},
     ticketQuantities: {},
     promotionCode: "",
     fiscalCpf: "",
@@ -38,6 +40,7 @@ export const useBookingStore = create<BookingStoreState>()(
           : {
               selectedSessionId: sessionId,
               selectedSeatIds: [],
+              selectedSeatLabels: {},
               ticketQuantities: {},
               promotionCode: "",
               fiscalCpf: "",
@@ -45,12 +48,21 @@ export const useBookingStore = create<BookingStoreState>()(
               holdExpiresAt: null,
             },
       ),
-    toggleSeat: (seatId) =>
-      set((state) => ({
-        selectedSeatIds: state.selectedSeatIds.includes(seatId)
-          ? state.selectedSeatIds.filter((id) => id !== seatId)
-          : [...state.selectedSeatIds, seatId],
-      })),
+    toggleSeat: (seatId, label) =>
+      set((state) => {
+        const isSelected = state.selectedSeatIds.includes(seatId);
+        if (isSelected) {
+          const { [seatId]: _, ...restLabels } = state.selectedSeatLabels;
+          return {
+            selectedSeatIds: state.selectedSeatIds.filter((id) => id !== seatId),
+            selectedSeatLabels: restLabels,
+          };
+        }
+        return {
+          selectedSeatIds: [...state.selectedSeatIds, seatId],
+          selectedSeatLabels: label ? { ...state.selectedSeatLabels, [seatId]: label } : state.selectedSeatLabels,
+        };
+      }),
   setTicketQuantity: (ticketCode, quantity) =>
     set((state) => {
       const clamped = Math.max(0, quantity);
@@ -81,6 +93,7 @@ export const useBookingStore = create<BookingStoreState>()(
         set({
           selectedSessionId,
           selectedSeatIds: [],
+          selectedSeatLabels: {},
           ticketQuantities: {},
           promotionCode: "",
           fiscalCpf: "",

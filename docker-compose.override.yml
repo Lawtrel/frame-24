@@ -1,0 +1,76 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/dockerfile.dev
+    container_name: frame24-api-dev
+    restart: unless-stopped
+    env_file:
+      - .env.remote
+    environment:
+      NODE_ENV: development
+      PORT: 4000
+      REDIS_HOST: ${REMOTE_REDIS_HOST}
+      REDIS_PORT: ${REMOTE_REDIS_PORT}
+      REDIS_PASSWORD: ${REMOTE_REDIS_PASSWORD}
+      REDIS_DB: 0
+      RABBITMQ_HOST: ${REMOTE_RABBITMQ_HOST}
+      RABBITMQ_PORT: ${REMOTE_RABBITMQ_PORT}
+      RABBITMQ_USER: frame24
+      RABBITMQ_PASSWORD: ${REMOTE_RABBITMQ_PASSWORD}
+      MINIO_ENDPOINT: ${REMOTE_MINIO_ENDPOINT}
+      MINIO_PORT: ${REMOTE_MINIO_PORT}
+      MINIO_ACCESS_KEY: ${REMOTE_MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${REMOTE_MINIO_SECRET_KEY}
+      MINIO_USE_SSL: "false"
+      MINIO_BUCKET: frame24-uploads
+      MINIO_REGION: us-east-1
+      DATABASE_URL: ${REMOTE_DATABASE_URL}
+      DIRECT_URL: ${REMOTE_DATABASE_URL}
+      STORAGE_PUBLIC_URL: ${REMOTE_STORAGE_PUBLIC_URL}
+      FRONTEND_URL: http://localhost:3000,http://localhost:3003,http://localhost:3004
+      API_URL: http://localhost:4000
+      BETTER_AUTH_URL: http://localhost:4000
+      BETTER_AUTH_SECRET: ${REMOTE_BETTER_AUTH_SECRET}
+      JWT_SECRET: ${REMOTE_JWT_SECRET}
+      JWT_AUDIENCE: frame24-api
+      JWT_ISSUER: frame24-api
+      JWT_EXPIRES_IN: 8h
+      AUTH_INTERNAL_SECRET: ${REMOTE_AUTH_INTERNAL_SECRET}
+      OIDC_INTERNAL_SECRET: ${REMOTE_OIDC_INTERNAL_SECRET}
+      WORKER_ID: 1
+      TENANT_BASE_DOMAIN: ${REMOTE_TENANT_BASE_DOMAIN}
+    ports:
+      - "4000:4000"
+    depends_on: []
+    networks:
+      - frame24-network
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:4000
+        NEXT_PUBLIC_SOCKET_URL: http://localhost:4000
+        NEXT_PUBLIC_AUTH_URL: http://localhost:4000
+        NEXT_PUBLIC_TENANT_BASE_DOMAIN: ${REMOTE_TENANT_BASE_DOMAIN}
+    container_name: frame24-web-dev
+    restart: unless-stopped
+    env_file:
+      - .env.remote
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:4000
+      NEXT_PUBLIC_SOCKET_URL: http://localhost:4000
+      NEXT_PUBLIC_AUTH_URL: http://localhost:4000
+      NEXT_PUBLIC_TENANT_BASE_DOMAIN: ${REMOTE_TENANT_BASE_DOMAIN}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    networks:
+      - frame24-network
+
+networks:
+  frame24-network:
+    external: false

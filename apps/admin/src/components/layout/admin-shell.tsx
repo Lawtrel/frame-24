@@ -8,11 +8,28 @@ import { useEffect } from "react";
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { data: session, isPending } = authClient.useSession();
+  const [session, setSession] = useState<any>(null);
+  const [isPending, setIsPending] = useState(true);
 
   const isLoginPage = pathname === "/login";
   const isReady = !isPending;
   const authenticated = !!session;
+
+  useEffect(() => {
+    const checkSession = async () => {
+      setIsPending(true);
+      try {
+        const sessionData = await authClient.getSession();
+        setSession(sessionData);
+      } catch {
+        setSession(null);
+      } finally {
+        setIsPending(false);
+      }
+    };
+
+    void checkSession();
+  }, []);
 
   useEffect(() => {
     if (!isReady) {

@@ -153,7 +153,7 @@ export const SeatMap = ({
                         aria-pressed={selected}
                         aria-label={ariaLabel}
                         disabled={!isSelectable}
-                        onClick={() => toggleSeat(seat.id)}
+                        onClick={() => toggleSeat(seat.id, seat.label)}
                         className={cn(
                           "relative flex aspect-square w-full items-center justify-center rounded-[3px] sm:rounded-[var(--radius-sm)] text-[8px] sm:text-[10px] md:text-xs font-semibold overflow-hidden transition-all duration-200",
                           selected ? seatStatusTone.selected : seatStatusTone[seat.status],

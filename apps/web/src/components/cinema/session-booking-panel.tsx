@@ -36,30 +36,28 @@ export const SessionBookingPanel = ({
   const router = useRouter();
   const {
     selectedSeatIds,
+    selectedSeatLabels,
     holdExpiresAt,
     ticketQuantities,
   promotionCode,
   fiscalCpf,
   setSession,
   startHold,
-} = useBookingStore();
+  } = useBookingStore();
 
-useEffect(() => {
-  setSession(session.id);
-}, [session.id, setSession]);
+  useEffect(() => {
+    setSession(session.id);
+  }, [session.id, setSession]);
 
-const totalTickets = useMemo(
-  () => Object.values(ticketQuantities).reduce((sum, quantity) => sum + (quantity ?? 0), 0),
-  [ticketQuantities],
-);
-const selectedSeatLabels = useMemo(
-  () =>
-    selectedSeatIds.map((seatId) => {
-      const seat = session.seats.find((item) => item.id === seatId);
-      return seat?.label || seatId;
-    }),
-  [selectedSeatIds, session.seats],
-);
+  const totalTickets = useMemo(
+    () => Object.values(ticketQuantities).reduce((sum, quantity) => sum + (quantity ?? 0), 0),
+    [ticketQuantities],
+  );
+  const resolvedSeatLabels = useMemo(
+    () =>
+      selectedSeatIds.map((seatId) => selectedSeatLabels[seatId] || seatId),
+    [selectedSeatIds, selectedSeatLabels],
+  );
 const validation = useMemo(
   () => {
     const errors: string[] = [];
@@ -111,9 +109,9 @@ const validation = useMemo(
       </div>
       <div className="rounded-[var(--radius-md)] border border-border p-4">
         <p className="text-sm text-foreground-muted">Assentos selecionados</p>
-        {selectedSeatLabels.length ? (
+        {resolvedSeatLabels.length ? (
           <div className="mt-3 flex flex-wrap gap-2">
-            {selectedSeatLabels.map((seatLabel) => (
+            {resolvedSeatLabels.map((seatLabel) => (
               <span
                 key={seatLabel}
                 className="inline-flex min-w-12 items-center justify-center rounded-full border border-accent-red-500/20 bg-accent-red-500/8 px-3 py-1 text-sm font-semibold text-foreground"
@@ -126,8 +124,8 @@ const validation = useMemo(
           <p className="mt-2 text-base font-medium text-foreground">{copy("movieDetailChooseOnMap")}</p>
         )}
         <p className="mt-3 text-xs text-foreground-muted">
-          {selectedSeatLabels.length
-            ? `${selectedSeatLabels.length} assento${selectedSeatLabels.length === 1 ? "" : "s"} reservado${selectedSeatLabels.length === 1 ? "" : "s"} para esta compra.`
+          {resolvedSeatLabels.length
+            ? `${resolvedSeatLabels.length} assento${resolvedSeatLabels.length === 1 ? "" : "s"} reservado${resolvedSeatLabels.length === 1 ? "" : "s"} para esta compra.`
             : "Os assentos escolhidos no mapa aparecem aqui."}
         </p>
       </div>

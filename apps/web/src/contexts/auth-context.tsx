@@ -43,19 +43,33 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { data: session, isPending } = authClient.useSession();
+  const [session, setSession] = useState<any>(null);
+  const [isPending, setIsPending] = useState(true);
   const [profile, setProfile] = useState<CustomerProfile | null>(null);
   const [isProfileLoading, setIsProfileLoading] = useState(false);
 
   const tenantSlug =
     (typeof window !== "undefined" ? getTenantSlugFromHost(window.location.host) : null) ??
-    getTenantSlugFromPathname(pathname);
+      getTenantSlugFromPathname(pathname);
 
   useEffect(() => {
-    if (isPending) {
-      return;
-    }
+    const checkSession = async () => {
+      setIsPending(true);
+      try {
+        const sessionData = await authClient.getSession();
+        setSession(sessionData);
+      } catch {
+        setSession(null);
+      } finally {
+        setIsPending(false);
+      }
+    };
 
+    void checkSession();
+  }, []);
+
+  useEffect(() => {
+    if (isPending) return;
     if (!session) {
       setProfile(null);
       setIsProfileLoading(false);
@@ -89,15 +103,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       isMounted = false;
     };
-  }, [isPending, session, tenantSlug]);
+  }, [session, tenantSlug, isPending]);
 
-  const logout = () => {
-    void authClient.signOut();
-    setProfile(null);
-    setIsProfileLoading(false);
+  const logout = async () => {
+    try {
+      await authClient.signOut();
+    } finally {
+      setSession(null);
+      setProfile(null);
+      setIsProfileLoading(false);
+    }
   };
 
-  const user: User | null = profile
+const user: User | null = profile
     ? {
         id: profile.id,
         email: profile.email,
@@ -107,12 +125,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loyalty_level: profile.loyalty_level,
         accumulated_points: profile.accumulated_points,
       }
-    : session?.user?.id
-      ? {
-          id: session.user.id,
-          email: session.user.email ?? undefined,
-          name: session.user.name ?? undefined,
-        }
     : null;
 
   // In customer-facing web app, authenticated means: valid session + active customer profile.
