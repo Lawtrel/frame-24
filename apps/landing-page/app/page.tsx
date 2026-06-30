@@ -3,6 +3,7 @@ import HeroSection from "@/components/HeroSection";
 import FeaturesSection from "@/components/FeatureSection";
 import PricingSection from "@/components/PricingSection";
 import Footer from "@/components/Footer";
+import RecommendationChat from "@/components/RecommendationChat";
 import React from "react";
 import Link from "next/link";
 
@@ -55,6 +56,7 @@ const LandingPageLayout = ({ children }: { children: React.ReactNode }) => (
     </header>
 
     <main>{children}</main>
+    <RecommendationChat />
   </div>
 );
 

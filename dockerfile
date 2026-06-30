@@ -52,8 +52,10 @@ RUN rm -rf /root/.cache/node/corepack \
 	&& rm -rf /usr/local/lib/node_modules/npm \
 	&& rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack /usr/local/bin/pnpm /usr/local/bin/pnpx
 
-COPY --from=builder /app/apps/api/dist /app/apps/api/dist
-COPY --from=builder /app/packages/db/dist /app/packages/db/dist
+COPY --from=builder /app/apps/api/dist /apps/api/dist
+COPY --from=builder /app/apps/api/path-alias-register.js /apps/api/path-alias-register.js
+COPY --from=builder /app/apps/api/tsconfig.json /apps/api/tsconfig.json
+COPY --from=builder /app/packages/db/dist /apps/api/dist
 COPY --from=builder /app/scripts/docker/api-entrypoint.sh /app/scripts/docker/api-entrypoint.sh
 
 RUN chmod +x /app/scripts/docker/api-entrypoint.sh

@@ -11,10 +11,7 @@ interface Message {
   content: string;
 }
 
-interface MovieRecommendation {
-  title: string;
-  reason: string;
-}
+const MLOPS_API_URL = process.env.NEXT_PUBLIC_MLOPS_URL || "http://localhost:5001";
 
 const welcomeMessage: Message = {
   id: "welcome",
@@ -23,51 +20,35 @@ const welcomeMessage: Message = {
     "Olá! 🎬 Diga o que você está com vontade de assistir (gênero, humor, filme favorito…) e vou recomendar filmes incríveis pra você!",
 };
 
-const movieDb: MovieRecommendation[] = [
-  { title: "Duna: Parte Dois", reason: "continuação épica que expande o universo de Arrakis com visuais deslumbrantes" },
-  { title: "Oppenheimer", reason: "drama histórico intenso sobre o criador da bomba atômica" },
-  { title: "Pobres Criaturas", reason: "ficção científica excêntrica e visualmente impressionante" },
-  { title: "Interestelar", reason: "viagem espacial emocionante que mistura ciência e emoção familiar" },
-  { title: "Clube da Luta", reason: "clássico provocador que questiona identidade e consumo" },
-  { title: "O Senhor dos Anéis: O Retorno do Rei", reason: "fantasia épica com batalhas grandiosas e desfecho emocionante" },
-  { title: "Coringa", reason: "estudo psicológico sombrio sobre os limites da sanidade" },
-  { title: "Parasita", reason: "sátira social premiada que mistura suspense e crítica de classe" },
-  { title: "Tudo em Todo Lugar ao Mesmo Tempo", reason: "multiverso criativo e emocionante sobre escolhas e família" },
-  { title: "Whiplash", reason: "drama musical intenso sobre ambição e perfeccionismo" },
-  { title: "A Chegada", reason: "ficção científica reflexiva sobre linguagem e tempo" },
-  { title: "Mad Max: Estrada da Fúria", reason: "ação alucinante em um mundo pós-apocalíptico" },
-];
+async function fetchRecommendations(query: string): Promise<string> {
+  try {
+    const response = await fetch(`${MLOPS_API_URL}/api/recommend`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query }),
+    });
 
-function generateRecommendations(userInput: string): string {
-  const lowerInput = userInput.toLowerCase();
-  let matched = movieDb.filter(
-    (m) =>
-      m.title.toLowerCase().includes(lowerInput) ||
-      m.reason.toLowerCase().includes(lowerInput),
-  );
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
 
-  if (matched.length === 0) {
-    matched = [...movieDb].sort(() => Math.random() - 0.5).slice(0, 3);
-  } else {
-    matched = matched.slice(0, 3);
+    const data = await response.json();
+    const recs = data.recommendations;
+
+    if (!recs || recs.length === 0) {
+      return "Não encontrei filmes com essas características, mas que tal conferir nossa página inicial para ver os lançamentos? 😊";
+    }
+
+    const lines = recs.map(
+      (m: { title: string; reason: string }, i: number) =>
+        `${i + 1}. **${m.title}** — ${m.reason}.`,
+    );
+
+    return `Recomendo esses filmes:\n\n${lines.join("\n")}\n\nGostou de alguma sugestão? Posso te dar mais detalhes! 🍿`;
+  } catch (err) {
+    console.error("Recommendation API error:", err);
+    return "Desculpe, não consegui me conectar ao serviço de recomendações no momento. Tente novamente mais tarde! 😅";
   }
-
-  if (matched.length === 0) {
-    return "Não encontrei filmes com essas características, mas que tal conferir nossa página inicial para ver os lançamentos? 😊";
-  }
-
-  const lines = matched.map(
-    (m, i) => `${i + 1}. **${m.title}** — ${m.reason}.`,
-  );
-
-  return `Recomendo esses filmes:\n\n${lines.join("\n")}\n\nGostou de alguma sugestão? Posso te dar mais detalhes! 🍿`;
-}
-
-function simulateTyping(content: string): Promise<string> {
-  return new Promise((resolve) => {
-    const delay = 800 + Math.random() * 1200;
-    setTimeout(() => resolve(content), delay);
-  });
 }
 
 export const RecommendationChat = () => {
@@ -103,13 +84,12 @@ export const RecommendationChat = () => {
     setInput("");
     setIsLoading(true);
 
-    const response = generateRecommendations(trimmed);
-    const assistantContent = await simulateTyping(response);
+    const response = await fetchRecommendations(trimmed);
 
     const assistantMessage: Message = {
       id: `assistant-${Date.now()}`,
       role: "assistant",
-      content: assistantContent,
+      content: response,
     };
 
     setMessages((prev) => [...prev, assistantMessage]);
@@ -253,27 +233,5 @@ export const RecommendationChat = () => {
         )}
       </AnimatePresence>
     </>
-  );
-};
-
-interface RecommendationChatFloatingButtonProps {
-  onClick: () => void;
-}
-
-export const RecommendationChatFloatingButton = ({
-  onClick,
-}: RecommendationChatFloatingButtonProps) => {
-  const reduceMotion = useReducedMotion();
-
-  return (
-    <motion.button
-      onClick={onClick}
-      className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-accent-red-500 text-white shadow-[0_8px_24px_rgba(229,57,53,0.35)] hover:bg-accent-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-red-500/60"
-      whileHover={reduceMotion ? {} : { scale: 1.08 }}
-      whileTap={reduceMotion ? {} : { scale: 0.94 }}
-      aria-label="Abrir chat de recomendações"
-    >
-      <MessageCircle size={22} />
-    </motion.button>
   );
 };
