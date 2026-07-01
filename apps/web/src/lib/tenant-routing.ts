@@ -83,6 +83,15 @@ export const withTenantPath = (pathname: string | null | undefined, href: string
   return `/${tenantSlug}${href}`;
 };
 
+export const toTenantAuthEmail = (tenantSlug: string, email: string): string => {
+  const [localPart, domain] = email.split('@');
+  return `${localPart}__tenant__${tenantSlug}@${domain}`;
+};
+
+export const fromTenantAuthEmail = (email: string): string => {
+  return email.replace(/__tenant__[^@]+@/, '@');
+};
+
 export const buildTenantPrefix = (host?: string | null, tenantSlug?: string | null) => {
   if (getTenantSlugFromHost(host)) return "";
   if (!tenantSlug) return "";

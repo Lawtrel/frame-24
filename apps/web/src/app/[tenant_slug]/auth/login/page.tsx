@@ -6,6 +6,7 @@ import Link from "next/link";
 import { extractErrorMessage } from "@/lib/error-utils";
 import { authClient } from "@/lib/auth-client";
 import { resolveCustomerProfile } from "@/lib/api-client";
+import { toTenantAuthEmail } from "@/lib/tenant-routing";
 
 
 export default function LoginPage({
@@ -29,8 +30,9 @@ export default function LoginPage({
     setError("");
 
     try {
+      const authEmail = toTenantAuthEmail(tenant_slug, email.trim().toLowerCase());
       const result = await authClient.signInEmail(
-        email.trim().toLowerCase(),
+        authEmail,
         password,
       );
 

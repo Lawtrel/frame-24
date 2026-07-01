@@ -6,40 +6,40 @@ services:
     container_name: frame24-api-dev
     restart: unless-stopped
     env_file:
-      - .env.remote
+      - .env
     environment:
       NODE_ENV: development
       PORT: 4000
-      REDIS_HOST: ${REMOTE_REDIS_HOST}
-      REDIS_PORT: ${REMOTE_REDIS_PORT}
-      REDIS_PASSWORD: ${REMOTE_REDIS_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
       REDIS_DB: 0
-      RABBITMQ_HOST: ${REMOTE_RABBITMQ_HOST}
-      RABBITMQ_PORT: ${REMOTE_RABBITMQ_PORT}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
       RABBITMQ_USER: frame24
-      RABBITMQ_PASSWORD: ${REMOTE_RABBITMQ_PASSWORD}
-      MINIO_ENDPOINT: ${REMOTE_MINIO_ENDPOINT}
-      MINIO_PORT: ${REMOTE_MINIO_PORT}
-      MINIO_ACCESS_KEY: ${REMOTE_MINIO_ACCESS_KEY}
-      MINIO_SECRET_KEY: ${REMOTE_MINIO_SECRET_KEY}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
       MINIO_USE_SSL: "false"
       MINIO_BUCKET: frame24-uploads
       MINIO_REGION: us-east-1
-      DATABASE_URL: ${REMOTE_DATABASE_URL}
-      DIRECT_URL: ${REMOTE_DATABASE_URL}
-      STORAGE_PUBLIC_URL: ${REMOTE_STORAGE_PUBLIC_URL}
-      FRONTEND_URL: http://localhost:3000,http://localhost:3003,http://localhost:3004
-      API_URL: http://localhost:4000
-      BETTER_AUTH_URL: http://localhost:4000
-      BETTER_AUTH_SECRET: ${REMOTE_BETTER_AUTH_SECRET}
-      JWT_SECRET: ${REMOTE_JWT_SECRET}
+      DATABASE_URL: ${DATABASE_URL}
+      DIRECT_URL: ${DIRECT_URL}
+      STORAGE_PUBLIC_URL: ${STORAGE_PUBLIC_URL}
+      FRONTEND_URL: ${FRONTEND_URL}
+      API_URL: ${API_URL}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
       JWT_AUDIENCE: frame24-api
       JWT_ISSUER: frame24-api
       JWT_EXPIRES_IN: 8h
-      AUTH_INTERNAL_SECRET: ${REMOTE_AUTH_INTERNAL_SECRET}
-      OIDC_INTERNAL_SECRET: ${REMOTE_OIDC_INTERNAL_SECRET}
+      AUTH_INTERNAL_SECRET: ${AUTH_INTERNAL_SECRET}
+      OIDC_INTERNAL_SECRET: change-me-to-a-long-random-secret-at-least-32-chars
       WORKER_ID: 1
-      TENANT_BASE_DOMAIN: ${REMOTE_TENANT_BASE_DOMAIN}
+      TENANT_BASE_DOMAIN: ${TENANT_BASE_DOMAIN}
     ports:
       - "4000:4000"
     depends_on: []
@@ -51,19 +51,19 @@ services:
       context: .
       dockerfile: apps/web/dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://localhost:4000
-        NEXT_PUBLIC_SOCKET_URL: http://localhost:4000
-        NEXT_PUBLIC_AUTH_URL: http://localhost:4000
-        NEXT_PUBLIC_TENANT_BASE_DOMAIN: ${REMOTE_TENANT_BASE_DOMAIN}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL}
+        NEXT_PUBLIC_AUTH_URL: ${NEXT_PUBLIC_AUTH_URL}
+        NEXT_PUBLIC_TENANT_BASE_DOMAIN: ${NEXT_PUBLIC_TENANT_BASE_DOMAIN}
     container_name: frame24-web-dev
     restart: unless-stopped
     env_file:
-      - .env.remote
+      - .env
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:4000
-      NEXT_PUBLIC_SOCKET_URL: http://localhost:4000
-      NEXT_PUBLIC_AUTH_URL: http://localhost:4000
-      NEXT_PUBLIC_TENANT_BASE_DOMAIN: ${REMOTE_TENANT_BASE_DOMAIN}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL}
+      NEXT_PUBLIC_AUTH_URL: ${NEXT_PUBLIC_AUTH_URL}
+      NEXT_PUBLIC_TENANT_BASE_DOMAIN: ${NEXT_PUBLIC_TENANT_BASE_DOMAIN}
     ports:
       - "3000:3000"
     depends_on:

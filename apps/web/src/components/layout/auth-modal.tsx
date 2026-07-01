@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import {
   getTenantSlugFromHost,
   getTenantSlugFromPathname,
+  toTenantAuthEmail,
   withTenantPath,
 } from "@/lib/tenant-routing";
 import { Button } from "@/components/ui/button";
@@ -83,8 +84,10 @@ export const AuthModal = ({ mobileIconOnly = false }: { mobileIconOnly?: boolean
     setError("");
 
     try {
+      const email = loginForm.email.trim().toLowerCase();
+      const authEmail = tenantSlug ? toTenantAuthEmail(tenantSlug, email) : email;
       const result = await authClient.signInEmail(
-        loginForm.email.trim().toLowerCase(),
+        authEmail,
         loginForm.password,
       );
 
