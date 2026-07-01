@@ -46,7 +46,7 @@ export class CustomerAuthService {
     }
 
     const normalizedEmail = dto.email.trim().toLowerCase();
-    const normalizedCpf = dto.cpf.replace(/\D/g, '');
+    const normalizedCpf = dto.cpf ? dto.cpf.replace(/\D/g, '') : null;
     const tenantAuthEmail = toTenantAuthEmail(
       company.tenant_slug,
       normalizedEmail,
@@ -66,18 +66,20 @@ export class CustomerAuthService {
       throw new ConflictException('Email já cadastrado nesta empresa');
     }
 
-    const existingCpf = await this.prisma.customers.findFirst({
-      where: {
-        cpf: normalizedCpf,
-        company_customers: {
-          some: {
-            company_id: company.id,
+    if (normalizedCpf) {
+      const existingCpf = await this.prisma.customers.findFirst({
+        where: {
+          cpf: normalizedCpf,
+          company_customers: {
+            some: {
+              company_id: company.id,
+            },
           },
         },
-      },
-    });
-    if (existingCpf) {
-      throw new ConflictException('CPF já cadastrado nesta empresa');
+      });
+      if (existingCpf) {
+        throw new ConflictException('CPF já cadastrado nesta empresa');
+      }
     }
 
     const existingAuthUser = await this.prisma.user.findUnique({
@@ -122,7 +124,7 @@ export class CustomerAuthService {
 
       const customer = await this.customersRepository.create({
         identity_id: identity.id,
-        cpf: normalizedCpf,
+        ...(normalizedCpf && { cpf: normalizedCpf }),
         full_name: dto.full_name,
         email: normalizedEmail,
         phone: dto.phone,
@@ -176,7 +178,7 @@ export class CustomerAuthService {
     dto: {
       company_id: string;
       full_name: string;
-      cpf: string;
+      cpf?: string;
       phone?: string;
       birth_date?: string;
       accepts_marketing?: boolean;
@@ -195,28 +197,35 @@ export class CustomerAuthService {
 
     const sessionAuthEmail = sessionEmail.trim().toLowerCase();
     const normalizedSessionEmail = fromTenantAuthEmail(sessionAuthEmail);
-    const normalizedCpf = dto.cpf.replace(/\D/g, '');
-    const cpfWithMask = normalizedCpf.replace(
-      /^(\d{3})(\d{3})(\d{3})(\d{2})$/,
-      '$1.$2.$3-$4',
-    );
-    const cpfCandidates = Array.from(
-      new Set([dto.cpf, normalizedCpf, cpfWithMask].filter(Boolean)),
-    );
+    const normalizedCpf = dto.cpf ? dto.cpf.replace(/\D/g, '') : null;
+    const cpfCandidates = normalizedCpf
+      ? Array.from(
+          new Set([
+            dto.cpf || '',
+            normalizedCpf,
+            normalizedCpf.replace(
+              /^(\d{3})(\d{3})(\d{3})(\d{2})$/,
+              '$1.$2.$3-$4',
+            ),
+          ].filter(Boolean)),
+        )
+      : [];
 
     let customer = await this.customersRepository.findByEmail(
       normalizedSessionEmail,
     );
-    const customerByCpf = await this.prisma.customers.findFirst({
-      where: {
-        cpf: {
-          in: cpfCandidates,
-        },
-      },
-    });
 
-    if (!customer && customerByCpf) {
-      customer = customerByCpf;
+    if (!customer && cpfCandidates.length > 0) {
+      const customerByCpf = await this.prisma.customers.findFirst({
+        where: {
+          cpf: {
+            in: cpfCandidates,
+          },
+        },
+      });
+      if (customerByCpf) {
+        customer = customerByCpf;
+      }
     }
 
     if (customer && customer.email) {
@@ -251,7 +260,7 @@ export class CustomerAuthService {
 
       customer = await this.customersRepository.create({
         identity_id: identity.id,
-        cpf: normalizedCpf,
+        ...(normalizedCpf && { cpf: normalizedCpf }),
         full_name: dto.full_name,
         email: normalizedSessionEmail,
         phone: dto.phone,
@@ -268,7 +277,7 @@ export class CustomerAuthService {
       });
     } else {
       customer = await this.customersRepository.update(customer.id, {
-        cpf: normalizedCpf,
+        ...(normalizedCpf && { cpf: normalizedCpf }),
         full_name: dto.full_name,
         email: normalizedSessionEmail,
         phone: dto.phone,

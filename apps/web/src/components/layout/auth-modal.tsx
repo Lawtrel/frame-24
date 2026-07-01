@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
+import { resolveCustomerProfile } from "@/lib/api-client";
 import { useAuth } from "@/contexts/auth-context";
 import { cn } from "@/lib/utils";
 import {
@@ -12,7 +13,6 @@ import {
   getTenantSlugFromPathname,
   withTenantPath,
 } from "@/lib/tenant-routing";
-import { toTenantAuthEmail } from "@/lib/tenant-auth-email";
 import { Button } from "@/components/ui/button";
 import { ChipToggle } from "@/components/ui/chip-toggle";
 import { DialogShell, DialogShellHeader } from "@/components/ui/dialog-shell";
@@ -26,7 +26,7 @@ type AuthView = "login" | "register";
 export const AuthModal = ({ mobileIconOnly = false }: { mobileIconOnly?: boolean }) => {
   const router = useRouter();
   const pathname = usePathname();
-  const { hasSession, user } = useAuth();
+  const { hasSession, isAuthenticated, user } = useAuth();
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<AuthView>("login");
   const [loading, setLoading] = useState(false);
@@ -50,7 +50,7 @@ export const AuthModal = ({ mobileIconOnly = false }: { mobileIconOnly?: boolean
       ? `${user.accumulated_points} pts`
       : null;
 
-  if (hasSession) {
+  if (isAuthenticated) {
     return (
       <Button
         asChild
@@ -84,9 +84,7 @@ export const AuthModal = ({ mobileIconOnly = false }: { mobileIconOnly?: boolean
 
     try {
       const result = await authClient.signInEmail(
-        tenantSlug
-          ? toTenantAuthEmail(tenantSlug, loginForm.email)
-          : loginForm.email.trim().toLowerCase(),
+        loginForm.email.trim().toLowerCase(),
         loginForm.password,
       );
 
@@ -95,8 +93,14 @@ export const AuthModal = ({ mobileIconOnly = false }: { mobileIconOnly?: boolean
         return;
       }
 
+      const profile = await resolveCustomerProfile(tenantSlug);
       setOpen(false);
-      router.push(withTenantPath(pathname, "/perfil"));
+
+      if (!profile) {
+        router.push(withTenantPath(pathname, "/auth/register?intent=activate"));
+      } else {
+        router.push(withTenantPath(pathname, "/perfil"));
+      }
     } catch {
       setError(copy("authErrorSignInRetry"));
     } finally {

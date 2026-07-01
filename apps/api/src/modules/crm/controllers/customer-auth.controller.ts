@@ -22,7 +22,7 @@ import {
 type ActivateCustomerAccessDto = {
   company_id: string;
   full_name: string;
-  cpf: string;
+  cpf?: string;
   phone?: string;
   birth_date?: string;
   accepts_marketing?: boolean;

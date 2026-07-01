@@ -19,7 +19,7 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-const apiInstance = axios.create({
+export const apiInstance = axios.create({
   baseURL: typeof window !== "undefined"
     ? window.location.origin
     : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'),

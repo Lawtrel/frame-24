@@ -144,13 +144,11 @@ function AuthInlineLogin() {
     setLoading(true);
     setError("");
     try {
-      const result = await authClient.signIn.email({
-        email: tenantSlug
-          ? `${email.trim().toLowerCase().split("@")[0]}__tenant__${tenantSlug}@${email.trim().toLowerCase().split("@")[1]}`
-          : email.trim().toLowerCase(),
+      const result = await authClient.signInEmail(
+        email.trim().toLowerCase(),
         password,
-      });
-      if (result.error) {
+      );
+      if (result?.error) {
         setError(result.error.message || "Erro ao fazer login");
       }
     } catch {

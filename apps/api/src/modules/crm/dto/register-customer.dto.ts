@@ -6,7 +6,7 @@ export const RegisterCustomerSchema = z
   .object({
     company_id: z.string().min(1).optional(),
     tenant_slug: z.string().min(1).optional(),
-    cpf: z.string().regex(/^\d{11}$/, 'CPF deve conter 11 dígitos numéricos'),
+    cpf: z.string().regex(/^\d{11}$/, 'CPF deve conter 11 dígitos numéricos').optional(),
     full_name: z
       .string()
       .min(3, 'Nome deve ter no mínimo 3 caracteres')
@@ -43,11 +43,11 @@ export class RegisterCustomerDto extends createZodDto(RegisterCustomerSchema) {
   })
   tenant_slug?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'CPF do cliente',
     example: '123.456.789-00',
   })
-  cpf!: string;
+  cpf?: string;
 
   @ApiProperty({
     description: 'Nome completo',

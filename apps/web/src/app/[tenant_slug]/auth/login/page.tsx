@@ -6,7 +6,7 @@ import Link from "next/link";
 import { extractErrorMessage } from "@/lib/error-utils";
 import { authClient } from "@/lib/auth-client";
 import { resolveCustomerProfile } from "@/lib/api-client";
-import { toTenantAuthEmail } from "@/lib/tenant-auth-email";
+
 
 export default function LoginPage({
   params,
@@ -30,7 +30,7 @@ export default function LoginPage({
 
     try {
       const result = await authClient.signInEmail(
-        toTenantAuthEmail(tenant_slug, email),
+        email.trim().toLowerCase(),
         password,
       );
 

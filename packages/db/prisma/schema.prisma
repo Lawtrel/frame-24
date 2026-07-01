@@ -919,7 +919,7 @@ model customer_favorite_products {
 model customers {
   id                       String              @id @default(uuid())
   identity_id              String              @unique
-  cpf                      String              @db.VarChar(14)
+  cpf                      String?             @db.VarChar(14)
   full_name                String              @db.VarChar(200)
   email                    String?             @db.VarChar(100)
   phone                    String?             @db.VarChar(20)
