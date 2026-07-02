@@ -127,7 +127,9 @@ export default function RegisterPage({
   const { data: company } = useCompany(tenant_slug);
   const isActivationIntent = searchParams.get("intent") === "activate";
   const returnUrl = searchParams.get("returnUrl") || `/${tenant_slug}`;
-  const isActivationFlow = hasSession && !isAuthenticated;
+  // Only use URL intent to decide activation flow, not session presence alone
+  // (admin session cookies on shared domain shouldn't hijack the full register flow)
+  const isActivationFlow = isActivationIntent;
 
   const [formData, setFormData] = useState({
     full_name: "",
@@ -237,6 +239,15 @@ export default function RegisterPage({
       return;
     }
 
+    if (!isActivationFlow && !isActivationIntent) {
+      const pw = formData.password;
+      if (pw.length < 8 || !/[a-z]/.test(pw) || !/[A-Z]/.test(pw) || !/\d/.test(pw)) {
+        setError("Senha deve ter no mínimo 8 caracteres com maiúscula, minúscula e número");
+        setIsLoading(false);
+        return;
+      }
+    }
+
     if (!companyId) {
       setError(
         "Não foi possível identificar a empresa deste link. Recarregue a página e tente novamente.",
@@ -248,7 +259,7 @@ export default function RegisterPage({
     try {
       if (isActivationFlow || isActivationIntent) {
         await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/v1/customer/auth/activate`,
+          `/v1/customer/auth/activate`,
           {
             full_name: formData.full_name,
             phone: formData.phone.replace(/\D/g, ""),
@@ -261,7 +272,7 @@ export default function RegisterPage({
           { withCredentials: true },
         );
       } else {
-        await axios.post(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/v1/customer/auth/register`, {
+        await axios.post(`/v1/customer/auth/register`, {
           full_name: formData.full_name,
           email: formData.email,
           phone: formData.phone.replace(/\D/g, ""),
@@ -553,6 +564,12 @@ export default function RegisterPage({
                   )}
                 </div>
               </div>
+            )}
+
+            {!isActivationFlow && !isActivationIntent && (
+              <p className="text-xs text-zinc-500 -mt-1">
+                Mín. 8 caracteres com maiúscula, minúscula e número
+              </p>
             )}
 
             <div>

@@ -10,6 +10,7 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Prisma, custom_roles } from '@repo/db';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
+import { RedisService } from 'src/common/redis/redis.service';
 import { CustomRoleRepository } from '../repositories/custom-role.repository';
 import { CreateRoleDto } from '../dto/create-role.dto';
 import { UpdateRoleDto } from '../dto/update-role.dto';
@@ -24,6 +25,7 @@ export class RolesService {
     private readonly logger: LoggerService,
     private readonly snowflake: SnowflakeService,
     private readonly tenantContext: TenantContextService,
+    private readonly redis: RedisService,
   ) {}
 
   private getIdentityId(): string | undefined {
@@ -184,32 +186,76 @@ export class RolesService {
       }),
     });
 
-    if (dto.permissions) {
-      const permissionIds = await this.getPermissionIds(
-        dto.permissions,
-        company_id,
-      );
+      if (dto.permissions) {
+        const permissionIds = await this.getPermissionIds(
+          dto.permissions,
+          company_id,
+        );
 
-      await this.prisma.role_permissions.deleteMany({
-        where: { role_id: id },
-      });
+        await this.prisma.role_permissions.deleteMany({
+          where: { role_id: id },
+        });
 
-      // ✅ Usar Snowflake aqui também
-      await this.prisma.role_permissions.createMany({
-        data: permissionIds.map((permId) => ({
-          id: this.snowflake.generate(),
-          role_id: id,
-          permission_id: permId,
-          granted_at: new Date(),
-          granted_by: granted_by || null,
-        })),
-      });
+        await this.prisma.role_permissions.createMany({
+          data: permissionIds.map((permId) => ({
+            id: this.snowflake.generate(),
+            role_id: id,
+            permission_id: permId,
+            granted_at: new Date(),
+            granted_by: granted_by || null,
+          })),
+        });
 
-      this.logger.log(
-        `Role ${updated.name} permissions updated`,
-        RolesService.name,
-      );
-    }
+        this.logger.log(
+          `Role ${updated.name} permissions updated`,
+          RolesService.name,
+        );
+
+        // Invalidate Redis cache for all users with this role so permissions take effect immediately
+        try {
+          const companyUsers = await this.prisma.company_users.findMany({
+            where: { role_id: id, active: true },
+            select: { identity_id: true },
+          });
+
+          if (companyUsers.length > 0) {
+            const identities = await this.prisma.identities.findMany({
+              where: {
+                id: { in: companyUsers.map((u) => u.identity_id) },
+              },
+              select: { email: true },
+            });
+
+            const client = this.redis.getClient();
+            for (const identity of identities) {
+              let cursor = '0';
+              do {
+                const [nextCursor, keys] = await client.scan(
+                  cursor,
+                  'MATCH',
+                  `auth:user:${identity.email}:*`,
+                  'COUNT',
+                  100,
+                );
+                if (keys.length > 0) {
+                  await client.del(...keys);
+                }
+                cursor = nextCursor;
+              } while (cursor !== '0');
+            }
+
+            this.logger.log(
+              `Invalidated Redis cache for ${identities.length} user(s) of role ${updated.name}`,
+              RolesService.name,
+            );
+          }
+        } catch (cacheError) {
+          this.logger.warn(
+            `Failed to invalidate Redis cache for role ${updated.name}: ${cacheError instanceof Error ? cacheError.message : 'Unknown'}`,
+            RolesService.name,
+          );
+        }
+      }
 
     const permissions =
       dto.permissions || (await this.roleRepo.getRolePermissions(id));

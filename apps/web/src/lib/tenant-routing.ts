@@ -93,7 +93,6 @@ export const fromTenantAuthEmail = (email: string): string => {
 };
 
 export const buildTenantPrefix = (host?: string | null, tenantSlug?: string | null) => {
-  if (getTenantSlugFromHost(host)) return "";
   if (!tenantSlug) return "";
   return `/${tenantSlug}`;
 };

@@ -32,6 +32,18 @@ export function extractErrorMessage(
 
     // Caso 1: message é string direta no data
     if (typeof data.message === "string") {
+      // Se existir errors com mensagens mais específicas, usar essas
+      const rawData = ((error as { response?: unknown }).response as { data?: unknown })
+        .data as { errors?: unknown };
+      if (
+        Array.isArray(rawData?.errors) &&
+        (rawData.errors as Array<{ message?: string }>).some((e) => e.message)
+      ) {
+        return (rawData.errors as Array<{ message?: string }>)
+          .map((e) => e.message || "")
+          .filter(Boolean)
+          .join(", ");
+      }
       return data.message;
     }
 
