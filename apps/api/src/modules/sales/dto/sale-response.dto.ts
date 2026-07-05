@@ -37,7 +37,8 @@ export class SaleResponseDto {
   sale_number!: string;
 
   @ApiPropertyOptional({
-    description: 'Referência pública opaca para recuperação/links de confirmação',
+    description:
+      'Referência pública opaca para recuperação/links de confirmação',
   })
   public_reference?: string;
 

@@ -17,7 +17,10 @@
     "docker:dev": "docker compose up -d",
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f",
-    "docker:build:api": "docker build -f dockerfile -t frame24-api:local ."
+    "docker:build:api": "docker build -f dockerfile -t frame24-api:local .",
+    "deploy": "./deploy",
+    "deploy:staging": "./deploy staging",
+    "deploy:dry": "./deploy --dry-run"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.17",

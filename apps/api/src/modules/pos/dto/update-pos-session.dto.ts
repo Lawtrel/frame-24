@@ -4,10 +4,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export const UpdatePosSessionSchema = z
   .object({
-    status: z
-      .string()
-      .min(1, 'Status é obrigatório')
-      .optional(),
+    status: z.string().min(1, 'Status é obrigatório').optional(),
     cash_withdrawn: z
       .number()
       .min(0, 'Valor retirado não pode ser negativo')

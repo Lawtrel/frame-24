@@ -1,0 +1,325 @@
+#!/bin/bash
+# Frame24 - Wrapper de deploy (build gate + decide por branch + envia VPS)
+#
+# Uso:
+#   ./deploy                    # decide automaticamente pela branch atual
+#   ./deploy staging            # força staging
+#   ./deploy prod               # força produção
+#   ./deploy --skip-build       # pula o gate de build local
+#   ./deploy --skip-seed        # pula seed no destino
+#   ./deploy --services api,web # só sobe esses serviços
+#   ./deploy --dry-run          # não envia, só mostra o que faria
+#   ./deploy --help
+#
+# Ambiente decidido pela branch:
+#   main          → produção  (/opt/frame24, containers frame24-*)
+#   preview/*    → staging   (/opt/frame24-preview, containers frame24-preview-*)
+#   qualquer outra → ERRA (use --force-env=staging|prod para sobrescrever)
+#
+# Env vars opcionais (sobrescrevem defaults):
+#   VPS_IP, VPS_USER, SKIP_BUILD_GATE, SKIP_DEPLOY_SEED
+#
+# Pré-requisitos:
+#   - SSH key autorizada para ${VPS_USER:-root}@${VPS_IP:-174.138.79.19}
+#   - .env.production já existe na VPS em ${REMOTE_DIR} (script não cria)
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+# ─── Defaults ──────────────────────────────────────────────────────────
+VPS_IP="${VPS_IP:-174.138.79.19}"
+VPS_USER="${VPS_USER:-root}"
+PROD_DIR="/opt/frame24"
+STAGING_DIR="/opt/frame24-preview"
+PROD_PREFIX="frame24"
+STAGING_PREFIX="frame24-preview"
+COMPOSE_FILE="docker-compose.prod.yml"
+ENV_FILE_NAME=".env.production"
+
+SKIP_BUILD_GATE="${SKIP_BUILD_GATE:-0}"
+SKIP_SEED="0"
+DRY_RUN="0"
+SERVICES=""
+FORCE_ENV=""
+
+# ─── Colors ────────────────────────────────────────────────────────────
+if [ -t 1 ]; then
+  C_RESET="\033[0m"
+  C_BOLD="\033[1m"
+  C_RED="\033[31m"
+  C_GREEN="\033[32m"
+  C_YELLOW="\033[33m"
+  C_BLUE="\033[34m"
+  C_GRAY="\033[90m"
+else
+  C_RESET=""; C_BOLD=""; C_RED=""; C_GREEN=""; C_YELLOW=""; C_BLUE=""; C_GRAY=""
+fi
+
+log()    { echo "${C_BOLD}>>>${C_RESET} $*"; }
+ok()     { echo "  ${C_GREEN}✓${C_RESET} $*"; }
+warn()   { echo "  ${C_YELLOW}!${C_RESET} $*"; }
+err()    { echo "  ${C_RED}✗${C_RESET} $*" >&2; }
+step()   { echo "${C_BLUE}▸${C_RESET} $*"; }
+dim()    { echo "  ${C_GRAY}$*${C_RESET}"; }
+
+show_help() {
+  cat <<'HELP'
+Frame24 - Deploy automatizado
+
+Uso:
+  ./deploy [ambiente] [opções]
+
+Ambientes (default: decide pela branch atual):
+  staging         Força staging   (/opt/frame24-preview, containers frame24-preview-*)
+  prod            Força produção  (/opt/frame24,         containers frame24-*)
+
+Opções:
+  --skip-build        Pula o gate de build/lint local (NÃO RECOMENDADO)
+  --skip-seed         Pula o seed do banco no destino
+  --services LIST     Só sobe esses serviços (csv: api,web,admin)
+  --force-env=ENV     Mesmo que escolher ambiente por branch, força (staging|prod)
+  --dry-run           Mostra o que faria sem enviar
+  --no-color          Sem cores na saída
+  --help, -h          Esta ajuda
+
+Exemplos:
+  ./deploy                        # branch main → prod; preview/* → staging
+  ./deploy staging                # staging explícito
+  ./deploy prod --skip-seed       # prod sem seed
+  ./deploy --services api,web     # só api e web (admin offline)
+  SKIP_BUILD_GATE=1 ./deploy prod # gate desativado via env
+
+Env vars:
+  VPS_IP            default 174.138.79.19
+  VPS_USER          default root
+HELP
+}
+
+# ─── Parse args ────────────────────────────────────────────────────────
+while [ $# -gt 0 ]; do
+  case "$1" in
+    staging|prod) FORCE_ENV="$1"; shift ;;
+    --skip-build) SKIP_BUILD_GATE="1"; shift ;;
+    --skip-seed)  SKIP_SEED="1"; shift ;;
+    --services)   SERVICES="${2:?--services requer valor}"; shift 2 ;;
+    --services=*)  SERVICES="${1#--services=}"; shift ;;
+    --force-env=*) FORCE_ENV="${1#--force-env=}"; shift ;;
+    --force-env)   FORCE_ENV="${2:?--force-env requer valor}"; shift 2 ;;
+    --dry-run)    DRY_RUN="1"; shift ;;
+    --no-color)   C_RESET=""; C_BOLD=""; C_RED=""; C_GREEN=""; C_YELLOW=""; C_BLUE=""; C_GRAY=""; shift ;;
+    --help|-h)    show_help; exit 0 ;;
+    *) err "Argumento desconhecido: $1"; show_help >&2; exit 2 ;;
+  esac
+done
+
+if [ -n "${FORCE_ENV}" ] && [ "${FORCE_ENV}" != "staging" ] && [ "${FORCE_ENV}" != "prod" ]; then
+  err "Ambiente inválido: ${FORCE_ENV} (use staging ou prod)"
+  exit 2
+fi
+
+# ─── Decisão de ambiente ──────────────────────────────────────────────
+BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)"
+
+if [ -n "${FORCE_ENV}" ]; then
+  ENV_TARGET="${FORCE_ENV}"
+  REASON="forçado via --force-env"
+elif [ "${BRANCH}" = "main" ]; then
+  ENV_TARGET="prod"
+  REASON="branch=main"
+elif [[ "${BRANCH}" =~ ^preview/ ]]; then
+  ENV_TARGET="staging"
+  REASON="branch=${BRANCH}"
+elif [ -z "${BRANCH}" ] || [ "${BRANCH}" = "unknown" ]; then
+  err "Não consegui detectar a branch. Use './deploy staging' ou './deploy prod'."
+  exit 2
+else
+  err "Branch '${BRANCH}' não tem destino de deploy automático."
+  err "Use './deploy staging' ou './deploy prod' explicitamente, ou crie a branch a partir de 'main'/'preview/*'."
+  exit 2
+fi
+
+if [ "${ENV_TARGET}" = "prod" ]; then
+  REMOTE_DIR="${PROD_DIR}"
+  CONTAINER_PREFIX="${PROD_PREFIX}"
+  ENV_FILE_NAME=".env.production"
+  ENV_LABEL="PRODUÇÃO"
+else
+  REMOTE_DIR="${STAGING_DIR}"
+  CONTAINER_PREFIX="${STAGING_PREFIX}"
+  ENV_FILE_NAME=".env.production"  # mesma convenção; ajuste se quiser .env.staging
+  ENV_LABEL="STAGING"
+fi
+
+# ─── Header ────────────────────────────────────────────────────────────
+echo ""
+echo "${C_BOLD}╔══════════════════════════════════════════════════════════════╗${C_RESET}"
+echo "${C_BOLD}║  Frame24 Deploy                                              ║${C_RESET}"
+echo "${C_BOLD}╚══════════════════════════════════════════════════════════════╝${C_RESET}"
+echo ""
+dim "Branch:        ${BRANCH}"
+dim "Ambiente:      ${C_BOLD}${ENV_LABEL}${C_RESET} ${C_GRAY}(${REASON})${C_RESET}"
+dim "VPS:           ${VPS_USER}@${VPS_IP}"
+dim "Destino:       ${REMOTE_DIR}"
+dim "Prefixo:       ${CONTAINER_PREFIX}-*"
+dim "Compose:       ${COMPOSE_FILE}"
+dim "Env file:      ${ENV_FILE_NAME}"
+[ -n "${SERVICES}" ] && dim "Serviços:      ${SERVICES}"
+[ "${SKIP_BUILD_GATE}" = "1" ] && warn "Gate de build local DESATIVADO"
+[ "${SKIP_SEED}" = "1" ]        && warn "Seed no destino será pulado"
+[ "${DRY_RUN}" = "1" ]          && warn "DRY-RUN: nada será enviado"
+echo ""
+
+# Confirmar antes de atacar produção
+if [ "${ENV_TARGET}" = "prod" ] && [ "${DRY_RUN}" = "0" ]; then
+  if [ -t 0 ]; then
+    read -r -p "Deployar em PRODUÇÃO (${VPS_IP})? [y/N] " CONFIRM
+    case "${CONFIRM:-n}" in
+      y|Y|yes|YES) echo "" ;;
+      *) err "Cancelado."; exit 1 ;;
+    esac
+  else
+    err "Deploy de produção em pipe/script requer --force-env=prod (não-interativo)."
+    err "Use: ./deploy prod --force-env=prod"
+    exit 2
+  fi
+fi
+
+# ─── Pré-flight checks ───────────────────────────────────────────────
+step "Pré-flight"
+
+# pnpm
+if ! command -v pnpm >/dev/null 2>&1; then
+  err "pnpm não encontrado. Instale com: npm install -g pnpm@10.33.0"
+  exit 1
+fi
+ok "pnpm $(pnpm --version)"
+
+# git working tree limpa? (só warning, não bloqueia)
+if [ -n "$(git status --porcelain 2>/dev/null)" ]; then
+  warn "Working tree tem mudanças não commitadas. Recomende commitar antes."
+  dim "Continuando mesmo assim..."
+fi
+
+# SSH alcança VPS?
+log "Verificando SSH para ${VPS_USER}@${VPS_IP}..."
+if [ "${DRY_RUN}" = "0" ]; then
+  if ! ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 "${VPS_USER}@${VPS_IP}" "echo OK" >/dev/null 2>&1; then
+    err "Sem acesso SSH para ${VPS_USER}@${VPS_IP}. Configure sua chave SSH."
+    exit 1
+  fi
+  ok "SSH OK"
+else
+  dim "(dry-run) pulando teste SSH"
+fi
+
+# ─── Build gate ───────────────────────────────────────────────────────
+if [ "${SKIP_BUILD_GATE}" = "1" ]; then
+  warn "Gate de build local pulado (--skip-build)."
+else
+  echo ""
+  step "Build gate local (lint + check-types + build)"
+
+  log "Gerando Prisma client..."
+  (
+    cd packages/db
+    DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" \
+    DIRECT_URL="postgresql://dummy:dummy@localhost:5432/dummy" \
+    pnpm run db:generate >/dev/null 2>&1
+    pnpm run build >/dev/null 2>&1
+  ) || { err "Falhou ao gerar Prisma client."; exit 1; }
+  ok "Prisma client gerado"
+
+  log "pnpm lint..."
+  if [ "${DRY_RUN}" = "0" ]; then
+    pnpm lint || { err "Lint falhou. Corrija ou use --skip-build."; exit 1; }
+  else
+    dim "(dry-run) pnpm lint"
+  fi
+  ok "lint"
+
+  log "pnpm check-types..."
+  if [ "${DRY_RUN}" = "0" ]; then
+    pnpm check-types || { err "check-types falhou. Corrija ou use --skip-build."; exit 1; }
+  else
+    dim "(dry-run) pnpm check-types"
+  fi
+  ok "check-types"
+
+  log "pnpm build..."
+  if [ "${DRY_RUN}" = "0" ]; then
+      DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" \
+      DIRECT_URL="postgresql://dummy:dummy@localhost:5432/dummy" \
+      pnpm build || { err "build falhou. Corrija ou use --skip-build."; exit 1; }
+  else
+    dim "(dry-run) pnpm build"
+  fi
+  ok "build"
+fi
+
+# ─── Checa .env.production na VPS (precisa existir, não é criado) ───
+echo ""
+step "Verifica .env.production na VPS"
+if [ "${DRY_RUN}" = "0" ]; then
+  if ! ssh -o StrictHostKeyChecking=no "${VPS_USER}@${VPS_IP}" "test -f ${REMOTE_DIR}/${ENV_FILE_NAME}" 2>/dev/null; then
+    err "${ENV_FILE_NAME} não existe em ${VPS_USER}@${VPS_IP}:${REMOTE_DIR}/"
+    err "Crie-o manualmente (template: .env.coolify.example) e suba via scp/SFTP."
+    err "Por segurança, o script NÃO cria .env.production automaticamente."
+    if [ "${ENV_TARGET}" = "staging" ] && [ "${REMOTE_DIR}" != "${PROD_DIR}" ]; then
+      dim "Dica: copie do prod para staging e ajuste domínios/secrets:"
+      dim "  ssh ${VPS_USER}@${VPS_IP} 'cp ${PROD_DIR}/.env.production ${REMOTE_DIR}/.env.production && cd ${REMOTE_DIR} && sed -i \"s|lawtrel.dev|staging.lawtrel.dev|g\" .env.production'"
+    fi
+    exit 1
+  fi
+  ok "${ENV_FILE_NAME} presente na VPS"
+else
+  dim "(dry-run) skip env file check"
+fi
+
+# ─── Dispara deploy-vps.sh ────────────────────────────────────────────
+echo ""
+step "Disparando scripts/deploy-vps.sh"
+
+VPS_IP="${VPS_IP}" \
+VPS_USER="${VPS_USER}" \
+REMOTE_DIR="${REMOTE_DIR}" \
+COMPOSE_FILE="${COMPOSE_FILE}" \
+ENV_FILE_NAME="${ENV_FILE_NAME}" \
+CONTAINER_PREFIX="${CONTAINER_PREFIX}" \
+SKIP_SEED="${SKIP_SEED}" \
+SERVICES="${SERVICES}" \
+  bash "${SCRIPT_DIR}/scripts/deploy-vps.sh"
+
+# ─── Reload nginx (se staging, copia conf; se prod, só reload) ───────
+if [ "${ENV_TARGET}" = "staging" ] && [ "${DRY_RUN}" = "0" ]; then
+  echo ""
+  step "Reload nginx para staging"
+  ssh "${VPS_USER}@${VPS_IP}" bash -s <<NGINX
+set -e
+if [ -f ${REMOTE_DIR}/infra/nginx-staging.conf ]; then
+  cp -f ${REMOTE_DIR}/infra/nginx-staging.conf /etc/nginx/conf.d/staging.conf
+  echo "  Copiado nginx-staging.conf → /etc/nginx/conf.d/staging.conf"
+fi
+if docker ps --format '{{.Names}}' | grep -q '${PROD_PREFIX}-nginx'; then
+  docker exec ${PROD_PREFIX}-nginx nginx -t && docker exec ${PROD_PREFIX}-nginx nginx -s reload
+  echo "  nginx reload OK"
+else
+  echo "  (nginx container '${PROD_PREFIX}-nginx' não rodando - skip reload)"
+fi
+NGINX
+fi
+
+echo ""
+ok "Deploy finalizado para ${ENV_LABEL}"
+echo "${C_BOLD} URLs (acessíveis via nginx):${C_RESET}"
+if [ "${ENV_TARGET}" = "prod" ]; then
+  dim "  API:   https://api.lawtrel.dev"
+  dim "  Web:   https://lawtrel.dev"
+  dim "  Admin: https://admin.lawtrel.dev"
+else
+  dim "  API:   https://staging-api.lawtrel.dev"
+  dim "  Web:   https://staging.lawtrel.dev"
+  dim "  Admin: https://staging-admin.lawtrel.dev"
+fi
+echo ""

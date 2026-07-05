@@ -21,7 +21,10 @@ import {
 
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
 import { SecuredController } from 'src/common/decorators/secured-controller.decorator';
-import { EmployeeReadThrottle, EmployeeWriteThrottle } from 'src/common/decorators/auth-throttle.decorator';
+import {
+  EmployeeReadThrottle,
+  EmployeeWriteThrottle,
+} from 'src/common/decorators/auth-throttle.decorator';
 
 import { CreateCinemaComplexDto } from '../dto/create-cinema-complex.dto';
 import { UpdateCinemaComplexDto } from '../dto/update-cinema-complex.dto';

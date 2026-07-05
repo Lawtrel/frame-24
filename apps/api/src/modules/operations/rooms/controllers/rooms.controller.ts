@@ -26,7 +26,10 @@ import {
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
 import { FileUpload } from 'src/common/decorators/file-upload.decorator';
 import { SecuredController } from 'src/common/decorators/secured-controller.decorator';
-import { EmployeeReadThrottle, EmployeeWriteThrottle } from 'src/common/decorators/auth-throttle.decorator';
+import {
+  EmployeeReadThrottle,
+  EmployeeWriteThrottle,
+} from 'src/common/decorators/auth-throttle.decorator';
 
 import { RoomsService } from '../services/rooms.service';
 import { CreateRoomDto } from '../dto/create-room.dto';

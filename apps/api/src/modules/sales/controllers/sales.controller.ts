@@ -85,7 +85,10 @@ export class SalesController {
     required: false,
     description: 'Fim do intervalo (ISO-8601, ex.: 2026-04-30)',
   })
-  @ApiResponse({ status: 400, description: 'Parâmetros de data ou ID inválidos' })
+  @ApiResponse({
+    status: 400,
+    description: 'Parâmetros de data ou ID inválidos',
+  })
   @ApiResponse({
     status: 403,
     description:

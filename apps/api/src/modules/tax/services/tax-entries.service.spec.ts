@@ -27,10 +27,7 @@ describe('TaxEntriesService', () => {
   let bankAccountsRepository: jest.Mocked<BankAccountsRepository>;
   let tenantContext: jest.Mocked<TenantContextService>;
   let tenantResource: jest.Mocked<
-    Pick<
-      TenantResourceService,
-      'assertCinemaComplexBelongsToCompany'
-    >
+    Pick<TenantResourceService, 'assertCinemaComplexBelongsToCompany'>
   >;
 
   beforeEach(() => {

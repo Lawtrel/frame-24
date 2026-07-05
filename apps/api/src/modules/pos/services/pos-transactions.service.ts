@@ -24,7 +24,9 @@ export class PosTransactionsService {
   ) {}
 
   @Transactional()
-  async create(dto: CreatePosTransactionDto): Promise<PosTransactionResponseDto> {
+  async create(
+    dto: CreatePosTransactionDto,
+  ): Promise<PosTransactionResponseDto> {
     const companyId = this.tenantContext.getCompanyId();
     const operatorId = this.tenantContext.getRequiredUserId();
 
@@ -37,8 +39,13 @@ export class PosTransactionsService {
       throw new NotFoundException('Sessão PDV não encontrada');
     }
 
-    const sessionStatus = session as typeof session & { pos_session_status?: { name: string } };
-    if (sessionStatus.pos_session_status?.name === 'Fechada' || !session.opened_at) {
+    const sessionStatus = session as typeof session & {
+      pos_session_status?: { name: string };
+    };
+    if (
+      sessionStatus.pos_session_status?.name === 'Fechada' ||
+      !session.opened_at
+    ) {
       throw new BadRequestException(
         'Não é possível registrar transações em uma sessão fechada',
       );
@@ -79,13 +86,16 @@ export class PosTransactionsService {
     pos_session_id: string,
   ): Promise<PosTransactionResponseDto[]> {
     const companyId = this.tenantContext.getCompanyId();
-    const transactions =
-      await this.posTransactionsRepo.findBySession(pos_session_id, companyId);
+    const transactions = await this.posTransactionsRepo.findBySession(
+      pos_session_id,
+      companyId,
+    );
 
     return transactions.map((t) =>
       this.mapToDto(
         t,
-        (t as typeof t & { pos_payment_methods?: { name: string } }).pos_payment_methods?.name,
+        (t as typeof t & { pos_payment_methods?: { name: string } })
+          .pos_payment_methods?.name,
       ),
     );
   }

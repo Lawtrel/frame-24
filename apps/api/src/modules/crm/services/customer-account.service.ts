@@ -54,7 +54,9 @@ export class CustomerAccountService {
 
   async requestEmailChange(newEmail: string) {
     const context = this.getContext();
-    const customer = await this.customersRepository.findById(context.customerId);
+    const customer = await this.customersRepository.findById(
+      context.customerId,
+    );
 
     if (!customer) {
       throw new NotFoundException('Cliente não encontrado');
@@ -143,7 +145,9 @@ export class CustomerAccountService {
     });
 
     if (!requestLog) {
-      throw new NotFoundException('Solicitação de troca de e-mail não encontrada.');
+      throw new NotFoundException(
+        'Solicitação de troca de e-mail não encontrada.',
+      );
     }
 
     const payload = requestLog.new_values as EmailChangePayload | null;
@@ -152,7 +156,9 @@ export class CustomerAccountService {
     }
 
     if (payload.customer_id !== context.customerId) {
-      throw new ForbiddenException('Solicitação não pertence ao cliente autenticado.');
+      throw new ForbiddenException(
+        'Solicitação não pertence ao cliente autenticado.',
+      );
     }
 
     const expiresAt = new Date(payload.expires_at);
@@ -305,7 +311,8 @@ export class CustomerAccountService {
 
     const fallbackKeep = sessions[0]?.id ?? null;
     const allowedKeep = keepSessionId
-      ? sessions.find((session) => session.id === keepSessionId)?.id ?? fallbackKeep
+      ? (sessions.find((session) => session.id === keepSessionId)?.id ??
+        fallbackKeep)
       : fallbackKeep;
 
     const idsToRevoke = sessions

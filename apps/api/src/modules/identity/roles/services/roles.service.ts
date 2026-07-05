@@ -186,76 +186,76 @@ export class RolesService {
       }),
     });
 
-      if (dto.permissions) {
-        const permissionIds = await this.getPermissionIds(
-          dto.permissions,
-          company_id,
-        );
+    if (dto.permissions) {
+      const permissionIds = await this.getPermissionIds(
+        dto.permissions,
+        company_id,
+      );
 
-        await this.prisma.role_permissions.deleteMany({
-          where: { role_id: id },
+      await this.prisma.role_permissions.deleteMany({
+        where: { role_id: id },
+      });
+
+      await this.prisma.role_permissions.createMany({
+        data: permissionIds.map((permId) => ({
+          id: this.snowflake.generate(),
+          role_id: id,
+          permission_id: permId,
+          granted_at: new Date(),
+          granted_by: granted_by || null,
+        })),
+      });
+
+      this.logger.log(
+        `Role ${updated.name} permissions updated`,
+        RolesService.name,
+      );
+
+      // Invalidate Redis cache for all users with this role so permissions take effect immediately
+      try {
+        const companyUsers = await this.prisma.company_users.findMany({
+          where: { role_id: id, active: true },
+          select: { identity_id: true },
         });
 
-        await this.prisma.role_permissions.createMany({
-          data: permissionIds.map((permId) => ({
-            id: this.snowflake.generate(),
-            role_id: id,
-            permission_id: permId,
-            granted_at: new Date(),
-            granted_by: granted_by || null,
-          })),
-        });
-
-        this.logger.log(
-          `Role ${updated.name} permissions updated`,
-          RolesService.name,
-        );
-
-        // Invalidate Redis cache for all users with this role so permissions take effect immediately
-        try {
-          const companyUsers = await this.prisma.company_users.findMany({
-            where: { role_id: id, active: true },
-            select: { identity_id: true },
+        if (companyUsers.length > 0) {
+          const identities = await this.prisma.identities.findMany({
+            where: {
+              id: { in: companyUsers.map((u) => u.identity_id) },
+            },
+            select: { email: true },
           });
 
-          if (companyUsers.length > 0) {
-            const identities = await this.prisma.identities.findMany({
-              where: {
-                id: { in: companyUsers.map((u) => u.identity_id) },
-              },
-              select: { email: true },
-            });
-
-            const client = this.redis.getClient();
-            for (const identity of identities) {
-              let cursor = '0';
-              do {
-                const [nextCursor, keys] = await client.scan(
-                  cursor,
-                  'MATCH',
-                  `auth:user:${identity.email}:*`,
-                  'COUNT',
-                  100,
-                );
-                if (keys.length > 0) {
-                  await client.del(...keys);
-                }
-                cursor = nextCursor;
-              } while (cursor !== '0');
-            }
-
-            this.logger.log(
-              `Invalidated Redis cache for ${identities.length} user(s) of role ${updated.name}`,
-              RolesService.name,
-            );
+          const client = this.redis.getClient();
+          for (const identity of identities) {
+            let cursor = '0';
+            do {
+              const [nextCursor, keys] = await client.scan(
+                cursor,
+                'MATCH',
+                `auth:user:${identity.email}:*`,
+                'COUNT',
+                100,
+              );
+              if (keys.length > 0) {
+                await client.del(...keys);
+              }
+              cursor = nextCursor;
+            } while (cursor !== '0');
           }
-        } catch (cacheError) {
-          this.logger.warn(
-            `Failed to invalidate Redis cache for role ${updated.name}: ${cacheError instanceof Error ? cacheError.message : 'Unknown'}`,
+
+          this.logger.log(
+            `Invalidated Redis cache for ${identities.length} user(s) of role ${updated.name}`,
             RolesService.name,
           );
         }
+      } catch (cacheError) {
+        this.logger.warn(
+          `Failed to invalidate Redis cache for role ${updated.name}: ${cacheError instanceof Error ? cacheError.message : 'Unknown'}`,
+          RolesService.name,
+        );
       }
+    }
 
     const permissions =
       dto.permissions || (await this.roleRepo.getRolePermissions(id));

@@ -28,7 +28,8 @@ async function main() {
   const statusAberta = await prisma.session_status.findFirst({
     where: { company_id: company.id, name: 'Aberta para Vendas' },
   });
-  if (!statusAberta) throw new Error('Status "Aberta para Vendas" não encontrado');
+  if (!statusAberta)
+    throw new Error('Status "Aberta para Vendas" não encontrado');
 
   const projType = await prisma.projection_types.findFirst({
     where: { company_id: company.id },

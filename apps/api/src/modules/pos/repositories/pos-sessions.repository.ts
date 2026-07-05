@@ -10,10 +10,7 @@ export class PosSessionsRepository {
     private readonly snowflake: SnowflakeService,
   ) {}
 
-  async findById(
-    id: string,
-    company_id: string,
-  ): Promise<pos_sessions | null> {
+  async findById(id: string, company_id: string): Promise<pos_sessions | null> {
     return this.prisma.pos_sessions.findFirst({
       where: { id, company_id },
     });
@@ -51,12 +48,19 @@ export class PosSessionsRepository {
     });
   }
 
-  async findAll(company_id: string, filters?: { status?: string; cinema_complex_id?: string }) {
+  async findAll(
+    company_id: string,
+    filters?: { status?: string; cinema_complex_id?: string },
+  ) {
     return this.prisma.pos_sessions.findMany({
       where: {
         company_id,
-        ...(filters?.status && { pos_session_status: { name: filters.status } }),
-        ...(filters?.cinema_complex_id && { cinema_complex_id: filters.cinema_complex_id }),
+        ...(filters?.status && {
+          pos_session_status: { name: filters.status },
+        }),
+        ...(filters?.cinema_complex_id && {
+          cinema_complex_id: filters.cinema_complex_id,
+        }),
       },
       include: {
         pos_session_status: { select: { name: true } },
@@ -71,7 +75,10 @@ export class PosSessionsRepository {
     });
   }
 
-  async update(id: string, data: Prisma.pos_sessionsUpdateInput): Promise<pos_sessions> {
+  async update(
+    id: string,
+    data: Prisma.pos_sessionsUpdateInput,
+  ): Promise<pos_sessions> {
     return this.prisma.pos_sessions.update({
       where: { id },
       data,

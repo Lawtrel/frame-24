@@ -103,7 +103,10 @@ export class TicketsService {
         },
       });
 
-      if (movie?.age_rating?.minimum_age && movie.age_rating.minimum_age >= 18) {
+      if (
+        movie?.age_rating?.minimum_age &&
+        movie.age_rating.minimum_age >= 18
+      ) {
         this.logger.warn(
           `Venda de ingresso para filme com classificação ${movie.age_rating.code || movie.age_rating.name} ` +
             `(${movie.age_rating.minimum_age}+): "${movie.brazil_title || movie.original_title}" ` +

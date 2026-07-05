@@ -717,7 +717,10 @@ export class CheckoutSessionsService {
       complex_id: string;
     }>,
   ) {
-    const productQuantities = new Map<string, { quantity: number; complexId: string }>();
+    const productQuantities = new Map<
+      string,
+      { quantity: number; complexId: string }
+    >();
 
     for (const item of concessions) {
       if (item.item_type === 'PRODUCT') {
@@ -739,7 +742,9 @@ export class CheckoutSessionsService {
         },
       });
       if (!stock || (stock.current_quantity ?? 0) < demand.quantity) {
-        throw new ConflictException('Estoque insuficiente para um ou mais itens.');
+        throw new ConflictException(
+          'Estoque insuficiente para um ou mais itens.',
+        );
       }
     }
   }
@@ -790,7 +795,9 @@ export class CheckoutSessionsService {
       const currentQuantity = previousQuantity - item.quantity;
 
       if (currentQuantity < 0) {
-        throw new ConflictException('Estoque insuficiente para finalizar venda.');
+        throw new ConflictException(
+          'Estoque insuficiente para finalizar venda.',
+        );
       }
 
       const updated = await this.prisma.product_stock.updateMany({
@@ -895,7 +902,9 @@ export class CheckoutSessionsService {
       where: { company_id: companyId },
     });
     const normalized = this.normalize(method);
-    const found = all.find((item) => this.normalize(item.name).includes(normalized));
+    const found = all.find((item) =>
+      this.normalize(item.name).includes(normalized),
+    );
     if (!found) {
       throw new NotFoundException('Método de pagamento inválido.');
     }

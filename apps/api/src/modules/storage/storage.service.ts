@@ -43,7 +43,9 @@ export class StorageService implements OnModuleInit {
       forcePathStyle: !isAWS,
     });
 
-    this.logger.log(`Storage client initialized (provider=${storageConfig.provider})`);
+    this.logger.log(
+      `Storage client initialized (provider=${storageConfig.provider})`,
+    );
   }
 
   async onModuleInit() {
@@ -91,28 +93,34 @@ export class StorageService implements OnModuleInit {
       if (this.isBucketNotFoundError(error)) {
         const canCreate =
           storageConfig.provider === 'minio' ||
-          (storageConfig.endpoint === 'localhost' ||
-            storageConfig.endpoint === 'minio' ||
-            storageConfig.endpoint.includes('127.0.0.1'));
+          storageConfig.endpoint === 'localhost' ||
+          storageConfig.endpoint === 'minio' ||
+          storageConfig.endpoint.includes('127.0.0.1');
 
         if (canCreate) {
           try {
             await this.s3Client.send(
               new CreateBucketCommand({ Bucket: storageConfig.bucket }),
             );
-            this.logger.log(`Bucket ${storageConfig.bucket} created successfully`);
+            this.logger.log(
+              `Bucket ${storageConfig.bucket} created successfully`,
+            );
           } catch (createError: unknown) {
-            this.logger.warn(`Could not create bucket ${storageConfig.bucket}: ${this.getErrorMessage(createError)}`);
+            this.logger.warn(
+              `Could not create bucket ${storageConfig.bucket}: ${this.getErrorMessage(createError)}`,
+            );
           }
         } else {
           this.logger.warn(
             `Bucket ${storageConfig.bucket} does not exist. ` +
-            `For AWS S3, create the bucket manually in the AWS Console. ` +
-            `File uploads will fail until the bucket is created.`,
+              `For AWS S3, create the bucket manually in the AWS Console. ` +
+              `File uploads will fail until the bucket is created.`,
           );
         }
       } else {
-        this.logger.warn(`Unable to verify bucket ${storageConfig.bucket}: ${errorMessage}`);
+        this.logger.warn(
+          `Unable to verify bucket ${storageConfig.bucket}: ${errorMessage}`,
+        );
       }
     }
   }

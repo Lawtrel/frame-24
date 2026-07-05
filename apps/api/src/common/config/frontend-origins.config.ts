@@ -64,7 +64,11 @@ export function getTrustedFrontendOrigins(
       ? [...CANONICAL_DEV_FRONTEND_ORIGINS, ...CANONICAL_DEV_TRUSTED_ORIGINS]
       : [];
 
-  return unique([...configuredFrontendOrigins(env), ...tenantOrigins, ...devOrigins]);
+  return unique([
+    ...configuredFrontendOrigins(env),
+    ...tenantOrigins,
+    ...devOrigins,
+  ]);
 }
 
 export function isAllowedFrontendOrigin(
@@ -103,6 +107,9 @@ export function isAllowedFrontendOrigin(
       return url.protocol === 'https:' || url.protocol === 'http:';
     }
 
-    return hostname.endsWith(`.${domain}`) && (url.protocol === 'https:' || url.protocol === 'http:');
+    return (
+      hostname.endsWith(`.${domain}`) &&
+      (url.protocol === 'https:' || url.protocol === 'http:')
+    );
   });
 }

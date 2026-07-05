@@ -466,8 +466,10 @@ export class CustomerPurchasesService {
     const validTickets = tickets.filter(
       (ticket): ticket is TicketWithSaleSummary => Boolean(ticket.sales),
     );
-    const presentationMap =
-      await this.buildTicketPresentationMap(validTickets, context.companyId);
+    const presentationMap = await this.buildTicketPresentationMap(
+      validTickets,
+      context.companyId,
+    );
 
     return validTickets.map((ticket) =>
       this.mapTicketToResponse(ticket, presentationMap.get(ticket.id)),
@@ -683,9 +685,13 @@ export class CustomerPurchasesService {
     const validationErrors: string[] = [];
     const normalizedItems = dto.items.map((item) => {
       if (item.item_type === 'ticket') {
-        const ticket = sale.tickets.find((ticketItem) => ticketItem.id === item.item_id);
+        const ticket = sale.tickets.find(
+          (ticketItem) => ticketItem.id === item.item_id,
+        );
         if (!ticket) {
-          validationErrors.push(`Ingresso ${item.item_id} não pertence ao pedido.`);
+          validationErrors.push(
+            `Ingresso ${item.item_id} não pertence ao pedido.`,
+          );
           return null;
         }
 
@@ -717,7 +723,9 @@ export class CustomerPurchasesService {
       );
 
       if (!concession) {
-        validationErrors.push(`Item de bomboniere ${item.item_id} não pertence ao pedido.`);
+        validationErrors.push(
+          `Item de bomboniere ${item.item_id} não pertence ao pedido.`,
+        );
         return null;
       }
 
@@ -955,7 +963,8 @@ export class CustomerPurchasesService {
         })
       : null;
 
-    const movieTitle = movie?.brazil_title || movie?.original_title || 'Ingresso';
+    const movieTitle =
+      movie?.brazil_title || movie?.original_title || 'Ingresso';
     const showtimeLabel = showtime?.start_time
       ? new Date(showtime.start_time).toLocaleString('pt-BR')
       : 'Horário indisponível';
@@ -1077,7 +1086,9 @@ export class CustomerPurchasesService {
         rooms: true,
       },
     });
-    const showtimeMap = new Map(showtimes.map((showtime) => [showtime.id, showtime]));
+    const showtimeMap = new Map(
+      showtimes.map((showtime) => [showtime.id, showtime]),
+    );
 
     const movieIds = [
       ...new Set(
@@ -1190,35 +1201,38 @@ export class CustomerPurchasesService {
         };
       });
 
-      const concessionLineItems = sale.concession_sales.flatMap((concessionSale) =>
-        concessionSale.concession_sale_items.map((item) => {
-          const eligibility = this.resolveConcessionRefundEligibility(
-            showtime?.start_time ?? null,
-          );
-          const itemLabel =
-            item.item_type === 'PRODUCT'
-              ? productMap.get(item.item_id) || 'Produto'
-              : comboMap.get(item.item_id) || 'Combo';
+      const concessionLineItems = sale.concession_sales.flatMap(
+        (concessionSale) =>
+          concessionSale.concession_sale_items.map((item) => {
+            const eligibility = this.resolveConcessionRefundEligibility(
+              showtime?.start_time ?? null,
+            );
+            const itemLabel =
+              item.item_type === 'PRODUCT'
+                ? productMap.get(item.item_id) || 'Produto'
+                : comboMap.get(item.item_id) || 'Combo';
 
-          return {
-            id: `concession-item-${item.id}`,
-            item_type: 'concession' as const,
-            reference_id: item.id,
-            label: itemLabel,
-            quantity: item.quantity,
-            unit_amount: item.unit_price.toString(),
-            total_amount: item.total_price.toString(),
-            metadata: {
-              concession_item_type: item.item_type,
-              source_item_id: item.item_id,
-            },
-            refund_eligibility: eligibility,
-          };
-        }),
+            return {
+              id: `concession-item-${item.id}`,
+              item_type: 'concession' as const,
+              reference_id: item.id,
+              label: itemLabel,
+              quantity: item.quantity,
+              unit_amount: item.unit_price.toString(),
+              total_amount: item.total_price.toString(),
+              metadata: {
+                concession_item_type: item.item_type,
+                source_item_id: item.item_id,
+              },
+              refund_eligibility: eligibility,
+            };
+          }),
       );
 
       const items = [...ticketItems, ...concessionLineItems];
-      const canRequestRefund = items.some((item) => item.refund_eligibility.eligible);
+      const canRequestRefund = items.some(
+        (item) => item.refund_eligibility.eligible,
+      );
 
       return {
         id: sale.id,
@@ -1271,9 +1285,10 @@ export class CustomerPurchasesService {
     return { eligible: true, reason: null };
   }
 
-  private resolveConcessionRefundEligibility(
-    startTime: Date | null,
-  ): { eligible: boolean; reason: string | null } {
+  private resolveConcessionRefundEligibility(startTime: Date | null): {
+    eligible: boolean;
+    reason: string | null;
+  } {
     if (!startTime) {
       return {
         eligible: false,

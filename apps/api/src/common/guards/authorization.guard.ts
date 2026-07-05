@@ -38,7 +38,10 @@ export class AuthorizationGuard implements CanActivate {
     }
 
     // Session context validation: EMPLOYEE and PLATFORM can access permission-protected endpoints
-    if (user.session_context !== 'EMPLOYEE' && user.session_context !== 'PLATFORM') {
+    if (
+      user.session_context !== 'EMPLOYEE' &&
+      user.session_context !== 'PLATFORM'
+    ) {
       this.logger.warn(
         `Acesso negado: ${user.email} (context: ${user.session_context}) tentou acessar endpoint restrito a funcionários`,
         AuthorizationGuard.name,

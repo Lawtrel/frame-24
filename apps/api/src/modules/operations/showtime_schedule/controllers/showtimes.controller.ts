@@ -31,7 +31,10 @@ import {
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { EmployeeReadThrottle, EmployeeWriteThrottle } from 'src/common/decorators/auth-throttle.decorator';
+import {
+  EmployeeReadThrottle,
+  EmployeeWriteThrottle,
+} from 'src/common/decorators/auth-throttle.decorator';
 
 import { CreateShowtimeDto } from '../dto/create-showtime.dto';
 import { UpdateShowtimeDto } from '../dto/update-showtime.dto';
@@ -98,12 +101,14 @@ export class ShowtimesController {
   @ApiQuery({
     name: 'room_id',
     required: false,
-    description: 'Sala (UUID/Snowflake) — deve pertencer a um complexo do tenant',
+    description:
+      'Sala (UUID/Snowflake) — deve pertencer a um complexo do tenant',
   })
   @ApiQuery({
     name: 'movie_id',
     required: false,
-    description: 'Filme (UUID/Snowflake) — deve pertencer ao catálogo do tenant',
+    description:
+      'Filme (UUID/Snowflake) — deve pertencer ao catálogo do tenant',
   })
   @ApiQuery({
     name: 'start_time',
@@ -144,8 +149,12 @@ export class ShowtimesController {
       movie_id,
       start_time,
       status,
-      ...(page && Number.isFinite(Number(page)) && { page: Math.max(1, Number(page)) }),
-      ...(limit && Number.isFinite(Number(limit)) && { limit: Math.min(100, Math.max(1, Number(limit))) }),
+      ...(page &&
+        Number.isFinite(Number(page)) && { page: Math.max(1, Number(page)) }),
+      ...(limit &&
+        Number.isFinite(Number(limit)) && {
+          limit: Math.min(100, Math.max(1, Number(limit))),
+        }),
     });
   }
 

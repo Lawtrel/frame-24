@@ -38,14 +38,20 @@ export class PrismaService
 
     if (isDev) {
       // Log slow queries (>200ms) as warnings in development
-      (this as PrismaClient & { $on: (event: string, cb: (e: { duration: number; query: string }) => void) => void })
-        .$on('query', (e: { duration: number; query: string }) => {
-          if (e.duration > 200) {
-            this.logger.warn(
-              `SLOW QUERY (${e.duration}ms): ${e.query.substring(0, 300)}`,
-            );
-          }
-        });
+      (
+        this as PrismaClient & {
+          $on: (
+            event: string,
+            cb: (e: { duration: number; query: string }) => void,
+          ) => void;
+        }
+      ).$on('query', (e: { duration: number; query: string }) => {
+        if (e.duration > 200) {
+          this.logger.warn(
+            `SLOW QUERY (${e.duration}ms): ${e.query.substring(0, 300)}`,
+          );
+        }
+      });
     }
 
     return new Proxy(this, {
@@ -66,7 +72,9 @@ export class PrismaService
       PropertyKey,
       unknown
     >;
-    this.logger.log('Prisma client connected with tenancy + soft-delete + snowflake extensions.');
+    this.logger.log(
+      'Prisma client connected with tenancy + soft-delete + snowflake extensions.',
+    );
   }
 
   async onModuleDestroy(): Promise<void> {

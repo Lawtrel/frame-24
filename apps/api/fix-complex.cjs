@@ -8,24 +8,32 @@ const prisma = new PrismaClient(getPrismaClientOptions());
 
 async function main() {
   const company = await prisma.companies.findFirst({
-    where: { tenant_slug: 'lawtrel-admin' }
+    where: { tenant_slug: 'lawtrel-admin' },
   });
   if (!company) {
     console.log('Company lawtrel-admin not found');
     return;
   }
-  console.log('Company:', company.id, company.corporate_name, '| city:', company.city, '| state:', company.state);
+  console.log(
+    'Company:',
+    company.id,
+    company.corporate_name,
+    '| city:',
+    company.city,
+    '| state:',
+    company.state,
+  );
 
   if (!company.city || !company.state) {
     console.log('Updating company city -> Salvador, state -> BA');
     await prisma.companies.update({
       where: { id: company.id },
-      data: { city: 'Salvador', state: 'BA' }
+      data: { city: 'Salvador', state: 'BA' },
     });
   }
 
   const existing = await prisma.cinema_complexes.findFirst({
-    where: { company_id: company.id }
+    where: { company_id: company.id },
   });
   if (existing) {
     console.log('Cinema complex already exists:', existing.id, existing.name);
@@ -44,9 +52,11 @@ async function main() {
       timezone: 'America/Bahia',
       ibge_municipality_code: '2927408',
       active: true,
-    }
+    },
   });
   console.log('Created cinema complex:', complex.id, complex.name);
 }
 
-main().catch(console.error).finally(() => prisma.$disconnect());
+main()
+  .catch(console.error)
+  .finally(() => prisma.$disconnect());

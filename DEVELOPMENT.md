@@ -115,7 +115,8 @@ frame-24/
 ├── docker-compose.coolify.yml      # stack Coolify
 ├── turbo.json               # pipeline Turborepo
 ├── pnpm-workspace.yaml
-└── .github/workflows/        # CI + deploy automatizado
+├── deploy                  # script unificado de deploy (build gate + envia VPS)
+├── .github/workflows/        # CI + deploy automatizado
 ```
 
 ### Domínios por schema (15 schemas PostgreSQL)
@@ -194,6 +195,65 @@ touch apps/admin/.env.local
 ```
 
 `.env.local` é lido automaticamente pelo Next e fica ignorado pelo git.
+
+---
+
+## Deploy (script `./deploy`)
+
+O script **`./deploy`** na raiz compila localmente (lint, check-types, build), decide o
+ambiente pela branch atual, sincroniza o código para a VPS, builda as imagens Docker
+remotamente e sobe os containers.
+
+```bash
+# Produção (branch main)
+./deploy
+pnpm deploy                  # alias no package.json
+
+# Staging (branch preview/*)
+./deploy staging
+pnpm deploy:staging
+
+# Dry-run (mostra o que faria, não envia)
+./deploy --dry-run
+pnpm deploy:dry
+```
+
+### Opções
+
+| Flag               | Efeito                                                        |
+| -------------------| ------------------------------------------------------------ |
+| `staging`          | Força deploy em staging (`/opt/frame24-preview/`)             |
+| `prod`             | Força deploy em produção (`/opt/frame24/`)                    |
+| `--skip-build`     | Pula o gate de build/lint local (**use só em emergência**)    |
+| `--skip-seed`      | Pula seed do banco no destino                                  |
+| `--services a,b`   | Só sobe os serviços listados (ex: `--services api,web`)       |
+| `--dry-run`        | Não envia nada, só valida e mostra o plano                     |
+| `--help`           | Ajuda completa                                                |
+
+### Como ele decide o ambiente
+
+| Branch atual       | Ambiente         | Destino VPS           | Containers                |
+| ------------------ | ---------------- | --------------------- | ------------------------- |
+| `main`             | **produção**     | `/opt/frame24`        | `frame24-api/web/admin`   |
+| `preview/*`        | **staging**      | `/opt/frame24-preview`| `frame24-preview-api/web/admin` |
+| qualquer outra     | **ERRA**         | –                     | – (use `./deploy staging` ou `prod` explicitamente) |
+
+### Pré-requisitos
+
+- Chave SSH autorizada para `root@174.138.79.19`
+- `.env.production` **já deve existir** na VPS em `/opt/frame24/.env.production` (o script não cria)
+- Template de referência: `.env.coolify.example` na raiz do repo
+
+### Fluxo completo
+
+1. **Gate local** — roda `pnpm lint`, `pnpm check-types`, `pnpm build` (falha = para)
+2. **Decisão** — detecta branch atual → production (`main`) ou staging (`preview/*`)
+3. **Confirmação** — prompt interativo para deploy de produção (de staging não pede)
+4. **Sincronização** — `rsync` do código fonte (exclui node_modules, .next, etc.)
+5. **Build remoto** — `docker compose build api web admin` na VPS
+6. **Up** — `docker compose up -d`
+7. **Seed** — verifica se DB tem dados; se vazio, roda scripts de seed
+8. **Staging extra** — copia `infra/nginx-staging.conf` para o nginx e recarrega
 
 ---
 

@@ -172,7 +172,8 @@ export class EmailService {
   }): Promise<void> {
     const confirmUrl = `${this.frontendUrl}/perfil/conta/email?request_id=${params.requestId}&token=${params.token}`;
     const title = `Confirme seu novo e-mail, ${params.customerName}!`;
-    const preheader = 'Valide seu novo endereço de e-mail para concluir a alteração.';
+    const preheader =
+      'Valide seu novo endereço de e-mail para concluir a alteração.';
     const content = `
       <p>Recebemos uma solicitação para alterar o e-mail da sua conta no ${this.brandName}.</p>
       <p>Para confirmar a troca, clique no botão abaixo:</p>

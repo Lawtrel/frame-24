@@ -6,13 +6,19 @@ import { pos_payment_methods } from '@repo/db';
 export class PosPaymentMethodsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findById(id: string, company_id: string): Promise<pos_payment_methods | null> {
+  async findById(
+    id: string,
+    company_id: string,
+  ): Promise<pos_payment_methods | null> {
     return this.prisma.pos_payment_methods.findFirst({
       where: { id, company_id },
     });
   }
 
-  async findByName(company_id: string, name: string): Promise<pos_payment_methods | null> {
+  async findByName(
+    company_id: string,
+    name: string,
+  ): Promise<pos_payment_methods | null> {
     return this.prisma.pos_payment_methods.findFirst({
       where: { company_id, name },
     });

@@ -194,14 +194,17 @@ export class PublicService {
       orderBy: [{ state: 'asc' }, { city: 'asc' }],
     });
 
-    const grouped = new Map<string, {
-      id: string;
-      slug: string;
-      name: string;
-      state: string | null;
-      timezone: string | null;
-      cinema_count: number;
-    }>();
+    const grouped = new Map<
+      string,
+      {
+        id: string;
+        slug: string;
+        name: string;
+        state: string | null;
+        timezone: string | null;
+        cinema_count: number;
+      }
+    >();
 
     for (const complex of complexes) {
       if (!complex.city) continue;
@@ -489,7 +492,9 @@ export class PublicService {
         showtime.cinema_complexes?.timezone,
       ),
     );
-    const movieIds = [...new Set(filteredShowtimes.map((item) => item.movie_id))];
+    const movieIds = [
+      ...new Set(filteredShowtimes.map((item) => item.movie_id)),
+    ];
     if (movieIds.length === 0) {
       return [];
     }
@@ -578,7 +583,9 @@ export class PublicService {
 
     const complexes = await this.findActiveComplexes(companyId, citySlug);
     const complexIds = options?.cinemaId
-      ? complexes.filter((complex) => complex.id === options.cinemaId).map((complex) => complex.id)
+      ? complexes
+          .filter((complex) => complex.id === options.cinemaId)
+          .map((complex) => complex.id)
       : complexes.map((complex) => complex.id);
 
     const where: Prisma.showtime_scheduleWhereInput = {
@@ -588,10 +595,14 @@ export class PublicService {
       available_seats: { gt: 0 },
       session_status: { name: 'Aberta para Vendas' },
       ...(options?.format && {
-        projection_types: { name: { contains: options.format, mode: 'insensitive' } },
+        projection_types: {
+          name: { contains: options.format, mode: 'insensitive' },
+        },
       }),
       ...(options?.language && {
-        session_languages: { name: { contains: options.language, mode: 'insensitive' } },
+        session_languages: {
+          name: { contains: options.language, mode: 'insensitive' },
+        },
       }),
     };
 
@@ -705,9 +716,12 @@ export class PublicService {
         accessible: seat.accessible,
         status: statusData?.status || 'available',
         reserved: !!statusData?.reservation_uuid,
-      reserved_until: statusData?.expiration_date || null,
+        reserved_until: statusData?.expiration_date || null,
         seat_kind: this.mapSeatKind(seat.seat_types?.name, seat.accessible),
-        pricing_zone: Number(seat.seat_types?.additional_value || 0) > 0 ? 'premium' : 'standard',
+        pricing_zone:
+          Number(seat.seat_types?.additional_value || 0) > 0
+            ? 'premium'
+            : 'standard',
         seat_type_name: seat.seat_types?.name || 'Padrão',
         additional_value: seat.seat_types?.additional_value || 0,
       };
@@ -862,7 +876,9 @@ export class PublicService {
         : this.getComplexesByCompany(company.id),
       this.getCitiesByCompany(company.id),
       options?.citySlug
-        ? this.getMoviesByCity(company.id, options.citySlug, { date: options.date })
+        ? this.getMoviesByCity(company.id, options.citySlug, {
+            date: options.date,
+          })
         : this.getMoviesByCompany(company.id),
       this.getProductsByCompany(company.id, options?.complexId),
       this.getTicketTypes(company.id),
@@ -905,7 +921,8 @@ export class PublicService {
     }
 
     return complexes.filter(
-      (complex) => (complex.city_slug || this.slugify(complex.city || '')) === citySlug,
+      (complex) =>
+        (complex.city_slug || this.slugify(complex.city || '')) === citySlug,
     );
   }
 
@@ -925,7 +942,9 @@ export class PublicService {
   }) {
     return {
       id: complex.id,
-      slug: complex.slug || this.slugify(`${complex.name}-${complex.id.slice(0, 8)}`),
+      slug:
+        complex.slug ||
+        this.slugify(`${complex.name}-${complex.id.slice(0, 8)}`),
       code: complex.code,
       name: complex.name,
       city: complex.city,
@@ -967,10 +986,13 @@ export class PublicService {
     stats?: { priceFrom?: number; sessionCount?: number; nextSession?: Date },
   ) {
     const poster =
-      movie.movie_media.find((media) => this.normalize(media.media_types?.name || '').includes('poster')) ??
-      movie.movie_media[0];
+      movie.movie_media.find((media) =>
+        this.normalize(media.media_types?.name || '').includes('poster'),
+      ) ?? movie.movie_media[0];
     const backdrop =
-      movie.movie_media.find((media) => this.normalize(media.media_types?.name || '').includes('backdrop')) ??
+      movie.movie_media.find((media) =>
+        this.normalize(media.media_types?.name || '').includes('backdrop'),
+      ) ??
       movie.movie_media[1] ??
       poster;
 
@@ -995,58 +1017,57 @@ export class PublicService {
     };
   }
 
-  private mapShowtime(
-    showtime: {
+  private mapShowtime(showtime: {
+    id: string;
+    movie_id: string;
+    cinema_complex_id?: string;
+    start_time: Date;
+    end_time: Date;
+    base_ticket_price: Prisma.Decimal | number;
+    available_seats: number | null;
+    sold_seats: number | null;
+    blocked_seats: number | null;
+    cinema_complexes: {
       id: string;
-      movie_id: string;
-      cinema_complex_id?: string;
-      start_time: Date;
-      end_time: Date;
-      base_ticket_price: Prisma.Decimal | number;
-      available_seats: number | null;
-      sold_seats: number | null;
-      blocked_seats: number | null;
-      cinema_complexes: {
-        id: string;
-        name: string;
-        slug: string | null;
-        address: string | null;
-        city: string | null;
-        city_slug: string | null;
-        state: string | null;
-        latitude?: Prisma.Decimal | null;
-        longitude?: Prisma.Decimal | null;
-        timezone: string | null;
-        active: boolean | null;
-      };
-      rooms: {
-        id: string;
-        name: string | null;
-        room_number: string;
-      } | null;
-      projection_types: {
-        id: string;
-        name: string;
-      } | null;
-      audio_types: {
-        id: string;
-        name: string;
-      } | null;
-      session_languages: {
-        id: string;
-        name: string;
-      } | null;
-      session_status: {
-        id: string;
-        name: string;
-      } | null;
-    },
-  ) {
+      name: string;
+      slug: string | null;
+      address: string | null;
+      city: string | null;
+      city_slug: string | null;
+      state: string | null;
+      latitude?: Prisma.Decimal | null;
+      longitude?: Prisma.Decimal | null;
+      timezone: string | null;
+      active: boolean | null;
+    };
+    rooms: {
+      id: string;
+      name: string | null;
+      room_number: string;
+    } | null;
+    projection_types: {
+      id: string;
+      name: string;
+    } | null;
+    audio_types: {
+      id: string;
+      name: string;
+    } | null;
+    session_languages: {
+      id: string;
+      name: string;
+    } | null;
+    session_status: {
+      id: string;
+      name: string;
+    } | null;
+  }) {
     const totalSeats =
       (showtime.available_seats || 0) +
       (showtime.sold_seats || 0) +
       (showtime.blocked_seats || 0);
-    const soldRatio = totalSeats > 0 ? (showtime.sold_seats || 0) / totalSeats : 0;
+    const soldRatio =
+      totalSeats > 0 ? (showtime.sold_seats || 0) / totalSeats : 0;
     const timeZone = showtime.cinema_complexes?.timezone || 'America/Bahia';
 
     return {

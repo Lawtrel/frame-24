@@ -4,9 +4,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export const CreatePosSessionSchema = z
   .object({
-    cinema_complex_id: z
-      .string()
-      .min(1, 'Complexo de cinema é obrigatório'),
+    cinema_complex_id: z.string().min(1, 'Complexo de cinema é obrigatório'),
     opening_amount: z
       .number()
       .min(0, 'Valor de abertura não pode ser negativo')

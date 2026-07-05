@@ -53,13 +53,7 @@ export class AuditWorkerService implements OnModuleInit {
     const oldValues = this.extractOldValues(message.data);
     const newValues = this.extractNewValues(message.data);
 
-    await this.saveToDatabase(
-      message,
-      parts,
-      resourceId,
-      oldValues,
-      newValues,
-    );
+    await this.saveToDatabase(message, parts, resourceId, oldValues, newValues);
 
     this.logger.log(
       `Audit saved: ${message.pattern} | ${parts.resource}:${resourceId}`,

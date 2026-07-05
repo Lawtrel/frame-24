@@ -28,7 +28,10 @@ import {
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { EmployeeReadThrottle, EmployeeWriteThrottle } from 'src/common/decorators/auth-throttle.decorator';
+import {
+  EmployeeReadThrottle,
+  EmployeeWriteThrottle,
+} from 'src/common/decorators/auth-throttle.decorator';
 import { ExhibitionContractsService } from '../services/exhibition-contracts.service';
 import { CreateExhibitionContractDto } from '../dto/create-exhibition-contract.dto';
 import { UpdateExhibitionContractDto } from '../dto/update-exhibition-contract.dto';

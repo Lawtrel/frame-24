@@ -232,7 +232,9 @@ describe('SalesService', () => {
         {
           provide: TenantResourceService,
           useValue: {
-            assertCustomerLinkedToCompany: jest.fn().mockResolvedValue(undefined),
+            assertCustomerLinkedToCompany: jest
+              .fn()
+              .mockResolvedValue(undefined),
             assertCinemaComplexBelongsToCompany: jest
               .fn()
               .mockResolvedValue(undefined),

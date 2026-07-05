@@ -124,9 +124,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       if (code === 'INTERNAL_SERVER_ERROR') {
         code = HttpStatus[status] || 'HTTP_ERROR';
       }
-    } else if (
-      exception instanceof Prisma.PrismaClientKnownRequestError
-    ) {
+    } else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
       // Map Prisma database errors to meaningful HTTP responses
       switch (exception.code) {
         case 'P2002': {
@@ -134,9 +132,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
           status = HttpStatus.CONFLICT;
           code = 'UNIQUE_CONSTRAINT_VIOLATION';
           const target = (exception.meta?.target as string[]) ?? [];
-          message = target.length > 0
-            ? `Registro duplicado: ${target.join(', ')}`
-            : 'Registro duplicado.';
+          message =
+            target.length > 0
+              ? `Registro duplicado: ${target.join(', ')}`
+              : 'Registro duplicado.';
           break;
         }
         case 'P2025': {
@@ -150,7 +149,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
           // Foreign key constraint violation
           status = HttpStatus.CONFLICT;
           code = 'FOREIGN_KEY_CONSTRAINT';
-          message = 'Não é possível realizar a operação: registro referenciado por outros dados.';
+          message =
+            'Não é possível realizar a operação: registro referenciado por outros dados.';
           break;
         }
         default: {

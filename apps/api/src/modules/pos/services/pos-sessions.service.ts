@@ -81,14 +81,18 @@ export class PosSessionsService {
     return sessions.map((s) =>
       this.mapToDto(
         s,
-        (s as typeof s & { pos_session_status?: { name: string } }).pos_session_status?.name,
+        (s as typeof s & { pos_session_status?: { name: string } })
+          .pos_session_status?.name,
       ),
     );
   }
 
   async findOne(id: string): Promise<PosSessionResponseDto> {
     const companyId = this.tenantContext.getCompanyId();
-    const session = await this.posSessionsRepo.findByIdWithStatus(id, companyId);
+    const session = await this.posSessionsRepo.findByIdWithStatus(
+      id,
+      companyId,
+    );
 
     if (!session) {
       throw new NotFoundException('Sessão PDV não encontrada');
@@ -111,7 +115,10 @@ export class PosSessionsService {
     dto: UpdatePosSessionDto,
   ): Promise<PosSessionResponseDto> {
     const companyId = this.tenantContext.getCompanyId();
-    const session = await this.posSessionsRepo.findByIdWithStatus(id, companyId);
+    const session = await this.posSessionsRepo.findByIdWithStatus(
+      id,
+      companyId,
+    );
 
     if (!session) {
       throw new NotFoundException('Sessão PDV não encontrada');
@@ -174,7 +181,14 @@ export class PosSessionsService {
 
   private async closeSession(
     id: string,
-    session: { id: string; session_number: string; status: string; opening_amount: Prisma.Decimal; cash_withdrawn: Prisma.Decimal; pos_session_status?: { name: string } },
+    session: {
+      id: string;
+      session_number: string;
+      status: string;
+      opening_amount: Prisma.Decimal;
+      cash_withdrawn: Prisma.Decimal;
+      pos_session_status?: { name: string };
+    },
     dto: UpdatePosSessionDto,
     companyId: string,
   ): Promise<PosSessionResponseDto> {
@@ -198,7 +212,10 @@ export class PosSessionsService {
     const cashWithdrawn = Number(session.cash_withdrawn ?? 0);
 
     const expectedCash =
-      openingAmount + totals.totalSalesAmount - totals.totalRefundsAmount - cashWithdrawn;
+      openingAmount +
+      totals.totalSalesAmount -
+      totals.totalRefundsAmount -
+      cashWithdrawn;
 
     const cashCounted = dto.cash_counted ?? expectedCash;
     const difference = cashCounted - expectedCash;
@@ -272,8 +289,10 @@ export class PosSessionsService {
       session_number: session.session_number as string,
       opening_amount: Number(session.opening_amount ?? 0),
       cash_withdrawn: Number(session.cash_withdrawn ?? 0),
-      cash_counted: session.cash_counted != null ? Number(session.cash_counted) : null,
-      difference: session.difference != null ? Number(session.difference) : null,
+      cash_counted:
+        session.cash_counted != null ? Number(session.cash_counted) : null,
+      difference:
+        session.difference != null ? Number(session.difference) : null,
       total_sales_amount: Number(session.total_sales_amount ?? 0),
       total_sales_count: Number(session.total_sales_count ?? 0),
       total_refunds_amount: Number(session.total_refunds_amount ?? 0),

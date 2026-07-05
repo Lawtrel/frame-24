@@ -264,8 +264,22 @@ export class ShowtimesService {
     const results = await this.showtimesRepository.findAll(where, page, limit);
 
     return results.map((item) => {
-      const movieData = (item as typeof item & { movies?: { id: string; original_title: string; brazil_title: string | null; duration_minutes: number | null; movie_media?: { media_url: string }[] } }).movies;
-      const complexData = (item as typeof item & { cinema_complexes?: { id: string; name: string } }).cinema_complexes;
+      const movieData = (
+        item as typeof item & {
+          movies?: {
+            id: string;
+            original_title: string;
+            brazil_title: string | null;
+            duration_minutes: number | null;
+            movie_media?: { media_url: string }[];
+          };
+        }
+      ).movies;
+      const complexData = (
+        item as typeof item & {
+          cinema_complexes?: { id: string; name: string };
+        }
+      ).cinema_complexes;
 
       const mapped = item as Record<string, unknown>;
       if (movieData) {
@@ -281,7 +295,9 @@ export class ShowtimesService {
       }
       delete mapped.movies;
       delete mapped.cinema_complexes;
-      return mapped as Awaited<ReturnType<ShowtimesRepository['findAll']>>[number];
+      return mapped as Awaited<
+        ReturnType<ShowtimesRepository['findAll']>
+      >[number];
     });
   }
 

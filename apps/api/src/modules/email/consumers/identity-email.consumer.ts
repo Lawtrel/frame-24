@@ -158,17 +158,14 @@ export class IdentityEmailConsumer implements OnModuleInit, OnModuleDestroy {
 
   private async handleIdentityEvent(message: IdentityMessage): Promise<void> {
     switch (message.pattern) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
       case IdentityEventPattern.CREATED:
         this.handleIdentityCreated(message.data as IdentityCreatedEventData);
         break;
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
       case IdentityEventPattern.VERIFIED:
         this.handleIdentityVerified(message.data as IdentityVerifiedEventData);
         break;
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
       case IdentityEventPattern.PASSWORD_RESET:
         await this.handlePasswordReset(message.data as PasswordResetEventData);
         break;

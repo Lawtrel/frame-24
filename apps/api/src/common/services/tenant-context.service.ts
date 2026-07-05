@@ -70,19 +70,19 @@ export class TenantContextService {
       this.cls.set(clsKey, value);
     }
 
-  // userId fallback: use customer_id when company_user_id is not present
-  if (
-    !('company_user_id' in record) &&
-    'customer_id' in record &&
-    record.customer_id
-  ) {
-    this.cls.set('userId', record.customer_id);
-  }
+    // userId fallback: use customer_id when company_user_id is not present
+    if (
+      !('company_user_id' in record) &&
+      'customer_id' in record &&
+      record.customer_id
+    ) {
+      this.cls.set('userId', record.customer_id);
+    }
 
-  // userId fallback for PLATFORM sessions: company_user_id is empty string
-  const currentUserId = this.cls.get<string>('userId');
-  if (!currentUserId && 'identity_id' in record && record.identity_id) {
-    this.cls.set('userId', record.identity_id as string);
-  }
+    // userId fallback for PLATFORM sessions: company_user_id is empty string
+    const currentUserId = this.cls.get<string>('userId');
+    if (!currentUserId && 'identity_id' in record && record.identity_id) {
+      this.cls.set('userId', record.identity_id as string);
+    }
   }
 }

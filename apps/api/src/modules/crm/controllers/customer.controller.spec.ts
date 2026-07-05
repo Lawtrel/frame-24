@@ -24,7 +24,8 @@ describe('CustomerController', () => {
       findByCompanyAndCustomer: jest.fn(),
     } as unknown as jest.Mocked<CompanyCustomersRepository>;
 
-    customerAccountService = {} as unknown as jest.Mocked<CustomerAccountService>;
+    customerAccountService =
+      {} as unknown as jest.Mocked<CustomerAccountService>;
 
     prisma = {
       company_customers: {

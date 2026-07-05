@@ -48,7 +48,10 @@ export class PosTransactionResponseDto extends createZodDto(
   @ApiProperty({ description: 'ID do método de pagamento' })
   payment_method!: string;
 
-  @ApiPropertyOptional({ description: 'Nome do método de pagamento', example: 'Dinheiro' })
+  @ApiPropertyOptional({
+    description: 'Nome do método de pagamento',
+    example: 'Dinheiro',
+  })
   payment_method_name?: string;
 
   @ApiProperty({ description: 'Valor da transação', example: 45.0 })

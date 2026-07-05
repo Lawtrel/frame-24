@@ -38,11 +38,7 @@ describe('JournalEntriesController', () => {
     const startDate = new Date('2026-03-01');
     const endDate = new Date('2026-03-31');
 
-    const result = await controller.findAll(
-      'complex-1',
-      startDate,
-      endDate,
-    );
+    const result = await controller.findAll('complex-1', startDate, endDate);
 
     expect(service.findAll).toHaveBeenCalledWith({
       cinema_complex_id: 'complex-1',

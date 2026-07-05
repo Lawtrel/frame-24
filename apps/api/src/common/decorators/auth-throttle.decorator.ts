@@ -98,16 +98,10 @@ const SKIP_ALL_EXCEPT_PROVISIONING = NestSkipThrottle({
 });
 
 export const CustomerSignupOnlyThrottle = () =>
-  applyDecorators(
-    CustomerSignupThrottle(),
-    SKIP_ALL_EXCEPT_SIGNUP,
-  );
+  applyDecorators(CustomerSignupThrottle(), SKIP_ALL_EXCEPT_SIGNUP);
 
 export const ProvisioningOnlyThrottle = () =>
-  applyDecorators(
-    ProvisioningThrottle(),
-    SKIP_ALL_EXCEPT_PROVISIONING,
-  );
+  applyDecorators(ProvisioningThrottle(), SKIP_ALL_EXCEPT_PROVISIONING);
 
 export const SkipThrottle = NestSkipThrottle;
 

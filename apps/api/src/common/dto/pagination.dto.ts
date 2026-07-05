@@ -6,7 +6,12 @@ import { createZodDto } from 'nestjs-zod';
  * Usage: add `@Query() query: PaginationQueryDto` to your controller method.
  */
 export const PaginationQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).default(1).describe('Page number (1-indexed)'),
+  page: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .default(1)
+    .describe('Page number (1-indexed)'),
   limit: z.coerce
     .number()
     .int()

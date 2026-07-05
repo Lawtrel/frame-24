@@ -98,7 +98,11 @@ export class SalesService {
     return this.tenantContext.getCustomerId();
   }
 
-  private getSessionContext(): 'EMPLOYEE' | 'CUSTOMER' | 'PLATFORM' | undefined {
+  private getSessionContext():
+    | 'EMPLOYEE'
+    | 'CUSTOMER'
+    | 'PLATFORM'
+    | undefined {
     return this.tenantContext.getSessionContext();
   }
 

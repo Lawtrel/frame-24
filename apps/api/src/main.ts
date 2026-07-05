@@ -292,7 +292,10 @@ async function bootstrap() {
       }) as unknown as Record<string, unknown>,
     );
 
-    const companyDocument = buildCompanyDocument(fullDocument, customerDocument);
+    const companyDocument = buildCompanyDocument(
+      fullDocument,
+      customerDocument,
+    );
 
     app
       .getHttpAdapter()

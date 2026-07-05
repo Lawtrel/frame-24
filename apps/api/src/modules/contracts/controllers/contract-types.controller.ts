@@ -21,7 +21,10 @@ import {
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RequirePermission } from 'src/common/decorators/require-permission.decorator';
-import { EmployeeReadThrottle, EmployeeWriteThrottle } from 'src/common/decorators/auth-throttle.decorator';
+import {
+  EmployeeReadThrottle,
+  EmployeeWriteThrottle,
+} from 'src/common/decorators/auth-throttle.decorator';
 import { ContractTypesService } from '../services/contract-types.service';
 import { CreateContractTypeDto } from '../dto/create-contract-type.dto';
 import { UpdateContractTypeDto } from '../dto/update-contract-type.dto';

@@ -200,14 +200,16 @@ export class CustomerAuthService {
     const normalizedCpf = dto.cpf ? dto.cpf.replace(/\D/g, '') : null;
     const cpfCandidates = normalizedCpf
       ? Array.from(
-          new Set([
-            dto.cpf || '',
-            normalizedCpf,
-            normalizedCpf.replace(
-              /^(\d{3})(\d{3})(\d{3})(\d{2})$/,
-              '$1.$2.$3-$4',
-            ),
-          ].filter(Boolean)),
+          new Set(
+            [
+              dto.cpf || '',
+              normalizedCpf,
+              normalizedCpf.replace(
+                /^(\d{3})(\d{3})(\d{3})(\d{2})$/,
+                '$1.$2.$3-$4',
+              ),
+            ].filter(Boolean),
+          ),
         )
       : [];
 
@@ -249,11 +251,11 @@ export class CustomerAuthService {
       const identity =
         existingIdentity ??
         (await this.prisma.identities.create({
-            data: {
-              id: this.snowflake.generate(),
-              email: sessionAuthEmail,
-              identity_type: 'CUSTOMER',
-              active: true,
+          data: {
+            id: this.snowflake.generate(),
+            email: sessionAuthEmail,
+            identity_type: 'CUSTOMER',
+            active: true,
             email_verified: true,
           },
         }));

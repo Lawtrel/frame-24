@@ -90,9 +90,7 @@ export class CustomerPurchasesController {
     summary: 'Detalhar pedido',
     description: 'Retorna o detalhe completo de um pedido do cliente.',
   })
-  async findOrderById(
-    @Param('id', ParseEntityIdPipe) id: string,
-  ) {
+  async findOrderById(@Param('id', ParseEntityIdPipe) id: string) {
     return this.customerPurchasesService.findOrderById(id);
   }
 
@@ -113,7 +111,8 @@ export class CustomerPurchasesController {
   @Get('refund-requests')
   @ApiOperation({
     summary: 'Listar solicitações de reembolso',
-    description: 'Retorna as solicitações de reembolso já abertas pelo cliente.',
+    description:
+      'Retorna as solicitações de reembolso já abertas pelo cliente.',
   })
   async listRefundRequests() {
     return this.customerPurchasesService.listRefundRequests();
@@ -124,9 +123,7 @@ export class CustomerPurchasesController {
     summary: 'Detalhar solicitação de reembolso',
     description: 'Retorna uma solicitação de reembolso específica.',
   })
-  async getRefundRequestById(
-    @Param('id') id: string,
-  ) {
+  async getRefundRequestById(@Param('id') id: string) {
     return this.customerPurchasesService.getRefundRequestById(id);
   }
 
@@ -221,9 +218,7 @@ export class CustomerPurchasesController {
     description:
       'Reenvia para o e-mail cadastrado do cliente as informações do ingresso.',
   })
-  async resendTicketByEmail(
-    @Param('id', ParseEntityIdPipe) id: string,
-  ) {
+  async resendTicketByEmail(@Param('id', ParseEntityIdPipe) id: string) {
     return this.customerPurchasesService.resendTicketByEmail(id);
   }
 

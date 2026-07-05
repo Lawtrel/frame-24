@@ -9,7 +9,9 @@ import { AuthenticatedUser } from 'src/modules/identity/auth/types/auth-user.typ
 @Injectable()
 export class CustomerGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest<{ user: AuthenticatedUser }>();
+    const request = context
+      .switchToHttp()
+      .getRequest<{ user: AuthenticatedUser }>();
     const user = request.user;
 
     if (!user) {

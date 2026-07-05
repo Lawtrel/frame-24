@@ -176,7 +176,8 @@ export class CustomerController {
           .map((item) => ({
             company_id: item.company_id,
             tenant_slug: companyMap.get(item.company_id)?.tenant_slug ?? null,
-            company_name: companyMap.get(item.company_id)?.corporate_name ?? null,
+            company_name:
+              companyMap.get(item.company_id)?.corporate_name ?? null,
             loyalty_level: item.loyalty_level,
             accumulated_points: item.accumulated_points,
           })),
@@ -389,7 +390,8 @@ export class CustomerController {
   @CustomerWriteThrottle()
   @ApiOperation({
     summary: 'Confirmar troca de e-mail',
-    description: 'Confirma a troca após validação do token recebido por e-mail.',
+    description:
+      'Confirma a troca após validação do token recebido por e-mail.',
   })
   async confirmEmailChange(@Body() dto: ConfirmCustomerEmailChangeDto) {
     return this.customerAccountService.confirmEmailChange(

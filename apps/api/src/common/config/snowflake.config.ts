@@ -9,8 +9,7 @@
  */
 
 function getWorkerId(): bigint {
-  const raw =
-    process.env.WORKER_ID || process.env.HOSTNAME?.slice(-3) || '1';
+  const raw = process.env.WORKER_ID || process.env.HOSTNAME?.slice(-3) || '1';
   const parsed = parseInt(raw, 10);
 
   if (Number.isNaN(parsed) || parsed < 0) {

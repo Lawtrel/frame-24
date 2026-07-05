@@ -183,10 +183,10 @@ const SHOWCASE_MOVIES: ShowcaseMovieSeed[] = [
     ratingCode: '14',
     synopsis:
       'Paul Atreides se alia a Chani e aos Fremen enquanto busca vinganca contra os conspiradores que destruiram sua familia e tenta impedir o futuro devastador que so ele consegue prever.',
-    shortSynopsis:
-      'Paul retorna a Arrakis para guerra, profecia e destino.',
+    shortSynopsis: 'Paul retorna a Arrakis para guerra, profecia e destino.',
     genres: ['Ficcao Cientifica', 'Aventura', 'Drama'],
-    posterUrl: 'https://image.tmdb.org/t/p/w500/8LJJjLjAzAwXS40S5mx79PJ2jSs.jpg',
+    posterUrl:
+      'https://image.tmdb.org/t/p/w500/8LJJjLjAzAwXS40S5mx79PJ2jSs.jpg',
     backdropUrl:
       'https://image.tmdb.org/t/p/original/eZ239CUp1d6OryZEBPnO2n87gMG.jpg',
     originalLanguage: 'en',
@@ -210,7 +210,8 @@ const SHOWCASE_MOVIES: ShowcaseMovieSeed[] = [
     shortSynopsis:
       'Peter encara o multiverso quando tudo desanda em Nova York.',
     genres: ['Acao', 'Aventura', 'Fantasia'],
-    posterUrl: 'https://image.tmdb.org/t/p/w500/a9z2cmIBfx99dtzj8TaSFU50AnW.jpg',
+    posterUrl:
+      'https://image.tmdb.org/t/p/w500/a9z2cmIBfx99dtzj8TaSFU50AnW.jpg',
     backdropUrl:
       'https://image.tmdb.org/t/p/original/zD5v1E4joAzFvmAEytt7fM3ivyT.jpg',
     originalLanguage: 'en',
@@ -231,10 +232,10 @@ const SHOWCASE_MOVIES: ShowcaseMovieSeed[] = [
     ratingCode: '14',
     synopsis:
       'Nos primeiros anos como vigilante, Bruce Wayne investiga uma serie de assassinatos que expoe a corrupcao de Gotham e o obriga a enfrentar conexoes sombrias com sua propria familia.',
-    shortSynopsis:
-      'O Cavaleiro das Trevas mergulha no submundo de Gotham.',
+    shortSynopsis: 'O Cavaleiro das Trevas mergulha no submundo de Gotham.',
     genres: ['Acao', 'Crime', 'Drama'],
-    posterUrl: 'https://image.tmdb.org/t/p/w500/xaKydnMw6wR1MBAjS5seGPVusbs.jpg',
+    posterUrl:
+      'https://image.tmdb.org/t/p/w500/xaKydnMw6wR1MBAjS5seGPVusbs.jpg',
     backdropUrl:
       'https://image.tmdb.org/t/p/original/rvtdN5XkWAfGX6xDuPL6yYS2seK.jpg',
     originalLanguage: 'en',
@@ -255,10 +256,10 @@ const SHOWCASE_MOVIES: ShowcaseMovieSeed[] = [
     ratingCode: 'L',
     synopsis:
       'Riley entra na adolescencia e o quartel-general das emocoes precisa lidar com novas sensacoes, insegurancas e conflitos internos bem no momento em que tudo parecia sob controle.',
-    shortSynopsis:
-      'Riley cresce e ganha novas emocoes no comando.',
+    shortSynopsis: 'Riley cresce e ganha novas emocoes no comando.',
     genres: ['Animacao', 'Familia', 'Comedia'],
-    posterUrl: 'https://image.tmdb.org/t/p/w500/lHKNS35r4RTa9GO72vdadMLxoiV.jpg',
+    posterUrl:
+      'https://image.tmdb.org/t/p/w500/lHKNS35r4RTa9GO72vdadMLxoiV.jpg',
     backdropUrl:
       'https://image.tmdb.org/t/p/original/p5ozvmdgsmbWe0H8Xk7Rc8SCwAB.jpg',
     originalLanguage: 'en',
@@ -282,7 +283,8 @@ const SHOWCASE_MOVIES: ShowcaseMovieSeed[] = [
     shortSynopsis:
       'Wakanda reage ao luto enquanto uma nova guerra se aproxima.',
     genres: ['Acao', 'Aventura', 'Drama'],
-    posterUrl: 'https://image.tmdb.org/t/p/w500/6RB4JTvfeT3FVaZtWHySEryA6LV.jpg',
+    posterUrl:
+      'https://image.tmdb.org/t/p/w500/6RB4JTvfeT3FVaZtWHySEryA6LV.jpg',
     backdropUrl:
       'https://image.tmdb.org/t/p/original/83H0C66AcvkwpG2738VCTHMY9uv.jpg',
     originalLanguage: 'en',
@@ -303,10 +305,10 @@ const SHOWCASE_MOVIES: ShowcaseMovieSeed[] = [
     ratingCode: '16',
     synopsis:
       'Anos apos a morte de Maximus, Lucius e forçado a entrar no Coliseu e encarar o poder de Roma enquanto luta para recuperar a honra de seu povo e de sua familia.',
-    shortSynopsis:
-      'Lucius retorna a arena para enfrentar o destino de Roma.',
+    shortSynopsis: 'Lucius retorna a arena para enfrentar o destino de Roma.',
     genres: ['Acao', 'Aventura', 'Drama'],
-    posterUrl: 'https://image.tmdb.org/t/p/w500/342bly9MqveL65TnEFzx8TTUxcL.jpg',
+    posterUrl:
+      'https://image.tmdb.org/t/p/w500/342bly9MqveL65TnEFzx8TTUxcL.jpg',
     backdropUrl:
       'https://image.tmdb.org/t/p/original/4hvK1uenpT7VVClzoNqXanvgdjX.jpg',
     originalLanguage: 'en',
@@ -330,7 +332,8 @@ const SHOWCASE_MOVIES: ShowcaseMovieSeed[] = [
     shortSynopsis:
       'Snow conhece Lucy Gray e inicia sua longa descida ao poder.',
     genres: ['Acao', 'Drama', 'Ficcao Cientifica'],
-    posterUrl: 'https://image.tmdb.org/t/p/w500/wd7b4Nv9QBHDTIjc2m7sr0IUMoh.jpg',
+    posterUrl:
+      'https://image.tmdb.org/t/p/w500/wd7b4Nv9QBHDTIjc2m7sr0IUMoh.jpg',
     backdropUrl:
       'https://image.tmdb.org/t/p/original/8GnWDLn2AhnmkQ7hlQ9NJUYobSS.jpg',
     originalLanguage: 'en',
@@ -358,7 +361,11 @@ function showtimeWindow(daysFromNow: number, hour: number) {
   return { start, end };
 }
 
-function showtimeAtHourMinute(daysFromNow: number, hour: number, minute: number) {
+function showtimeAtHourMinute(
+  daysFromNow: number,
+  hour: number,
+  minute: number,
+) {
   const start = new Date();
   start.setDate(start.getDate() + daysFromNow);
   start.setHours(hour, minute, 0, 0);
@@ -372,7 +379,8 @@ function showtimeTonightOrTomorrow(hour: number, minute: number) {
   const today = new Date(now);
   today.setHours(hour, minute, 0, 0);
 
-  const start = today > now ? today : showtimeAtHourMinute(1, hour, minute).start;
+  const start =
+    today > now ? today : showtimeAtHourMinute(1, hour, minute).start;
   const end = new Date(start);
   end.setHours(end.getHours() + 2);
 
@@ -478,7 +486,11 @@ async function upsertMovieMedia(
   });
 }
 
-async function ensureBetterAuthUser(email: string, password: string, name: string) {
+async function ensureBetterAuthUser(
+  email: string,
+  password: string,
+  name: string,
+) {
   const existing = await prisma.user.findUnique({
     where: { email },
   });
@@ -964,7 +976,9 @@ async function ensureOperationsLookups(companyId: string) {
 
 async function ensureCatalog(companyId: string) {
   const supplierType = await prisma.supplier_types.upsert({
-    where: { company_id_name: { company_id: companyId, name: 'Distribuidora' } },
+    where: {
+      company_id_name: { company_id: companyId, name: 'Distribuidora' },
+    },
     update: {},
     create: {
       id: ids.supplierType,
@@ -1667,8 +1681,7 @@ async function ensureShowcaseShowtimes(
     },
     {
       id: ids.showcaseShowtimeFeiraHungerGames,
-      movieSlug:
-        'jogos-vorazes-a-cantiga-dos-passaros-e-das-serpentes',
+      movieSlug: 'jogos-vorazes-a-cantiga-dos-passaros-e-das-serpentes',
       complexId: complexes.complexFeiraId,
       roomId: complexes.roomFeiraId,
       start: showtimeWindow(7, 21),
@@ -1847,7 +1860,7 @@ async function ensureProducts(
   await prisma.product_prices.upsert({
     where: {
       product_id_complex_id_valid_from: {
-      product_id: ids.productPipoca,
+        product_id: ids.productPipoca,
         complex_id: complexes.complexSalvadorId,
         valid_from: new Date('2026-01-01T00:00:00.000Z'),
       },
@@ -1872,7 +1885,7 @@ async function ensureProducts(
   await prisma.product_prices.upsert({
     where: {
       product_id_complex_id_valid_from: {
-      product_id: ids.productRefri,
+        product_id: ids.productRefri,
         complex_id: complexes.complexSalvadorId,
         valid_from: new Date('2026-01-01T00:00:00.000Z'),
       },
@@ -1948,7 +1961,10 @@ async function ensureProducts(
 }
 
 async function ensureCustomer(companyId: string) {
-  const authEmail = toTenantAuthEmail(FIXTURE.tenantSlug, FIXTURE.customerEmail);
+  const authEmail = toTenantAuthEmail(
+    FIXTURE.tenantSlug,
+    FIXTURE.customerEmail,
+  );
   const authUser = await ensureBetterAuthUser(
     authEmail,
     FIXTURE.customerPassword,

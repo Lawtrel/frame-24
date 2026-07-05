@@ -35,11 +35,7 @@ function respondRateLimited(res: Response, retryAfterSeconds: number): void {
   });
 }
 
-function memoryThrottle(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): void {
+function memoryThrottle(req: Request, res: Response, next: NextFunction): void {
   const now = Date.now();
   pruneBuckets(now);
   const ip = getRateLimitClientIp(req);
@@ -50,10 +46,7 @@ function memoryThrottle(
   }
   b.count += 1;
   if (b.count > LIMIT) {
-    respondRateLimited(
-      res,
-      Math.max(1, Math.ceil((b.resetAt - now) / 1000)),
-    );
+    respondRateLimited(res, Math.max(1, Math.ceil((b.resetAt - now) / 1000)));
     return;
   }
   next();

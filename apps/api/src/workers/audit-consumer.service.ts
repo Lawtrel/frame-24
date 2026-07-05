@@ -103,7 +103,11 @@ export class AuditConsumerService implements OnModuleInit, OnModuleDestroy {
       });
 
       await this.channel.assertQueue('audit-queue-dlq', { durable: true });
-      await this.channel.bindQueue('audit-queue-dlq', 'frame24-dlx', 'audit.dlq');
+      await this.channel.bindQueue(
+        'audit-queue-dlq',
+        'frame24-dlx',
+        'audit.dlq',
+      );
 
       await this.channel.assertQueue('audit-queue', {
         durable: true,
@@ -164,10 +168,7 @@ export class AuditConsumerService implements OnModuleInit, OnModuleDestroy {
 
       ch.ack(msg);
     } catch (error) {
-      const headers = (msg.properties.headers ?? {}) as Record<
-        string,
-        unknown
-      >;
+      const headers = (msg.properties.headers ?? {}) as Record<string, unknown>;
       const retry = Number(headers['x-audit-retry'] ?? 0);
       if (retry < AuditConsumerService.MAX_AUDIT_RETRIES) {
         const delayMs = Math.min(32_000, 1000 * 2 ** retry);

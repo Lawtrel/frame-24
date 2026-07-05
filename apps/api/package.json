@@ -14,7 +14,7 @@
     "start:prod": "node dist/main",
     "check-types": "tsc --noEmit -p tsconfig.json",
     "check-types:spec": "tsc --noEmit -p tsconfig.spec.json",
-    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "lint": "eslint",
     "test": "jest --forceExit",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",

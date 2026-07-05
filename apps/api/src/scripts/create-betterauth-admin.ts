@@ -7,8 +7,13 @@ const prisma = createPrismaClient();
 
 const auth = betterAuth({
   appName: 'Frame24',
-  secret: process.env.BETTER_AUTH_SECRET || 'frame24-better-auth-secret-change-in-prod-2026',
-  baseURL: process.env.BETTER_AUTH_URL || process.env.API_URL || 'http://localhost:4000',
+  secret:
+    process.env.BETTER_AUTH_SECRET ||
+    'frame24-better-auth-secret-change-in-prod-2026',
+  baseURL:
+    process.env.BETTER_AUTH_URL ||
+    process.env.API_URL ||
+    'http://localhost:4000',
   trustedOrigins: [
     'http://localhost:3000',
     'http://localhost:3004',
@@ -39,7 +44,9 @@ async function main() {
   const existingUser = await prisma.user.findUnique({ where: { email } });
 
   if (existingUser) {
-    console.log('User already exists in better-auth user table. Deleting to recreate...');
+    console.log(
+      'User already exists in better-auth user table. Deleting to recreate...',
+    );
     await prisma.account.deleteMany({ where: { userId: existingUser.id } });
     await prisma.session.deleteMany({ where: { userId: existingUser.id } });
     await prisma.user.delete({ where: { id: existingUser.id } });
@@ -54,7 +61,9 @@ async function main() {
   });
 
   if (result) {
-    console.log(`✅ Better-auth user created! ID: ${(result as any).user?.id || (result as any).id}`);
+    console.log(
+      `✅ Better-auth user created! ID: ${(result as any).user?.id || (result as any).id}`,
+    );
   }
 
   const userId = (result as any).user?.id || (result as any).id;

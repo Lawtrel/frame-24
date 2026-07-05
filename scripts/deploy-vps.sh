@@ -1,13 +1,40 @@
 #!/bin/bash
+# Frame24 - Deploy to VPS (production or staging)
+#
+# Configurable via env vars:
+#   VPS_IP            VPS hostname/IP (default: 174.138.79.19)
+#   VPS_USER          SSH user (default: root)
+#   REMOTE_DIR        Target directory on VPS (default: /opt/frame24)
+#   COMPOSE_FILE      Compose file to use (default: docker-compose.prod.yml)
+#   ENV_FILE_NAME     Env file to load on VPS (default: .env.production)
+#   SOURCE_DIR        Local source (default: repo root)
+#   SKIP_BUILD=1      Skip local docker-compose build (assume images exist)
+#   SKIP_SEED=1       Skip database seeding check
+#   SERVICES          comma-separated list of services to up (default: all)
+#   CONTAINER_PREFIX  Container name prefix used in health+psql checks (default: frame24)
+#
+# Usage:
+#   ./scripts/deploy-vps.sh
+#   REMOTE_DIR=/opt/frame24-preview ./scripts/deploy-vps.sh
+#   SKIP_SEED=1 SERVICES=api,web ./scripts/deploy-vps.sh
 set -euo pipefail
 
-VPS_IP="174.138.79.19"
-REMOTE_DIR="/opt/frame24"
-SSH_USER="root"
+VPS_IP="${VPS_IP:-174.138.79.19}"
+REMOTE_DIR="${REMOTE_DIR:-/opt/frame24}"
+SSH_USER="${VPS_USER:-root}"
+COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.prod.yml}"
+ENV_FILE_NAME="${ENV_FILE_NAME:-.env.production}"
+SOURCE_DIR="${SOURCE_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
+SKIP_BUILD="${SKIP_BUILD:-0}"
+SKIP_SEED="${SKIP_SEED:-0}"
+SERVICES="${SERVICES:-}"
+CONTAINER_PREFIX="${CONTAINER_PREFIX:-frame24}"
 SSH_OPTS="-o StrictHostKeyChecking=no -o ConnectTimeout=10"
 
 echo "============================================"
 echo "  Frame24 - Deploy to VPS ${VPS_IP}"
+echo "  Target: ${REMOTE_DIR}"
+echo "  Compose: ${COMPOSE_FILE}"
 echo "============================================"
 
 # 0. Verify SSH access
@@ -23,7 +50,7 @@ echo "    SSH access OK."
 echo ""
 echo ">>> [1/7] Setting up VPS..."
 
-ssh ${SSH_OPTS} ${SSH_USER}@${VPS_IP} bash -s <<'SETUP'
+ssh ${SSH_OPTS} ${SSH_USER}@${VPS_IP} bash -s <<SETUP
 set -e
 
 # Install Docker if not present
@@ -34,7 +61,7 @@ if ! command -v docker &>/dev/null; then
     systemctl start docker
     echo "    Docker installed."
 else
-    echo "    Docker already installed: $(docker --version)"
+    echo "    Docker already installed: \$(docker --version)"
 fi
 
 # Install docker compose plugin
@@ -51,7 +78,7 @@ if ! command -v rsync &>/dev/null; then
 fi
 
 # Create app directory
-mkdir -p /opt/frame24
+mkdir -p ${REMOTE_DIR}
 
 # Open firewall ports
 ufw allow 80/tcp 2>/dev/null || true
@@ -88,7 +115,7 @@ rsync -az --delete \
     --exclude='coverage' \
     --exclude='.vercel' \
     --exclude='apps/api/dist' \
-    /home/law/frame-24/ \
+    "${SOURCE_DIR}/" \
     ${SSH_USER}@${VPS_IP}:${REMOTE_DIR}/
 
 echo "    Files synced."
@@ -97,51 +124,17 @@ echo "    Files synced."
 echo ""
 echo ">>> [3/7] Setting up environment..."
 
-ssh ${SSH_OPTS} ${SSH_USER}@${VPS_IP} bash -s <<'ENVSETUP'
+ssh ${SSH_OPTS} ${SSH_USER}@${VPS_IP} bash -s <<ENVSETUP
 set -e
-cd /opt/frame24
+cd ${REMOTE_DIR}
 
-if [ ! -f .env.production ]; then
-    cat > .env.production <<'ENVEOF'
-# Frame24 Production Environment
-# ==========================================
-
-# Database
-POSTGRES_PASSWORD=frame24prod2026
-
-# Redis
-REDIS_PASSWORD=frame24redis2026
-
-# RabbitMQ
-RABBITMQ_PASSWORD=frame24rmq2026
-
-# API
-API_URL=http://174.138.79.19:4000
-FRONTEND_URL=http://174.138.79.19,http://174.138.79.19:3000,http://174.138.79.19:3004
-
-# Frontend env vars (baked at build time)
-NEXT_PUBLIC_API_URL=http://174.138.79.19:4000
-NEXT_PUBLIC_SOCKET_URL=http://174.138.79.19:4000
-NEXT_PUBLIC_AUTH_URL=http://174.138.79.19:4000
-NEXT_PUBLIC_TMDB_API_KEY=b7626214ac55a24c995e552f7940ee24
-
-# Auth secrets
-JWT_SECRET=frame24-prod-jwt-secret-k8x2m9p4q7r1t5w3
-BETTER_AUTH_SECRET=frame24-prod-auth-secret-v5n3j6h9w2y4m8k1
-BETTER_AUTH_URL=http://174.138.79.19:4000
-
-# MinIO Storage
-MINIO_ACCESS_KEY=frame24-storage-key
-MINIO_SECRET_KEY=frame24-storage-secret-2026
-STORAGE_PUBLIC_URL=http://174.138.79.19:9000
-
-# Email
-EMAIL_FROM=noreply@frame24.com.br
-RESEND_API_KEY=
-ENVEOF
-    echo "    Created .env.production"
+if [ ! -f ${ENV_FILE_NAME} ]; then
+    echo "ERROR: ${ENV_FILE_NAME} missing on VPS at ${REMOTE_DIR}."
+    echo "Create it locally and rsync won't override (it's gitignored)."
+    echo "Minimal template at .env.coolify.example in the repo."
+    exit 1
 else
-    echo "    .env.production already exists, keeping it."
+    echo "    ${ENV_FILE_NAME} exists, keeping it."
 fi
 
 ENVSETUP
@@ -150,46 +143,50 @@ ENVSETUP
 echo ""
 echo ">>> [4/7] Building Docker images (this takes 5-10 min)..."
 
-ssh ${SSH_OPTS} ${SSH_USER}@${VPS_IP} bash -s <<'BUILD'
+if [ "${SKIP_BUILD}" = "1" ]; then
+    echo "    SKIP_BUILD=1 set, skipping remote build."
+else
+ssh ${SSH_OPTS} ${SSH_USER}@${VPS_IP} bash -s <<BUILD
 set -e
-cd /opt/frame24
+cd ${REMOTE_DIR}
 
 # Load env
-set -a; source .env.production; set +a
+set -a; source ${ENV_FILE_NAME}; set +a
 
 echo "    Building API image..."
-docker compose -f docker-compose.prod.yml build api 2>&1 | grep -E "(DONE|ERROR|WARN|Step|Building|Successfully)" | tail -20
+docker compose -f ${COMPOSE_FILE} build api 2>&1 | grep -E "(DONE|ERROR|WARN|Step|Building|Successfully)" | tail -20
 
 echo ""
 echo "    Building Web image..."
-docker compose -f docker-compose.prod.yml build web 2>&1 | grep -E "(DONE|ERROR|WARN|Step|Building|Successfully)" | tail -20
+docker compose -f ${COMPOSE_FILE} build web 2>&1 | grep -E "(DONE|ERROR|WARN|Step|Building|Successfully)" | tail -20
 
 echo ""
 echo "    Building Admin image..."
-docker compose -f docker-compose.prod.yml build admin 2>&1 | grep -E "(DONE|ERROR|WARN|Step|Building|Successfully)" | tail -20
+docker compose -f ${COMPOSE_FILE} build admin 2>&1 | grep -E "(DONE|ERROR|WARN|Step|Building|Successfully)" | tail -20
 
 echo ""
 echo "    All images built."
 
 BUILD
+fi
 
 # 5. Start all services
 echo ""
 echo ">>> [5/7] Starting services..."
 
-ssh ${SSH_OPTS} ${SSH_USER}@${VPS_IP} bash -s <<'START'
+ssh ${SSH_OPTS} ${SSH_USER}@${VPS_IP} bash -s <<START
 set -e
-cd /opt/frame24
+cd ${REMOTE_DIR}
 
-set -a; source .env.production; set +a
+set -a; source ${ENV_FILE_NAME}; set +a
 
-docker compose -f docker-compose.prod.yml up -d
+docker compose -f ${COMPOSE_FILE} up -d ${SERVICES}
 
 echo ""
 echo "    Waiting for containers to start..."
 sleep 15
 
-docker compose -f docker-compose.prod.yml ps
+docker compose -f ${COMPOSE_FILE} ps
 
 START
 
@@ -197,77 +194,81 @@ START
 echo ""
 echo ">>> [6/7] Running migrations and seeding database..."
 
-ssh ${SSH_OPTS} ${SSH_USER}@${VPS_IP} bash -s <<'SEED'
+if [ "${SKIP_SEED}" = "1" ]; then
+    echo "    SKIP_SEED=1 set, skipping seed step."
+else
+ssh ${SSH_OPTS} ${SSH_USER}@${VPS_IP} bash -s <<SEED
 set -e
-cd /opt/frame24
+cd ${REMOTE_DIR}
 
 # Wait for API to be healthy (it runs migrations on startup)
 echo "    Waiting for API to complete migrations and start..."
-for i in $(seq 1 60); do
+for i in \$(seq 1 60); do
     if curl -sf http://localhost:4000/api/openapi.json > /dev/null 2>&1; then
-        echo "    API is healthy! (after ${i}0s)"
+        echo "    API is healthy! (after \${i}0s)"
         break
     fi
-    if [ $i -eq 60 ]; then
+    if [ \$i -eq 60 ]; then
         echo "    ERROR: API did not start within 10 minutes."
         echo "    Logs:"
-        docker compose -f docker-compose.prod.yml logs api --tail=30
+        docker compose -f ${COMPOSE_FILE} logs api --tail=30
         exit 1
     fi
-    echo "    Waiting... ($i/60)"
+    echo "    Waiting... (\$i/60)"
     sleep 10
 done
 
 # Check if data already exists
-RESULT=$(docker exec frame24-postgres psql -U frame24 -d frame24 -t -c "SELECT COUNT(*) FROM core.companies;" 2>/dev/null | tr -d ' ')
-COMPANY_COUNT=$(echo "$RESULT" | head -1 | tr -d '\n')
+RESULT=\$(docker exec ${CONTAINER_PREFIX}-postgres psql -U frame24 -d frame24 -t -c "SELECT COUNT(*) FROM core.companies;" 2>/dev/null | tr -d ' ')
+COMPANY_COUNT=\$(echo "\$RESULT" | head -1 | tr -d '\n')
 
-if [ "$COMPANY_COUNT" -gt "0" ] 2>/dev/null; then
-    echo "    Database already has data (companies: $COMPANY_COUNT). Skipping seed."
+if [ "\$COMPANY_COUNT" -gt "0" ] 2>/dev/null; then
+    echo "    Database already has data (companies: \$COMPANY_COUNT). Skipping seed."
 else
     echo "    Seeding database..."
 
     # Run setup-full inside API container
     echo "    [1/8] Running setup-full..."
-    docker exec frame24-api node dist/scripts/setup-full.js
+    docker exec ${CONTAINER_PREFIX}-api node dist/scripts/setup-full.js
 
     echo "    [2/8] Seeding languages..."
-    docker exec frame24-api node dist/scripts/seed-languages.js 2>/dev/null || echo "    (skipped or already exists)"
+    docker exec ${CONTAINER_PREFIX}-api node dist/scripts/seed-languages.js 2>/dev/null || echo "    (skipped or already exists)"
 
     echo "    [3/8] Seeding seat statuses..."
-    docker exec frame24-api node dist/scripts/seed-seat-status.js 2>/dev/null || echo "    (skipped or already exists)"
+    docker exec ${CONTAINER_PREFIX}-api node dist/scripts/seed-seat-status.js 2>/dev/null || echo "    (skipped or already exists)"
 
     echo "    [4/8] Seeding rooms and seats..."
-    docker exec frame24-api node dist/scripts/seed-room.js 2>/dev/null || echo "    (skipped or already exists)"
+    docker exec ${CONTAINER_PREFIX}-api node dist/scripts/seed-room.js 2>/dev/null || echo "    (skipped or already exists)"
 
     echo "    [5/8] Seeding products..."
-    docker exec frame24-api node dist/scripts/seed-products.js 2>/dev/null || echo "    (skipped or already exists)"
+    docker exec ${CONTAINER_PREFIX}-api node dist/scripts/seed-products.js 2>/dev/null || echo "    (skipped or already exists)"
 
     echo "    [6/8] Seeding POS lookups..."
-    docker exec frame24-api node dist/scripts/seed-pos.js 2>/dev/null || echo "    (skipped or already exists)"
+    docker exec ${CONTAINER_PREFIX}-api node dist/scripts/seed-pos.js 2>/dev/null || echo "    (skipped or already exists)"
 
     echo "    [7/8] Seeding sales lookups..."
-    docker exec frame24-api node dist/scripts/seed-sales-lookups.js 2>/dev/null || echo "    (skipped or already exists)"
+    docker exec ${CONTAINER_PREFIX}-api node dist/scripts/seed-sales-lookups.js 2>/dev/null || echo "    (skipped or already exists)"
 
     echo "    [8/8] Seeding showtimes..."
-    docker exec frame24-api node dist/scripts/seed-showtimes.js 2>/dev/null || echo "    (skipped or already exists)"
+    docker exec ${CONTAINER_PREFIX}-api node dist/scripts/seed-showtimes.js 2>/dev/null || echo "    (skipped or already exists)"
 
     echo ""
     echo "    Creating better-auth admin user..."
-    docker exec -e BETTER_AUTH_SECRET -e BETTER_AUTH_URL frame24-api node dist/scripts/create-betterauth-admin.js 2>/dev/null || echo "    (may already exist)"
+    docker exec -e BETTER_AUTH_SECRET -e BETTER_AUTH_URL ${CONTAINER_PREFIX}-api node dist/scripts/create-betterauth-admin.js 2>/dev/null || echo "    (may already exist)"
 
     echo "    Seed complete!"
 fi
 
 SEED
+fi
 
 # 7. Final status check
 echo ""
 echo ">>> [7/7] Final status check..."
 
-ssh ${SSH_OPTS} ${SSH_USER}@${VPS_IP} bash -s <<'STATUS'
+ssh ${SSH_OPTS} ${SSH_USER}@${VPS_IP} bash -s <<STATUS
 set -e
-cd /opt/frame24
+cd ${REMOTE_DIR}
 
 echo ""
 echo "    ============================================="
@@ -275,23 +276,23 @@ echo "    DEPLOY COMPLETE!"
 echo "    ============================================="
 echo ""
 echo "    Services:"
-docker compose -f docker-compose.prod.yml ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}" 2>/dev/null || docker compose -f docker-compose.prod.yml ps
+docker compose -f ${COMPOSE_FILE} ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}" 2>/dev/null || docker compose -f ${COMPOSE_FILE} ps
 echo ""
 echo "    URLs:"
-echo "      Public Web:  http://174.138.79.19:3000"
-echo "      Admin Panel: http://174.138.79.19:3004"
-echo "      API:         http://174.138.79.19:4000"
-echo "      API Docs:    http://174.138.79.19:4000/api/openapi.json"
-echo "      MinIO:       http://174.138.79.19:9001"
+echo "      Public Web:  http://${VPS_IP}:3000"
+echo "      Admin Panel: http://${VPS_IP}:3004"
+echo "      API:         http://${VPS_IP}:4000"
+echo "      API Docs:    http://${VPS_IP}:4000/api/openapi.json"
+echo "      MinIO:       http://${VPS_IP}:9001"
 echo ""
 echo "    Admin Login:"
 echo "      Email:    admin@lawtrel.com"
 echo "      Password: Admin@2026"
 echo ""
 echo "    Useful commands:"
-echo "      View logs:  ssh root@174.138.79.19 'cd /opt/frame24 && docker compose -f docker-compose.prod.yml logs -f'"
-echo "      Restart:    ssh root@174.138.79.19 'cd /opt/frame24 && docker compose -f docker-compose.prod.yml restart'"
-echo "      Stop:       ssh root@174.138.79.19 'cd /opt/frame24 && docker compose -f docker-compose.prod.yml down'"
+echo "      View logs:  ssh ${VPS_USER}@${VPS_IP} 'cd ${REMOTE_DIR} && docker compose -f ${COMPOSE_FILE} logs -f'"
+echo "      Restart:    ssh ${VPS_USER}@${VPS_IP} 'cd ${REMOTE_DIR} && docker compose -f ${COMPOSE_FILE} restart'"
+echo "      Stop:       ssh ${VPS_USER}@${VPS_IP} 'cd ${REMOTE_DIR} && docker compose -f ${COMPOSE_FILE} down'"
 echo ""
 
 STATUS
