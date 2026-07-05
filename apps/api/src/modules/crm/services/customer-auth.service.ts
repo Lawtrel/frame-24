@@ -239,10 +239,15 @@ export class CustomerAuthService {
       }
     }
 
+    const tenantSuffixEmail = toTenantAuthEmail(
+      company.tenant_slug,
+      normalizedSessionEmail,
+    );
+
     if (!customer) {
       const existingIdentity = await this.prisma.identities.findFirst({
         where: {
-          email: sessionAuthEmail,
+          email: tenantSuffixEmail,
           identity_type: 'CUSTOMER',
           active: true,
         },
@@ -253,7 +258,7 @@ export class CustomerAuthService {
         (await this.prisma.identities.create({
           data: {
             id: this.snowflake.generate(),
-            email: sessionAuthEmail,
+            email: tenantSuffixEmail,
             identity_type: 'CUSTOMER',
             active: true,
             email_verified: true,

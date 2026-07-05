@@ -180,7 +180,7 @@ cd ${REMOTE_DIR}
 
 set -a; source ${ENV_FILE_NAME}; set +a
 
-docker compose -f ${COMPOSE_FILE} up -d ${SERVICES}
+docker compose -f ${COMPOSE_FILE} up -d --force-recreate --remove-orphans ${SERVICES}
 
 echo ""
 echo "    Waiting for containers to start..."

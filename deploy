@@ -171,17 +171,19 @@ dim "Env file:      ${ENV_FILE_NAME}"
 [ "${DRY_RUN}" = "1" ]          && warn "DRY-RUN: nada será enviado"
 echo ""
 
-# Confirmar antes de atacar produção
+# Confirmar antes de atacar produção (só em modo interativo e sem --force-env)
 if [ "${ENV_TARGET}" = "prod" ] && [ "${DRY_RUN}" = "0" ]; then
-  if [ -t 0 ]; then
+  if [ -n "${FORCE_ENV}" ]; then
+    dim "Produção confirmada via --force-env, pulando prompt interativo."
+  elif [ -t 0 ]; then
     read -r -p "Deployar em PRODUÇÃO (${VPS_IP})? [y/N] " CONFIRM
     case "${CONFIRM:-n}" in
       y|Y|yes|YES) echo "" ;;
       *) err "Cancelado."; exit 1 ;;
     esac
   else
-    err "Deploy de produção em pipe/script requer --force-env=prod (não-interativo)."
-    err "Use: ./deploy prod --force-env=prod"
+    err "Deploy de produção em pipe/script requer interativo ou --force-env=prod."
+    err "Use: ./deploy prod"
     exit 2
   fi
 fi
@@ -281,6 +283,9 @@ fi
 echo ""
 step "Disparando scripts/deploy-vps.sh"
 
+# docker compose up -d espera nomes separados por espaço, não vírgula
+SERVICES_SANITIZED="$(echo "${SERVICES}" | tr ',' ' ')"
+
 VPS_IP="${VPS_IP}" \
 VPS_USER="${VPS_USER}" \
 REMOTE_DIR="${REMOTE_DIR}" \
@@ -288,7 +293,7 @@ COMPOSE_FILE="${COMPOSE_FILE}" \
 ENV_FILE_NAME="${ENV_FILE_NAME}" \
 CONTAINER_PREFIX="${CONTAINER_PREFIX}" \
 SKIP_SEED="${SKIP_SEED}" \
-SERVICES="${SERVICES}" \
+SERVICES="${SERVICES_SANITIZED}" \
   bash "${SCRIPT_DIR}/scripts/deploy-vps.sh"
 
 # ─── Reload nginx (se staging, copia conf; se prod, só reload) ───────

@@ -190,7 +190,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: frame24
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - frame-24_postgres_data:/var/lib/postgresql/data
     deploy:
       resources:
         limits:
@@ -236,7 +236,7 @@ services:
       - frame24-network
 
   rabbitmq:
-    image: rabbitmq:4-management-alpine
+    image: rabbitmq:4.2.4-management-alpine
     container_name: frame24-rabbitmq
     restart: unless-stopped
     environment:
@@ -314,7 +314,8 @@ services:
       - frame24-network
 
 volumes:
-  postgres_data:
+  frame-24_postgres_data:
+    external: true
   redis_data:
   rabbitmq_data:
   minio_data:
