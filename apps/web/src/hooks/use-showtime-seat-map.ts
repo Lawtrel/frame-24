@@ -159,6 +159,7 @@ export const useShowtimeSeatMap = (showtimeId: string) => {
         joinedRef.current = true;
         sock.emit("join-showtime", { showtime_id: showtimeId });
       } else if (!sock.connected) {
+        sock.connect();
         const onConnect = () => {
           if (!joinedRef.current) {
             joinedRef.current = true;

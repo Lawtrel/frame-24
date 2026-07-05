@@ -159,7 +159,7 @@ const validation = useMemo(
         className="w-full"
         disabled={!validation.isValid}
         onClick={() => {
-          startHold(8);
+          startHold(5);
           router.push(`${prefix}/compra/${session.id}`);
         }}
         size="lg"

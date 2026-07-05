@@ -18,34 +18,32 @@ export class StorageService implements OnModuleInit {
   private s3Client: S3Client;
 
   constructor(private readonly cls: ClsService) {
-    // Build endpoint URL
     const protocol = storageConfig.useSSL ? 'https' : 'http';
     const port = storageConfig.port;
 
-    // Supabase uses a specific S3 endpoint path
-    // Format: https://[project_ref].supabase.co/storage/v1/s3
     const isSupabase = storageConfig.endpoint.includes('supabase.co');
+    const isAWS = storageConfig.provider === 'aws';
     const endpointPath = isSupabase ? '/storage/v1/s3' : '';
-
-    // Only include port if it's not standard (80/443)
     const isStandardPort =
       (storageConfig.useSSL && port === 443) ||
       (!storageConfig.useSSL && port === 80);
     const portStr = isStandardPort ? '' : `:${port}`;
 
-    const endpoint = `${protocol}://${storageConfig.endpoint}${portStr}${endpointPath}`;
+    const endpoint = isAWS
+      ? undefined
+      : `${protocol}://${storageConfig.endpoint}${portStr}${endpointPath}`;
 
     this.s3Client = new S3Client({
-      endpoint,
+      ...(endpoint ? { endpoint } : {}),
       region: storageConfig.region || 'us-east-1',
       credentials: {
         accessKeyId: storageConfig.accessKey,
         secretAccessKey: storageConfig.secretKey,
       },
-      forcePathStyle: true, // Required for MinIO and Supabase
+      forcePathStyle: !isAWS,
     });
 
-    this.logger.log(`Storage client initialized with endpoint: ${endpoint}`);
+    this.logger.log(`Storage client initialized (provider=${storageConfig.provider})`);
   }
 
   async onModuleInit() {
@@ -84,7 +82,6 @@ export class StorageService implements OnModuleInit {
    */
   private async ensureBucket(): Promise<void> {
     try {
-      // Check if bucket exists
       await this.s3Client.send(
         new HeadBucketCommand({ Bucket: storageConfig.bucket }),
       );
@@ -92,41 +89,30 @@ export class StorageService implements OnModuleInit {
     } catch (error: unknown) {
       const errorMessage = this.getErrorMessage(error);
       if (this.isBucketNotFoundError(error)) {
-        // Bucket doesn't exist
-
-        // Only try to create bucket if using MinIO (typically localhost without SSL)
-        const isMinIO =
-          !storageConfig.useSSL &&
+        const canCreate =
+          storageConfig.provider === 'minio' ||
           (storageConfig.endpoint === 'localhost' ||
             storageConfig.endpoint === 'minio' ||
             storageConfig.endpoint.includes('127.0.0.1'));
 
-        if (isMinIO) {
+        if (canCreate) {
           try {
             await this.s3Client.send(
               new CreateBucketCommand({ Bucket: storageConfig.bucket }),
             );
-            this.logger.log(
-              `Bucket ${storageConfig.bucket} created successfully`,
-            );
+            this.logger.log(`Bucket ${storageConfig.bucket} created successfully`);
           } catch (createError: unknown) {
-            this.logger.warn(
-              `Could not create bucket ${storageConfig.bucket}: ${this.getErrorMessage(createError)}`,
-            );
+            this.logger.warn(`Could not create bucket ${storageConfig.bucket}: ${this.getErrorMessage(createError)}`);
           }
         } else {
-          // Supabase or other S3 services - bucket must be pre-created
           this.logger.warn(
             `Bucket ${storageConfig.bucket} does not exist. ` +
-              `For Supabase Storage, please create the bucket manually in the Supabase Dashboard. ` +
-              `File uploads will fail until the bucket is created.`,
+            `For AWS S3, create the bucket manually in the AWS Console. ` +
+            `File uploads will fail until the bucket is created.`,
           );
         }
       } else {
-        // Other error (permission, network, etc)
-        this.logger.warn(
-          `Unable to verify bucket ${storageConfig.bucket}: ${errorMessage}`,
-        );
+        this.logger.warn(`Unable to verify bucket ${storageConfig.bucket}: ${errorMessage}`);
       }
     }
   }
@@ -223,14 +209,16 @@ export class StorageService implements OnModuleInit {
    */
   private getPublicUrl(objectKey: string): string {
     if (storageConfig.publicUrl) {
-      // Ensure no trailing slash in publicUrl and no leading slash in objectKey
       const baseUrl = storageConfig.publicUrl.replace(/\/$/, '');
       const path = objectKey.replace(/^\//, '');
       return `${baseUrl}/${storageConfig.bucket}/${path}`;
     }
 
+    if (storageConfig.provider === 'aws') {
+      return `https://${storageConfig.bucket}.s3.${storageConfig.region || 'us-east-1'}.amazonaws.com/${objectKey}`;
+    }
+
     const protocol = storageConfig.useSSL ? 'https' : 'http';
-    // If port is standard (80 or 443), don't include it in the URL
     const isStandardPort =
       (storageConfig.useSSL && storageConfig.port === 443) ||
       (!storageConfig.useSSL && storageConfig.port === 80);
