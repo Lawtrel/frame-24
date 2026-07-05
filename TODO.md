@@ -25,24 +25,24 @@
 ## 🔄 In Progress / Next Steps
 
 ### Bug Fixes (From Original Requirements)
-- [ ] Fix seat reservation 5-min auto-release timeout
-- [ ] Fix ticket quantity off-by-one (0 shows 0, 1 shows 1)
-- [ ] Fix A1/A2 seats showing as "sold" (static data fallback)
-- [ ] Complete purchase flow (currently only reserves)
-- [ ] Real-time WebSocket seat updates (held status)
-- [ ] Remove static `buildSeats()` fallbacks from `data.ts` and `rule-engine.ts`
+- [x] Fix seat reservation 5-min auto-release timeout — `use-seat-reservation.ts` already has countdown + `release-seats` on expiry; `HoldCountdown` now fires `onExpired` to call `clearBooking()`
+- [x] Fix ticket quantity off-by-one (0 shows 0, 1 shows 1) — investigated: not a real bug. `setTicketQuantity` clamps with `Math.max(0, qty)` and display reads `ticketQuantities[code] ?? 0`. Behaviour is correct.
+- [x] Fix A1/A2 seats showing as "sold" (static data fallback) — `buildSeats()` does NOT exist in codebase. The "sold" appearance came from merge conflict leftovers in `platform-checkout-experience.tsx` (resolved) + redundant `mapSeatStatus`/`mapApiStatus` mappings (consolidated into single exported `mapSeatStatus`).
+- [x] Complete purchase flow (currently only reserves) — `PlatformCheckoutExperience.handleCheckout` now does checkout session → payment attempt → confirm reservation → redirect to `/pedido/{ref}`. Was already there but blocked by unresolved merge conflicts; now working.
+- [x] Real-time WebSocket seat updates (held status) — already implemented via `use-showtime-seat-map.ts` (`seats-reserved`/`seats-released`/`seats-confirmed` socket events with live overrides overlay) + `use-seat-reservation.ts` (reservation-* events).
+- [x] Remove static `buildSeats()` fallbacks from `data.ts` and `rule-engine.ts` — `buildSeats()` never existed in repo (TODO was stale). `data.ts` ships static cities/cinemas/movies/sessions/concessions for demo (with `seats: []` placeholder) but those are not seat fallbacks.
 
 ### Code Quality
-- [ ] Fix `SessionBookingPanel` seat label resolution (uses empty `session.seats`)
-- [ ] Fix `use-seat-reservation.ts` error handling
-- [ ] Fix `PlatformCheckoutExperience` / `CheckoutForm` completion flow
-- [ ] Ensure `mapSeatStatus` handles all API status values
+- [x] Fix `SessionBookingPanel` seat label resolution (uses empty `session.seats`) — `resolvedSeatLabels` falls back to `selectedSeatLabels[seatId] || seatId`. `LiveSeatMap`/`SeatMap` already call `toggleSeat(seat.id, seat.label)` so labels are captured. Plus `PlatformCheckoutExperience.resolvedSeatLabels` now also reads `showtimeDetails.seats[*].seat_code` for source-of-truth labels.
+- [x] Fix `use-seat-reservation.ts` error handling — `reservation-error`/`confirmation-error` already propagate to `reservation.error` state. `PlatformCheckoutExperience` now displays errors in a danger-styled box with icon; legacy fallback message when reservation is gone.
+- [x] Fix `PlatformCheckoutExperience` / `CheckoutForm` completion flow — 3 unresolved git merge conflict markers removed (`<<<<<<<`/`=======`/`>>>>>>>`) which were breaking the build; chose the `7689fe0` (custom auth) resolution while preserving `additional_value` pricing for total.
+- [x] Ensure `mapSeatStatus` handles all API status values — exported single `mapSeatStatus` (`lib/storefront/api.ts`) now covers: sold/vend, bloq, disabled, occup*, house_held, maintenance, reserv, reserved flag. `use-showtime-seat-map.ts` and `lib/storefront/api.ts` use the same function.
 
 ### Dev Experience
-- [ ] Create `DEVELOPMENT.md` with onboarding guide
-- [ ] Add GitHub Actions for auto-deploy on push to `preview/*` branches
-- [ ] Create staging subdomain for preview deployments
-- [ ] Document database backup/restore procedure
+- [x] Create `DEVELOPMENT.md` with onboarding guide (see `DEVELOPMENT.md`)
+- [x] Add GitHub Actions for auto-deploy on push to `preview/*` branches (see `.github/workflows/deploy-preview.yml`)
+- [x] Create staging subdomain for preview deployments (see `infra/nginx-staging.conf` + `docs/BACKUP.md`)
+- [x] Document database backup/restore procedure (see `docs/BACKUP.md`)
 
 ---
 
@@ -67,8 +67,8 @@
 1. **Admin 500 error** - Fixed by connecting nginx to correct network
 2. **API 502** - Fixed by correcting nginx upstream names
 3. **Login 401** - Fixed by running `create-betterauth-admin.js` seed
-4. **Static seat data** - A1/A2 show as sold due to `buildSeats()` fallback
-5. **Ticket counter** - Off-by-one bug in `use-booking-store.ts`
+4. ~~**Static seat data** - A1/A2 show as sold due to `buildSeats()` fallback~~ — Removed: `buildSeats()` never existed; real cause was unresolved merge markers in `platform-checkout-experience.tsx` (now resolved).
+5. ~~**Ticket counter** - Off-by-one bug in `use-booking-store.ts`~~ — Investigated; not a real bug. `setTicketQuantity` correctly clamps via `Math.max(0, qty)`.
 
 ---
 

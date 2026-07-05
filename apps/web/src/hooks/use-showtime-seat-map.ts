@@ -3,10 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { publicApi } from "@/lib/api-client";
+import { mapSeatStatus, mapSeatKind } from "@/lib/storefront/api";
 import { getSeatsSocket } from "@/lib/socket-client";
-import type { SeatKind, SeatNode, SeatStatus } from "@/types/storefront";
-
-const HOLD_DURATION_MS = 5 * 60 * 1000;
+import type { SeatNode, SeatStatus } from "@/types/storefront";
 
 interface RawSeat {
   id: string;
@@ -35,47 +34,17 @@ interface ShowtimeDetails {
   start_time?: string;
 }
 
-const mapApiStatus = (seat: RawSeat): SeatStatus => {
-  const s = (seat.status || "").toLowerCase();
-  if (s.includes("vend") || s.includes("sold")) return "sold";
-  if (s.includes("bloq")) return "sold";
-  if (seat.reserved || s.includes("reserv")) return "held";
-  return "available";
-};
-
-const mapApiKind = (seat: RawSeat): SeatKind => {
-  if (seat.seat_kind) {
-    const k = seat.seat_kind.toLowerCase();
-    if (["wheelchair", "companion", "reduced_mobility", "guide_dog", "premium_motion", "couple_left", "couple_right", "obese", "vip_recliner", "lounge"].includes(k)) {
-      return k as SeatKind;
-    }
-  }
-  if (seat.accessible) return "wheelchair";
-  const name = (seat.seat_type_name || "").toLowerCase();
-  if (name.includes("vip")) return "vip_recliner";
-  if (name.includes("casal")) return "couple_left";
-  if (name.includes("premium") || name.includes("d-box") || name.includes("motion")) return "premium_motion";
-  if (name.includes("lounge")) return "lounge";
-  if (name.includes("obeso") || name.includes("obese")) return "obese";
-  return "standard";
-};
-
 const toSeatNode = (seat: RawSeat): SeatNode => ({
   id: seat.id,
   label: seat.seat_code || `${seat.row_code}${seat.column_number}`,
   row: seat.row_code,
   number: seat.column_number,
-  status: mapApiStatus(seat),
-  seatKind: mapApiKind(seat),
+  status: mapSeatStatus(seat),
+  seatKind: mapSeatKind(seat),
   isAccessible: Boolean(seat.accessible),
   pricingZone: (seat.pricing_zone as SeatNode["pricingZone"]) ?? (Number(seat.additional_value || 0) > 0 ? "premium" : "standard"),
   premium: Number(seat.additional_value || 0) > 0,
 });
-
-interface SeatUpdate {
-  seatIds: string[];
-  type: "reserved" | "released" | "confirmed";
-}
 
 export const useShowtimeSeatMap = (showtimeId: string) => {
   const queryClient = useQueryClient();

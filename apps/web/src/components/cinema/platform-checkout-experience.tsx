@@ -183,16 +183,11 @@ export const PlatformCheckoutExperience = ({
 
   const resolvedSeatLabels = useMemo(() => {
     const ids = reservation.reservedSeatIds.length ? reservation.reservedSeatIds : selectedSeatIds;
-<<<<<<< HEAD
     return ids.map((seatId) => {
-      const seat = showtimeData?.seats?.find((item) => item.id === seatId);
-      return seat?.seat_code || seatId;
+      const seat = showtimeDetails?.seats?.find((item) => item.id === seatId);
+      return seat?.seat_code || selectedSeatLabels[seatId] || seatId;
     });
-  }, [reservation.reservedSeatIds, selectedSeatIds, showtimeData?.seats]);
-=======
-    return ids.map((seatId) => selectedSeatLabels[seatId] || seatId);
-  }, [reservation.reservedSeatIds, selectedSeatIds, selectedSeatLabels]);
->>>>>>> 7689fe0 (feat: remove better-auth, implement custom auth, and move CPF to checkout)
+  }, [reservation.reservedSeatIds, selectedSeatIds, selectedSeatLabels, showtimeDetails?.seats]);
 
   const total = useMemo(() => {
     if (!showtimeDetails) return 0;
@@ -201,13 +196,9 @@ export const PlatformCheckoutExperience = ({
 
     const ticketsTotal = seatAssignments.reduce((sum, assignment) => {
       const type = ticketTypes.find((item) => item.id === assignment.ticket_type);
-<<<<<<< HEAD
-      const seat = showtimeData.seats?.find((item) => item.id === assignment.seat_id);
-      const base = Number(showtimeData.base_ticket_price) + Number(seat?.additional_value || 0);
+      const seat = showtimeDetails?.seats?.find((item) => item.id === assignment.seat_id);
+      const base = basePrice + Number(seat?.additional_value || 0);
       return sum + base * Number(type?.priceModifier ?? 1);
-=======
-      return sum + basePrice * Number(type?.priceModifier ?? 1);
->>>>>>> 7689fe0 (feat: remove better-auth, implement custom auth, and move CPF to checkout)
     }, 0);
 
     const productsTotal = Object.entries(productQuantities).reduce((sum, [productId, quantity]) => {
@@ -270,17 +261,10 @@ export const PlatformCheckoutExperience = ({
         `${reservation.reservationUuid}-${selectedPaymentMethod}`,
       );
       const payment = paymentResponse.data as PaymentAttemptResponse;
-
-<<<<<<< HEAD
-      if (payment.status === "paid" && payment.sale_id) {
-        confirmReservation(payment.sale_id);
-=======
-      const payment = paymentResponse.data as unknown as PaymentAttemptResponse;
       if (payment.status === "paid") {
         if (payment.sale_id) {
           confirmReservation(payment.sale_id);
         }
->>>>>>> 7689fe0 (feat: remove better-auth, implement custom auth, and move CPF to checkout)
         clearBooking();
         router.push(`/pedido/${payment.public_reference || payment.sale_id}`);
         return;
@@ -352,10 +336,20 @@ export const PlatformCheckoutExperience = ({
             ))}
           </div>
           {reservation.error ? (
-            <p className="text-sm text-danger">{reservation.error}</p>
+            <div className="rounded-[var(--radius-md)] border border-danger/35 bg-danger/8 p-3">
+              <p className="inline-flex items-center gap-2 text-sm font-semibold text-danger">
+                <Icon name="error" size="sm" />
+                Erro: {reservation.error}
+              </p>
+            </div>
           ) : null}
-          {!reservation.reservationUuid ? (
-            <p className="text-sm text-foreground-muted">Reservando assentos no backend...</p>
+          {!reservation.reservationUuid && !reservation.isReserving ? (
+            <p className="text-sm text-foreground-muted">Reserva de assentos expirada ou perdida. Tente voltar e selecionar novamente.</p>
+          ) : reservation.isReserving ? (
+            <p className="inline-flex items-center gap-2 text-sm text-foreground-muted">
+              <div className="h-3 w-3 animate-spin rounded-full border border-border border-t-accent-red-500" />
+              Reservando assentos...
+            </p>
           ) : null}
         </Card>
       </section>

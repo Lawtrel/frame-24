@@ -116,7 +116,7 @@ export const RecommendationChat = () => {
             className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-accent-red-500 text-white shadow-[0_8px_24px_rgba(229,57,53,0.35)] hover:bg-accent-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-red-500/60"
             initial={reduceMotion ? false : { opacity: 0, scale: 0.6 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={reduceMotion ? false : { opacity: 0, scale: 0.6 }}
+            exit={reduceMotion ? undefined : { opacity: 0, scale: 0.6 }}
             transition={{ duration: 0.22, ease: [0.2, 0, 0, 1] }}
             whileHover={reduceMotion ? {} : { scale: 1.08 }}
             whileTap={reduceMotion ? {} : { scale: 0.94 }}
@@ -131,9 +131,9 @@ export const RecommendationChat = () => {
         {isOpen && (
           <motion.div
             key="chat-panel"
-            initial={reduceMotion ? false : { opacity: 0, y: 24, scale: 0.96 }}
+            initial={reduceMotion ? undefined : { opacity: 0, y: 24, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={reduceMotion ? false : { opacity: 0, y: 16, scale: 0.96 }}
+            exit={reduceMotion ? undefined : { opacity: 0, y: 16, scale: 0.96 }}
             transition={{ duration: 0.22, ease: [0.2, 0, 0, 1] }}
             className="fixed bottom-6 right-6 z-50 flex w-[calc(100vw-2rem)] max-w-[400px] flex-col rounded-[var(--radius-lg)] border border-border/90 bg-background-elevated/96 shadow-[0_16px_48px_rgba(0,0,0,0.3)] backdrop-blur-xl"
             style={{ maxHeight: "min(600px, calc(100vh - 4rem))" }}

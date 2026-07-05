@@ -17,6 +17,7 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 type PaymentData = {
   pix_qr_code?: string;
   pix_copy_paste?: string;
+  client_secret?: string | null;
 };
 
 type PaymentAttempt = {

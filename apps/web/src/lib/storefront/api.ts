@@ -47,17 +47,37 @@ const timeFromIso = (value: unknown, timeZone = DEFAULT_APP_TIMEZONE) => {
   return formatTimeInTimeZone(raw, timeZone);
 };
 
-const mapSeatStatus = (seat: ApiRecord): SeatNode["status"] => {
-  const status = asString(seat.status).toLowerCase();
+export const mapSeatStatus = (seat: ApiRecord | unknown): SeatNode["status"] => {
+  const record = seat && typeof seat === "object" ? seat as ApiRecord : {};
+  const status = asString(record.status).toLowerCase();
   if (status.includes("vend") || status.includes("sold")) return "sold";
-  if (status.includes("reserv") || Boolean(seat.reserved)) return "held";
-  if (status.includes("bloq")) return "sold";
+  if (status.includes("bloq") || status.includes("disabled") || status.includes("occup")) return "sold";
+  if (status.includes("house_held") || status.includes("maintenance")) return "sold";
+  if (status.includes("reserv") || Boolean(record.reserved)) return "held";
   return "available";
 };
 
-const mapSeatKind = (value: unknown): SeatKind => {
-  const raw = asString(value, "standard") as SeatKind;
-  return raw || "standard";
+export const mapSeatKind = (seat: unknown): SeatKind => {
+  const apiRecord = seat && typeof seat === "object" && !Array.isArray(seat) ? seat as ApiRecord : {};
+  const seatKind = asString(apiRecord.seat_kind).toLowerCase();
+  if (seatKind) {
+    const validKinds: SeatKind[] = [
+      "standard", "wheelchair", "companion", "reduced_mobility",
+      "guide_dog", "premium_motion", "couple_left", "couple_right",
+      "obese", "vip_recliner", "lounge",
+    ];
+    if (validKinds.find((vk) => vk === seatKind)) {
+      return seatKind as SeatKind;
+    }
+  }
+  if (Boolean(apiRecord.accessible)) return "wheelchair";
+  const name = asString(apiRecord.seat_type_name, "").toLowerCase();
+  if (name.includes("vip")) return "vip_recliner";
+  if (name.includes("casal")) return "couple_left";
+  if (name.includes("premium") || name.includes("d-box") || name.includes("motion")) return "premium_motion";
+  if (name.includes("lounge")) return "lounge";
+  if (name.includes("obeso") || name.includes("obese")) return "obese";
+  return "standard";
 };
 
 export const toCity = (input: unknown): City => {

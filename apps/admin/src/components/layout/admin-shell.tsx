@@ -3,7 +3,7 @@
 import { Sidebar } from "@/components/layout/sidebar";
 import { authClient } from "@/lib/auth-client";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

@@ -1,0 +1,202 @@
+name: Deploy Preview (staging)
+
+# Builda a stack de preview e sobe na VPS em /opt/frame24-preview/
+# Subdomínio de staging: staging.lawtrel.dev (web), staging-admin.lawtrel.dev (admin),
+# staging-api.lawtrel.dev (api). Recarrega nginx.
+#
+# Pode ser disparado manualmente via workflow_dispatch.
+
+on:
+  push:
+    branches:
+      - 'preview/**'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch/SHA para deployar (default: a branch atual)'
+        required: false
+        default: ''
+
+concurrency:
+  group: deploy-preview-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}/frame24
+
+jobs:
+  build-push:
+    name: Build & push imagens
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      sha_tag: ${{ steps.meta.outputs.sha_tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Login no GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Git SHA short
+        id: meta
+        run: |
+          echo "sha_tag=sha-$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          echo "branch_tag=branch-${GITHUB_REF_NAME//\//-}" >> "$GITHUB_OUTPUT"
+
+      - name: Build & push API
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-api:preview
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-api:${{ steps.meta.outputs.sha_tag }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-api:${{ steps.meta.outputs.branch_tag }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-api:preview
+          cache-to: type=inline
+
+      - name: Build & push Web
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web/dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-web:preview
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-web:${{ steps.meta.outputs.sha_tag }}
+          build-args: |
+            NEXT_PUBLIC_API_URL=https://staging-api.lawtrel.dev
+            NEXT_PUBLIC_SOCKET_URL=https://staging-api.lawtrel.dev
+            NEXT_PUBLIC_AUTH_URL=https://staging-api.lawtrel.dev
+            NEXT_PUBLIC_TENANT_BASE_DOMAIN=lawtrel.dev
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-web:preview
+          cache-to: type=inline
+
+      - name: Build & push Admin
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/admin/dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-admin:preview
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-admin:${{ steps.meta.outputs.sha_tag }}
+          build-args: |
+            NEXT_PUBLIC_API_URL=https://staging-api.lawtrel.dev
+            NEXT_PUBLIC_AUTH_URL=https://staging-api.lawtrel.dev
+            NEXT_PUBLIC_TENANT_BASE_DOMAIN=lawtrel.dev
+            NEXT_PUBLIC_DEFAULT_TENANT_SLUG=lawtrel-admin
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-admin:preview
+          cache-to: type=inline
+
+  deploy-vps:
+    name: Deploy na VPS (staging)
+    needs: build-push
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Sync repo + override de preview
+        run: |
+          rsync -az --delete \
+            --exclude='node_modules' \
+            --exclude='.next' \
+            --exclude='dist' \
+            --exclude='.turbo' \
+            --exclude='.git' \
+            --exclude='.env' \
+            --exclude='.env.local' \
+            --exclude='.env.remote' \
+            ./ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/frame24-preview/
+
+      - name: Pull imagens + suba stack staging
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} bash -s <<'REMOTE'
+          set -euo pipefail
+          cd /opt/frame24-preview
+
+          if [ ! -f .env.production ]; then
+            echo "ERROR: .env.production precisa existir em /opt/frame24-preview/.env.production"
+            exit 1
+          fi
+
+          set -a; source .env.production; set +a
+
+          # Override de tags: sempre puxa a preview
+          export API_IMAGE=ghcr.io/${{ github.repository_owner }}/frame24-api:preview
+          export WEB_IMAGE=ghcr.io/${{ github.repository_owner }}/frame24-web:preview
+          export ADMIN_IMAGE=ghcr.io/${{ github.repository_owner }}/frame24-admin:preview
+
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin 2>/dev/null \
+            || docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin <<< "$GHCR_TOKEN"
+
+          docker compose -f docker-compose.prod.yml pull api web admin
+          docker compose -f docker-compose.prod.yml up -d --remove-orphans api web admin
+
+          # Espera health
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:4000/api/openapi.json >/dev/null 2>&1; then
+              echo "API staging OK"
+              break
+            fi
+            sleep 5
+          done
+          REMOTE
+
+      - name: Recarrega nginx para staging
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} bash -s <<'REMOTE'
+          set -euo pipefail
+          # Coloca o arquivo de staging no conf.d se ainda não existir.
+          if [ ! -f /opt/frame24-preview/infra/nginx-staging.conf ]; then
+            echo "AVISO: arquivo infra/nginx-staging.conf não existe. Subdomínios de staging não configurados."
+          fi
+          cp -f /opt/frame24-preview/infra/nginx-staging.conf /etc/nginx/conf.d/staging.conf 2>/dev/null || true
+          docker exec frame24-nginx nginx -t && docker exec frame24-nginx nginx -s reload || true
+          REMOTE
+
+      - name: Notifica (opcional)
+        if: always() && env.N8N_WEBHOOK_URL != ''
+        env:
+          N8N_WEBHOOK_URL: ${{ secrets.N8N_WEBHOOK_URL }}
+        run: |
+          curl -sf -X POST "$N8N_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "{\"event\":\"deploy-preview\",\"ref\":\"$GITHUB_REF\",\"status\":\"$GITHUB_JOB_STATUS\",\"repo\":\"$GITHUB_REPOSITORY\"}" || true

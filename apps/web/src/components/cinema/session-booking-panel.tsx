@@ -43,6 +43,7 @@ export const SessionBookingPanel = ({
   fiscalCpf,
   setSession,
   startHold,
+  clearBooking,
   } = useBookingStore();
 
   useEffect(() => {
@@ -101,7 +102,7 @@ const validation = useMemo(
           </figure>
         )}
       </div>
-      <HoldCountdown expiresAt={holdExpiresAt} />
+      <HoldCountdown expiresAt={holdExpiresAt} onExpired={clearBooking} />
       <div className="rounded-[var(--radius-md)] border border-border p-4">
         <p className="text-sm text-foreground-muted">Ingressos</p>
         <p className="mt-2 text-lg font-semibold">{totalTickets}</p>

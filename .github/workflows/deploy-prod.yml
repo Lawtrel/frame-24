@@ -1,0 +1,192 @@
+name: Deploy Production
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}/frame24
+
+jobs:
+  ci-gate:
+    name: CI gate (garante build limpo)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - working-directory: packages/db
+        env:
+          DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
+          DIRECT_URL: postgresql://dummy:dummy@localhost:5432/dummy
+        run: |
+          pnpm run db:generate
+          pnpm run build
+      - run: pnpm lint
+      - run: pnpm check-types
+      - run: pnpm build
+        env:
+          DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
+          DIRECT_URL: postgresql://dummy:dummy@localhost:5432/dummy
+
+  build-push:
+    name: Build & push imagens
+    needs: ci-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login no GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Meta
+        id: meta
+        run: |
+          if [ -n "${GITHUB_REF_NAME#v}" ] && [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+          fi
+          echo "sha_tag=sha-$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Build & push API
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-api:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-api:${{ steps.meta.outputs.tag }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-api:${{ steps.meta.outputs.sha_tag }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-api:latest
+          cache-to: type=inline
+
+      - name: Build & push Web
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web/dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-web:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-web:${{ steps.meta.outputs.tag }}
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ secrets.PROD_NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_SOCKET_URL=${{ secrets.PROD_NEXT_PUBLIC_SOCKET_URL }}
+            NEXT_PUBLIC_AUTH_URL=${{ secrets.PROD_NEXT_PUBLIC_AUTH_URL }}
+            NEXT_PUBLIC_TENANT_BASE_DOMAIN=lawtrel.dev
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-web:latest
+          cache-to: type=inline
+
+      - name: Build & push Admin
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/admin/dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-admin:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-admin:${{ steps.meta.outputs.tag }}
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ secrets.PROD_NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_AUTH_URL=${{ secrets.PROD_NEXT_PUBLIC_AUTH_URL }}
+            NEXT_PUBLIC_TMDB_API_KEY=${{ secrets.PROD_NEXT_PUBLIC_TMDB_API_KEY }}
+            NEXT_PUBLIC_TENANT_BASE_DOMAIN=lawtrel.dev
+            NEXT_PUBLIC_DEFAULT_TENANT_SLUG=lawtrel-admin
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-admin:latest
+          cache-to: type=inline
+
+  deploy-vps:
+    name: Deploy na VPS (produção)
+    needs: build-push
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Sync repo
+        run: |
+          rsync -az --delete \
+            --exclude='node_modules' \
+            --exclude='.next' \
+            --exclude='dist' \
+            --exclude='.turbo' \
+            --exclude='.git' \
+            --exclude='.env' \
+            --exclude='.env.local' \
+            --exclude='.env.remote' \
+            --exclude='*.pem' \
+            ./ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/frame24/
+
+      - name: Pull + restart stack de produção
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} bash -s <<'REMOTE'
+          set -euo pipefail
+          cd /opt/frame24
+          [ -f .env.production ] || { echo "ERROR: .env.production missing"; exit 1; }
+          set -a; source .env.production; set +a
+
+          # Login GHCR
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin 2>/dev/null \
+            || docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin <<< "$GHCR_TOKEN"
+
+          docker compose -f docker-compose.prod.yml pull api web admin
+          docker compose -f docker-compose.prod.yml up -d --remove-orphans api web admin
+
+          # Espera API subir
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:4000/api/openapi.json >/dev/null 2>&1; then
+              echo "API UP após $((i*10))s"
+              break
+            fi
+            [ $i -eq 60 ] && { echo "API FAILED"; docker compose -f docker-compose.prod.yml logs api --tail=30; exit 1; }
+            sleep 10
+          done
+          REMOTE
+
+      - name: Reload nginx
+        run: ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'docker exec frame24-nginx nginx -t && docker exec frame24-nginx nginx -s reload'
+
+      - name: Health check pós-deploy
+        run: |
+          for i in $(seq 1 12); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://api.lawtrel.dev/api/openapi.json || true)
+            if [ "$STATUS" = "200" ]; then echo "✓ API produção saudável"; exit 0; fi
+            sleep 10
+          done
+          echo "FAIL: api produção não respondeu 200"
+          exit 1

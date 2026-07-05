@@ -1,12 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/ui/icon";
 
-export const HoldCountdown = ({ expiresAt }: { expiresAt: number | null }) => {
+export const HoldCountdown = ({
+  expiresAt,
+  onExpired,
+}: {
+  expiresAt: number | null;
+  onExpired?: () => void;
+}) => {
   const [remaining, setRemaining] = useState(() =>
     expiresAt ? Math.max(0, expiresAt - Date.now()) : 0,
   );
+  const expiredRef = useRef(false);
 
   useEffect(() => {
     if (!expiresAt) {
@@ -14,13 +21,18 @@ export const HoldCountdown = ({ expiresAt }: { expiresAt: number | null }) => {
     }
 
     const tick = () => {
-      setRemaining(Math.max(0, expiresAt - Date.now()));
+      const diff = Math.max(0, expiresAt - Date.now());
+      setRemaining(diff);
+      if (diff <= 0 && !expiredRef.current) {
+        expiredRef.current = true;
+        onExpired?.();
+      }
     };
 
     tick();
     const interval = window.setInterval(tick, 1000);
     return () => window.clearInterval(interval);
-  }, [expiresAt]);
+  }, [expiresAt, onExpired]);
 
   const label = useMemo(() => {
     const totalSeconds = Math.floor(remaining / 1000);

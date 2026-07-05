@@ -18,21 +18,23 @@ function isValidCPF(cpf: string): boolean {
   if (numbers.length !== 11) return false;
   if (/^(\d)\1{10}$/.test(numbers)) return false;
 
+  const digitAt = (i: number): number => parseInt(numbers[i] ?? "0", 10) || 0;
+
   let sum = 0;
   for (let i = 0; i < 9; i++) {
-    sum += parseInt(numbers[i]) * (10 - i);
+    sum += digitAt(i) * (10 - i);
   }
   let remainder = (sum * 10) % 11;
   if (remainder === 10) remainder = 0;
-  if (remainder !== parseInt(numbers[9])) return false;
+  if (remainder !== digitAt(9)) return false;
 
   sum = 0;
   for (let i = 0; i < 10; i++) {
-    sum += parseInt(numbers[i]) * (11 - i);
+    sum += digitAt(i) * (11 - i);
   }
   remainder = (sum * 10) % 11;
   if (remainder === 10) remainder = 0;
-  if (remainder !== parseInt(numbers[10])) return false;
+  if (remainder !== digitAt(10)) return false;
 
   return true;
 }
@@ -135,6 +137,7 @@ export default function RegisterPage({
     full_name: "",
     email: "",
     phone: "",
+    cpf: "",
     birthdate: "",
     password: "",
     confirmPassword: "",
