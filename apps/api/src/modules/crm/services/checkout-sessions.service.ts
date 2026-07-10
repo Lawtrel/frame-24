@@ -68,6 +68,7 @@ export class CheckoutSessionsService {
     );
     const tickets = await this.normalizeTickets(
       context.companyId,
+      context.customerId,
       dto.showtime_id,
       dto.reservation_uuid,
       dto.tickets,
@@ -153,6 +154,7 @@ export class CheckoutSessionsService {
 
     const tickets = await this.normalizeTickets(
       context.companyId,
+      context.customerId,
       current.showtime_id,
       current.reservation_uuid,
       ticketInputs,
@@ -560,6 +562,7 @@ export class CheckoutSessionsService {
 
   private async normalizeTickets(
     companyId: string,
+    customerId: string,
     showtimeId: string,
     reservationUuid: string,
     tickets: CheckoutTicketInput[],
@@ -577,12 +580,13 @@ export class CheckoutSessionsService {
         reservation_uuid: reservationUuid,
         sale_id: null,
         expiration_date: { gt: new Date() },
+        OR: [{ customer_id: null }, { customer_id: customerId }],
       },
     });
 
     if (reservations.length !== seatIds.length) {
       throw new ConflictException(
-        'Reserva expirada, incompleta ou pertencente a outro checkout.',
+        'Reserva expirada, incompleta, pertencente a outro checkout ou a outro cliente.',
       );
     }
 

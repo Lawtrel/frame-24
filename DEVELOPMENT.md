@@ -204,29 +204,51 @@ O script **`./deploy`** na raiz compila localmente (lint, check-types, build), d
 ambiente pela branch atual, sincroniza o código para a VPS, builda as imagens Docker
 remotamente e sobe os containers.
 
-```bash
-# Produção (branch main)
-./deploy
-pnpm deploy                  # alias no package.json
+### Ambientes
 
-# Staging (branch preview/*)
-./deploy staging
-pnpm deploy:staging
+| Ambiente    | Branch              | Diretório VPS           | Containers                       | Domínios                                  | Compose                       | Env file          | Database          |
+| ----------- | ------------------- | ----------------------- | -------------------------------- | ----------------------------------------- | ----------------------------- | ----------------- | ----------------- |
+| **prod**    | `main` / `v*`       | `/opt/frame24`          | `frame24-api/web/admin` (+ nginx)| `lawtrel.dev` / `admin.lawtrel.dev` / `api.lawtrel.dev` | `docker-compose.prod.yml`     | `.env`            | `frame24`         |
+| **staging** | `staging`           | `/opt/frame24-staging`  | `frame24-staging-api/web/admin`  | `test.lawtrel.dev` / `test-admin.lawtrel.dev`           | `docker-compose.staging.yml`  | `.env.staging`    | `frame24_staging` |
+
+- Staging **reusa** os mesmos containers de infraestrutura do prod (postgres, redis,
+  rabbitmq, minio, nginx). Só sobe 3 containers: `frame24-staging-api`, `frame24-staging-web`,
+  `frame24-staging-admin`.
+- Banco: o mesmo container `frame24-postgres` hospeda os databases `frame24` (prod) e
+  `frame24_staging` (staging). Isolamento total de dados.
+- Redis: staging usa `REDIS_DB=1` (prod usa `REDIS_DB=0`) — sem colisão de chaves.
+
+### Uso
+
+```bash
+# Staging (branch staging)
+git checkout staging
+./deploy                    # detecta staging automaticamente
+./deploy staging            # explícito
+
+# Produção (branch main ou tags v*)
+git checkout main
+./deploy                    # detecta prod, pede confirmação
+./deploy prod              # explícito (também pede confirmação interativa)
+./deploy prod --skip-seed  # pula seed
 
 # Dry-run (mostra o que faria, não envia)
 ./deploy --dry-run
-pnpm deploy:dry
+
+# Só alguns serviços
+./deploy --services api,web
 ```
 
 ### Opções
 
 | Flag               | Efeito                                                        |
 | -------------------| ------------------------------------------------------------ |
-| `staging`          | Força deploy em staging (`/opt/frame24-preview/`)             |
-| `prod`             | Força deploy em produção (`/opt/frame24/`)                    |
+| `staging`          | Força deploy em staging (`/opt/frame24-staging/`)            |
+| `prod`             | Força deploy em produção (`/opt/frame24/`)                   |
 | `--skip-build`     | Pula o gate de build/lint local (**use só em emergência**)    |
 | `--skip-seed`      | Pula seed do banco no destino                                  |
 | `--services a,b`   | Só sobe os serviços listados (ex: `--services api,web`)       |
+| `--force-env=ENV`  | Sobrescreve decisão de branch (staging|prod)                  |
 | `--dry-run`        | Não envia nada, só valida e mostra o plano                     |
 | `--help`           | Ajuda completa                                                |
 
@@ -235,25 +257,46 @@ pnpm deploy:dry
 | Branch atual       | Ambiente         | Destino VPS           | Containers                |
 | ------------------ | ---------------- | --------------------- | ------------------------- |
 | `main`             | **produção**     | `/opt/frame24`        | `frame24-api/web/admin`   |
-| `preview/*`        | **staging**      | `/opt/frame24-preview`| `frame24-preview-api/web/admin` |
+| `v*` (tag release) | **produção**     | `/opt/frame24`        | `frame24-api/web/admin`   |
+| `staging`          | **staging**      | `/opt/frame24-staging`| `frame24-staging-api/web/admin` |
 | qualquer outra     | **ERRA**         | –                     | – (use `./deploy staging` ou `prod` explicitamente) |
 
 ### Pré-requisitos
 
 - Chave SSH autorizada para `root@174.138.79.19`
-- `.env.production` **já deve existir** na VPS em `/opt/frame24/.env.production` (o script não cria)
-- Template de referência: `.env.coolify.example` na raiz do repo
+- Em **prod**: `/opt/frame24/.env` já deve existir (script não cria)
+- Em **staging**: `/opt/frame24-staging/.env.staging` já deve existir (script não cria)
+- Para criar `.env.staging` do zero, copie do prod e ajuste URLs:
+  ```bash
+  ssh root@174.138.79.19 'mkdir -p /opt/frame24-staging && \
+    cp /opt/frame24/.env /opt/frame24-staging/.env.staging && \
+    cd /opt/frame24-staging && \
+    sed -i "s|api.lawtrel.dev|test.lawtrel.dev|g; \
+            s|lawtrel.dev,https://www.lawtrel.dev|test.lawtrel.dev|g; \
+            s|frame24-prod-jwt-secret|frame24-staging-jwt-secret|g; \
+            s|frame24-prod-better-auth|frame24-staging-better-auth|g; \
+            s|/frame24?schema|/frame24_staging?schema|g" .env.staging'
+  ```
 
 ### Fluxo completo
 
 1. **Gate local** — roda `pnpm lint`, `pnpm check-types`, `pnpm build` (falha = para)
-2. **Decisão** — detecta branch atual → production (`main`) ou staging (`preview/*`)
-3. **Confirmação** — prompt interativo para deploy de produção (de staging não pede)
+2. **Decisão** — detecta branch atual → production (`main`/`v*`) ou staging (`staging`)
+3. **Confirmação** — prompt interativo para deploy de produção (staging não pede)
 4. **Sincronização** — `rsync` do código fonte (exclui node_modules, .next, etc.)
 5. **Build remoto** — `docker compose build api web admin` na VPS
-6. **Up** — `docker compose up -d`
+6. **Up** — `docker compose up -d` (recria containers com `--force-recreate --remove-orphans`)
 7. **Seed** — verifica se DB tem dados; se vazio, roda scripts de seed
 8. **Staging extra** — copia `infra/nginx-staging.conf` para o nginx e recarrega
+
+### Workflow recomendado para a equipe
+
+1. Desenvolvedor cria branch `feature/foo` a partir de `main`
+2. Abre PR → `main` (CI roda lint + check-types + build)
+3. Você revisa o PR → merge em `staging` (não em `main` direto)
+4. `./deploy staging` sobe o staging com o novo código
+5. Homologa em `test.lawtrel.dev` e `test-admin.lawtrel.dev`
+6. Quando aprovado, faz merge de `staging` → `main` e roda `./deploy prod`
 
 ---
 

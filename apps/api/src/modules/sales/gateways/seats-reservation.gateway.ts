@@ -35,17 +35,20 @@ interface SeatReservation {
   socket_id: string;
   reservation_uuid: string;
   user_id?: string;
+  customer_id?: string;
   company_id: string;
 }
 
 interface SocketAuthContext {
   userId: string;
   companyId: string;
+  customerId?: string;
 }
 
 interface SocketUserContext {
   sub: string;
   company_id: string;
+  customer_id?: string;
   tenant_slug?: string;
 }
 
@@ -114,6 +117,7 @@ export class SeatsReservationGateway
       return {
         sub: userId,
         company_id: payload.company_id,
+        customer_id: payload.customer_id,
         tenant_slug: payload.tenant_slug,
       };
     }
@@ -193,9 +197,13 @@ export class SeatsReservationGateway
     );
 
     if (identity?.id && companyUser?.company_id) {
+      const linkedCustomerId = await this.resolveCustomerIdForIdentity(
+        identity.id,
+      );
       return {
         sub: identity.id,
         company_id: companyUser.company_id,
+        customer_id: linkedCustomerId,
         tenant_slug: companyUser.companies?.tenant_slug,
       };
     }
@@ -244,6 +252,7 @@ export class SeatsReservationGateway
     return {
       sub: identity.id,
       company_id: company.id,
+      customer_id: customer?.id,
       tenant_slug: company.tenant_slug,
     };
   }
@@ -387,10 +396,24 @@ export class SeatsReservationGateway
     // A limpeza automática cuidará das expirações
   }
 
+  private async resolveCustomerIdForIdentity(
+    identityId: string,
+  ): Promise<string | undefined> {
+    const customer = await this.prisma.customers.findFirst({
+      where: {
+        identity_id: identityId,
+        active: true,
+        blocked: false,
+      },
+      select: { id: true },
+    });
+    return customer?.id;
+  }
+
   private getSocketAuthContext(client: Socket): SocketAuthContext {
     const socketData = client.data as { user?: SocketUserContext };
     const user = socketData.user as
-      | { sub?: string; company_id?: string }
+      | { sub?: string; company_id?: string; customer_id?: string }
       | undefined;
 
     if (!user?.sub || !user.company_id) {
@@ -400,6 +423,7 @@ export class SeatsReservationGateway
     return {
       userId: user.sub,
       companyId: user.company_id,
+      customerId: user.customer_id,
     };
   }
 
@@ -618,6 +642,7 @@ export class SeatsReservationGateway
               reservation_uuid: reservationUuid,
               reservation_date: new Date(),
               expiration_date: expiresAt,
+              ...(auth.customerId && { customer_id: auth.customerId }),
             },
           });
 
@@ -646,6 +671,7 @@ export class SeatsReservationGateway
         socket_id: client.id,
         reservation_uuid: reservationUuid,
         user_id: auth.userId,
+        customer_id: auth.customerId,
         company_id: auth.companyId,
       };
       this.reservations.set(reservationUuid, createdReservation);

@@ -24,11 +24,13 @@ REMOTE_DIR="${REMOTE_DIR:-/opt/frame24}"
 SSH_USER="${VPS_USER:-root}"
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.prod.yml}"
 ENV_FILE_NAME="${ENV_FILE_NAME:-.env.production}"
+DATABASE_NAME="${DATABASE_NAME:-frame24}"
 SOURCE_DIR="${SOURCE_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 SKIP_BUILD="${SKIP_BUILD:-0}"
 SKIP_SEED="${SKIP_SEED:-0}"
 SERVICES="${SERVICES:-}"
 CONTAINER_PREFIX="${CONTAINER_PREFIX:-frame24}"
+POSTGRES_CONTAINER="${POSTGRES_CONTAINER:-frame24-postgres}"
 SSH_OPTS="-o StrictHostKeyChecking=no -o ConnectTimeout=10"
 
 echo "============================================"
@@ -102,7 +104,6 @@ echo ">>> [2/7] Syncing project files to VPS..."
 rsync -az --delete \
     --exclude='node_modules' \
     --exclude='.next' \
-    --exclude='dist' \
     --exclude='.turbo' \
     --exclude='.git' \
     --exclude='.env' \
@@ -110,11 +111,13 @@ rsync -az --delete \
     --exclude='.env.development.local' \
     --exclude='.env.test.local' \
     --exclude='.env.production.local' \
+    --exclude='.env.staging' \
+    --exclude='.env.staging.local' \
+    --exclude='.env.production' \
     --exclude='*.pem' \
     --exclude='.DS_Store' \
     --exclude='coverage' \
     --exclude='.vercel' \
-    --exclude='apps/api/dist' \
     "${SOURCE_DIR}/" \
     ${SSH_USER}@${VPS_IP}:${REMOTE_DIR}/
 
@@ -154,15 +157,15 @@ cd ${REMOTE_DIR}
 set -a; source ${ENV_FILE_NAME}; set +a
 
 echo "    Building API image..."
-docker compose -f ${COMPOSE_FILE} build api 2>&1 | grep -E "(DONE|ERROR|WARN|Step|Building|Successfully)" | tail -20
+docker compose -f ${COMPOSE_FILE} --env-file ${ENV_FILE_NAME} build api 2>&1 | grep -E "(DONE|ERROR|WARN|Step|Building|Successfully)" | tail -20
 
 echo ""
 echo "    Building Web image..."
-docker compose -f ${COMPOSE_FILE} build web 2>&1 | grep -E "(DONE|ERROR|WARN|Step|Building|Successfully)" | tail -20
+docker compose -f ${COMPOSE_FILE} --env-file ${ENV_FILE_NAME} build web 2>&1 | grep -E "(DONE|ERROR|WARN|Step|Building|Successfully)" | tail -20
 
 echo ""
 echo "    Building Admin image..."
-docker compose -f ${COMPOSE_FILE} build admin 2>&1 | grep -E "(DONE|ERROR|WARN|Step|Building|Successfully)" | tail -20
+docker compose -f ${COMPOSE_FILE} --env-file ${ENV_FILE_NAME} build admin 2>&1 | grep -E "(DONE|ERROR|WARN|Step|Building|Successfully)" | tail -20
 
 echo ""
 echo "    All images built."
@@ -180,13 +183,13 @@ cd ${REMOTE_DIR}
 
 set -a; source ${ENV_FILE_NAME}; set +a
 
-docker compose -f ${COMPOSE_FILE} up -d --force-recreate --remove-orphans ${SERVICES}
+docker compose -f ${COMPOSE_FILE} --env-file ${ENV_FILE_NAME} up -d --force-recreate --remove-orphans ${SERVICES}
 
 echo ""
 echo "    Waiting for containers to start..."
 sleep 15
 
-docker compose -f ${COMPOSE_FILE} ps
+docker compose -f ${COMPOSE_FILE} --env-file ${ENV_FILE_NAME} ps
 
 START
 
@@ -211,7 +214,7 @@ for i in \$(seq 1 60); do
     if [ \$i -eq 60 ]; then
         echo "    ERROR: API did not start within 10 minutes."
         echo "    Logs:"
-        docker compose -f ${COMPOSE_FILE} logs api --tail=30
+        docker compose -f ${COMPOSE_FILE} --env-file ${ENV_FILE_NAME} logs api --tail=30
         exit 1
     fi
     echo "    Waiting... (\$i/60)"
@@ -219,7 +222,7 @@ for i in \$(seq 1 60); do
 done
 
 # Check if data already exists
-RESULT=\$(docker exec ${CONTAINER_PREFIX}-postgres psql -U frame24 -d frame24 -t -c "SELECT COUNT(*) FROM core.companies;" 2>/dev/null | tr -d ' ')
+RESULT=\$(docker exec ${POSTGRES_CONTAINER} psql -U frame24 -d ${DATABASE_NAME} -t -c "SELECT COUNT(*) FROM core.companies;" 2>/dev/null | tr -d ' ')
 COMPANY_COUNT=\$(echo "\$RESULT" | head -1 | tr -d '\n')
 
 if [ "\$COMPANY_COUNT" -gt "0" ] 2>/dev/null; then
@@ -229,32 +232,32 @@ else
 
     # Run setup-full inside API container
     echo "    [1/8] Running setup-full..."
-    docker exec ${CONTAINER_PREFIX}-api node dist/scripts/setup-full.js
+    docker exec ${CONTAINER_PREFIX}-api node apps/api/dist/scripts/setup-full.js
 
     echo "    [2/8] Seeding languages..."
-    docker exec ${CONTAINER_PREFIX}-api node dist/scripts/seed-languages.js 2>/dev/null || echo "    (skipped or already exists)"
+    docker exec ${CONTAINER_PREFIX}-api node apps/api/dist/scripts/seed-languages.js 2>/dev/null || echo "    (skipped or already exists)"
 
     echo "    [3/8] Seeding seat statuses..."
-    docker exec ${CONTAINER_PREFIX}-api node dist/scripts/seed-seat-status.js 2>/dev/null || echo "    (skipped or already exists)"
+    docker exec ${CONTAINER_PREFIX}-api node apps/api/dist/scripts/seed-seat-status.js 2>/dev/null || echo "    (skipped or already exists)"
 
     echo "    [4/8] Seeding rooms and seats..."
-    docker exec ${CONTAINER_PREFIX}-api node dist/scripts/seed-room.js 2>/dev/null || echo "    (skipped or already exists)"
+    docker exec ${CONTAINER_PREFIX}-api node apps/api/dist/scripts/seed-room.js 2>/dev/null || echo "    (skipped or already exists)"
 
     echo "    [5/8] Seeding products..."
-    docker exec ${CONTAINER_PREFIX}-api node dist/scripts/seed-products.js 2>/dev/null || echo "    (skipped or already exists)"
+    docker exec ${CONTAINER_PREFIX}-api node apps/api/dist/scripts/seed-products.js 2>/dev/null || echo "    (skipped or already exists)"
 
     echo "    [6/8] Seeding POS lookups..."
-    docker exec ${CONTAINER_PREFIX}-api node dist/scripts/seed-pos.js 2>/dev/null || echo "    (skipped or already exists)"
+    docker exec ${CONTAINER_PREFIX}-api node apps/api/dist/scripts/seed-pos.js 2>/dev/null || echo "    (skipped or already exists)"
 
     echo "    [7/8] Seeding sales lookups..."
-    docker exec ${CONTAINER_PREFIX}-api node dist/scripts/seed-sales-lookups.js 2>/dev/null || echo "    (skipped or already exists)"
+    docker exec ${CONTAINER_PREFIX}-api node apps/api/dist/scripts/seed-sales-lookups.js 2>/dev/null || echo "    (skipped or already exists)"
 
     echo "    [8/8] Seeding showtimes..."
-    docker exec ${CONTAINER_PREFIX}-api node dist/scripts/seed-showtimes.js 2>/dev/null || echo "    (skipped or already exists)"
+    docker exec ${CONTAINER_PREFIX}-api node apps/api/dist/scripts/seed-showtimes.js 2>/dev/null || echo "    (skipped or already exists)"
 
     echo ""
     echo "    Creating better-auth admin user..."
-    docker exec -e BETTER_AUTH_SECRET -e BETTER_AUTH_URL ${CONTAINER_PREFIX}-api node dist/scripts/create-betterauth-admin.js 2>/dev/null || echo "    (may already exist)"
+    docker exec -e BETTER_AUTH_SECRET -e BETTER_AUTH_URL ${CONTAINER_PREFIX}-api node apps/api/dist/scripts/create-betterauth-admin.js 2>/dev/null || echo "    (may already exist)"
 
     echo "    Seed complete!"
 fi
@@ -276,7 +279,7 @@ echo "    DEPLOY COMPLETE!"
 echo "    ============================================="
 echo ""
 echo "    Services:"
-docker compose -f ${COMPOSE_FILE} ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}" 2>/dev/null || docker compose -f ${COMPOSE_FILE} ps
+docker compose -f ${COMPOSE_FILE} --env-file ${ENV_FILE_NAME} ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}" 2>/dev/null || docker compose -f ${COMPOSE_FILE} --env-file ${ENV_FILE_NAME} ps
 echo ""
 echo "    URLs:"
 echo "      Public Web:  http://${VPS_IP}:3000"
@@ -290,9 +293,9 @@ echo "      Email:    admin@lawtrel.com"
 echo "      Password: Admin@2026"
 echo ""
 echo "    Useful commands:"
-echo "      View logs:  ssh ${VPS_USER}@${VPS_IP} 'cd ${REMOTE_DIR} && docker compose -f ${COMPOSE_FILE} logs -f'"
-echo "      Restart:    ssh ${VPS_USER}@${VPS_IP} 'cd ${REMOTE_DIR} && docker compose -f ${COMPOSE_FILE} restart'"
-echo "      Stop:       ssh ${VPS_USER}@${VPS_IP} 'cd ${REMOTE_DIR} && docker compose -f ${COMPOSE_FILE} down'"
+echo "      View logs:  ssh ${VPS_USER}@${VPS_IP} 'cd ${REMOTE_DIR} && docker compose -f ${COMPOSE_FILE} --env-file ${ENV_FILE_NAME} logs -f'"
+echo "      Restart:    ssh ${VPS_USER}@${VPS_IP} 'cd ${REMOTE_DIR} && docker compose -f ${COMPOSE_FILE} --env-file ${ENV_FILE_NAME} restart'"
+echo "      Stop:       ssh ${VPS_USER}@${VPS_IP} 'cd ${REMOTE_DIR} && docker compose -f ${COMPOSE_FILE} --env-file ${ENV_FILE_NAME} down'"
 echo ""
 
 STATUS

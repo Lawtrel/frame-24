@@ -32,11 +32,13 @@ cd "$SCRIPT_DIR"
 VPS_IP="${VPS_IP:-174.138.79.19}"
 VPS_USER="${VPS_USER:-root}"
 PROD_DIR="/opt/frame24"
-STAGING_DIR="/opt/frame24-preview"
+STAGING_DIR="/opt/frame24-staging"
 PROD_PREFIX="frame24"
-STAGING_PREFIX="frame24-preview"
-COMPOSE_FILE="docker-compose.prod.yml"
-ENV_FILE_NAME=".env.production"
+STAGING_PREFIX="frame24-staging"
+PROD_COMPOSE="docker-compose.prod.yml"
+STAGING_COMPOSE="docker-compose.staging.yml"
+PROD_ENV_FILE=".env"
+STAGING_ENV_FILE=".env.staging"
 
 SKIP_BUILD_GATE="${SKIP_BUILD_GATE:-0}"
 SKIP_SEED="0"
@@ -72,8 +74,12 @@ Uso:
   ./deploy [ambiente] [opções]
 
 Ambientes (default: decide pela branch atual):
-  staging         Força staging   (/opt/frame24-preview, containers frame24-preview-*)
-  prod            Força produção  (/opt/frame24,         containers frame24-*)
+  staging         Força staging   (/opt/frame24-staging, containers frame24-staging-*)
+  prod            Força produção  (/opt/frame24,          containers frame24-*)
+
+Branches e destinos:
+  main / v*       → produção  (./deploy confirmar)
+  staging         → staging   (deploy automático)
 
 Opções:
   --skip-build        Pula o gate de build/lint local (NÃO RECOMENDADO)
@@ -85,7 +91,6 @@ Opções:
   --help, -h          Esta ajuda
 
 Exemplos:
-  ./deploy                        # branch main → prod; preview/* → staging
   ./deploy staging                # staging explícito
   ./deploy prod --skip-seed       # prod sem seed
   ./deploy --services api,web     # só api e web (admin offline)
@@ -128,27 +133,37 @@ if [ -n "${FORCE_ENV}" ]; then
 elif [ "${BRANCH}" = "main" ]; then
   ENV_TARGET="prod"
   REASON="branch=main"
-elif [[ "${BRANCH}" =~ ^preview/ ]]; then
+elif [[ "${BRANCH}" =~ ^v[0-9] ]]; then
+  ENV_TARGET="prod"
+  REASON="branch=${BRANCH} (tag de release)"
+elif [ "${BRANCH}" = "staging" ]; then
   ENV_TARGET="staging"
-  REASON="branch=${BRANCH}"
+  REASON="branch=staging"
 elif [ -z "${BRANCH}" ] || [ "${BRANCH}" = "unknown" ]; then
   err "Não consegui detectar a branch. Use './deploy staging' ou './deploy prod'."
   exit 2
 else
   err "Branch '${BRANCH}' não tem destino de deploy automático."
-  err "Use './deploy staging' ou './deploy prod' explicitamente, ou crie a branch a partir de 'main'/'preview/*'."
+  err "Use './deploy staging' ou './deploy prod' explicitamente."
+  err "Branches válidas: main → prod, staging → staging, v* → prod."
   exit 2
 fi
 
 if [ "${ENV_TARGET}" = "prod" ]; then
   REMOTE_DIR="${PROD_DIR}"
   CONTAINER_PREFIX="${PROD_PREFIX}"
-  ENV_FILE_NAME=".env.production"
+  COMPOSE_FILE="${PROD_COMPOSE}"
+  ENV_FILE_NAME="${PROD_ENV_FILE}"
+  DATABASE_NAME="frame24"
+  POSTGRES_CONTAINER="frame24-postgres"
   ENV_LABEL="PRODUÇÃO"
 else
   REMOTE_DIR="${STAGING_DIR}"
   CONTAINER_PREFIX="${STAGING_PREFIX}"
-  ENV_FILE_NAME=".env.production"  # mesma convenção; ajuste se quiser .env.staging
+  COMPOSE_FILE="${STAGING_COMPOSE}"
+  ENV_FILE_NAME="${STAGING_ENV_FILE}"
+  DATABASE_NAME="frame24_staging"
+  POSTGRES_CONTAINER="frame24-postgres"
   ENV_LABEL="STAGING"
 fi
 
@@ -266,11 +281,11 @@ step "Verifica .env.production na VPS"
 if [ "${DRY_RUN}" = "0" ]; then
   if ! ssh -o StrictHostKeyChecking=no "${VPS_USER}@${VPS_IP}" "test -f ${REMOTE_DIR}/${ENV_FILE_NAME}" 2>/dev/null; then
     err "${ENV_FILE_NAME} não existe em ${VPS_USER}@${VPS_IP}:${REMOTE_DIR}/"
-    err "Crie-o manualmente (template: .env.coolify.example) e suba via scp/SFTP."
-    err "Por segurança, o script NÃO cria .env.production automaticamente."
-    if [ "${ENV_TARGET}" = "staging" ] && [ "${REMOTE_DIR}" != "${PROD_DIR}" ]; then
-      dim "Dica: copie do prod para staging e ajuste domínios/secrets:"
-      dim "  ssh ${VPS_USER}@${VPS_IP} 'cp ${PROD_DIR}/.env.production ${REMOTE_DIR}/.env.production && cd ${REMOTE_DIR} && sed -i \"s|lawtrel.dev|staging.lawtrel.dev|g\" .env.production'"
+    err "Por segurança, o script NÃO cria o env file automaticamente."
+    if [ "${ENV_TARGET}" = "staging" ]; then
+      dim "Dica: o .env.staging já deve existir em /opt/frame24-staging/.env.staging"
+      dim "Se não existir, copie do prod e ajuste URLs/secrets:"
+      dim "  ssh ${VPS_USER}@${VPS_IP} 'mkdir -p ${REMOTE_DIR} && cp ${PROD_DIR}/.env ${REMOTE_DIR}/${ENV_FILE_NAME} && cd ${REMOTE_DIR} && sed -i \"s|api.lawtrel.dev|test.lawtrel.dev|g; s|lawtrel.dev,https://www.lawtrel.dev|test.lawtrel.dev|g\" ${ENV_FILE_NAME}'"
     fi
     exit 1
   fi
@@ -291,7 +306,9 @@ VPS_USER="${VPS_USER}" \
 REMOTE_DIR="${REMOTE_DIR}" \
 COMPOSE_FILE="${COMPOSE_FILE}" \
 ENV_FILE_NAME="${ENV_FILE_NAME}" \
+DATABASE_NAME="${DATABASE_NAME}" \
 CONTAINER_PREFIX="${CONTAINER_PREFIX}" \
+POSTGRES_CONTAINER="${POSTGRES_CONTAINER}" \
 SKIP_SEED="${SKIP_SEED}" \
 SERVICES="${SERVICES_SANITIZED}" \
   bash "${SCRIPT_DIR}/scripts/deploy-vps.sh"
@@ -303,8 +320,8 @@ if [ "${ENV_TARGET}" = "staging" ] && [ "${DRY_RUN}" = "0" ]; then
   ssh "${VPS_USER}@${VPS_IP}" bash -s <<NGINX
 set -e
 if [ -f ${REMOTE_DIR}/infra/nginx-staging.conf ]; then
-  cp -f ${REMOTE_DIR}/infra/nginx-staging.conf /etc/nginx/conf.d/staging.conf
-  echo "  Copiado nginx-staging.conf → /etc/nginx/conf.d/staging.conf"
+  echo "  nginx-staging.conf está em ${REMOTE_DIR}/infra/"
+  echo "  (bind-mount do prod compose expõe em /etc/nginx/conf.d/staging.conf)"
 fi
 if docker ps --format '{{.Names}}' | grep -q '${PROD_PREFIX}-nginx'; then
   docker exec ${PROD_PREFIX}-nginx nginx -t && docker exec ${PROD_PREFIX}-nginx nginx -s reload
@@ -323,8 +340,8 @@ if [ "${ENV_TARGET}" = "prod" ]; then
   dim "  Web:   https://lawtrel.dev"
   dim "  Admin: https://admin.lawtrel.dev"
 else
-  dim "  API:   https://staging-api.lawtrel.dev"
-  dim "  Web:   https://staging.lawtrel.dev"
-  dim "  Admin: https://staging-admin.lawtrel.dev"
+  dim "  Web:   https://test.lawtrel.dev"
+  dim "  Admin: https://test-admin.lawtrel.dev"
+  dim "  (API:  https://test.lawtrel.dev/v1 e /api)"
 fi
 echo ""

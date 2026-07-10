@@ -1,0 +1,141 @@
+# docker-compose.staging.yml
+#
+# Stack de staging para a branch `staging`. Sobe apenas os três apps
+# (api, web, admin) com prefixo `frame24-staging-*` e portas distintas.
+# Reusa os serviços compartilhados do prod (postgres, redis, rabbitmq,
+# minio, nginx) que já rodam na VPS via docker-compose.prod.yml.
+#
+# Banco de dados: database `frame24_staging` no mesmo postgres do prod.
+# Volumes: nenhum próprio (state vai no postgres/redis compartilhado).
+#
+# Como rodar:
+#   docker compose -f docker-compose.staging.yml --env-file .env.staging up -d
+#
+# Requer .env.staging na VPS com as variáveis de ambiente de staging
+# (mesmas chaves do .env.production, ajustando URLs).
+#
+# Portas host reservadas para staging:
+#   api-staging  -> 14100
+#   web-staging  -> 13000
+#   admin-staging-> 13004
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/dockerfile
+    container_name: frame24-staging-api
+    restart: unless-stopped
+    env_file:
+      - .env.staging
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      REDIS_HOST: frame24-redis
+      REDIS_PORT: 6379
+      REDIS_DB: 1
+      RABBITMQ_HOST: frame24-rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: frame24
+      MINIO_ENDPOINT: frame24-minio
+      MINIO_PORT: 9000
+      MINIO_USE_SSL: "false"
+      MINIO_BUCKET: frame24-uploads
+      MINIO_REGION: us-east-1
+      JWT_AUDIENCE: frame24-api
+      JWT_ISSUER: frame24-api
+      JWT_EXPIRES_IN: 8h
+      WORKER_ID: 2
+      TENANT_BASE_DOMAIN: ${TENANT_BASE_DOMAIN:-lawtrel.dev}
+      DATABASE_URL: postgresql://frame24:${POSTGRES_PASSWORD}@frame24-postgres:5432/frame24_staging?schema=public
+      DIRECT_URL: postgresql://frame24:${POSTGRES_PASSWORD}@frame24-postgres:5432/frame24_staging?schema=public
+    ports:
+      - "14100:4000"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "wget -S -O /dev/null http://127.0.0.1:4000/api/v1/public/tenants/resolve?host=health 2>&1 | grep -q 'HTTP/1.1' || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 6
+      start_period: 60s
+    networks:
+      - frame24-network
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${STAGING_API_URL}
+        NEXT_PUBLIC_SOCKET_URL: ${STAGING_SOCKET_URL}
+        NEXT_PUBLIC_AUTH_URL: ${STAGING_AUTH_URL}
+        NEXT_PUBLIC_TENANT_BASE_DOMAIN: ${NEXT_PUBLIC_TENANT_BASE_DOMAIN:-lawtrel.dev}
+    container_name: frame24-staging-web
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: ${STAGING_API_URL}
+      NEXT_PUBLIC_SOCKET_URL: ${STAGING_SOCKET_URL}
+      NEXT_PUBLIC_AUTH_URL: ${STAGING_AUTH_URL}
+      NEXT_PUBLIC_TENANT_BASE_DOMAIN: ${NEXT_PUBLIC_TENANT_BASE_DOMAIN:-lawtrel.dev}
+    ports:
+      - "13000:3000"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/ || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 6
+      start_period: 60s
+    networks:
+      - frame24-network
+
+  admin:
+    build:
+      context: .
+      dockerfile: apps/admin/dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${STAGING_API_URL}
+        NEXT_PUBLIC_AUTH_URL: ${STAGING_AUTH_URL}
+        NEXT_PUBLIC_TMDB_API_KEY: ${NEXT_PUBLIC_TMDB_API_KEY}
+        NEXT_PUBLIC_TENANT_BASE_DOMAIN: ${NEXT_PUBLIC_TENANT_BASE_DOMAIN:-lawtrel.dev}
+        NEXT_PUBLIC_DEFAULT_TENANT_SLUG: ${NEXT_PUBLIC_DEFAULT_TENANT_SLUG:-lawtrel-admin}
+    container_name: frame24-staging-admin
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: ${STAGING_API_URL}
+      NEXT_PUBLIC_AUTH_URL: ${STAGING_AUTH_URL}
+      NEXT_PUBLIC_TMDB_API_KEY: ${NEXT_PUBLIC_TMDB_API_KEY}
+      NEXT_PUBLIC_TENANT_BASE_DOMAIN: ${NEXT_PUBLIC_TENANT_BASE_DOMAIN:-lawtrel.dev}
+      NEXT_PUBLIC_DEFAULT_TENANT_SLUG: ${NEXT_PUBLIC_DEFAULT_TENANT_SLUG:-lawtrel-admin}
+      AUTH_INTERNAL_URL: http://frame24-staging-api:4000
+    ports:
+      - "13004:3004"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3004/ || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 6
+      start_period: 60s
+    networks:
+      - frame24-network
+
+networks:
+  frame24-network:
+    external: true
+    name: frame24_frame24-network
