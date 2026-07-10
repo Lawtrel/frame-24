@@ -5,7 +5,10 @@ const RESERVED_TENANT_SUBDOMAINS = new Set([
   'assets',
   'cdn',
   'localhost',
+  'staging',
   'static',
+  'test',
+  'test-admin',
   'www',
 ]);
 

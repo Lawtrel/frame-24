@@ -4,14 +4,18 @@ export const RESERVED_ROUTE_SEGMENTS = new Set([
   "checkout",
   "cidade",
   "cinema",
+  "compra",
+  "finalizar",
+  "pagamento",
   "pdv",
   "pedido",
   "perfil",
   "profile",
   "showtime",
+  "storage",
 ]);
 
-const RESERVED_TENANT_SUBDOMAINS = new Set([
+export const RESERVED_TENANT_SUBDOMAINS = new Set([
   "admin",
   "api",
   "app",
@@ -19,6 +23,9 @@ const RESERVED_TENANT_SUBDOMAINS = new Set([
   "cdn",
   "localhost",
   "static",
+  "staging",
+  "test",
+  "test-admin",
   "www",
 ]);
 

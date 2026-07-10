@@ -15,12 +15,14 @@ export const apiClient = axios.create({
 
 function getAdminTenantSlug(): string | undefined {
   if (typeof window === 'undefined') return undefined;
-  const host = window.location.hostname;
-  const parts = host.split('.');
-  if (parts.length >= 3 && parts[0] !== 'admin' && parts[0] !== 'app' && parts[0] !== 'www' && parts[0] !== 'api') {
-    return parts[0];
-  }
-  return process.env.NEXT_PUBLIC_DEFAULT_TENANT_SLUG || undefined;
+    const host = window.location.hostname;
+    const parts = host.split('.');
+    const firstPart = parts[0];
+    const reservedSubdomains = ['admin', 'app', 'www', 'api', 'staging', 'test', 'test-admin', 'test-api', 'test-web'];
+    if (parts.length >= 3 && firstPart && !reservedSubdomains.includes(firstPart)) {
+      return firstPart;
+    }
+    return process.env.NEXT_PUBLIC_DEFAULT_TENANT_SLUG || undefined;
 }
 
 apiClient.interceptors.request.use(
