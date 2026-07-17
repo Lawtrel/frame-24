@@ -6,8 +6,12 @@ const AUTH_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   "http://localhost:4000";
 
+const ADMIN_BASE_PATH = process.env.NEXT_PUBLIC_ADMIN_BASE_PATH
+  ? `/${process.env.NEXT_PUBLIC_ADMIN_BASE_PATH}`
+  : '';
+
 function buildLoginRedirect(request: NextRequest): NextResponse {
-  const loginUrl = new URL("/login", request.url);
+  const loginUrl = new URL(`${ADMIN_BASE_PATH}/login`, request.url);
   const callbackUrl = `${request.nextUrl.pathname}${request.nextUrl.search}`;
   loginUrl.searchParams.set("callbackUrl", callbackUrl);
   return NextResponse.redirect(loginUrl);
@@ -44,7 +48,10 @@ async function hasActiveSession(request: NextRequest): Promise<boolean> {
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
-  const isLoginRoute = pathname === "/login";
+  const internalPathname = ADMIN_BASE_PATH
+    ? pathname.replace(ADMIN_BASE_PATH, '') || '/'
+    : pathname;
+  const isLoginRoute = internalPathname === "/login";
 
   const authenticated = await hasActiveSession(request);
 
@@ -53,7 +60,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   }
 
   if (authenticated && isLoginRoute) {
-    return NextResponse.redirect(new URL("/", request.url));
+    return NextResponse.redirect(new URL(`${ADMIN_BASE_PATH}/`, request.url));
   }
 
   return NextResponse.next();
