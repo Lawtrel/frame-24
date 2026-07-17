@@ -208,8 +208,8 @@ remotamente e sobe os containers.
 
 | Ambiente    | Branch              | Diretório VPS           | Containers                       | Domínios                                  | Compose                       | Env file          | Database          |
 | ----------- | ------------------- | ----------------------- | -------------------------------- | ----------------------------------------- | ----------------------------- | ----------------- | ----------------- |
-| **prod**    | `main` / `v*`       | `/opt/frame24`          | `frame24-api/web/admin` (+ nginx)| `lawtrel.dev` / `admin.lawtrel.dev` / `api.lawtrel.dev` | `docker-compose.prod.yml`     | `.env`            | `frame24`         |
-| **staging** | `staging`           | `/opt/frame24-staging`  | `frame24-staging-api/web/admin`  | `test.lawtrel.dev` / `test-admin.lawtrel.dev`           | `docker-compose.staging.yml`  | `.env.staging`    | `frame24_staging` |
+| **prod**    | `main` / `v*`       | `/opt/frame24`          | `frame24-api/web/admin/landing-page` (+ nginx)| `lawtrel.dev` (tudo path-based: `/`, `/admin`, `/app`, `/api`, `/v1`) | `docker-compose.prod.yml`     | `.env`            | `frame24`         |
+| **staging** | `staging`           | `/opt/frame24-staging`  | `frame24-staging-api/web/admin`  | `test.lawtrel.dev` (web em `/`, admin em `/admin`, API em `/api/*` e `/v1/*`) | `docker-compose.staging.yml`  | `.env.staging`    | `frame24_staging` |
 
 - Staging **reusa** os mesmos containers de infraestrutura do prod (postgres, redis,
   rabbitmq, minio, nginx). Só sobe 3 containers: `frame24-staging-api`, `frame24-staging-web`,
@@ -271,12 +271,13 @@ git checkout main
   ssh root@174.138.79.19 'mkdir -p /opt/frame24-staging && \
     cp /opt/frame24/.env /opt/frame24-staging/.env.staging && \
     cd /opt/frame24-staging && \
-    sed -i "s|api.lawtrel.dev|test.lawtrel.dev|g; \
-            s|lawtrel.dev,https://www.lawtrel.dev|test.lawtrel.dev|g; \
+    sed -i "s|lawtrel.dev|test.lawtrel.dev|g; \
             s|frame24-prod-jwt-secret|frame24-staging-jwt-secret|g; \
             s|frame24-prod-better-auth|frame24-staging-better-auth|g; \
-            s|/frame24?schema|/frame24_staging?schema|g" .env.staging'
+            s|/frame24?schema|/frame24_staging?schema|g" .env.staging && \
+    echo "NEXT_PUBLIC_ADMIN_BASE_PATH=admin" >> .env.staging'
   ```
+- Para o admin funcionar em `/admin`, é necessário `NEXT_PUBLIC_ADMIN_BASE_PATH=admin`
 
 ### Fluxo completo
 
@@ -295,7 +296,7 @@ git checkout main
 2. Abre PR → `main` (CI roda lint + check-types + build)
 3. Você revisa o PR → merge em `staging` (não em `main` direto)
 4. `./deploy staging` sobe o staging com o novo código
-5. Homologa em `test.lawtrel.dev` e `test-admin.lawtrel.dev`
+5. Homologa em `https://test.lawtrel.dev` (web) e `https://test.lawtrel.dev/admin` (admin)
 6. Quando aprovado, faz merge de `staging` → `main` e roda `./deploy prod`
 
 ---
@@ -401,20 +402,16 @@ bugfix/*          ─– bug fix
 
 ---
 
-## Ambiente de staging (preview)
+## Ambiente de staging
 
-Branches `preview/*` acionam o workflow [`.github/workflows/deploy-preview.yml`](.github/workflows/deploy-preview.yml)
-que faz:
-
-1. Build de `api`, `web` e `admin`
-2. Deploy na VPS em `/opt/frame24-preview/`
-3. Recarrega o nginx pra servir `staging.lawtrel.dev` apontando pra essa stack
+O staging é gerenciado via branch `staging` e deploy manual (`./deploy staging`).
+Veja a [seção Deploy](#deploy-script-deploy) acima para instruções completas.
 
 **URLs de staging:**
 
-- API: <https://staging-api.lawtrel.dev>
-- Web: <https://staging.lawtrel.dev>
-- Admin: <https://staging-admin.lawtrel.dev>
+- Web: <https://test.lawtrel.dev> (tenant prefix: /lawtrel-admin)
+- Admin: <https://test.lawtrel.dev/admin>
+- API: <https://test.lawtrel.dev/api> e <https://test.lawtrel.dev/v1>
 
 Secrets necessários no GitHub (repo → Settings → Secrets):
 
@@ -558,4 +555,4 @@ Próximos itens:
 
 - **Bugs/Issues**: crie issue no GitHub com label `bug`.
 - **Discussões de arquitetura**: chat do time + documento ADR em `docs/adr/`.
-- **Domínios**: domínio base `lawtrel.dev`. Subdomínios: `api.`, `admin.`, `app.`, `staging.`, `staging-api.`, `staging-admin.`.
+- **Domínios**: domínio base `lawtrel.dev`. Tudo path-based: `/` (web/tenant), `/admin`, `/app` (landing), `/api`, `/v1`. Staging: `test.lawtrel.dev` (mesmo esquema).

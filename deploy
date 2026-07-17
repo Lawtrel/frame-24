@@ -283,9 +283,9 @@ if [ "${DRY_RUN}" = "0" ]; then
     err "${ENV_FILE_NAME} não existe em ${VPS_USER}@${VPS_IP}:${REMOTE_DIR}/"
     err "Por segurança, o script NÃO cria o env file automaticamente."
     if [ "${ENV_TARGET}" = "staging" ]; then
-      dim "Dica: o .env.staging já deve existir em /opt/frame24-staging/.env.staging"
-      dim "Se não existir, copie do prod e ajuste URLs/secrets:"
-      dim "  ssh ${VPS_USER}@${VPS_IP} 'mkdir -p ${REMOTE_DIR} && cp ${PROD_DIR}/.env ${REMOTE_DIR}/${ENV_FILE_NAME} && cd ${REMOTE_DIR} && sed -i \"s|api.lawtrel.dev|test.lawtrel.dev|g; s|lawtrel.dev,https://www.lawtrel.dev|test.lawtrel.dev|g\" ${ENV_FILE_NAME}'"
+      dim "  Dica: copie do prod e ajuste URLs:"
+      dim "    ssh ${VPS_USER}@${VPS_IP} 'cp ${PROD_DIR}/.env ${REMOTE_DIR}/${ENV_FILE_NAME}'"
+      dim "    ssh ${VPS_USER}@${VPS_IP} \"cd ${REMOTE_DIR} && sed -i 's|lawtrel.dev|test.lawtrel.dev|g' ${ENV_FILE_NAME}\""
     fi
     exit 1
   fi
@@ -313,15 +313,15 @@ SKIP_SEED="${SKIP_SEED}" \
 SERVICES="${SERVICES_SANITIZED}" \
   bash "${SCRIPT_DIR}/scripts/deploy-vps.sh"
 
-# ─── Reload nginx (se staging, copia conf; se prod, só reload) ───────
+# ─── Reload nginx (staging: docker cp + reload; prod: reload only) ───────
 if [ "${ENV_TARGET}" = "staging" ] && [ "${DRY_RUN}" = "0" ]; then
   echo ""
-  step "Reload nginx para staging"
+  step "Copiando nginx-staging.conf e recarregando nginx"
   ssh "${VPS_USER}@${VPS_IP}" bash -s <<NGINX
 set -e
 if [ -f ${REMOTE_DIR}/infra/nginx-staging.conf ]; then
-  echo "  nginx-staging.conf está em ${REMOTE_DIR}/infra/"
-  echo "  (bind-mount do prod compose expõe em /etc/nginx/conf.d/staging.conf)"
+  docker cp ${REMOTE_DIR}/infra/nginx-staging.conf ${PROD_PREFIX}-nginx:/etc/nginx/conf.d/staging.conf
+  echo "  nginx-staging.conf copiado para o container nginx"
 fi
 if docker ps --format '{{.Names}}' | grep -q '${PROD_PREFIX}-nginx'; then
   docker exec ${PROD_PREFIX}-nginx nginx -t && docker exec ${PROD_PREFIX}-nginx nginx -s reload
@@ -336,12 +336,13 @@ echo ""
 ok "Deploy finalizado para ${ENV_LABEL}"
 echo "${C_BOLD} URLs (acessíveis via nginx):${C_RESET}"
 if [ "${ENV_TARGET}" = "prod" ]; then
-  dim "  API:   https://api.lawtrel.dev"
-  dim "  Web:   https://lawtrel.dev"
-  dim "  Admin: https://admin.lawtrel.dev"
+  dim "  Web (tenant):     https://lawtrel.dev"
+  dim "  Admin:            https://lawtrel.dev/admin"
+  dim "  Landing page:     https://lawtrel.dev/app"
+  dim "  API:              https://lawtrel.dev/api"
 else
   dim "  Web:   https://test.lawtrel.dev"
-  dim "  Admin: https://test-admin.lawtrel.dev"
-  dim "  (API:  https://test.lawtrel.dev/v1 e /api)"
+  dim "  Admin: https://test.lawtrel.dev/admin"
+  dim "  (API:  https://test.lawtrel.dev/api e /v1)"
 fi
 echo ""

@@ -1,7 +1,10 @@
 import type { NextConfig } from 'next';
 
+const basePath = process.env.NEXT_PUBLIC_ADMIN_BASE_PATH;
+
 const nextConfig: NextConfig = {
   output: 'standalone',
+  ...(basePath ? { basePath: `/${basePath}` } : {}),
   transpilePackages: ['@repo/ui'],
   images: {
     remotePatterns: [
