@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 const DEFAULT_ADMIN_URL =
-  process.env.NEXT_PUBLIC_ADMIN_URL ?? "http://localhost:3004";
+  process.env.NEXT_PUBLIC_ADMIN_URL ?? "https://lawtrel.dev/admin";
 
 export default async function LandingLoginPage({
   searchParams,
@@ -14,7 +14,7 @@ export default async function LandingLoginPage({
       ? params.callbackUrl
       : undefined;
 
-  const adminLoginUrl = new URL("/login", DEFAULT_ADMIN_URL);
+  const adminLoginUrl = new URL("/admin/login", DEFAULT_ADMIN_URL);
   if (callbackUrl && callbackUrl !== "/") {
     adminLoginUrl.searchParams.set("callbackUrl", callbackUrl);
   }

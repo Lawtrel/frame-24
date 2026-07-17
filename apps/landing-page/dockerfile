@@ -19,9 +19,11 @@ COPY packages/tailwind-config ./packages/tailwind-config
 
 ARG NEXT_PUBLIC_API_URL=https://lawtrel.dev
 ARG NEXT_PUBLIC_BASE_PATH
+ARG NEXT_PUBLIC_ADMIN_URL=https://lawtrel.dev/admin
 
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_BASE_PATH=$NEXT_PUBLIC_BASE_PATH
+ENV NEXT_PUBLIC_ADMIN_URL=$NEXT_PUBLIC_ADMIN_URL
 
 RUN pnpm --filter landing-page run build
 
