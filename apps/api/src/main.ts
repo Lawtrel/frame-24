@@ -8,7 +8,7 @@ import { randomUUID } from 'crypto';
 import helmet from 'helmet';
 import compression from 'compression';
 import express from 'express';
-import { toNodeHandler } from 'better-auth/node';
+import { fromNodeHeaders, toNodeHandler } from 'better-auth/node';
 import { AppModule } from './app.module';
 import { getAllTags, TAG_GROUPS } from './swagger.config';
 import { Logger, VersioningType } from '@nestjs/common';
@@ -229,6 +229,18 @@ async function bootstrap() {
   app.use('/api/auth', createBetterAuthPostThrottle(redisService));
   app.use('/api/auth', authHandler);
   app.use(express.json());
+
+  expressApp.get('/v1/auth/session', async (req: Request, res: Response) => {
+    try {
+      const session = await auth.api.getSession({
+        headers: fromNodeHeaders(req.headers),
+      });
+      res.json(session);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      res.status(500).json({ error: message });
+    }
+  });
   app.use(express.urlencoded({ extended: true }));
 
   app.useGlobalPipes(new ZodValidationPipe());

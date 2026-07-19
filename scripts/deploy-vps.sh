@@ -207,7 +207,7 @@ cd ${REMOTE_DIR}
 # Wait for API to be healthy (it runs migrations on startup)
 echo "    Waiting for API to complete migrations and start..."
 for i in \$(seq 1 60); do
-    if curl -sf http://localhost:4000/api/openapi.json > /dev/null 2>&1; then
+    if curl -sf http://localhost:4000/health > /dev/null 2>&1; then
         echo "    API is healthy! (after \${i}0s)"
         break
     fi

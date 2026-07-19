@@ -12,7 +12,7 @@ echo "============================================"
 # Wait for API
 echo "Waiting for API at ${API_URL}..."
 for i in $(seq 1 30); do
-    if curl -sf "${API_URL}/api/openapi.json" > /dev/null 2>&1; then
+    if curl -sf "${API_URL}/health" > /dev/null 2>&1; then
         echo "API is up!"
         break
     fi

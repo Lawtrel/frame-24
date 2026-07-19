@@ -24,7 +24,7 @@ async function hasActiveSession(request: NextRequest): Promise<boolean> {
     return false;
   }
 
-  const sessionResponse = await fetch(`${AUTH_BASE_URL}/api/auth/get-session`, {
+  const sessionResponse = await fetch(`${AUTH_BASE_URL}/v1/auth/session`, {
     method: "GET",
     headers: {
       cookie: cookieHeader,

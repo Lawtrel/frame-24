@@ -1,8 +1,5 @@
 import axios, { type AxiosError } from 'axios';
-import {
-  getTenantSlugFromHost,
-  getTenantSlugFromPathname,
-} from '@/lib/tenant-routing';
+import { getTenantSlugFromHost, getTenantSlugFromPathname } from '@/lib/tenant-routing';
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY_BASE_MS = 500;
@@ -20,9 +17,10 @@ function delay(ms: number): Promise<void> {
 }
 
 export const apiInstance = axios.create({
-  baseURL: typeof window !== "undefined"
-    ? window.location.origin
-    : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'),
+  baseURL:
+    typeof window !== 'undefined'
+      ? window.location.origin
+      : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000',
   withCredentials: true,
   timeout: 15_000,
   headers: {
@@ -65,8 +63,7 @@ apiInstance.interceptors.response.use(undefined, async (error: AxiosError) => {
   configRecord.__retryCount = retryCount + 1;
 
   // Exponential backoff with jitter
-  const backoff =
-    RETRY_DELAY_BASE_MS * Math.pow(2, retryCount) + Math.random() * 200;
+  const backoff = RETRY_DELAY_BASE_MS * Math.pow(2, retryCount) + Math.random() * 200;
   await delay(backoff);
 
   return apiInstance(config);
@@ -162,9 +159,7 @@ export const publicApi = {
       },
     }),
 
-  publicControllerGetCitiesV1: ({
-    tenantSlug,
-  }: TenantParams): Promise<ApiResponse<ApiList>> =>
+  publicControllerGetCitiesV1: ({ tenantSlug }: TenantParams): Promise<ApiResponse<ApiList>> =>
     apiInstance.get(`/v1/public/companies/${tenantSlug}/cities`),
 
   publicControllerGetCinemasByCityV1: ({
@@ -236,15 +231,13 @@ export const publicApi = {
     query: string;
     citySlug?: string;
     signal?: AbortSignal;
-    }): Promise<ApiResponse<ApiList>> =>
+  }): Promise<ApiResponse<ApiList>> =>
     apiInstance.get(`/v1/public/companies/${tenantSlug}/search`, {
       params: { q: query, city_slug: citySlug },
       signal,
     }),
 
-  publicControllerGetTicketTypesV1: ({
-    tenantSlug,
-  }: TenantParams): Promise<ApiResponse<ApiList>> =>
+  publicControllerGetTicketTypesV1: ({ tenantSlug }: TenantParams): Promise<ApiResponse<ApiList>> =>
     apiInstance.get(`/v1/public/companies/${tenantSlug}/ticket-types`),
 
   publicControllerGetPaymentMethodsV1: ({
@@ -265,13 +258,12 @@ export const customerApi = {
   customerProfileGetV1: (): Promise<ApiResponse<ApiObject>> =>
     apiInstance.get('/v1/customer/profile'),
 
-  customerProfileUpdateV1: (
-    payload: ApiObject,
-  ): Promise<ApiResponse<ApiObject>> => apiInstance.put('/v1/customer/profile', payload),
+  customerProfileUpdateV1: (payload: ApiObject): Promise<ApiResponse<ApiObject>> =>
+    apiInstance.put('/v1/customer/profile', payload),
 
-  customerProfileRequestEmailChangeV1: (
-    payload: { new_email: string },
-  ): Promise<ApiResponse<ApiObject>> =>
+  customerProfileRequestEmailChangeV1: (payload: {
+    new_email: string;
+  }): Promise<ApiResponse<ApiObject>> =>
     apiInstance.post('/v1/customer/profile/email-change/request', payload),
 
   customerProfileConfirmEmailChangeV1: (payload: {
@@ -302,9 +294,7 @@ export const customerApi = {
   customerRefundRequestsFindAllV1: (): Promise<ApiResponse<ApiList>> =>
     apiInstance.get('/v1/customer/refund-requests'),
 
-  customerRefundRequestsFindOneV1: (
-    requestId: string,
-  ): Promise<ApiResponse<ApiObject>> =>
+  customerRefundRequestsFindOneV1: (requestId: string): Promise<ApiResponse<ApiObject>> =>
     apiInstance.get(`/v1/customer/refund-requests/${requestId}`),
 
   customerTicketsFindAllV1: (): Promise<ApiResponse<ApiList>> =>
@@ -316,27 +306,21 @@ export const customerApi = {
   customerTicketDownloadPdfUrl: (ticketId: string): string =>
     `${String(apiInstance.defaults.baseURL || 'http://localhost:4000').replace(/\/v1\/?$/, '')}/v1/customer/tickets/${ticketId}/pdf`,
 
-  customerTicketResendEmailV1: (
-    ticketId: string,
-  ): Promise<ApiResponse<ApiObject>> =>
+  customerTicketResendEmailV1: (ticketId: string): Promise<ApiResponse<ApiObject>> =>
     apiInstance.post(`/v1/customer/tickets/${ticketId}/resend-email`),
 
   customerSecuritySessionsFindAllV1: (): Promise<ApiResponse<ApiList>> =>
     apiInstance.get('/v1/customer/security/sessions'),
 
-  customerSecuritySessionsDeleteV1: (
-    sessionId: string,
-  ): Promise<ApiResponse<void>> =>
+  customerSecuritySessionsDeleteV1: (sessionId: string): Promise<ApiResponse<void>> =>
     apiInstance.delete(`/v1/customer/security/sessions/${sessionId}`),
 
-  customerSecuritySessionsRevokeOthersV1: (
-    payload?: { keep_session_id?: string },
-  ): Promise<ApiResponse<ApiObject>> =>
+  customerSecuritySessionsRevokeOthersV1: (payload?: {
+    keep_session_id?: string;
+  }): Promise<ApiResponse<ApiObject>> =>
     apiInstance.post('/v1/customer/security/sessions/revoke-others', payload || {}),
 
-  customerPrivacyExportV1: (
-    payload?: { format?: 'json' },
-  ): Promise<ApiResponse<ApiObject>> =>
+  customerPrivacyExportV1: (payload?: { format?: 'json' }): Promise<ApiResponse<ApiObject>> =>
     apiInstance.post('/v1/customer/privacy/export', payload || {}),
 
   customerPrivacyDeleteRequestV1: (payload: {
@@ -376,16 +360,12 @@ export const customerApi = {
     payload: ApiObject,
     idempotencyKey?: string,
   ): Promise<ApiResponse<ApiObject>> =>
-    apiInstance.post(
-      `/v1/customer/checkout-sessions/${checkoutId}/payment-attempts`,
-      payload,
-      {
-        headers: {
-          'x-tenant-slug': tenantSlug,
-          ...(idempotencyKey ? { 'idempotency-key': idempotencyKey } : {}),
-        },
+    apiInstance.post(`/v1/customer/checkout-sessions/${checkoutId}/payment-attempts`, payload, {
+      headers: {
+        'x-tenant-slug': tenantSlug,
+        ...(idempotencyKey ? { 'idempotency-key': idempotencyKey } : {}),
       },
-    ),
+    }),
 
   customerCheckoutPaymentStatusV1: (
     tenantSlug: string,
@@ -393,6 +373,17 @@ export const customerApi = {
   ): Promise<ApiResponse<ApiObject>> =>
     apiInstance.get(`/v1/customer/checkout-sessions/${checkoutId}/payment-status`, {
       headers: { 'x-tenant-slug': tenantSlug },
+    }),
+
+  paymentSimulatePaid: (
+    provider: string,
+    payload: { provider_reference: string; external_event_id?: string },
+  ): Promise<ApiResponse<ApiObject>> =>
+    apiInstance.post(`/v1/payments/webhooks/${provider}`, {
+      status: 'paid',
+      provider_reference: payload.provider_reference,
+      external_event_id: payload.external_event_id ?? `simulate-${Date.now()}`,
+      payment_data: { simulated: true },
     }),
 };
 
@@ -408,8 +399,7 @@ export const posApi = {
   posSessionsFindAllV1: (params?: {
     status?: string;
     cinema_complex_id?: string;
-  }): Promise<ApiResponse<ApiList>> =>
-    apiInstance.get("/v1/pos-sessions", { params }),
+  }): Promise<ApiResponse<ApiList>> => apiInstance.get('/v1/pos-sessions', { params }),
 
   posSessionsFindOneV1: (id: string): Promise<ApiResponse<ApiObject>> =>
     apiInstance.get(`/v1/pos-sessions/${id}`),
@@ -417,8 +407,7 @@ export const posApi = {
   posSessionsCreateV1: (payload: {
     cinema_complex_id: string;
     opening_amount: number;
-  }): Promise<ApiResponse<ApiObject>> =>
-    apiInstance.post("/v1/pos-sessions", payload),
+  }): Promise<ApiResponse<ApiObject>> => apiInstance.post('/v1/pos-sessions', payload),
 
   posSessionsUpdateV1: (
     id: string,
@@ -428,11 +417,10 @@ export const posApi = {
       cash_counted?: number;
       closing_notes?: string;
     },
-  ): Promise<ApiResponse<ApiObject>> =>
-    apiInstance.put(`/v1/pos-sessions/${id}`, payload),
+  ): Promise<ApiResponse<ApiObject>> => apiInstance.put(`/v1/pos-sessions/${id}`, payload),
 
   posSessionStatusesV1: (): Promise<ApiResponse<ApiList>> =>
-    apiInstance.get("/v1/pos-sessions/statuses"),
+    apiInstance.get('/v1/pos-sessions/statuses'),
 
   posTransactionsCreateV1: (payload: {
     pos_session_id: string;
@@ -443,16 +431,13 @@ export const posApi = {
     description?: string;
     reference_type?: string;
     reference_id?: string;
-  }): Promise<ApiResponse<ApiObject>> =>
-    apiInstance.post("/v1/pos-transactions", payload),
+  }): Promise<ApiResponse<ApiObject>> => apiInstance.post('/v1/pos-transactions', payload),
 
-  posTransactionsFindBySessionV1: (
-    posSessionId: string,
-  ): Promise<ApiResponse<ApiList>> =>
+  posTransactionsFindBySessionV1: (posSessionId: string): Promise<ApiResponse<ApiList>> =>
     apiInstance.get(`/v1/pos-transactions/session/${posSessionId}`),
 
   posPaymentMethodsV1: (): Promise<ApiResponse<ApiList>> =>
-    apiInstance.get("/v1/pos-payment-methods"),
+    apiInstance.get('/v1/pos-payment-methods'),
 
   showtimesFindAllV1: (params?: {
     cinema_complex_id?: string;
@@ -460,8 +445,7 @@ export const posApi = {
     date?: string;
     page?: number;
     limit?: number;
-  }): Promise<ApiResponse<ApiList>> =>
-    apiInstance.get("/v1/showtimes", { params }),
+  }): Promise<ApiResponse<ApiList>> => apiInstance.get('/v1/showtimes', { params }),
 
   showtimesFindOneV1: (id: string): Promise<ApiResponse<ApiObject>> =>
     apiInstance.get(`/v1/showtimes/${id}`),
@@ -469,22 +453,17 @@ export const posApi = {
   showtimesSeatsV1: (id: string): Promise<ApiResponse<ApiObject>> =>
     apiInstance.get(`/v1/showtimes/${id}/seats`),
 
-  ticketTypesFindAllV1: (): Promise<ApiResponse<ApiList>> =>
-    apiInstance.get("/v1/ticket-types"),
+  ticketTypesFindAllV1: (): Promise<ApiResponse<ApiList>> => apiInstance.get('/v1/ticket-types'),
 
-  productsFindAllV1: (params?: {
-    active?: boolean;
-  }): Promise<ApiResponse<ApiList>> =>
-    apiInstance.get("/v1/products", { params }),
+  productsFindAllV1: (params?: { active?: boolean }): Promise<ApiResponse<ApiList>> =>
+    apiInstance.get('/v1/products', { params }),
 
   salesCreateV1: (payload: ApiObject): Promise<ApiResponse<ApiObject>> =>
-    apiInstance.post("/v1/sales", payload),
+    apiInstance.post('/v1/sales', payload),
 
-  complexesFindAllV1: (): Promise<ApiResponse<ApiList>> =>
-    apiInstance.get("/v1/cinema-complexes"),
+  complexesFindAllV1: (): Promise<ApiResponse<ApiList>> => apiInstance.get('/v1/cinema-complexes'),
 
-  saleTypesFindAllV1: (): Promise<ApiResponse<ApiList>> =>
-    apiInstance.get("/v1/sale-types"),
+  saleTypesFindAllV1: (): Promise<ApiResponse<ApiList>> => apiInstance.get('/v1/sale-types'),
 
   salesPaymentMethodsV1: (tenantSlug: string): Promise<ApiResponse<ApiList>> =>
     apiInstance.get(`/v1/public/companies/${tenantSlug}/payment-methods`),

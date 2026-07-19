@@ -3,6 +3,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { randomUUID } from 'crypto';
@@ -12,6 +13,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { SalesService } from 'src/modules/sales/services/sales.service';
 import { TicketsService } from 'src/modules/sales/services/tickets.service';
 import { SnowflakeService } from 'src/common/services/snowflake.service';
+import { EmailService } from 'src/modules/email/services/email.service';
 import {
   CheckoutConcessionInput,
   CheckoutTicketInput,
@@ -39,13 +41,24 @@ type CheckoutContext = {
 
 @Injectable()
 export class CheckoutSessionsService {
+  private readonly logger = new Logger(CheckoutSessionsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly salesService: SalesService,
     private readonly ticketsService: TicketsService,
     private readonly snowflake: SnowflakeService,
     private readonly cls: ClsService,
+    private readonly emailService: EmailService,
   ) {}
+
+  private isDevLike(): boolean {
+    const env = (process.env.NODE_ENV || '').toLowerCase();
+    if (env === 'production' || env === 'prod') {
+      return process.env.PAYMENTS_SIMULATE === '1';
+    }
+    return true;
+  }
 
   private getContext(): CheckoutContext {
     const companyId = this.cls.get<string>('companyId');
@@ -263,13 +276,15 @@ export class CheckoutSessionsService {
       dto.simulate_status ??
       (this.isPix(paymentMethod.name) ? 'pending' : 'paid');
     const providerReference = `${provider}_${randomUUID()}`;
-    const paymentData =
-      initialStatus === 'pending'
-        ? {
-            pix_qr_code: `FRAME24-PIX-${providerReference}`,
-            pix_copy_paste: `000201FRAME24${providerReference}`,
-          }
-        : {};
+    const isDev = this.isDevLike();
+    const paymentData = this.buildPaymentData({
+      provider,
+      providerReference,
+      initialStatus,
+      method: paymentMethod.name,
+      amount: Number(checkout.total_amount),
+      isDev,
+    });
 
     const attempt = await this.prisma.payment_attempts.create({
       data: {
@@ -307,6 +322,11 @@ export class CheckoutSessionsService {
     }
     if (['failed', 'expired'].includes(initialStatus)) {
       await this.releaseReservationForCheckout(checkout);
+    }
+
+    if (initialStatus === 'pending' && isDev && provider === 'internal') {
+      const finalized = await this.autoConfirmInternalPayment(attempt);
+      return this.mapPaymentAttempt(finalized.attempt, finalized.checkout);
     }
 
     const refreshed = await this.findCheckoutForCustomer(checkout.id, context);
@@ -427,6 +447,136 @@ export class CheckoutSessionsService {
     }
   }
 
+  private buildPaymentData(args: {
+    provider: string;
+    providerReference: string;
+    initialStatus: string;
+    method: string;
+    amount: number;
+    isDev: boolean;
+  }): Record<string, unknown> {
+    const {
+      provider,
+      providerReference,
+      initialStatus,
+      method,
+      amount,
+      isDev,
+    } = args;
+
+    if (initialStatus === 'pending' && this.isPix(method)) {
+      const brCode = this.buildPixBrCode({
+        providerReference,
+        amount,
+        isDev,
+      });
+      return {
+        pix_qr_code: brCode,
+        pix_copy_paste: brCode,
+        pix_expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+        simulate: isDev && provider === 'internal',
+      };
+    }
+
+    if (initialStatus === 'pending' && !this.isPix(method)) {
+      // Card-style provider awaiting external confirmation (Stripe-style
+      // client_secret). For the internal/dev provider we synthesize a
+      // deterministic secret so the frontend card tab can still mount in
+      // simulation mode; real providers will overwrite this with a real
+      // PaymentIntent secret.
+      const secret = `${providerReference}_secret_${randomUUID().slice(0, 12)}`;
+      return {
+        client_secret: secret,
+        payment_intent_id: providerReference,
+        redirect_url: null,
+        simulate: isDev && provider === 'internal',
+      };
+    }
+
+    return {};
+  }
+
+  private buildPixBrCode(args: {
+    providerReference: string;
+    amount: number;
+    isDev: boolean;
+  }): string {
+    // Simplified BR Code (EMV-style) for the internal/dev provider. This is
+    // NOT a real receivable PIX payload - no real bank account is encoded -
+    // but it follows the structural format so frontend QR renderers and
+    // copy/paste consumers parse it correctly in development/staging.
+    const { providerReference, amount } = args;
+
+    const merchantName = 'FRAME24';
+    const merchantCity = 'BRASIL';
+    const txid =
+      providerReference.replace(/[^A-Za-z0-9]/g, '').slice(0, 25) || '***';
+    const amountStr = amount.toFixed(2);
+
+    const fields: Array<[string, string]> = [
+      ['00', 'br.gov.bcb.pix01'], // Payload format indicator
+      [
+        '26',
+        this.emvField([
+          ['00', 'br.gov.bcb.pix'],
+          ['01', providerReference],
+        ]),
+      ],
+      ['52', '0000'], // Merchant category code
+      ['53', '986'], // Currency (BRL)
+      ['54', amountStr], // Transaction amount
+      ['58', 'BR'], // Country code
+      ['59', merchantName.slice(0, 25)],
+      ['60', merchantCity.slice(0, 15)],
+      ['62', this.emvField([['05', txid]])],
+    ];
+
+    const payload = fields
+      .map(([id, val]) => this.emvField([[id, val]]))
+      .join('');
+    const withCrc = `${payload}6304`;
+    const crc = this.crc16(withCrc);
+    return `${withCrc}${crc}`;
+  }
+
+  private emvField(parts: Array<[string, string]>, id?: string): string {
+    const body = parts
+      .map(([fieldId, value]) =>
+        id
+          ? this.emvField([[fieldId, value]])
+          : `${fieldId}${value.length.toString().padStart(2, '0')}${value}`,
+      )
+      .join('');
+    if (!id) return body;
+    return `${id}${body.length.toString().padStart(2, '0')}${body}`;
+  }
+
+  private crc16(payload: string): string {
+    let crc = 0xffff;
+    for (let i = 0; i < payload.length; i++) {
+      crc ^= payload.charCodeAt(i) << 8;
+      for (let j = 0; j < 8; j++) {
+        crc =
+          crc & 0x8000 ? ((crc << 1) ^ 0x1021) & 0xffff : (crc << 1) & 0xffff;
+      }
+    }
+    return crc.toString(16).toUpperCase().padStart(4, '0');
+  }
+
+  private async autoConfirmInternalPayment(
+    attempt: PaymentAttempt,
+  ): Promise<{ attempt: PaymentAttempt; checkout: CheckoutWithRelations }> {
+    this.logger.log(
+      `Auto-confirming internal payment ${attempt.provider_reference} (simulation mode)`,
+    );
+
+    return this.finalizePaidAttempt(attempt.id, {
+      provider_reference: attempt.provider_reference,
+      status: 'paid',
+      payment_data: { simulated: true },
+    });
+  }
+
   private async finalizePaidAttempt(
     attemptId: string,
     webhook?: PaymentWebhookDto,
@@ -526,6 +676,14 @@ export class CheckoutSessionsService {
         public_reference: sale.public_reference ?? sale.id,
       },
       include: this.checkoutInclude(),
+    });
+
+    await this.sendSaleTicketEmail(checkout).catch((error) => {
+      this.logger.warn(
+        `Failed to send ticket email for sale ${sale.id}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
     });
 
     return { attempt: updatedAttempt, checkout };
@@ -952,6 +1110,56 @@ export class CheckoutSessionsService {
         reservation_date: null,
         expiration_date: null,
       },
+    });
+  }
+
+  private async sendSaleTicketEmail(checkout: CheckoutWithRelations) {
+    const customer = await this.prisma.customers.findFirst({
+      where: { id: checkout.customer_id },
+    });
+    if (!customer?.email) {
+      return;
+    }
+
+    const sale = await this.prisma.sales.findUnique({
+      where: { id: checkout.sale_id! },
+      include: { tickets: true },
+    });
+    if (!sale) {
+      return;
+    }
+
+    const showtime = await this.prisma.showtime_schedule.findFirst({
+      where: { id: checkout.showtime_id },
+      include: { cinema_complexes: true },
+    });
+    const movie = showtime?.movie_id
+      ? await this.prisma.movies.findUnique({
+          where: { id: showtime.movie_id },
+        })
+      : null;
+
+    const movieTitle =
+      movie?.brazil_title || movie?.original_title || 'Ingresso';
+    const showtimeLabel = showtime?.start_time
+      ? new Date(showtime.start_time).toLocaleString('pt-BR')
+      : 'Horário indisponível';
+    const cinemaName = showtime?.cinema_complexes?.name || 'Cinema';
+    const frontendUrl = (
+      process.env.FRONTEND_URL?.split(',')[0] || 'http://localhost:3000'
+    ).trim();
+
+    const firstTicketNumber =
+      sale.tickets[0]?.ticket_number ?? sale.sale_number;
+
+    await this.emailService.sendCustomerTicketEmail({
+      to: customer.email,
+      customerName: customer.full_name,
+      movieTitle,
+      cinemaName,
+      showtimeLabel,
+      ticketNumber: firstTicketNumber,
+      ticketUrl: `${frontendUrl}/perfil/ingressos/${sale.tickets[0]?.id ?? sale.id}`,
     });
   }
 

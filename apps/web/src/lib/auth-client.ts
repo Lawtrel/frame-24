@@ -17,7 +17,7 @@ export const authClient = {
 
   async getSession() {
     try {
-      const response = await apiInstance.get("/api/auth/get-session");
+      const response = await apiInstance.get("/v1/auth/session");
       return response.data;
     } catch {
       return null;
